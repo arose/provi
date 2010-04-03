@@ -1,0 +1,243 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+    <meta name="generator" content="HTML Tidy for Mac OS X (vers 11 August 2008), see www.w3.org">
+
+    <title>Jmol viewer</title>
+    
+    <link rel='stylesheet' type='text/css' href='../js/lib/jquery-dynatree/skin/ui.dynatree.css'>
+    <link type="text/css" href="../js/lib/jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
+    <link rel='stylesheet' type='text/css' href='../css/view.css'>
+    <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
+    
+    <script type="text/javascript" src="../applet/jmol/11.8.22/Jmol.js"></script>
+    
+    <script type="text/javascript" src="../js/lib/sylvester.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.getUrlParam.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.mousewheel.min.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.bgiframe.js"></script>
+    <script src="../js/lib/jquery.cookie.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery-ui-1.7.2.custom/js/jquery-ui-1.7.2.custom.min.js"></script>
+    
+    <script src='../js/lib/jquery-dynatree/jquery.dynatree.js' type='text/javascript'></script>
+    <script language="javascript" type="text/javascript" src="../js/lib/protovis-r3.1.js"></script>
+    
+    <script type="text/javascript">
+	$(function(){
+            //all hover and click logic for buttons
+            $(".fg-button:not(.ui-state-disabled)")
+            .hover(
+                function(){ 
+                    $(this).addClass("ui-state-hover"); 
+                },
+                function(){ 
+                    $(this).removeClass("ui-state-hover"); 
+                }
+            )
+            .mousedown(function(){
+                $(this).parents('.fg-buttonset-single:first').find(".fg-button.ui-state-active").removeClass("ui-state-active");
+                    if( $(this).is('.ui-state-active.fg-button-toggleable, .fg-buttonset-multi .ui-state-active') ){ $(this).removeClass("ui-state-active"); }
+                    else { $(this).addClass("ui-state-active"); }	
+            })
+            .mouseup(function(){
+                if(! $(this).is('.fg-button-toggleable, .fg-buttonset-single .fg-button,  .fg-buttonset-multi .fg-button') ){
+                    $(this).removeClass("ui-state-active");
+                }
+            });
+	});
+    </script>
+    
+    <script type="text/javascript" src="../js/prov.view_lib.js"></script>
+    <script type="text/javascript" src="../js/prov.view.js"></script>
+</head>
+
+<body>
+    
+    <div id="splitter" class="" style="height:100%; width:100%;">
+        <div id="jmolWindow" class="" style="overflow:auto; height:100%">
+            <script type="text/javascript">
+                jmolInitialize("../applet/jmol/11.8.22/");
+                jmolSetAppletColor("white");
+                //jmolApplet("95%");
+		jmolApplet("95%","load " + pdb_url + ";");
+                //jmolApplet([350,200],"load " + pdb_url + ";");
+            </script>
+        </div>
+        
+        <div id="jmolControls" class="" style="height:100%; width:100%;">
+            
+            <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left:0px; right: 0px;">
+                <ul id="tab_tabs">
+                    <!--<li><a href="#dataset-info">Dataset Info</a></li>-->
+                    <li><a href="#controls">Controls</a></li>
+                    <li><a href="#tree">Protein</a></li>
+                    <!--<li><a href="#contacts">Contacts</a></li>-->
+                    <li id="ajax-spinner" style="float:right;"><img style="float:right;" src="../images/ajax-spinner-small-transparent.gif" /></li>
+                </ul>
+            
+                <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
+                
+                    <div id="dataset-info" class="ui-tabs-hide">
+                        <dl id="datasetInfo" class="table-display">
+                            <!-- will be added via javascript -->
+                        </dl>
+                    </div>
+    
+                    <div id="controls" class="ui-tabs-hide">
+                        
+                        <div class="control_group" id="interface">
+                            <div class="control_row">
+                                <label for="interface_name">interface contacts for</label>
+                                <select id="interface_name" class="ui-state-default">
+                                    <option value="helix">all helices</option>
+                                </select>
+                            </div>
+                            
+                            <div class="control_row">
+                                <label for="cutoff">interface contact cutoff</label>
+                                <select id="cutoff" class="ui-state-default">
+                                    <option value="2.8">2.8</option>
+                                    <option value="2.5">2.5</option>
+                                    <option value="2.0">2.0</option>
+                                    <option value="1.5" selected="selected">1.5</option>
+                                    <option value="1.0">1.0</option>
+                                    <option value="0.5">0.5</option>
+                                    <option value="0.0">0.0</option>
+                                    <option value="-0.5">-0.5</option>
+                                </select>&nbsp;&#8491;
+                            </div>
+                            
+                            <div class="control_row">
+                                <input id="show_only_interface_atoms" type="checkbox" />
+                                <label for="show_only_interface_atoms">show only interface atoms/residues</label>
+                            </div>
+                            <div class="control_row">
+                                <input id="color_interface_residue" type="checkbox" />
+                                <label for="color_interface_residue">color the complete residue (not only the contact making atom)</label>
+                            </div>
+                            <i>interface atoms are shown in orange</i>
+                        </div>
+                        
+                        <div id="mplane" class="control_group">
+                            <div class="control_row">
+                                <label for="mplane_size">membrane plane size</label>
+                                <select id="mplane_size" class="ui-state-default">
+                                    <option value="1">hide</option>
+                                    <option id="mplane_size_slider_option" value="1">slider</option>
+                                    <option value="100">100</option>
+                                    <option value="200">200</option> 
+                                    <option value="300">300</option>
+                                    <option value="400">400</option>
+                                    <option value="500" selected="selected">500</option>
+                                    <option value="600">600</option>
+                                    <option value="700">700</option>
+                                    <option value="800">800</option>
+                                    <option value="1000">1000</option>
+                                    <option value="1200">1200</option>
+                                    <option value="1400">1400</option>
+                                </select>
+                            </div>
+                        
+                            <div class="control_row">
+                                <input id="mplane_visibility" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>
+                                <div id="mplane_size_slider"></div>
+                            </div>
+                            <i>the membrane planes are shown in blue and are semi transparent</i>
+                        </div>
+                        
+                        <div id="hbonds" class="control_group">
+                            <label id="show_hbonds_label" for="show_hbonds_check">show hydrogen bonds</label>
+                            <input id="show_hbonds_check" type="checkbox" />
+                            <select id="show_hbonds_select" class="ui-state-default">
+                                <option value="" selected="selected">none</option>
+                                <option value="all">all available</option>
+                                <option value="interhelical">interhelical</option>
+                            </select>
+                            <div>
+                                <i>the hydrogen bonds are shown in blue; residues donor and acceptor atoms are light green</i>
+                            </div>
+                        </div>
+                        
+                        <div class="control_group">
+                            <div class="control_row">
+                                <label for="style">style</label>
+                                <select id="style" class="ui-state-default">
+                                    <option value="backbone">backbone</option>
+                                    <option value="wireframe">wireframe</option>
+                                    <option value="cartoon">cartoon</option>
+                                    <option value="wireframe+backbone">wireframe & backbone</option>
+                                    <option value="cartoon+wireframe" selected="selected">cartoon & wireframe</option>
+                                </select>
+                            </div>
+                            
+                            <div class="control_row">
+                                <label id="clipping_slider_label" for="clipping_slider" style="display:block;">clipping</label>
+                                <input id="clipping_state" type="checkbox" style="float:left; margin-top: 0.5em;"/>
+                                <div id="clipping_slider"></div>
+                            </div>
+                            
+                            <div class="control_row">
+                                <button class="fg-button ui-state-default ui-corner-all" id="center_protein">center protein</button>
+                            </div>
+                        </div>
+                        
+                        <div id="state" class="control_group">
+                            <button class="fg-button ui-state-default ui-corner-all" id="save_state">Save state</button>
+                            Note, this currently saves just the Jmol state, not the state of the control panel.
+                        </div>
+                        
+                        <div id="jmolCmd">
+                            <label for="jmolCmdInput">Execute a Jmol command (<a href="http://chemapps.stolaf.edu/jmol/docs/" target="_blank">docu</a>):</label>
+                            <input type="text" id="jmolCmdInput" class="ui-state-default" style="margin-top:0.2em; width:100%;"/>
+                            <div id="jmolCmdLog" style="overflow:auto; max-height:300px; min-height:150px; margin-top:10px;  padding: 2px;" class="ui-state-default ui-state-disabled"></div>
+                        </div>
+                        
+                       
+                    </div>
+                    
+                    <div id="tree" class="ui-tabs-hide">
+                        <div id="pdb_tree"></div>
+                    </div>
+                    
+                    <div id="contacts" class="ui-tabs-hide">
+                        <div>
+                            <label id="contact_type_label" for="contact_type">contact type</label>
+                            <select id="contact_type">
+                                <option value="BackboneKontakt">backbone</option>
+                                <option value="CaKontakt">ca</option>
+                                <option value="SeitenkettenKontakt">sidechain</option>
+                            </select>
+                        </div>
+                        <label for="max_atom_distance">max atom distance</label>
+                        <input type="text" id="max_atom_distance"/>
+                        <br/>
+                        <label for="max_helix_distance">max helix distance</label>
+                        <input type="text" id="max_helix_distance"/>
+                        <br/>
+                        <label for="max_axis_angle">max contact axis angle</label>
+                        <input type="text" id="max_axis_angle"/>
+                        <br/>
+                        <label for="show_only_contact_helices">show only contact helices</label>
+                        <input type="checkbox" id="show_only_contact_helices"/>
+                        <hr/>
+                        <label for="draw_contact_graph">draw contact graph</label>
+                        <input type="checkbox" id="draw_contact_graph"/>
+                        <br/>
+                        <div id="contactGraph"></div>
+                        <hr/>
+                        <div id="contacts_tree"></div>
+                    </div>
+                
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    
+
+</body>
+</html>
