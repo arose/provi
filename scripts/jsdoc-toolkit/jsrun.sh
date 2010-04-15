@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/sh
 
 # launcher script for jsdoc
 # Author: Avi Deitcher
