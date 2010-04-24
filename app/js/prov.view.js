@@ -273,8 +273,14 @@ $(document).ready(function(){
         $('#state').hide();
     }
 
-    $('#center_protein').click(function (){
+    $('#center_protein').click(function(){
         jmolScript('zoom(all) 100;');
     });
+    
+    $('#load_file').change(function(){
+        var reader = new FileReader();  
+        reader.onload = function(e) { jmolLoadInline(e.target.result); };
+        reader.readAsText(this.files[0]);  
+    })
     
 });
