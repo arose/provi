@@ -2,13 +2,14 @@ import re
 import simplejson as json
 import os
 import os.path
+from tempfile import TemporaryFile, NamedTemporaryFile
 
 from MembraneProtein.AndreanTools import contact
 from MembraneProtein.AndreanTools import membran_neu
 from MembraneProtein import HBexplore
 
 from Bio.PDB.PDBParser import PDBParser
-
+from provi.framework import expose
 
 
 class Data( object ):
@@ -19,19 +20,24 @@ class Data( object ):
 class Pdb( Data ):
     """PDB"""
     
-    def __init__( self, file_name ):
-        self.file_name = file_name
+    def __init__( self, data ):
+        self.data = data
     
     def get_structure( self ):
+        tmp_file = NamedTemporaryFile()
+        tmp_file.write( self.data )
+        tmp_file.flush()
         parser = PDBParser()
-        struc = parser.get_structure( os.path.basename(self.file_name), self.file_name )
+        struc = parser.get_structure( 'structure', tmp_file.name )
         return struc
     
+    @expose
     def get_tree( self, **kwargs ):
         return pdb_tree_view( self.get_structure(), **kwargs)
     
-    def get_pdb( self ):
-        return open( self.file_name ).read()
+    @expose
+    def get_pdb( self, **kwargs ):
+        return data
     
 
 

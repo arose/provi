@@ -9,6 +9,10 @@ from provi.framework import base
 import json
 import beaker.middleware
 
+from provi.framework import expose
+from provi.data import Pdb
+
+
 logging.basicConfig( level=logging.DEBUG )
 LOG = logging.getLogger('provi')
 LOG.setLevel( logging.DEBUG )
@@ -30,26 +34,41 @@ class DataStorage(object):
 
 
 class DataProvider(object):
-    def __init__( self, datatype ):
-        pass
+    valid_types = {
+        'pdb': Pdb,
+    }
+    def __init__( self, datatype, data ):
+        self.raw_data = data
+        self.type = self.valid_types[datatype]( data )
+    def get_raw_data( self ):
+        return self.raw_data
+    
     
 class GalaxyDataProvider( DataProvider ):
     def __init__( self, datatype, hda_id=None ):
-        pass
-    def __retrieve( self ):
+        data = self._retrieve( hda_id )
+        DataProvider.__init__( self, datatype, data )
+    def _retrieve( self, hda_id ):
         # get from galaxy instance
-        pass
+        data = None
+        return data
+
 
 class FileDataProvider( DataProvider ):
     def __init__( self, datatype, data=None ):
-        pass
+        DataProvider.__init__( self, datatype, data )
+
 
 class LocalDataProvider( DataProvider ):
     def __init__( self, datatype, file_path=None ):
-        pass
-    def __retrieve( self ):
+        data = self._retrieve( hda_id )
+        DataProvider.__init__( self, datatype, data )
+    def _retrieve( self, file_path ):
         # read from local path
-        pass
+        fp = open( file_path )
+        data = fp.read()
+        fp.close()
+        return data
 
 
 class BaseController( object ):
@@ -58,7 +77,6 @@ class BaseController( object ):
         self.app = app
 
 
-from provi.framework import expose
 class DataController( BaseController ):
     valid_providers = {
         'galaxy': GalaxyDataProvider,
@@ -68,21 +86,30 @@ class DataController( BaseController ):
     
     @expose
     def index( self, trans, **kwargs ):
-        print str( trans )
-        LOG.debug( str(kwargs) )
         return 'data storage %s' % str( trans.storage.data_dict )
     
     @expose
-    def get( self, trans, id ):
-        data = trans.storage.get( int(id) )
-        return 'get data with id %s: %s' % ( id, str(data) )
+    def get( self, trans, id, data_action=None, **kwargs ):
+        data_provider = trans.storage.get( int(id) )
+        if not data_action:
+            return data_provider.get_raw_data()
+        datatype = data_provider.type
+        method = getattr( datatype, data_action, None )
+        if method is None:
+            raise httpexceptions.HTTPNotFound( "No action for " + path_info )
+        # Is the method exposed
+        if not getattr( method, 'exposed', False ): 
+            raise httpexceptions.HTTPNotFound( "Action not exposed for " + path_info )
+        # Is the method callable
+        if not callable( method ):
+            raise httpexceptions.HTTPNotFound( "Action not callable for " + path_info )
+        return method( **kwargs )
     
     @expose
     def add( self, trans, datatype, provider, **kwargs ):
         data_provider = self.valid_providers[provider]( datatype, **kwargs )
         id = trans.storage.add( data_provider )
-        
-        return 'added id: %s' % str(id)
+        return str(id)
 
 
 class ProteinViewerApplication( object ):
@@ -129,7 +156,6 @@ def app_factory( global_conf, **kwargs ):
 
 
 def wrap_in_middleware( app, global_conf, **local_conf  ):
-    
     conf = global_conf.copy()
     conf.update(local_conf)
     
