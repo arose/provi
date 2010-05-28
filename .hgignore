@@ -5,4 +5,5 @@ syntax: glob
 *.sync.db
 *.sync.db-journal
 
-doc/
+doc/jsdoc/*
+doc/sphinx/_build
