@@ -1,0 +1,8 @@
+syntax: glob
+
+*.DS_Store
+*.kpf
+*.sync.db
+*.sync.db-journal
+
+doc/
