@@ -86,51 +86,54 @@ $(document).ready(function(){
     }else{
         var pdb_tree_url = "../../datasets/" + $(document).getUrlParam("dataset_id") + "/display/" + filename + "?pdb_tree=1";
     }
-    $("#pdb_tree").dynatree({
-        checkbox: true,
-        selectMode: 3,
-        initAjax: {
-            url: pdb_tree_url,
-            data: {
-                'root': "source"
-            }
-        },
-        onLazyRead: function(dtnode){
-            dtnode.appendAjax({
+    
+    function init_pdb_tree(pdb_tree_url){
+        $("#pdb_tree").dynatree({
+            checkbox: true,
+            selectMode: 3,
+            initAjax: {
                 url: pdb_tree_url,
                 data: {
-                    "root": dtnode.data.key
-                },
-                success: function(dtnode) {
-                    if(dtnode.isSelected()){
-                        $.each(dtnode.childList, function(){
-                            this._select(true,false,true);
-                        });
+                    'root': "source"
+                }
+            },
+            onLazyRead: function(dtnode){
+                dtnode.appendAjax({
+                    url: pdb_tree_url,
+                    data: {
+                        "root": dtnode.data.key
+                    },
+                    success: function(dtnode) {
+                        if(dtnode.isSelected()){
+                            $.each(dtnode.childList, function(){
+                                this._select(true,false,true);
+                            });
+                        }
                     }
+                });
+            },
+            onSelect: function(flag, dtnode) {
+                if( ! flag ){
+                    var key = dtnode.data.key.split('-');
+                    //console.log("You deselected node with title " + dtnode.data.title);
+                    //console.log(key);
+                    var s;
+                    if(key.length == 3){
+                        s = "select " + key[2] + ":" + key[1] + "; color grey;";
+                    }else if(key.length == 2){
+                        s = "select *:" + key[1] + "; color grey;";
+                    }else if(key.length == 1){
+                        s = "select all; color grey;";
+                    }
+                    //console.log(s);
+                    jmolScript(s);
+                    interfaces.draw();
                 }
-            });
-        },
-        onSelect: function(flag, dtnode) {
-            if( ! flag ){
-                var key = dtnode.data.key.split('-');
-                //console.log("You deselected node with title " + dtnode.data.title);
-                //console.log(key);
-                var s;
-                if(key.length == 3){
-                    s = "select " + key[2] + ":" + key[1] + "; color grey;";
-                }else if(key.length == 2){
-                    s = "select *:" + key[1] + "; color grey;";
-                }else if(key.length == 1){
-                    s = "select all; color grey;";
-                }
-                //console.log(s);
-                jmolScript(s);
-                interfaces.draw();
+                colorSelectedNodes(dtnode.tree);
+                //console.log("Selected keys: '" + selectedKeys.join("', '") + "'");
             }
-            colorSelectedNodes(dtnode.tree);
-            //console.log("Selected keys: '" + selectedKeys.join("', '") + "'");
-        }
-    });
+        });
+    }
     
     if($(document).getUrlParam("helixcontact_dataset_id")){
         var contacts_tree_url = "../../datasets/" + $(document).getUrlParam("helixcontact_dataset_id") + "/display/" + (filename ? filename.substring(0,filename.lastIndexOf('.')) + '.helixcontact' : '');
@@ -279,8 +282,20 @@ $(document).ready(function(){
     
     $('#load_file').change(function(){
         var reader = new FileReader();  
-        reader.onload = function(e) { jmolLoadInline(e.target.result); };
-        reader.readAsText(this.files[0]);  
-    })
+        reader.onload = function(e) {
+            console.log('data loaded');
+            //jmolLoadInline(e.target.result);
+            var add_data_url = "../../data/add/";
+            var data_to_post = {'datatype': 'pdb', 'provider': 'file', 'data': e.target.result};
+            $.post( add_data_url, data_to_post, function(post_response_data){
+                console.log('add data response:', post_response_data);
+                $.get( '../../data/get/', {'id': post_response_data}, function(get_response_data){
+                    jmolLoadInline(get_response_data);
+                });
+                init_pdb_tree( "../../data/get/?id=" + post_response_data + "&data_action=get_tree" );
+            });
+        };
+        reader.readAsText(this.files[0]);
+    });
     
 });

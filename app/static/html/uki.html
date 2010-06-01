@@ -5,11 +5,73 @@
 <head>
     <title>Test using uki</title>
     <script type="text/javascript" src="../js/lib/jquery.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.mousewheel.min.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery-ui-1.7.2.custom/js/jquery-ui-1.7.2.custom.min.js"></script>
+    
     <script type="text/javascript" src="../js/lib/uki.dev.js"></script>
+    <script type="text/javascript" src="../js/prov.uki.js"></script>
+    
     <script type="text/javascript" src="../applet/jmol/11.8.22/Jmol.js"></script>
+    
+    <script type="text/javascript" src="../js/utils.js"></script>
+    
+    <script type="text/javascript" src="../js/prov.jmol.js"></script>
+    <script type="text/javascript" src="../js/prov.data.js"></script>
+    
     <style>body, html { margin: 0; padding: 0; };</style>
+    <link type="text/css" href="../js/lib/jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
+    <link rel='stylesheet' type='text/css' href='../css/view.css'>
+    <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
 </head>
 <body>
-    <script type="text/javascript" src="../js/prov.uki.js"></script>
+    <script type="text/javascript">
+        
+        $(document).ready(function(){
+            uki({
+                // create a split pane...
+                view: 'HSplitPane', rect: '1000 600', anchors: 'left top right bottom',
+                handlePosition: 800, leftMin: 700, rightMin: 300, autogrowLeft: true, autogrowRight: false,
+                // ...with button on the left
+                leftChildViews: [
+                    { view: 'Box', rect: '800 600', anchors: 'left top right bottom', id: 'main', text: 'bar' }
+                ],
+                // ...and a vertical split pane on the right...
+                rightChildViews: [
+                    { view: 'TabPanel', rect: '0 0 190 600', anchors: 'left top right bottom', id: 'tab-panel', config: {
+                        bar: { rect: '0 0 180 24', anchors: 'left top right' },
+                        tabs: [
+                            {
+                                button: { text: 'Controls' },
+                                panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-controls' }
+                            },
+                            {
+                                button: { text: 'Tree' },
+                                panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-tree' }
+                            },
+                            {
+                                button: { text: 'Load' },
+                                panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-load' }
+                            }
+                        ]}
+                    }
+                ]
+            }).attachTo( window, '1000 600' );
+            uki('#tab-panel')[0]._initVisibility();
+            
+            initJmol();
+            addJmolApplet('main', '99%', '99%');
+            
+            
+            
+            widget( uki('#tab-controls'), '<span>Controls...</span>', '100 100', 'control-widget', 'left top right bottom' );
+            widget( uki('#tab-tree'), '<span>Tree...</span>', '100 100', 'tree-widget', 'left top right bottom' );
+            
+            jmolWidget( uki('#tab-controls'), '100 100', 'jmol-console-widget', 'left right' );
+            //loadDataWidget( uki('#tab-load'), '100 100', 'load-data-widget', 'left right' );
+            //styleWidget( uki('#tab-controls'), '100 100', 'style-widget', 'left right' );
+            
+        });
+        
+    </script>
 </body>
 </html>
