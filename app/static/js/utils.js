@@ -1,3 +1,19 @@
+if(typeof window.console === "undefined") {
+    window.console = { log: function() { } };
+}
+
+if (window.opera && !window.console) {
+    window.console = {};
+    var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+    "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+    for (var i = 0; i < names.length; ++i)
+        window.console[names[i]] = function() {}
+    window.console.log = function() {
+        opera.postError(arguments);
+    }
+}
+
+
 /**
     A function for the Array object to reduce an array to unique elements
     @function
@@ -66,5 +82,67 @@ Array.prototype.removeItems = function(itemsToRemove) {
                 j++;
             }
         }
+    }
+}
+
+
+
+Utils = {};
+
+Utils.object_size_fn = function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+
+Utils.extend = function(f, e) {
+    function g() {}
+    g.prototype = f.prototype || f;
+    var new_class = new g();
+    for (name in e) {
+        new_class[name] = e[name];
+    }
+    return new_class;
+};
+
+Utils.get_class = function(obj) {
+    // Retrieves the class name  
+    // 
+    // version: 1004.2314
+    // discuss at: http://phpjs.org/functions/get_class    // +   original by: Ates Goral (http://magnetiq.com)
+    // +   improved by: David James
+    // *     example 1: get_class(new (function MyClass() {}));
+    // *     returns 1: "MyClass"
+    // *     example 2: get_class({});    // *     returns 2: "Object"
+    // *     example 3: get_class([]);
+    // *     returns 3: false
+    // *     example 4: get_class(42);
+    // *     returns 4: false    // *     example 5: get_class(window);
+    // *     returns 5: false
+    // *     example 6: get_class(function MyFunction() {});
+    // *     returns 6: false
+    if (obj instanceof Object && !(obj instanceof Array) &&         !(obj instanceof Function) && obj.constructor &&
+        obj != this.window) {
+        var arr = obj.constructor.toString().match(/function\s*(\w+)/);
+ 
+        if (arr && arr.length == 2) {            return arr[1];
+        }
+    }
+ 
+    return false;
+}
+
+/**
+    @function
+ */
+Utils.wait = function(timeout, checkFn, onEndFn) {
+    if (checkFn()){
+        onEndFn();
+    } else {
+        setTimeout(function(){
+            Utils.wait(timeout, checkFn, onEndFn);
+        }, timeout);
     }
 }

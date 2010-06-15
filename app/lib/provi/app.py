@@ -6,11 +6,11 @@ from webob import Request, Response
 from webob import exc
 import threading
 from provi.framework import base
-import json
+import simplejson as json
 import beaker.middleware
 
 from provi.framework import expose
-from provi.data import Pdb
+from provi.data import Dataset
 
 
 logging.basicConfig( level=logging.DEBUG )
@@ -34,14 +34,11 @@ class DataStorage(object):
 
 
 class DataProvider(object):
-    valid_types = {
-        'pdb': Pdb,
-    }
-    def __init__( self, datatype, data ):
-        self.raw_data = data
-        self.type = self.valid_types[datatype]( data )
+    def __init__( self, datatype, data, name=None ):
+        self.dataset = Dataset( data, name=name, type=datatype )
+        self.datatype = self.dataset.type
     def get_raw_data( self ):
-        return self.raw_data
+        return self.dataset.data
     
     
 class GalaxyDataProvider( DataProvider ):
@@ -55,8 +52,8 @@ class GalaxyDataProvider( DataProvider ):
 
 
 class FileDataProvider( DataProvider ):
-    def __init__( self, datatype, data=None ):
-        DataProvider.__init__( self, datatype, data )
+    def __init__( self, datatype, data=None, name=None ):
+        DataProvider.__init__( self, datatype, data, name=name )
 
 
 class LocalDataProvider( DataProvider ):
@@ -77,6 +74,19 @@ class BaseController( object ):
         self.app = app
 
 
+class PluploadController( BaseController ):
+    @expose
+    def index( self, trans, datatype, provider, chunk=None, chunks=None, name="" ):
+        name = re.sub('/[^\w\._]+/', '', name)
+        env = trans.environ
+        if 'HTTP_CONTENT_TYPE' in env:
+            content_type = env['HTTP_CONTENT_TYPE']
+        if 'CONTENT_TYPE' in env:
+            content_type = env['CONTENT_TYPE']
+        data = env['wsgi.input'].read()
+        data_controller = DataController( self.app )
+        return data_controller.add( trans, datatype, provider, name=name, data=data )
+
 class DataController( BaseController ):
     valid_providers = {
         'galaxy': GalaxyDataProvider,
@@ -93,7 +103,7 @@ class DataController( BaseController ):
         data_provider = trans.storage.get( int(id) )
         if not data_action:
             return data_provider.get_raw_data()
-        datatype = data_provider.type
+        datatype = data_provider.datatype
         method = getattr( datatype, data_action, None )
         if method is None:
             raise httpexceptions.HTTPNotFound( "No action for " + path_info )
@@ -103,13 +113,18 @@ class DataController( BaseController ):
         # Is the method callable
         if not callable( method ):
             raise httpexceptions.HTTPNotFound( "Action not callable for " + path_info )
-        return method( **kwargs )
+        return method( data_provider.dataset, **kwargs )
     
     @expose
     def add( self, trans, datatype, provider, **kwargs ):
         data_provider = self.valid_providers[provider]( datatype, **kwargs )
         id = trans.storage.add( data_provider )
-        return str(id)
+        dataset = data_provider.dataset
+        return json.dumps({
+            'id': id,
+            'type': dataset.type.file_ext,
+            'status': 'Ok'
+        })
 
 
 class ProteinViewerApplication( object ):
@@ -148,6 +163,9 @@ def app_factory( global_conf, **kwargs ):
     
     webapp.add_controller( 'Data', DataController(webapp) )
     webapp.add_route('/data/:action/', controller='Data', action='index')
+    
+    webapp.add_controller( 'Plupload', PluploadController(webapp) )
+    webapp.add_route('/plupload/:action/', controller='Plupload', action='index')
     
     webapp = wrap_in_middleware( webapp, global_conf, **kwargs )
     webapp = wrap_in_static( webapp, global_conf, **kwargs )
