@@ -414,9 +414,10 @@ var jmolEvalPrint = {
         this.input = input;
         this.log = log;
         this.history = new HistoryManager();
-        
+        console.log(this.input);
         var self = this;
         this.input.keypress(function(event) {
+            console.log(event.keyCode);
             if (event.keyCode == 13 && this.value) {
                 try {
                     var cmd = this.value;

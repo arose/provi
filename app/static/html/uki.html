@@ -4,74 +4,294 @@
 <html lang="en">
 <head>
     <title>Test using uki</title>
+    
     <script type="text/javascript" src="../js/lib/jquery.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.mousewheel.min.js"></script>
+    <script src="../js/lib/jquery.cookie.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-ui-1.7.2.custom/js/jquery-ui-1.7.2.custom.min.js"></script>
     
-    <script type="text/javascript" src="../js/lib/uki.dev.js"></script>
-    <script type="text/javascript" src="../js/prov.uki.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.sizes.js"></script>
+    <script type="text/javascript" src="../js/lib/jlayout.grid.js"></script>
+    <script type="text/javascript" src="../js/lib/jlayout.border.js"></script>
+    <script type="text/javascript" src="../js/lib/jlayout.flexgrid.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.jlayout.js"></script>
     
-    <script type="text/javascript" src="../applet/jmol/11.8.22/Jmol.js"></script>
+    <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.min.js"></script>
+    
+    <!--<script type="text/javascript" src="../js/lib/uki.dev.js"></script>
+    <script type="text/javascript" src="../js/prov.uki.js"></script>-->
+    
+    <!--<script type="text/javascript" src="../applet/jmol/11.8.24/Jmol.js"></script>-->
     
     <script type="text/javascript" src="../js/utils.js"></script>
     
+    <script type="text/javascript" src="../js/prov.widget.js"></script>
+    <script type="text/javascript" src="../js/prov.smcra.js"></script>
     <script type="text/javascript" src="../js/prov.jmol.js"></script>
     <script type="text/javascript" src="../js/prov.data.js"></script>
     
-    <style>body, html { margin: 0; padding: 0; };</style>
+    <script type="text/javascript">
+        
+        // needed by Jmol to work properly
+        var _jmol = {};
+    
+	$(function(){
+            //all hover and click logic for buttons
+            $(".fg-button:not(.ui-state-disabled)")
+            .hover(
+                function(){ 
+                    $(this).addClass("ui-state-hover"); 
+                },
+                function(){ 
+                    $(this).removeClass("ui-state-hover"); 
+                }
+            )
+            .mousedown(function(){
+                $(this).parents('.fg-buttonset-single:first').find(".fg-button.ui-state-active").removeClass("ui-state-active");
+                    if( $(this).is('.ui-state-active.fg-button-toggleable, .fg-buttonset-multi .ui-state-active') ){ $(this).removeClass("ui-state-active"); }
+                    else { $(this).addClass("ui-state-active"); }	
+            })
+            .mouseup(function(){
+                if(! $(this).is('.fg-button-toggleable, .fg-buttonset-single .fg-button,  .fg-buttonset-multi .fg-button') ){
+                    $(this).removeClass("ui-state-active");
+                }
+            });
+	});
+    </script>
+    
     <link type="text/css" href="../js/lib/jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
     <link rel='stylesheet' type='text/css' href='../css/view.css'>
     <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
+    <style>
+        
+        .ui-tabs {
+            padding: 0em;
+            border: none;
+        }
+
+        .ui-tabs-nav {
+            border-left: none;
+            border-right: none;
+        }
+        
+        /*
+        .ui-resizable-handle {
+            background-color: #BBBBBB;
+            border-left: 1px solid #9A9A9A;
+            border-right: 1px solid #9A9A9A;
+        }
+
+        .ui-resizable-handle:hover {
+            background-color: #bbbbcd;
+            border-left: 1px solid #afafc0;
+            border-right: 1px solid #afafc0;
+        }
+    
+        .ui-resizable-e {
+            right: -6px;
+            width: 4px;
+        }
+    
+        .ui-resizable-helper-west {
+            border-right: 6px solid #bbbbcd;
+        }
+    
+        .ui-resizable-helper-east {
+            border-left: 6px solid #bbbbcd;
+        }
+    
+        .ui-resizable-w {
+            left: -6px;
+            width: 4px;
+        }
+    
+        .ui-resizable-e {
+            right: -6px;
+            width: 4px;
+        }
+    
+        .ui-resizable-helper-east {
+            border-right: 6px solid #bbbbcd;
+        }
+        */
+
+    </style>
+
 </head>
 <body>
     <script type="text/javascript">
         
         $(document).ready(function(){
-            uki({
-                // create a split pane...
-                view: 'HSplitPane', rect: '1000 600', anchors: 'left top right bottom',
-                handlePosition: 800, leftMin: 700, rightMin: 300, autogrowLeft: true, autogrowRight: false,
-                // ...with button on the left
-                leftChildViews: [
-                    { view: 'Box', rect: '800 600', anchors: 'left top right bottom', id: 'main', text: 'bar' }
-                ],
-                // ...and a vertical split pane on the right...
-                rightChildViews: [
-                    { view: 'TabPanel', rect: '0 0 190 600', anchors: 'left top right bottom', id: 'tab-panel', config: {
-                        bar: { rect: '0 0 180 24', anchors: 'left top right' },
-                        tabs: [
-                            {
-                                button: { text: 'Controls' },
-                                panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-controls' }
-                            },
-                            {
-                                button: { text: 'Tree' },
-                                panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-tree' }
-                            },
-                            {
-                                button: { text: 'Load' },
-                                panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-load' }
-                            }
-                        ]}
-                    }
-                ]
-            }).attachTo( window, '1000 600' );
-            uki('#tab-panel')[0]._initVisibility();
             
-            initJmol();
-            addJmolApplet('main', '99%', '99%');
+            var _jmol = {};
+            
+            //uki({
+            //    // create a split pane...
+            //    view: 'HSplitPane', rect: '1000 600', anchors: 'left top right bottom',
+            //    handlePosition: 800, leftMin: 700, rightMin: 300, autogrowLeft: true, autogrowRight: false,
+            //    // ...with button on the left
+            //    leftChildViews: [
+            //        { view: 'Box', rect: '800 600', anchors: 'left top right bottom', id: 'main', text: 'bar' }
+            //    ],
+            //    // ...and a vertical split pane on the right...
+            //    rightChildViews: [
+            //        { view: 'TabPanel', rect: '0 0 190 600', anchors: 'left top right bottom', id: 'tab-panel', config: {
+            //            bar: { rect: '0 0 180 24', anchors: 'left top right' },
+            //            tabs: [
+            //                {
+            //                    button: { text: 'Controls' },
+            //                    panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-controls' }
+            //                },
+            //                {
+            //                    button: { text: 'Tree' },
+            //                    panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-tree' }
+            //                },
+            //                {
+            //                    button: { text: 'Load' },
+            //                    panel: { rect: '0 24 190 576', anchors: 'left top right bottom', background: 'lightyellow', id: 'tab-load' }
+            //                }
+            //            ]}
+            //        }
+            //    ]
+            //}).attachTo( window, '1000 600' );
+            //uki('#tab-panel')[0]._initVisibility();
+            
+            var container = $('#container');
+            var main = $('#main');
+            var tabs_panel = $('#tabs_panel');
+            
+            //function layout() {
+            //        container.layout({
+            //            type: 'border',
+            //            resize: false,
+            //            hgap: 6,
+            //            center: main,
+            //            east: tabs_panel,
+            //            minWidth: 100,
+            //            minHeight: 100
+            //        });
+            //        //layout_main();
+            //        // This ensures that the center is never smaller than 400 pixels.
+            //        //tabs_panel.resizable('option', 'maxWidth', (main.width() + tabs_panel.width()) - 400);
+            //}
+            
+            function layout_main() {
+                var n = Jmol.get_applet_list().length;
+                var i = Math.round( Math.sqrt(n) );
+                main.layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
+            }
+            layout_main();
+            
+            //tabs_panel.resizable({
+            //        handles: 'w',
+            //        stop: layout,
+            //        helper: 'ui-resizable-helper-east',
+            //        minWidth: 200
+            //});
+            
+            // Lay out the west panel first
+            //tabs_panel.layout();
+            //main.layout();
+            tabs_panel.tabs({ cookie: { expires: 30 } });
+            tabs_panel.children('ul').removeClass('ui-corner-all');
             
             
             
-            widget( uki('#tab-controls'), '<span>Controls...</span>', '100 100', 'control-widget', 'left top right bottom' );
-            widget( uki('#tab-tree'), '<span>Tree...</span>', '100 100', 'tree-widget', 'left top right bottom' );
+            // Then do the main layout.
+            //layout();
             
-            jmolWidget( uki('#tab-controls'), '100 100', 'jmol-console-widget', 'left right' );
+
+            // Hook up the re-layout to the window resize event.
+            $(window).resize(layout_main);
+            $('#jmolWindow').resize(layout_main);
+            
+            //Jmol.init("../applet/jmol/11.8.24/");
+            Jmol.init("../applet/jmol/12.0.RC18/");
+            Jmol.Applet.prototype.default_params.height = "99%";
+            Jmol.Applet.prototype.default_params.width = "100%";
+            JmolWidget.prototype.default_params.parent_id = "main";
+            Jmol.on_applet_list_change(layout_main, {});
+            
+            for (var i=0; i<0; ++i){
+                var jw = new JmolWidget({
+
+                });
+            }
+            
+            new JmolConsoleWidget({
+                parent_id: 'tab_controls'
+            });
+            
+            var dataset_load = new DatasetLoadWidget({
+                parent_id: 'tab_load',
+                jmol_applet_parent_id: 'main'
+            });
+            
+            //var jw = new JmolWidget({
+            //    parent_id: 'jmolWindow',
+            //    height: '100%'
+            //});
+            
+            new DatasetManagerWidget({
+                parent_id: 'tab_load'
+            });
+            
+            //widget2( uki('#tab-controls'), '<span>Controls...</span>', '100 100', 'control-widget', 'left top right bottom' );
+            //widget2( uki('#tab-tree'), '<span>Tree...</span>', '100 100', 'tree-widget', 'left top right bottom' );
+            
+            //jmolWidget( uki('#tab-controls'), '100 100', 'jmol-console-widget', 'left right' );
             //loadDataWidget( uki('#tab-load'), '100 100', 'load-data-widget', 'left right' );
             //styleWidget( uki('#tab-controls'), '100 100', 'style-widget', 'left right' );
             
+            $('#tab_scrollbox').scroll(function (event) {
+                $(this).data('scrollTop-tab-' + $("#tabs").tabs('option', 'selected'), $(this).scrollTop());
+            });
+            
+            tabs_panel.bind('tabsshow', function(event, ui) {
+                //console.log(event, ui);
+                var scrollTop = $('#tab_scrollbox').data('scrollTop-tab-' + ui.index);
+                if(!scrollTop) scrollTop = 0;
+                $('#tab_scrollbox').scrollTop( scrollTop );
+                if(ui.index == 2){
+                    dataset_load.uploader.refresh();
+                }
+            });
+            
+            $("#container").splitter({
+                type: "v",
+                outline: true,
+                resizeToWidth: true,
+                cookie: "vsplitter",
+                anchorToWindow: true
+            });
         });
         
     </script>
+    
+    <div id="container" style="height:100%; width:100%;">
+        
+        <div id="jmolWindow" class="" style="overflow:auto; height:100%">
+            <div id="main" style="height:100%; width:100%;"></div>
+        </div>
+        
+        <div id="jmolControls" class="" style="height:100%; width:100%;">
+            <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
+                <div id="tabs_panel" style="height:100%; width:100%;">
+                    <ul>
+                        <li><a href="#tab_controls">Controls</a></li>
+                        <li><a href="#tab_tree">Tree</a></li>
+                        <li><a href="#tab_load">Load</a></li>
+                    </ul>
+                    <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
+                        <div id="tab_controls"></div>
+                        <div id="tab_tree"></div>
+                        <div id="tab_load"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
 </body>
 </html>

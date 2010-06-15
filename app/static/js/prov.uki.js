@@ -58,7 +58,7 @@ uki.view.declare('uki.view.TabPanel', uki.view.Container, function(Base) {
 
 
 // todo
-function widget (parent, content, rect, id, anchors) {
+function widget2 (parent, content, rect, id, anchors) {
     //var boxConfig = { view: 'Box', rect: rect, anchors: anchors, id: id };
     //var box = uki.build( uki.extend( boxConfig ) )[0];
     //var dom = parent[0].appendChild(box);

@@ -3,7 +3,7 @@
 
 (function() {
 
-//Pdb = {};
+Pdb = {};
 
 
 var Entity = Pdb.Entity = function(id){
@@ -13,14 +13,22 @@ var Entity = Pdb.Entity = function(id){
     this.child_list = [];
     this.child_dict = {};
     this.xtra = {};
+    this._ptr = 0;
 };
-
 Entity.prototype = {
     len: function(){
-        return length( this.child_list );
+        return this.child_list.length;
     },
-    get_item: function(id){
+    get: function(id){
         return this.child_dict[id];
+    },
+    next: function() {
+        if( this._ptr < this.child_list.length ) {
+            return this.child_list[ this._ptr++ ];
+        } else throw { name: "StopIteration" };
+    },
+    has_next: function() {
+        return this._ptr < this.child_list.length;
     },
     get_level: function(){
         return this.level;
@@ -34,8 +42,8 @@ Entity.prototype = {
     detach_child: function(id){
         var child = this.child_dict[id];
         child.detach_parent();
+        this.child_list.removeItems(this.child_dict[id]);
         delete this.child_dict[id];
-        this.child_list.removeItems(id);
     },
     add: function(entity){
         var entity_id = entity.get_id();
@@ -76,42 +84,162 @@ Entity.prototype = {
 };
 
 
-var Structure = Pdb.Structure = function(){
-    
-}
-
 /**
-    @function
+ * Constructs a new Structure.
+ *
+ * @class Represents a Pdb Structure
+ *
+ * @extends Pdb.Entity
  */
-function HistoryManager() {
-    this.curr = -1;
-    this.entries = [];
-}
-
-/**
-    @class
-    @constructor
- */
-HistoryManager.prototype = {
-    push: function(item) {
-        if (this.entries.length && this.entries[0] == item) return;
-        if (item.match(/^\s*$/)) return;
-        this.entries.unshift(item);
-        this.curr = -1;
-    },
-    scroll: function(direction) {
-        var moveTo = this.curr + (direction == 'prev' ? 1 : -1);
-        if (moveTo >= 0 && moveTo < this.entries.length) {
-            this.curr = moveTo;
-            return this.entries[this.curr];
-        } else if (moveTo == -1) {
-            this.curr = moveTo;
-            return '';
-        } else {
-            return null;
+var Structure = Pdb.Structure = function(id){
+    Entity.call(this, id);
+};
+Structure.prototype = Utils.extend(Entity,{
+    level: 'S',
+    get_chains: function(){
+        var chains = [];
+        var models = this.get_list();
+        for(var i = 0; i < models.length; ++i){
+            chains = chains.concat( models[i].get_list() );
         }
+        return chains;
+    },
+    get_residues: function(){
+        var residues = [];
+        var chains = this.get_chains();
+        for(var i = 0; i < chains.length; ++i){
+            residues = residues.concat( chains[i].get_list() );
+        }
+        return residues;
+    },
+    get_atoms: function(){
+        var atoms = [];
+        var residues = this.get_residues();
+        for(var i = 0; i < residues.length; ++i){
+            atoms = atoms.concat( residues[i].get_list() );
+        }
+        return atoms;
+    }
+});
+
+
+var Model = Pdb.Model = function(id){
+    Entity.call(this, id);
+};
+Model.prototype = Utils.extend(Entity,{
+    level: 'M',
+    get_residues: function(){
+        var residues = [];
+        var chains = this.get_list();
+        for(var i = 0; i < chains.length; ++i){
+            residues = residues.concat( chains[i].get_list() );
+        }
+        return residues;
+    },
+    get_atoms: function(){
+        var atoms = [];
+        var residues = this.get_residues();
+        for(var i = 0; i < residues.length; ++i){
+            atoms = atoms.concat( residues[i].get_list() );
+        }
+        return atoms;
+    }
+});
+
+
+var Chain = Pdb.Chain = function(id){
+    Entity.call(this, id);
+};
+Chain.prototype = Utils.extend(Entity,{
+    level: 'C',
+    get_atoms: function(){
+        var atoms = [];
+        var residues = this.get_list();
+        for(var i = 0; i < residues.length; ++i){
+            atoms = atoms.concat( residues[i].get_list() );
+        }
+        return atoms;
+    }
+});
+
+
+var Residue = Pdb.Residue = function(id, resname, segid){
+    this.resname = resname;
+    this.segid = segid;
+    Entity.call(this, id);
+};
+Residue.prototype = Utils.extend(Entity,{
+    level: 'R'
+});
+
+
+var Atom = Pdb.Atom = function(name, coord, bfactor, occupancy, altloc, fullname, serial_number, element){
+    this.name = name;
+    this.parent = null;
+    this.xtra = {};
+    this.fullname = fullname;
+    this.coord = coord;
+    this.bfactor = bfactor;
+    this.occupancy = occupancy;
+    this.altloc = altloc;
+    this.serial_number = serial_number;
+    this.element = element;
+    this.id = name;
+    this.full_id = null;
+};
+Atom.prototype = {
+    level: 'A',
+    get_level: function(){
+        return this.level;
+    },
+    set_parent: function(parent){
+        this.parent = parent;
+    },
+    get_parent: function(){
+        return this.parent;
+    },
+    get_id: function(){
+        return this.id;
+    },
+    get_full_id: function(){
+        if( this.full_id == null ){
+            this.full_id = this.parent.get_full_id().concat( [this.name, this.altloc] );
+        }
+        return this.full_id;
     }
 };
 
+
+/*
+var test_entity = new Entity('my_entity');
+console.log(test_entity);
+var test_struc = new Structure('my_struc');
+
+
+test_struc.add( new Model('m1') );
+test_struc.add( new Model('m2') );
+test_struc.add( new Model('m3') );
+
+test_struc.detach_child('m2');
+
+var m1 = test_struc.get('m1');
+var c1 = new Chain('C');
+var res = new Residue('r1');
+var at = new Atom('a1');
+res.add( at );
+res.add( new Atom('a2') );
+res.add( new Atom('a3') );
+
+m1.add( c1 );
+m1.add( new Chain('C2') );
+m1.add( new Chain('C3') );
+m1.add( new Chain('C4') );
+c1.add( res );
+
+var a = test_struc.get_chains()
+console.log( a );
+
+console.log( m1.get_atoms() );
+*/
 
 })();
