@@ -67,13 +67,21 @@ DatasetLoadWidget = function(params){
             '<label for="' + this.type_selector_id + '">Filetype:</label>' +
             '<select id="' + this.type_selector_id + '" class="ui-state-default">' +
                 '<option value="auto">determine automatically</option>' +
+                '<option value="cif">cif</option>' +
+                '<option value="cub">cube</option>' +
+                '<option value="gro">gromacs</option>' +
+                '<option value="jvxl">Jmol voxel</option>' +
+                '<option value="mbn">mbn</option>' +
+                '<option value="mmcif">mmCIF</option>' +
+                '<option value="mplane">mplane</option>' +
+                '<option value="mrc">mrc density map</option>' +
                 '<option value="pdb">pdb</option>' +
-                '<option value="mplane">membrane planes</option>' +
+                '<option value="sco">sco</option>' +
             '</select>' +
         '</div>' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
-            '<label for="' + this.target_selector_id + '">Structure loading type</label>' +
+            '<label for="' + this.target_selector_id + '">Structure loading type:</label>' +
             '<select id="' + this.target_selector_id + '" class="ui-state-default">' +
                 '<option value="append">append</option>' +
                 '<option value="new">new</option>' +
@@ -185,7 +193,7 @@ DatasetLoadWidget.prototype = Utils.extend(Widget,{
                     console.log(get_response_data, s);
                     applet.script(s);
                 });
-            }else if( $.inArray(type, ['jvxl', 'mrc']) >= 0 ){
+            }else if( $.inArray(type, ['jvxl', 'mrc', 'cub']) >= 0 ){
                 applet.script('isosurface color black "../../data/get/?id=' + response.id + '" mesh nofill;');
             }else{
                 console.log('unkonwn file type');
