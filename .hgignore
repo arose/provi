@@ -7,3 +7,5 @@ syntax: glob
 
 doc/jsdoc/*
 doc/sphinx/_build
+
+*.pyc
