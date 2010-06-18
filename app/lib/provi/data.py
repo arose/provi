@@ -6,6 +6,7 @@ from tempfile import TemporaryFile, NamedTemporaryFile
 
 from MembraneProtein.AndreanTools import contact
 from MembraneProtein.AndreanTools import membran_neu
+from MembraneProtein.AndreanTools import membran_plane
 from MembraneProtein import HBexplore
 
 from Bio.PDB.PDBParser import PDBParser
@@ -137,9 +138,13 @@ class Mplane( Text ):
     file_ext = 'mplane'
     @expose
     def get_planes( self, dataset, **kwargs ):
-        m = re.search('^.*:\s*({.*}\s*):::(\s*{.*})\s*$', dataset.data)
-        if m:
-            return json.dumps(m.groups())
+        tmp_file = NamedTemporaryFile()
+        tmp_file.write( dataset.data )
+        tmp_file.flush()
+        mp = membran_plane.Mplanes(tmp_file.name)
+        def f(p):
+            return map( list, (p.a, p.b, p.c) )
+        return json.dumps( ( f(mp.plane1), f(mp.plane2), mp.distance() ) )
 
 class Gromacs( Text ):
     file_ext = 'gro'
