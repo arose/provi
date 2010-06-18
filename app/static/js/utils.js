@@ -1,13 +1,23 @@
 if(typeof window.console === "undefined") {
+    /**
+     * fake window.console to catch forgotten debug statements
+     * in a non debug environment
+     * @ignore
+     */
     window.console = { log: function() { } };
 }
 
 if (window.opera && !window.console) {
+    /**
+     * window.console implementation for Opera
+     * @ignore
+     */
     window.console = {};
     var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
     "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
     for (var i = 0; i < names.length; ++i)
         window.console[names[i]] = function() {}
+    /** @ignore */
     window.console.log = function() {
         opera.postError(arguments);
     }
@@ -17,6 +27,7 @@ if (window.opera && !window.console) {
 /**
     A function for the Array object to reduce an array to unique elements
     @function
+    @addon
  */
 Array.prototype.unique = function () {
     var r = new Array();
@@ -35,6 +46,7 @@ Array.prototype.unique = function () {
     A function for the Array object to compute the intersection of two arrays
     @param {Array} setB the array used for the intersection
     @function
+    @addon
  */
 Array.prototype.intersection = function( setB ) {
    var setA = this;
@@ -58,14 +70,19 @@ Array.prototype.intersection = function( setB ) {
 };
 
 
-// Array Remove - By John Resig (MIT Licensed)
+/**
+ * Array Remove - By John Resig (MIT Licensed)
+ * @addon
+ */
 Array.prototype.remove = function(from, to) {
   var rest = this.slice((to || from) + 1 || this.length);
   this.length = from < 0 ? this.length + from : from;
   return this.push.apply(this, rest);
 };
 
-
+/**
+ * @addon
+ */
 Array.prototype.removeItems = function(itemsToRemove) {
 
     if (!/Array/.test(itemsToRemove.constructor)) {
@@ -86,7 +103,9 @@ Array.prototype.removeItems = function(itemsToRemove) {
 }
 
 
-
+/**
+ * Utility functions
+ */
 Utils = {};
 
 Utils.object_size_fn = function(obj) {
@@ -97,6 +116,10 @@ Utils.object_size_fn = function(obj) {
     return size;
 };
 
+/**
+ * extend the prototype of an object with another
+ * @return the new extended object
+ */
 Utils.extend = function(f, e) {
     function g() {}
     g.prototype = f.prototype || f;

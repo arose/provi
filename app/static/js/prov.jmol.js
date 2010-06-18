@@ -3,6 +3,11 @@
 
 (function() {
 
+/**
+ * The global Jmol object
+ * @name Jmol
+ * @namespace
+ */
 Jmol = {
     default_dir: '.',
     default_jar: 'JmolApplet.jar',
@@ -15,12 +20,21 @@ Jmol = {
 	this.initialized = true;
 	this.codebase = typeof(codebase_directory) != 'undefined' ? codebase_directory : '.';
     },
+    /**
+     * Get an applet by its name suffix
+     */
     get_applet: function(name_suffix){
 	return this._applet_dict[name_suffix];
     },
+    /**
+     * Get the list of all available applets
+     */
     get_applet_list: function(){
 	return this._applet_list;
     },
+    /**
+     * add an applet to the global list of applets
+     */
     add_applet: function(name_suffix, applet){
         if( typeof(this._applet_dict[name_suffix]) != 'undefined' ){
             throw "name_suffix '" + name_suffix + "' is already in use";
@@ -40,7 +54,7 @@ Jmol = {
         return name_suffix;
     },
     set_applet_loaded: function(name_suffix){
-	console.log('set_applet_loaded', name_suffix);
+	//console.log('set_applet_loaded', name_suffix);
 	this.get_applet(name_suffix).set_loaded();
     },
     get_default_applet: function(){
@@ -61,6 +75,11 @@ Jmol = {
 };
 Jmol._applet_dict.size = Utils.object_size_fn;
 
+/**
+ * Jmol Applet class
+ * @name Jmol.Applet
+ * @constructor
+ */
 var Applet = Jmol.Applet = function(params){
     var default_params = Applet.prototype.default_params;
     this.loaded = false;
@@ -83,11 +102,12 @@ var Applet = Jmol.Applet = function(params){
     }
     Jmol.add_applet(this.name_suffix, this);
 };
-Applet.prototype = {
+Applet.prototype = /** @lends Jmol.Applet.prototype */ {
     default_params: {
 	width: 300,
 	height: 300,
-	css_class: 'jmol_applet'
+	css_class: 'jmol_applet',
+	sync_id: ("" + Math.random()).substring(3)
     },
     _init: function(){
 	this._create_html();
@@ -123,8 +143,9 @@ Applet.prototype = {
             boxfgcolor: "black",
             progresscolor: "lightgreen",
             progressbar: "true",
-	    syncId: ("" + Math.random()).substring(3),
-	    boxmessage: "Downloading JmolApplet ..."
+	    syncId: this.default_params.sync_id,
+	    boxmessage: "Downloading JmolApplet ...",
+	    java_arguments: "-Xmx512m"
         };
         var t = "";
         for (var i in params)
@@ -153,7 +174,7 @@ Applet.prototype = {
 	var count = 0;
 	Utils.wait(1000,
             function(){
-		console.log(count, ' count');
+		//console.log(count, ' count');
 		if(count > 20) return true;
                 var applet = self.applet;
 		//console.log(typeof(applet.script), $.isFunction(applet.script));
@@ -193,6 +214,9 @@ Applet.prototype = {
     _script: function(script){
 	return this.applet.script(script);
     },
+    /**
+     * executes a jmol asynchronously
+     */
     script: function(script){
 	if(this.loaded){
 	    return this._script(script);
@@ -202,8 +226,11 @@ Applet.prototype = {
 	    return -1;
 	}
     },
+    script_wait_json: function(script){
+	return this.applet.scriptWait(script);
+    },
     _script_wait: function(script){
-	var ret = this.applet.scriptWait(script);
+	var ret = this.script_wait_json(script);
 	ret = this._evalJSON( ret, "jmolStatus" );
 	var s = ""
 	for(var i=ret.length;--i>=0;){
@@ -213,6 +240,9 @@ Applet.prototype = {
 	}
 	return s;
     },
+    /**
+     * executes a jmol script synchronously
+     */
     script_wait: function(script){
 	if(this.loaded){
 	    return this._script_wait(script);
@@ -226,6 +256,9 @@ Applet.prototype = {
 	script = typeof(script) != 'undefined' ? script : '';
 	return this.applet.loadInlineString(model, script, false);
     },
+    /**
+     * loads a model given as a string, can execute a script afterwards
+     */
     load_inline: function(model, script){
 	if(this.loaded){
 	    return this._load_inline(model, script);
@@ -239,16 +272,29 @@ Applet.prototype = {
 	this._on_load_fn_list.push( {fn: fn, fn_this: fn_this, fn_args: fn_args} );
     },
     _load: function(){
-	console.log('loaded...');
-	console.log(this._on_load_fn_list);
         $.each(this._on_load_fn_list, function(){
 	    this.fn.apply( this.fn_this, this.fn_args );
 	});
+    },
+    get_property: function(property, key){
+        return this.applet.getProperty(property, key);
+    },
+    get_property_as_json: function(property, key){
+        return this.applet.getPropertyAsJSON(property, key) + '';
+    },
+    get_property_as_string: function(property, key){
+        return this.applet.getPropertyAsString(property, key) + '';
+    },
+    get_property_as_array: function(property, key){
+        return this._evalJSON( this.get_property_as_json(property, key), property );
     }
 };
 
 
-
+/**
+ * Jmol widget class
+ * @constructor
+ */
 JmolWidget = function(params){
     var default_params = JmolWidget.prototype.default_params;
     params.parent_id = typeof(params.parent_id) != 'undefined' ? params.parent_id : default_params.parent_id;
@@ -265,16 +311,21 @@ JmolWidget.prototype = Utils.extend(Widget,{
 });
 
 
+/**
+ * A widget to select a jmol applet
+ * @constructor
+ */
 JmolAppletSelectorWidget = function(params){
     this._jmol_applet = typeof(params.applet) != 'undefined' ? params.applet : null;
     this.new_jmol_applet_parent_id = params.new_jmol_applet_parent_id;
+    params.tag_name = 'span';
     Widget.call( this, params );
     this.selector_id = this.id + '_applet';
     this.allow_new_applets = params.allow_new_applets;
-    var content = '<div class="control_row">' +
+    var content = '<span class="control_row">' +
             '<label for="' + this.selector_id + '">Jmol applet:</label>' +
             '<select id="' + this.selector_id + '" class="ui-state-default"></select>' +
-        '</div>';
+        '</span>';
     $(this.dom).append( content );
     this._init();
 };
@@ -321,18 +372,16 @@ JmolAppletSelectorWidget.prototype = Utils.extend(Widget,{
 
 
 /**
-    @function
+ * A class that save items in historical order and provides access to them
+ * @name HistoryManager
+ * @constructor
  */
 var HistoryManager = function() {
     this.curr = -1;
     this.entries = [];
 }
-
-/**
-    @class
-    @constructor
- */
-HistoryManager.prototype = {
+// foo
+HistoryManager.prototype = /** @lends HistoryManager.prototype */ {
     push: function(item) {
         if (this.entries.length && this.entries[0] == item) return;
         if (item.match(/^\s*$/)) return;
@@ -354,13 +403,18 @@ HistoryManager.prototype = {
 };
 
 
+/**
+ * A class representing a console for a jmol applet
+ * @name JmolConsole
+ * @constructor
+ */
 var JmolConsole = function(input, log, applet){
     this.input = input;
     this.log = log;
     this.applet = applet;
     this._init();
 }
-JmolConsole.prototype = {
+JmolConsole.prototype = /** @lends JmolConsole.prototype */ {
     _init: function() {
         this.history = new HistoryManager();
         var self = this;
@@ -408,15 +462,18 @@ JmolConsole.prototype = {
 }
 
 
-
+/**
+ * A widget holding a jmol console and a jmol applet selector
+ * @constructor
+ */
 JmolConsoleWidget = function(params){
     Widget.call( this, params );
     this.input_id = this.id + '_input';
     this.log_id = this.id + '_log';
     this.applet_selector_widget_id = this.id + '_applet';
     var content = '<div class="control_group">' +
-	'<div id="' + this.applet_selector_widget_id + '"></div>' +
-        '<label for="jmolCmdInput">Execute a Jmol command (<a href="http://chemapps.stolaf.edu/jmol/docs/" target="_blank">docu</a>):</label>' +
+	'<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+        '<label for="' + this.input_id + '">Execute a Jmol command (<a href="http://chemapps.stolaf.edu/jmol/docs/" target="_blank">docu</a>):</label>' +
         '<input type="text" id="' + this.input_id + '" class="ui-state-default" style="margin-top:0.2em; width:100%; border: 0px;"/>' +
         '<div id="' + this.log_id + '" style="overflow:auto; max-height:300px; min-height:150px; margin-top:10px;  padding: 2px;" class="ui-state-default ui-state-disabled"></div>' +
     '</div>';
@@ -428,7 +485,7 @@ JmolConsoleWidget = function(params){
     this.console = new JmolConsole( $('#'+this.input_id), $('#'+this.log_id), params.applet );
     this._init();
 }
-JmolConsoleWidget.prototype = Utils.extend(Widget,{
+JmolConsoleWidget.prototype = Utils.extend(Widget, /** @lends JmolConsoleWidget.prototype */ {
     _init: function(){
 	var self = this;
 	this.applet_selector.change(function(event){
@@ -437,109 +494,94 @@ JmolConsoleWidget.prototype = Utils.extend(Widget,{
     }
 });
 
-})();
-
 
 /**
-    @class
+ * A widget holding a global jmol controls
+ * @constructor
  */
-var display = {
-    styleCmd: 'cartoon ONLY; wireframe 0.015;',
-    
-    init: function (styleSelectorId) {
-        this.styleSelectorId = styleSelectorId;
-        
-        var self = this;
-        $("#" + this.styleSelectorId).change( function() {
-            self.setStyle();
-        });
-    },
-    
-    setStyle: function (){
-        switch($("#" + this.styleSelectorId + " option:selected").val()){
-            case 'backbone':
-                this.styleCmd = 'backbone ONLY; backbone 0.3;';
-                break;
-            case 'wireframe':
-                this.styleCmd = 'wireframe ONLY; wireframe 0.2;';
-                break;
-            case 'wireframe+backbone':
-                this.styleCmd = 'wireframe ONLY; backbone 0.3; wireframe 0.01;';
-                break;
-            case 'cartoon+wireframe':
-                this.styleCmd = 'cartoon ONLY; wireframe 0.015;';
-                break;
-            case 'cartoon':
-            default:
-                this.styleCmd = 'cartoon ONLY;';
-                break;
-        }
-        jmolScript('select all; ' + this.styleCmd);
-    }
-}
-
-/**
-    @class
- */
-var clipping = {
-    
-    depth: 0,
-    slab: 100,
-    state: false,
-    
-    init: function(){
-        this.state = $("#clipping_state").is(':checked');
-        this.update();
-        
-        var self = this;
-        
-        $("#clipping_state").bind('change click', function(){
-            self.state = $("#clipping_state").is(':checked');
-            self.update();
-        });
-        $("#clipping_slider").slider({
-            values: [this.depth, this.slab],
-            range: true,
-            min: 0, max: 100,
-            slide: function(event, ui){
-                //console.log(ui, ui.values);
-                self.depth  = ui.values[0];
-                self.slab= ui.values[1];
-                self.update();
-            }
-        });
-        $("#clipping_slider").mousewheel( function(event, delta){
-            //console.log(event, delta);
-            self.slab = Math.round(self.slab + 2*delta);
-            self.depth = Math.round(self.depth + 2*delta);
-            if(self.slab > 100) self.slab = 100;
-            if(self.slab < 0) self.slab = 0;
-            if(self.depth > 100) self.depth = 100;
-            if(self.depth < 0) self.depth = 0;
-            $("#clipping_slider").slider('values', 0, self.depth);
-            $("#clipping_slider").slider('values', 1, self.slab);
-            self.update();
-        });
-        //$("#clipping_slider").slider('option', 'values', [this.depth, this.slab]);
-    },
-    
-    update: function(){
-        //console.log(this.depth, this.slab);
-        if(this.state){
-            jmolScript('slab on;');
-        }else{
-            jmolScript('slab off;');
-        }
-        jmolScript('depth ' + this.depth + '; slab ' + this.slab + ';');
-    }
-}
-
-
-function styleWidget(parent, rect, id, anchors){
+JmolGlobalControlWidget = function(params){
+    this.sync_mouse = false;
+    Widget.call( this, params );
+    this.sync_mouse_id = this.id + '_sync_mouse';
+    this.sync_orientation_id = this.id + '_sync_orientation';
+    this.applet_selector_sync_orientation_id = this.id + '_applet_sync_orientation';
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
-            '<label for="style">style</label>' +
-            '<select id="style" class="ui-state-default">' +
+            '<input id="' + this.sync_mouse_id + '" type="checkbox" style="float:left; margin-top: 0.0em;"/>' +
+            '<label for="' + this.sync_mouse_id + '">sync mouse</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<button class="fg-button ui-state-default ui-corner-all" id="' + this.sync_orientation_id + '">sync orientation</button>' +
+            '<span id="' + this.applet_selector_sync_orientation_id + '"></span>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector_sync_orientation = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_sync_orientation_id
+    });
+    this._init();
+}
+JmolGlobalControlWidget.prototype = Utils.extend(Widget, /** @lends JmolGlobalControlWidget.prototype */ {
+    _init: function(){
+	this.sync_mouse = $("#" + this.sync_mouse_id).is(':checked');
+        this.update_sync_mouse();
+        var self = this;
+        
+        $("#" + this.sync_mouse_id).bind('change', function() {
+            self.sync_mouse = $("#" + self.sync_mouse_id).is(':checked');
+            self.update_sync_mouse();
+        });
+        $("#" + this.sync_orientation_id).click(function() {
+            self.sync_orientation();
+        });
+    },
+    update_sync_mouse: function(){
+        var s = '';
+        if( this.sync_mouse ){
+            s += 'sync * on; sync * "set syncMouse on";';
+        }else{
+            s += 'sync * off;';
+        }
+        var applet = Jmol.get_default_applet();
+        if(applet){
+            applet.script(s);
+        }
+    },
+    sync_orientation: function(){
+        var applet = this.applet_selector_sync_orientation.get_value();
+        if(applet){
+            var s = 'sync * on;';
+            s += 'sync > "' + applet.get_property_as_array('orientationInfo').moveTo.replace(/1\.0/,"0") + '";';
+            s += 'sync * off;';
+            applet.script(s);
+        }
+        this.update_sync_mouse();
+    }
+});
+
+
+/**
+ * A widget holding jmol display related controls
+ * @constructor
+ */
+JmolDisplayWidget = function(params){
+    this.style_cmd = 'cartoon ONLY; wireframe 0.015;';
+    this.zshade = false;
+    this.clipping_depth = 0;
+    this.clipping_slab = 100;
+    this.clipping_state = false;
+    Widget.call( this, params );
+    this.zshade_id = this.id + '_zshade';
+    this.style_id = this.id + '_style';
+    this.clipping_slider_id = this.id + '_clipping_slider';
+    this.clipping_state_id = this.id + '_clipping_state';
+    this.center_id = this.id + '_center';
+    this.applet_selector_widget_id = this.id + '_applet';
+    var content = '<div class="control_group">' +
+        '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.style_id + '">style</label>' +
+            '<select id="' + this.style_id + '" class="ui-state-default">' +
                 '<option value="backbone">backbone</option>' +
                 '<option value="wireframe">wireframe</option>' +
                 '<option value="cartoon">cartoon</option>' +
@@ -548,21 +590,156 @@ function styleWidget(parent, rect, id, anchors){
             '</select>' +
         '</div>' +
         '<div class="control_row">' +
-            '<label id="clipping_slider_label" for="clipping_slider" style="display:block;">clipping</label>' +
-            '<input id="clipping_state" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<div id="clipping_slider"></div>' +
+            '<input id="' + this.quality_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.quality_id + '" style="display:block;">high quality</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button class="fg-button ui-state-default ui-corner-all" id="center_protein">center protein</button>' +
+            '<input id="' + this.zshade_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.zshade_id + '" style="display:block;">zshade (fog)</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.clipping_state_id + '" style="display:block;">clipping</label>' +
+            '<input id="' + this.clipping_state_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<div id="' + this.clipping_slider_id + '"></div>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<button class="fg-button ui-state-default ui-corner-all" id="' + this.center_id + '">center protein</button>' +
         '</div>' +
     '</div>';
-    
-    widget( parent, content, rect, id, anchors );
-    display.init("style");
-    clipping.init();
-    $('#center_protein').click(function(){
-        jmolScript('zoom(all) 100;');
+    $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id
     });
+    this._init();
 }
+JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lends JmolDisplayWidget.prototype */ {
+    _init: function(){
+        var self = this;
+        
+        // init quality
+        this.quality = $("#" + this.quality_id).is(':checked');
+        $('#' + this.quality_id).click(function(){
+            self.quality = $("#" + self.quality_id).is(':checked');
+            self.update_quality();
+        });
+        
+        // init zshade
+        this.zshade = $("#" + this.zshade_id).is(':checked');
+        //this.update_zshade();
+        $('#' + this.zshade_id).click(function(){
+            self.zshade = $("#" + self.zshade_id).is(':checked');
+            self.update_zshade();
+        });
+        
+        // init style
+        $("#" + this.style_id).change( function() {
+            self.set_style();
+        });
+        
+        // init centering
+        $('#' + this.center_id).click(function(){
+            var applet = this.applet_selector.get_value();
+            if(applet){
+                applet.script('zoom(all) 100;');
+            }
+        });
+        
+        // init clipping
+        $("#" + this.clipping_slider_id).slider('option', 'values', [this.clipping_depth, this.clipping_slab]);
+        this.clipping_state = $("#" + this.clipping_state_id).is(':checked');
+        //this.update_clipping();
+        $("#" + this.clipping_state_id).bind('change click', function(){
+            self.clipping_state = $("#" + self.clipping_state_id).is(':checked');
+            self.update_clipping();
+        });
+        $("#" + this.clipping_slider_id).slider({
+            values: [this.clipping_depth, this.clipping_slab],
+            range: true,
+            min: 0, max: 100,
+            slide: function(event, ui){
+                //console.log(ui, ui.values);
+                self.clipping_depth  = ui.values[0];
+                self.clipping_slab= ui.values[1];
+                self.update_clipping();
+            }
+        });
+        $("#" + this.clipping_slider_id).mousewheel( function(event, delta){
+            //console.log(event, delta);
+            self.clipping_slab = Math.round(self.clipping_slab + 2*delta);
+            self.clipping_depth = Math.round(self.clipping_depth + 2*delta);
+            if(self.clipping_slab > 100) self.clipping_slab = 100;
+            if(self.clipping_slab < 0) self.clipping_slab = 0;
+            if(self.clipping_depth > 100) self.clipping_depth = 100;
+            if(self.clipping_depth < 0) self.clipping_depth = 0;
+            $("#" + this.clipping_slider_id).slider('values', 0, self.clipping_depth);
+            $("#" + this.clipping_slider_id).slider('values', 1, self.clipping_slab);
+            self.update_clipping();
+        });
+    },
+    update_quality: function(){
+        var applet = this.applet_selector.get_value();
+        if(applet){
+            var s = '';
+            if( this.quality ){
+                s = 'set highresolution ON; set hermitelevel 10; set antialiasDisplay On; set antialiasTranslucent ON;';
+            }else{
+                s = 'set highresolution OFF; set hermitelevel 0; set antialiasDisplay OFF; set antialiasTranslucent OFF;';
+            }
+            applet.script( s );
+        }
+    },
+    update_zshade: function(){
+        var applet = this.applet_selector.get_value();
+        if(applet){
+            var s = '';
+            if( this.zshade ){
+                s = 'set zShade ON;';
+            }else{
+                s = 'set zShade OFF;';
+            }
+            applet.script( s );
+        }
+    },
+    set_style: function (){
+        switch($("#" + this.style_id + " option:selected").val()){
+            case 'backbone':
+                this.style_cmd = 'backbone ONLY; backbone 0.3;';
+                break;
+            case 'wireframe':
+                this.style_cmd = 'wireframe ONLY; wireframe 0.2;';
+                break;
+            case 'wireframe+backbone':
+                this.style_cmd = 'wireframe ONLY; backbone 0.3; wireframe 0.01;';
+                break;
+            case 'cartoon+wireframe':
+                this.style_cmd = 'cartoon ONLY; wireframe 0.015;';
+                break;
+            case 'cartoon':
+            default:
+                this.style_cmd = 'cartoon ONLY;';
+                break;
+        }
+        var applet = this.applet_selector.get_value();
+        if(applet){
+            applet.script('select all; ' + this.style_cmd);
+        }
+    },
+    update_clipping: function(){
+        var applet = this.applet_selector.get_value();
+        if(applet){
+            var s = '';
+            if(this.clipping_state){
+                s += 'slab on;';
+            }else{
+                s += 'slab off;';
+            }
+            s += 'depth ' + this.clipping_depth + '; slab ' + this.clipping_slab + ';';
+            applet.script(s);
+        }
+    }
+});
 
+
+
+})();
 

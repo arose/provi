@@ -3,10 +3,26 @@
 
 (function() {
 
-Pdb = {};
+/**
+ * bio namespace object
+ * @name Bio
+ * @namespace
+ */
+Bio = {};
 
+/**
+ * pdb namespace object
+ * @name Bio.Pdb
+ * @namespace
+ */
+var Pdb = Bio.Pdb = {};
 
-var Entity = Pdb.Entity = function(id){
+/**
+ * entity class
+ * @name Bio.Pdb.Entity
+ * @constructor
+ */
+var Entity = Bio.Pdb.Entity = function(id){
     this.id = id;
     this.full_id = null;
     this.parent = null;
@@ -15,7 +31,7 @@ var Entity = Pdb.Entity = function(id){
     this.xtra = {};
     this._ptr = 0;
 };
-Entity.prototype = {
+Entity.prototype = /** @lends Bio.Pdb.Entity.prototype */ {
     len: function(){
         return this.child_list.length;
     },
@@ -86,16 +102,18 @@ Entity.prototype = {
 
 /**
  * Constructs a new Structure.
- *
  * @class Represents a Pdb Structure
- *
- * @extends Pdb.Entity
+ * @name Bio.Pdb.Structure
+ * @extends Bio.Pdb.Entity
  */
-var Structure = Pdb.Structure = function(id){
+var Structure = Bio.Pdb.Structure = function(id){
     Entity.call(this, id);
 };
-Structure.prototype = Utils.extend(Entity,{
+Structure.prototype = Utils.extend(Entity, /** @lends Bio.Pdb.Structure.prototype */ {
     level: 'S',
+    /**
+     * get all chains of the structure
+     */
     get_chains: function(){
         var chains = [];
         var models = this.get_list();
@@ -122,11 +140,15 @@ Structure.prototype = Utils.extend(Entity,{
     }
 });
 
-
-var Model = Pdb.Model = function(id){
+/**
+ * @class Represents a Pdb model
+ * @name Bio.Pdb.Model
+ * @extends Bio.Pdb.Entity
+ */
+var Model = Bio.Pdb.Model = function(id){
     Entity.call(this, id);
 };
-Model.prototype = Utils.extend(Entity,{
+Model.prototype = Utils.extend(Entity, /** @lends Bio.Pdb.Model.prototype */ {
     level: 'M',
     get_residues: function(){
         var residues = [];
@@ -146,11 +168,15 @@ Model.prototype = Utils.extend(Entity,{
     }
 });
 
-
-var Chain = Pdb.Chain = function(id){
+/**
+ * @class Represents a Pdb chain
+ * @name Bio.Pdb.Chain
+ * @extends Bio.Pdb.Entity
+ */
+var Chain = Bio.Pdb.Chain = function(id){
     Entity.call(this, id);
 };
-Chain.prototype = Utils.extend(Entity,{
+Chain.prototype = Utils.extend(Entity, /** @lends Bio.Pdb.Chain.prototype */ {
     level: 'C',
     get_atoms: function(){
         var atoms = [];
@@ -162,18 +188,25 @@ Chain.prototype = Utils.extend(Entity,{
     }
 });
 
-
-var Residue = Pdb.Residue = function(id, resname, segid){
+/**
+ * @class Represents a Pdb residue
+ * @name Bio.Pdb.Residue
+ * @extends Bio.Pdb.Entity
+ */
+var Residue = Bio.Pdb.Residue = function(id, resname, segid){
     this.resname = resname;
     this.segid = segid;
     Entity.call(this, id);
 };
-Residue.prototype = Utils.extend(Entity,{
+Residue.prototype = Utils.extend(Entity, /** @lends Bio.Pdb.Residue.prototype */ {
     level: 'R'
 });
 
-
-var Atom = Pdb.Atom = function(name, coord, bfactor, occupancy, altloc, fullname, serial_number, element){
+/**
+ * @class Represents a Pdb atom
+ * @name Bio.Pdb.Atom
+ */
+var Atom = Bio.Pdb.Atom = function(name, coord, bfactor, occupancy, altloc, fullname, serial_number, element){
     this.name = name;
     this.parent = null;
     this.xtra = {};
@@ -187,7 +220,7 @@ var Atom = Pdb.Atom = function(name, coord, bfactor, occupancy, altloc, fullname
     this.id = name;
     this.full_id = null;
 };
-Atom.prototype = {
+Atom.prototype = /** @lends Bio.Pdb.Atom.prototype */ {
     level: 'A',
     get_level: function(){
         return this.level;
@@ -206,6 +239,27 @@ Atom.prototype = {
             this.full_id = this.parent.get_full_id().concat( [this.name, this.altloc] );
         }
         return this.full_id;
+    }
+};
+
+
+
+
+/**
+ * @class Represents membrane planes
+ * @name Bio.MembranePlanes
+ */
+var MembranePlanes = Bio.MembranePlanes = function(plane1, plane2, distance){
+    this.plane1 = plane1;
+    this.plane2 = plane2;
+    this.distance = distance;
+};
+MembranePlanes.prototype = /** @lends Bio.MembranePlanes.prototype */ {
+    __jmol_format: function( p ){
+        return "{" + p[0].join(',') + "} {" + p[1].join(',') + "} {" + p[2].join(',') + "}";
+    },
+    format_as_jmol_planes: function(){
+        return [ this.__jmol_format(this.plane1), this.__jmol_format(this.plane2) ];
     }
 };
 
