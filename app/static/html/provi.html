@@ -39,20 +39,18 @@
 	$(function(){
             //all hover and click logic for buttons
             $(".fg-button:not(.ui-state-disabled)")
-            .hover(
-                function(){ 
-                    $(this).addClass("ui-state-hover"); 
-                },
-                function(){ 
+            .live('mouseenter', function(){ 
+                $(this).addClass("ui-state-hover"); 
+            })
+	    .live('mouseleave', function(){ 
                     $(this).removeClass("ui-state-hover"); 
-                }
-            )
-            .mousedown(function(){
+            })
+            .live('mousedown', function(){
                 $(this).parents('.fg-buttonset-single:first').find(".fg-button.ui-state-active").removeClass("ui-state-active");
                     if( $(this).is('.ui-state-active.fg-button-toggleable, .fg-buttonset-multi .ui-state-active') ){ $(this).removeClass("ui-state-active"); }
                     else { $(this).addClass("ui-state-active"); }	
             })
-            .mouseup(function(){
+            .live('mouseup', function(){
                 if(! $(this).is('.fg-button-toggleable, .fg-buttonset-single .fg-button,  .fg-buttonset-multi .fg-button') ){
                     $(this).removeClass("ui-state-active");
                 }
@@ -124,7 +122,9 @@
         
         $(document).ready(function(){
             
-            var _jmol = {};
+            var _jmol = {
+		java_arguments: "-Xmx512M"
+	    };
             
             //uki({
             //    // create a split pane...
@@ -206,8 +206,8 @@
             $(window).resize(layout_main);
             $('#jmolWindow').resize(layout_main);
             
-            //Jmol.init("../applet/jmol/11.8.24/");
-            Jmol.init("../applet/jmol/12.0.RC18/");
+            Jmol.init("../applet/jmol/11.8.24/");
+            //Jmol.init("../applet/jmol/12.0.RC18/");
             Jmol.Applet.prototype.default_params.height = "99%";
             Jmol.Applet.prototype.default_params.width = "100%";
             JmolWidget.prototype.default_params.parent_id = "main";
@@ -219,7 +219,15 @@
                 });
             }
             
-            new JmolConsoleWidget({
+	    new JmolGlobalControlWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+            new JmolDisplayWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+	    new JmolConsoleWidget({
                 parent_id: 'tab_controls'
             });
             
@@ -227,7 +235,7 @@
                 parent_id: 'tab_load',
                 jmol_applet_parent_id: 'main'
             });
-            
+	    
             //var jw = new JmolWidget({
             //    parent_id: 'jmolWindow',
             //    height: '100%'
@@ -235,6 +243,10 @@
             
             new DatasetManagerWidget({
                 parent_id: 'tab_load'
+            });
+	    
+	    new DatasetManagerWidget({
+                parent_id: 'tab_data'
             });
             
             //widget2( uki('#tab-controls'), '<span>Controls...</span>', '100 100', 'control-widget', 'left top right bottom' );
@@ -282,11 +294,15 @@
                         <li><a href="#tab_controls">Controls</a></li>
                         <li><a href="#tab_tree">Tree</a></li>
                         <li><a href="#tab_load">Load</a></li>
+			<li><a href="#tab_data">Data</a></li>
+			<li><a href="#tab_widgets">Widgets</a></li>
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
                         <div id="tab_controls"></div>
                         <div id="tab_tree"></div>
                         <div id="tab_load"></div>
+			<div id="tab_data"></div>
+			<div id="tab_widgets"></div>
                     </div>
                 </div>
             </div>
