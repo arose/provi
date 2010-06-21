@@ -6,25 +6,6 @@ body {
     font: normal 0.8em Verdana, sans-serif
 }
 
-dl.table-display {
-    margin: 1em 0;
-    margin-bottom: 10em; 
-    padding: 0;
-}
-    
-.table-display dt {
-    width: 8em;
-    float: left;
-    margin: 0 0 0 0;
-    padding: .5em;
-    font-weight: bold;
-}
-    
-.table-display dd {
-    margin: 0 0 0 0;
-    padding: .5em;
-}
-
 .ui-slider {
     margin: 0.5em 1em 0em 2.5em;
     width: 15em;
@@ -108,7 +89,6 @@ div.control_group {
 .vsplitbar:hover, .vsplitbar.active {
 	background: #c66 url(../img/vgrabber.gif) no-repeat center;
 	opacity: 0.7;
-	filter: alpha(opacity=70); /* IE */
 	background: #c99;
 }
 .hsplitbar {
@@ -117,4 +97,20 @@ div.control_group {
 }
 .hsplitbar.active, .hsplitbar:hover {
 	background: #c66 url(../img/hgrabber.gif) no-repeat center;
+}
+
+
+/* tab panel */
+.ui-tabs {
+    padding: 0em;
+    border: none;
+}
+.ui-tabs-nav {
+    border-left: none;
+    border-right: none;
+}
+
+/* buttons */
+.ui-button {
+    font-size: 0.8em !important;
 }

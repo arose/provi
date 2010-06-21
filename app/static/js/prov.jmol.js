@@ -511,7 +511,7 @@ JmolGlobalControlWidget = function(params){
             '<label for="' + this.sync_mouse_id + '">sync mouse</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button class="fg-button ui-state-default ui-corner-all" id="' + this.sync_orientation_id + '">sync orientation</button>' +
+            '<button id="' + this.sync_orientation_id + '">sync orientation</button>' +
             '<span id="' + this.applet_selector_sync_orientation_id + '"></span>' +
         '</div>' +
     '</div>';
@@ -531,7 +531,7 @@ JmolGlobalControlWidget.prototype = Utils.extend(Widget, /** @lends JmolGlobalCo
             self.sync_mouse = $("#" + self.sync_mouse_id).is(':checked');
             self.update_sync_mouse();
         });
-        $("#" + this.sync_orientation_id).click(function() {
+        $("#" + this.sync_orientation_id).button().click(function() {
             self.sync_orientation();
         });
     },
@@ -603,7 +603,7 @@ JmolDisplayWidget = function(params){
             '<div id="' + this.clipping_slider_id + '"></div>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button class="fg-button ui-state-default ui-corner-all" id="' + this.center_id + '">center protein</button>' +
+            '<button id="' + this.center_id + '">center protein</button>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
@@ -637,10 +637,10 @@ JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lends JmolDisplayWidget.
         });
         
         // init centering
-        $('#' + this.center_id).click(function(){
-            var applet = this.applet_selector.get_value();
+        $('#' + this.center_id).button().click(function(){
+            var applet = self.applet_selector.get_value();
             if(applet){
-                applet.script('zoom(all) 100;');
+                applet.script('center *; zoom(all) 100;');
             }
         });
         
@@ -740,6 +740,258 @@ JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lends JmolDisplayWidget.
 });
 
 
+/**
+ * A widget holding jmol animation related controls
+ * @constructor
+ */
+JmolAnimationWidget = function(params){
+    Widget.call( this, params );
+    
+    this.mode_id = this.id + '_mode';
+    this.mode_loop_id = this.mode_id + '_loop';
+    this.mode_once_id = this.mode_id + '_once';
+    this.mode_palindrome_id = this.mode_id + '_palindrome';
+    
+    this.play_id = this.id + '_play';
+    this.stop_id = this.id + '_stop';
+    this.next_id = this.id + '_next';
+    this.previous_id = this.id + '_previous';
+    this.first_id = this.id + '_first';
+    this.last_id = this.id + '_last';
+    
+    this.applet_selector_widget_id = this.id + '_applet';
+    
+    var content = '<div class="control_group">' +
+        '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            '<span>' +
+		'<button id="' + this.first_id + '">first frame</button>' +
+		'<button id="' + this.previous_id + '">previous frame</button>' +
+		'<button id="' + this.play_id + '">play</button>' +
+		'<button id="' + this.stop_id + '">stop frame</button>' +
+		'<button id="' + this.next_id + '">next frame</button>' +
+		'<button id="' + this.last_id + '">last frame</button>' +
+		'<span id="' + this.mode_id + '">' +
+		    '<input type="radio" value="loop" id="' + this.mode_loop_id + '" name="' + this.mode_id + '" checked="checked" /><label for="' + this.mode_loop_id + '">Loop</label>' +
+		    '<input type="radio" value="once" id="' + this.mode_once_id + '" name="' + this.mode_id + '" /><label for="' + this.mode_once_id + '">Once</label>' +
+		    '<input type="radio" value="palindrome" id="' + this.mode_palindrome_id + '" name="' + this.mode_id + '" /><label for="' + this.mode_palindrome_id + '">Palindrome</label>' +
+		'</span>' +
+            '</span>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id
+    });
+    this._init();
+}
+JmolAnimationWidget.prototype = Utils.extend(Widget, /** @lends JmolAnimationWidget.prototype */ {
+    _init: function(){
+        var self = this;
+        
+        $('#' + this.first_id).button({
+            text: false,
+            icons: {
+                primary: 'ui-icon-seek-start'
+            }
+        }).click(function(){
+            var s = 'frame REWIND;';
+            self.update_animation(s);
+        });
+        
+        $('#' + this.previous_id).button({
+            text: false,
+            icons: {
+                primary: 'ui-icon-seek-prev'
+            }
+        }).click(function(){
+            var s = 'frame PREVIOUS;';
+            self.update_animation(s);
+        });
+        
+        $('#' + this.play_id).button({
+            text: false,
+            icons: {
+                primary: 'ui-icon-play'
+            }
+        })
+        .click(function() {
+            var options;
+            var s = '';
+            if ($(this).text() == 'play') {
+                options = {
+                    label: 'pause',
+                    icons: {
+                        primary: 'ui-icon-pause'
+                    }
+                };
+                s = 'frame PLAY;';
+            } else {
+                options = {
+                    label: 'play',
+                    icons: {
+                        primary: 'ui-icon-play'
+                    }
+                };
+                s = 'frame PAUSE;';
+            }
+            self.update_animation(s);
+        });
+        
+        $('#' + this.stop_id).button({
+            text: false,
+            icons: {
+                primary: 'ui-icon-stop'
+            }
+        })
+        .click(function() {
+            $('#' + self.play_id).button('option', {
+                label: 'play',
+                icons: {
+                    primary: 'ui-icon-play'
+                }
+            });
+            var s = 'frame PAUSE; frame REWIND;';
+            self.update_animation(s);
+        });
+        
+        $('#' + this.next_id).button({
+            text: false,
+            icons: {
+                primary: 'ui-icon-seek-next'
+            }
+        }).click(function(){
+            var s = 'frame NEXT;';
+            self.update_animation(s);
+        });
+        
+        $('#' + this.last_id).button({
+            text: false,
+            icons: {
+                primary: 'ui-icon-seek-end'
+            }
+        }).click(function(){
+            var s = 'frame LAST;';
+            self.update_animation(s);
+        });
+        
+        $("#" + this.mode_id).buttonset().change(function(){
+            self.set_animation_mode();
+        });
+    },
+    update_animation: function(script){
+        this.set_animation_mode();
+        var applet = Jmol.get_default_applet();
+        if(applet){
+            applet.script(script);
+        }
+    },
+    set_animation_mode: function(script){
+        var applet = Jmol.get_default_applet();
+        if(applet){
+            var s = '';
+            var mode = $("#" + this.mode_id + " input[name=" + this.mode_id + "]:radio:checked").val();
+            if(mode == 'palindrome'){
+                s = 'animation mode PALINDROME';
+            }else if(mode == 'once'){
+                s = 'animation mode ONCE';
+            }else{
+                s = 'animation mode LOOP';
+            }
+            applet.script(s);
+        }
+    }
+});
+
+
 
 })();
+
+
+
+
+var clipping = {
+    
+    depth: 0,
+    slab: 100,
+    state: false,
+    
+    init: function(){
+        this.state = $("#clipping_state").is(':checked');
+        this.update();
+        
+        var self = this;
+        
+        $("#clipping_state").bind('change click', function(){
+            self.state = $("#clipping_state").is(':checked');
+            self.update();
+        });
+        $("#clipping_slider").slider({
+            values: [this.depth, this.slab],
+            range: true,
+            min: 0, max: 100,
+            slide: function(event, ui){
+                //console.log(ui, ui.values);
+                self.depth  = ui.values[0];
+                self.slab= ui.values[1];
+                self.update();
+            }
+        });
+        $("#clipping_slider").mousewheel( function(event, delta){
+            //console.log(event, delta);
+            self.slab = Math.round(self.slab + 2*delta);
+            self.depth = Math.round(self.depth + 2*delta);
+            if(self.slab > 100) self.slab = 100;
+            if(self.slab < 0) self.slab = 0;
+            if(self.depth > 100) self.depth = 100;
+            if(self.depth < 0) self.depth = 0;
+            $("#clipping_slider").slider('values', 0, self.depth);
+            $("#clipping_slider").slider('values', 1, self.slab);
+            self.update();
+        });
+        //$("#clipping_slider").slider('option', 'values', [this.depth, this.slab]);
+    },
+    
+    update: function(){
+        //console.log(this.depth, this.slab);
+        if(this.state){
+            jmolScript('slab on;');
+        }else{
+            jmolScript('slab off;');
+        }
+        jmolScript('depth ' + this.depth + '; slab ' + this.slab + ';');
+    }
+}
+
+
+function styleWidget(parent, rect, id, anchors){
+    var content = '<div class="control_group">' +
+        '<div class="control_row">' +
+            '<label for="style">style</label>' +
+            '<select id="style" class="ui-state-default">' +
+                '<option value="backbone">backbone</option>' +
+                '<option value="wireframe">wireframe</option>' +
+                '<option value="cartoon">cartoon</option>' +
+                '<option value="wireframe+backbone">wireframe & backbone</option>' +
+                '<option value="cartoon+wireframe" selected="selected">cartoon & wireframe</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label id="clipping_slider_label" for="clipping_slider" style="display:block;">clipping</label>' +
+            '<input id="clipping_state" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<div id="clipping_slider"></div>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<button class="fg-button ui-state-default ui-corner-all" id="center_protein">center protein</button>' +
+        '</div>' +
+    '</div>';
+    
+    widget( parent, content, rect, id, anchors );
+    display.init("style");
+    clipping.init();
+    $('#center_protein').click(function(){
+        jmolScript('zoom(all) 100;');
+    });
+}
+
 
