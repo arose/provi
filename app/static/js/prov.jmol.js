@@ -196,6 +196,7 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
         );
     },
     _evalJSON: function(s,key){
+	// from Jmol.js
 	s=s+"";
 	if(!s)return [];
 	if(s.charAt(0)!="{"){
@@ -276,17 +277,29 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
 	    this.fn.apply( this.fn_this, this.fn_args );
 	});
     },
-    get_property: function(property, key){
-        return this.applet.getProperty(property, key);
+    get_property: function(property, value){
+	if(this.loaded){
+	    return this.applet.getProperty(property, value);
+	}
+	return false;
     },
-    get_property_as_json: function(property, key){
-        return this.applet.getPropertyAsJSON(property, key) + '';
+    get_property_as_json: function(property, value){
+        return this.applet.getPropertyAsJSON(property, value) + '';
     },
-    get_property_as_string: function(property, key){
-        return this.applet.getPropertyAsString(property, key) + '';
+    get_property_as_string: function(property, value){
+        return this.applet.getPropertyAsString(property, value) + '';
     },
-    get_property_as_array: function(property, key){
-        return this._evalJSON( this.get_property_as_json(property, key), property );
+    get_property_as_array: function(property, value){
+        return this._evalJSON( this.get_property_as_json(property, value), property );
+    },
+    evaluate: function(molecular_math){
+	// from Jmol.js
+	var result = "" + this.get_property("evaluate", molecular_math);
+	var s = result.replace(/\-*\d+/,"")
+	if (s == "" && !isNaN(parseInt(result))) return parseInt(result);
+	var s = result.replace(/\-*\d*\.\d*/,"")
+	if (s == "" && !isNaN(parseFloat(result))) return parseFloat(result);
+	return result;
     }
 };
 
@@ -336,7 +349,7 @@ JmolAppletSelectorWidget.prototype = Utils.extend(Widget,{
         elm.empty();
         elm.append(
             '<option value="default">default</option>' +
-            (this.allow_new_applets ? '<option value="new">new</option>' : '')
+            (this.allow_new_applets ? '<option value="new">new</option><option value="new once">new once</option>' : '')
         );
         $.each(Jmol.get_applet_list(), function(){
             elm.append("<option value='" + this.name_suffix + "'>" + this.name_suffix + "</option>");
@@ -348,25 +361,53 @@ JmolAppletSelectorWidget.prototype = Utils.extend(Widget,{
         this._update();
         Jmol.on_applet_list_change( this._update, this );
     },
-    get_value: function(){
+    get_value: function( do_not_force_new ){
         var applet_name = $("#" + this.selector_id + " option:selected").val();
         if(applet_name == 'default'){
-	    if( typeof(Jmol.get_default_applet()) == 'undefined' ){
+	    if( typeof(Jmol.get_default_applet()) == 'undefined' && !do_not_force_new ){
 		return ( new JmolWidget({}) ).applet;
 	    }else{
 		return this._jmol_applet ? this._jmol_applet : Jmol.get_default_applet();
 	    }
-        }else if(applet_name == 'new'){
+        }else if(applet_name == 'new' || applet_name == 'new once'){
             var jw = new JmolWidget({
                 parent_id: this.new_jmol_applet_parent_id
             });
+	    if(applet_name == 'new once'){
+		$("#" + this.selector_id).val( jw.applet.name_suffix );
+	    }
             return jw.applet;
         }else{
             return Jmol.get_applet(applet_name);
         }
     },
-    change: function(fn){console.log();
+    change: function(fn){
 	$("#" + this.selector_id).change(fn);
+    }
+});
+
+
+
+/**
+ * A widget to select a structure loading type
+ * @constructor
+ */
+JmolLoadAsSelectorWidget = function(params){
+    Widget.call( this, params );
+    this.target_selector_id = this.id + '_target';
+    var content = '<div class="control_row">' +
+	'<label for="' + this.target_selector_id + '">Structure loading type:</label>' +
+	'<select id="' + this.target_selector_id + '" class="ui-state-default">' +
+	    '<option value="new">new</option>' +
+	    '<option value="append">append</option>' +
+	    '<option value="trajectory">new trajectory</option>' +
+	'</select>' +
+    '</div>';
+    $(this.dom).append( content );
+}
+JmolLoadAsSelectorWidget.prototype = Utils.extend(Widget, /** @lends JmolLoadAsSelectorWidget.prototype */ {
+    get_value: function(){
+        return $("#" + this.target_selector_id + " option:selected").val();
     }
 });
 
@@ -905,93 +946,148 @@ JmolAnimationWidget.prototype = Utils.extend(Widget, /** @lends JmolAnimationWid
 
 
 
-})();
+/**
+ * A widget to create ramachandran plots from molecular data
+ * @constructor
+ */
+RamachandranPlotWidget = function(params){
+    Widget.call( this, params );
+    this.canvas_id = this.id + '_canvas';
+    this.favored_angles_id = this.id + '_favored_angles';
+    this.do_ramachandran_plot_id = this.id + '_do_plot';
+    this.applet_selector_widget_id = this.id + '_applet';
 
-
-
-
-var clipping = {
-    
-    depth: 0,
-    slab: 100,
-    state: false,
-    
-    init: function(){
-        this.state = $("#clipping_state").is(':checked');
-        this.update();
-        
-        var self = this;
-        
-        $("#clipping_state").bind('change click', function(){
-            self.state = $("#clipping_state").is(':checked');
-            self.update();
-        });
-        $("#clipping_slider").slider({
-            values: [this.depth, this.slab],
-            range: true,
-            min: 0, max: 100,
-            slide: function(event, ui){
-                //console.log(ui, ui.values);
-                self.depth  = ui.values[0];
-                self.slab= ui.values[1];
-                self.update();
-            }
-        });
-        $("#clipping_slider").mousewheel( function(event, delta){
-            //console.log(event, delta);
-            self.slab = Math.round(self.slab + 2*delta);
-            self.depth = Math.round(self.depth + 2*delta);
-            if(self.slab > 100) self.slab = 100;
-            if(self.slab < 0) self.slab = 0;
-            if(self.depth > 100) self.depth = 100;
-            if(self.depth < 0) self.depth = 0;
-            $("#clipping_slider").slider('values', 0, self.depth);
-            $("#clipping_slider").slider('values', 1, self.slab);
-            self.update();
-        });
-        //$("#clipping_slider").slider('option', 'values', [this.depth, this.slab]);
-    },
-    
-    update: function(){
-        //console.log(this.depth, this.slab);
-        if(this.state){
-            jmolScript('slab on;');
-        }else{
-            jmolScript('slab off;');
-        }
-        jmolScript('depth ' + this.depth + '; slab ' + this.slab + ';');
-    }
-}
-
-
-function styleWidget(parent, rect, id, anchors){
     var content = '<div class="control_group">' +
+	'<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
-            '<label for="style">style</label>' +
-            '<select id="style" class="ui-state-default">' +
-                '<option value="backbone">backbone</option>' +
-                '<option value="wireframe">wireframe</option>' +
-                '<option value="cartoon">cartoon</option>' +
-                '<option value="wireframe+backbone">wireframe & backbone</option>' +
-                '<option value="cartoon+wireframe" selected="selected">cartoon & wireframe</option>' +
+            '<label for="' + this.style_id + '">favored angles</label>' +
+            '<select id="' + this.favored_angles_id + '" class="ui-state-default">' +
+                '<option value="General" selected="selected">General</option>' +
+                '<option value="Glycine">Glycine</option>' +
+                '<option value="Pre-Pro">Pre-Pro</option>' +
+                '<option value="Proline">Proline</option>' +
             '</select>' +
+            '<button id="' + this.do_ramachandran_plot_id + '">ramachandran plot</button>' +
         '</div>' +
-        '<div class="control_row">' +
-            '<label id="clipping_slider_label" for="clipping_slider" style="display:block;">clipping</label>' +
-            '<input id="clipping_state" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<div id="clipping_slider"></div>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<button class="fg-button ui-state-default ui-corner-all" id="center_protein">center protein</button>' +
+	'<div class="control_row">' +
+            '<div id="' + this.canvas_id + '" style="width:300px;height:300px"></div>' +
         '</div>' +
     '</div>';
-    
-    widget( parent, content, rect, id, anchors );
-    display.init("style");
-    clipping.init();
-    $('#center_protein').click(function(){
-        jmolScript('zoom(all) 100;');
+    $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id
     });
+    this._init();
 }
+RamachandranPlotWidget.prototype = Utils.extend(Widget, /** @lends RamachandranPlotWidget.prototype */ {
+    _init: function(){
+	this.ramachandran_plot();
+        var self = this;
+        
+	$("#" + this.do_ramachandran_plot_id).button().click(function() {
+            self.ramachandran_plot();
+        });
+	
+	// init favored angle contour overlay
+        $("#" + this.favored_angles_id).change( function() {
+            self.ramachandran_plot();
+        });
+	
+	this.applet_selector.change( function() {
+            self.ramachandran_plot();
+        });
+    },
+    ramachandran_plot: function(){
+        var applet = this.applet_selector.get_value(true);
+	var ramachandran_data = [];
+	
+        if(applet && applet.loaded){
+	    var selection = 'protein and {*.ca}';
+	    var format = '%[phi],%[psi],\'%[group]\'';
+	    ramachandran_data = applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
+	    ramachandran_data = ramachandran_data.replace(/%\[psi\]/g,"");
+	    ramachandran_data = ramachandran_data.replace(/%\[phi\]/g,"");
+	    ramachandran_data = eval(ramachandran_data.replace(/\,\]/g,",null]"));
+	    //console.log( ramachandran_data );
+	}
+	
+	
+	/* Sizing and scales. */
+	var w = 270,
+	    h = 270,
+	    kx = 180,
+	    ky = 180,
+	    x = pv.Scale.linear(-180, 180).range(0, w),
+	    y = pv.Scale.linear(-180, 180).range(0, h);
+	
+	//var img = vis.add(pv.Panel)
+	var vis = new pv.Panel()
+	    .canvas(this.canvas_id)
+	    .width(w)
+	    .height(h)
+	    .top(5).left(30).right(5).bottom(15);
+	  
+	var img = vis.add(pv.Panel).overflow("hidden").add(pv.Image)
+	    .left(x)
+	    .bottom(y)
+	    .url("../img/ramachandran_plot_empty_" + $("#" + this.favored_angles_id + " option:selected").val() + ".png");
+	
+	/* X-axis and ticks. */
+	vis.add(pv.Rule)
+	    .data(x.ticks())
+	    .left(x)
+	    .strokeStyle(function(d){ return d ? "#eee" : "#000"; })
+	  .anchor("bottom").add(pv.Label)
+	    .text(x.tickFormat);
+	
+	/* Y-axis and ticks. */
+	vis.add(pv.Rule)
+	    .data(y.ticks())
+	    .top(y)
+	    .strokeStyle(function(d){ return d ? "#eee" : "#000"; })
+	  .anchor("left").add(pv.Label)
+	    .text(y.tickFormat);
+	
+		/** Update the x- and y-scale domains per the new transform. */
+	function transform() {
+	    var t = this.transform();
+	    var ti = t.invert();
+	    x.domain(ti.x / w * 2 * kx - kx, (ti.k + ti.x / w) * 2 * kx - kx);
+	    y.domain(ti.y / h * 2 * ky - ky, (ti.k + ti.y / h) * 2 * ky - ky);
+	    var ih = h * t.k;
+	    var iw = w * t.k;
+	    img.height(ih).width(iw).top(t.y).left(t.x);
+	    vis.render();
+	}
+	
+	/* Use an invisible panel to capture pan & zoom events. */
+	vis.add(pv.Panel)
+	    .events("all")
+	    .event("mousedown", pv.Behavior.pan())
+	    .event("mousewheel", pv.Behavior.zoom())
+	    .event("pan", transform)
+	    .event("zoom", transform);
+	
+	/* The dot plot! */
+	vis.add(pv.Panel)
+	    .overflow("hidden")
+	  .add(pv.Dot)
+	    .data(ramachandran_data)
+	    .left(function(d){ return x(d[0]); })
+	    .top(function(d){ return y(-d[1]); })
+	    .size(3)
+	    .lineWidth(0)
+	    .text(function(d){ return d[2]; })
+	    .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}))
+	    .fillStyle("black");
+	
 
+	
+	vis.render();
+    }
+});
+
+
+
+})();
 

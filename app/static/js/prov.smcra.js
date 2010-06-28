@@ -264,6 +264,236 @@ MembranePlanes.prototype = /** @lends Bio.MembranePlanes.prototype */ {
 };
 
 
+/**
+ * widget class for controlling a mplane dataset
+ * @constructor
+ * @extends Widget
+ */
+MplaneWidget = function(params){
+    this.dataset = params.dataset;
+    this.applet = params.applet;
+    this.color = "blue";
+    this.translucency = 0.6;
+    this.size = 500;
+    this.visibility = true;
+    Widget.call( this, params );
+    this.size_id = this.id + '_size';
+    this.size_slider_id = this.id + '_size_slider';
+    this.size_slider_option_id = this.id + '_size_slider_option';
+    this.visibility_id = this.id + '_visibility';
+    var content = '<div class="control_group">' +
+        '<div class="control_row">' +
+            '<span>Dataset: ' + this.dataset.name + '</span>&nbsp;|&nbsp;' +
+            '<span>Applet: ' + this.applet.name_suffix + '</span>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.size_id + '">membrane plane size</label>' +
+            '<select id="' + this.size_id + '" class="ui-state-default">' +
+                '<option value="1">hide</option>' +
+                '<option id="' + this.size_slider_option_id + '" value="1">slider</option>' +
+                '<option value="100">100</option>' +
+                '<option value="200">200</option>' + 
+                '<option value="300">300</option>' +
+                '<option value="400">400</option>' +
+                '<option value="500" selected="selected">500</option>' +
+                '<option value="600">600</option>' +
+                '<option value="700">700</option>' +
+                '<option value="800">800</option>' +
+                '<option value="1000">1000</option>' +
+                '<option value="1200">1200</option>' +
+                '<option value="1400">1400</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="' + this.visibility_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+            '<div id="' + this.size_slider_id + '"></div>' +
+        '</div>' +
+        '<i>the membrane planes are shown in blue and are semi transparent</i>' +
+    '</div>'
+    $(this.dom).append( content );
+    this._init();
+}
+MplaneWidget.prototype = Utils.extend(Widget, /** @lends MplaneWidget.prototype */ {
+    _init: function () {
+        this.visibility = $("#" + this.visibility_id).is(':checked');
+        $("#" + this.size_slider_option_id).hide();
+        $("#" + this.size_id).val(this.size);
+        this.draw();
+        var self = this;
+        
+        $("#" + this.visibility_id).bind('change click', function() {
+            self.visibility = $("#" + self.visibility_id).is(':checked');
+            self.draw();
+        });
+        $("#" + this.size_id).change( function() {
+            self.size = $("#" + self.size_id + " option:selected").val();
+            $("#" + self.size_slider_id).slider('option', 'value', self.size);
+            $("#" + self.size_slider_option_id).hide();
+            self.draw();
+        });
+        $("#" + this.size_slider_id).slider({min: 1, max: 1400, slide: function(event, ui){
+            self.size = ui.value;
+            self.update_size_slider();
+        }});
+        $("#" + this.size_slider_id).mousewheel( function(event, delta){
+            self.size = Math.round(self.size + 20*delta);
+            if(self.size > 1400) self.size = 1400;
+            if(self.size < 1) self.size = 1;
+            $("#" + self.size_slider_id).slider('option', 'value', self.size);
+            self.update_size_slider();
+        });
+        $("#" + this.size_slider_id).slider('option', 'value', this.size);
+    },
+    update_size_slider: function(){
+        if($("#" + this.size_id + " option:contains(" + this.size + ")").size()){
+            $("#" + this.size_slider_option_id).hide();
+        }else{
+            $("#" + this.size_slider_option_id).show();
+            $("#" + this.size_slider_option_id).val(this.size);
+            $("#" + this.size_slider_option_id).text(this.size);
+            
+            Array.prototype.sort.call(
+                $("#" + this.size_id + " option"),
+                function(a,b) {
+                    return parseInt($(a).val()) >= parseInt($(b).val()) ? 1 : -1;
+                }
+            ).appendTo("#" + this.size_id); 
+        }
+        $("#" + this.size_id).val(this.size);
+        this.draw();
+    },
+    draw: function(){
+        if(this.visibility){
+            var mp = this.dataset.data;
+            var mp_f = mp.format_as_jmol_planes();
+            var s = 'draw plane' + this.id + '_1 color TRANSLUCENT ' + this.translucency + ' ' + this.color + ' plane ' + this.size + ' ' + mp_f[0] + '; draw plane' + this.id + '_2 color TRANSLUCENT ' + this.translucency + ' ' + this.color + ' plane ' + this.size + ' ' + mp_f[1] + ';';
+            s += 'draw dist arrow {' + mp.plane1[2].join(',') + '} {' + mp.plane2[2].join(',') + '} "' + mp.distance.toFixed(2) + ' A";';
+            this.applet.script(s);
+        }else{
+            this.applet.script('draw plane' + this.id + '_* off;');
+        }
+    }
+});
+
+
+
+/**
+ * A widget to create tree view from molecular data
+ * @constructor
+ */
+TreeViewWidget = function(params){
+    this.dataset = params.dataset;
+    Widget.call( this, params );
+    this.canvas_id = this.id + '_canvas';
+
+    var content = '<div class="control_group">' +
+	'<div class="control_row">' +
+            '<div id="' + this.canvas_id + '" style="width:300px;height:400px; overflow:auto;"></div>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this._init();
+}
+TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.prototype */ {
+    _init: function(){
+	this.tree_view();
+        var self = this;
+    },
+    tree_view: function(){
+        var self = this;
+        
+        var tree_data = {};
+        var models = this.dataset.data.get_list();
+        for(var i = 0; i < models.length; ++i){
+            
+            var tree_chains = {};
+            var chains = models[i].get_list();
+            for(var j = 0; j < chains.length; ++j){
+                
+                var tree_residues = {};
+                var residues = chains[j].get_list();
+                for(var k = 0; k < residues.length; ++k){
+                    
+                    var tree_atoms = {};
+                    var atoms = residues[k].get_list();
+                    for(var l = 0; l < atoms.length; ++l){
+                        tree_atoms[ atoms[l].get_id() ] = atoms[l].serial_number;
+                    }
+                    
+                    tree_residues[ residues[k].resname + " " + residues[k].get_id() ] = tree_atoms;
+                }
+                tree_chains[ chains[j].get_id() ] = tree_residues;
+            }
+            tree_data[ models[i].get_id() ] = tree_chains;
+        };
+        
+        var root = pv.dom( tree_data )
+            .root( 'model 1' );
+        
+        /* Recursively compute the package sizes. */
+        root.visitAfter(function(node, depth) {
+            if (node.firstChild) {
+                if( depth == 2){
+                    node.nodeValue = node.childNodes.length + " Residues";
+                }else if( depth == 1){
+                    node.nodeValue = node.childNodes.length + " Chains";
+                }if( depth == 0){
+                    node.nodeValue = node.childNodes.length + " Models";
+                }
+            }
+        });
+        
+        var vis = new pv.Panel()
+            .canvas( this.canvas_id )
+            .width(260)
+            .height(function(){ return (root.nodes().length + 1) * 12 })
+            .margin(5);
+        
+        var layout = vis.add(pv.Layout.Indent)
+            .nodes(function(){ return root.nodes() })
+            .depth(12)
+            .breadth(12);
+        
+        layout.link.add(pv.Line);
+        
+        var node = layout.node.add(pv.Panel)
+            .top(function(n){ return n.y - 6 })
+            .height(12)
+            .right(6)
+            .strokeStyle(null)
+            .fillStyle(null)
+            .events("all")
+            .event("mousedown", toggle);
+        
+        node.anchor("left").add(pv.Dot)
+            .strokeStyle("#1f77b4")
+            .fillStyle(function(n){ return n.toggled ? "#1f77b4" : n.firstChild ? "#aec7e8" : "#ff7f0e" })
+            .title(function t(d){ return d.parentNode ? (t(d.parentNode) + "." + d.nodeName) : d.nodeName })
+          .anchor("right").add(pv.Label)
+            .text(function(n){ return n.nodeName });
+        
+        node.anchor("right").add(pv.Label)
+            .textStyle(function(n){ return n.firstChild || n.toggled ? "#aaa" : "#000" })
+            .text(function(n){ return n.nodeValue || ''; });
+        
+        root.visitAfter(function(node, depth){
+            if(depth > 1){
+                node.toggle();
+            }
+        });
+        
+        vis.render();
+        
+        /* Toggles the selected node, then updates the layout. */
+        function toggle(n) {
+            n.toggle(pv.event.altKey);
+            return layout.reset().root;
+        }
+    }
+});
+
+
+
 /*
 var test_entity = new Entity('my_entity');
 console.log(test_entity);

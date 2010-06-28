@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, re, logging
+import cookielib, urllib2
 from paste import httpserver
 from webob import Request, Response
 from webob import exc
@@ -34,7 +35,7 @@ class DataStorage(object):
 
 
 class DataProvider(object):
-    def __init__( self, datatype, data, name=None ):
+    def __init__( self, trans, datatype, data, name=None ):
         self.dataset = Dataset( data, name=name, type=datatype )
         self.datatype = self.dataset.type
     def get_raw_data( self ):
@@ -42,24 +43,36 @@ class DataProvider(object):
     
     
 class GalaxyDataProvider( DataProvider ):
-    def __init__( self, datatype, hda_id=None ):
-        data = self._retrieve( hda_id )
-        DataProvider.__init__( self, datatype, data )
-    def _retrieve( self, hda_id ):
+    def __init__( self, trans, datatype, hda_id=None, name=None ):
+        data = self._retrieve( trans, hda_id )
+        DataProvider.__init__( self, trans, datatype, data, name=name )
+    def _retrieve( self, trans, hda_id ):
         # get from galaxy instance
-        data = None
-        return data
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor( trans.cookiejar ))
+        return opener.open( 'http://127.0.0.1:9090/root/display/?id=%s' % (hda_id) ).read()
 
 
 class FileDataProvider( DataProvider ):
-    def __init__( self, datatype, data=None, name=None ):
-        DataProvider.__init__( self, datatype, data, name=name )
+    def __init__( self, trans, datatype, data=None, name=None ):
+        DataProvider.__init__( self, trans, datatype, data, name=name )
+
+
+class UrlDataProvider( DataProvider ):
+    def __init__( self, trans, datatype, url=None, name=None ):
+        data = self._retrieve( trans, url )
+        DataProvider.__init__( self, trans, datatype, data, name=name )
+    def _retrieve( self, trans, url ):
+        if( '127.0.0.1' in url or 'localhost' in url ):
+            opener = urllib2.build_opener()
+        else:
+            opener = urllib2.build_opener( urllib2.ProxyHandler({'http': 'proxy.charite.de:888'}) )
+        return opener.open( url ).read()
 
 
 class LocalDataProvider( DataProvider ):
-    def __init__( self, datatype, file_path=None ):
+    def __init__( self, trans, datatype, file_path=None ):
         data = self._retrieve( hda_id )
-        DataProvider.__init__( self, datatype, data )
+        DataProvider.__init__( self, trans, datatype, data )
     def _retrieve( self, file_path ):
         # read from local path
         fp = open( file_path )
@@ -87,11 +100,49 @@ class PluploadController( BaseController ):
         data_controller = DataController( self.app )
         return data_controller.add( trans, datatype, provider, name=name, data=data )
 
+class GalaxyController( BaseController ):
+    def get( self, trans, url ):
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor( trans.cookiejar ))
+        return opener.open( url ).read()
+    @expose
+    def index( self, trans ):
+        return 'foo'
+    @expose
+    def dataset_list( self, trans ):
+        trans.response.set_content_type('text/xml')
+        return self.get( trans, 'http://127.0.0.1:9090/root/history/?as_xml=1' )
+    @expose
+    def history_list( self, trans ):
+        trans.response.set_content_type('text/xml')
+        return self.get( trans, 'http://127.0.0.1:9090/history/list_as_xml/' )
+    @expose
+    def switch_history( self, trans, history_id ):
+        return self.get( trans, 'http://127.0.0.1:9090/history/list/?operation=switch&id=%s' % (history_id) )
+    @expose
+    def login( self, trans, email='alexander.rose@weirdbyte.de', password='foobar', galaxysession=None ):
+        if galaxysession:
+            c = cookielib.Cookie(None, 'galaxysession', galaxysession, '9090', True, '127.0.0.1', True, False, '/', True, None, None, True, None, None, None)
+            trans.cookiejar.set_cookie( c )
+            return
+        return self.get( trans, 'http://127.0.0.1:9090/user/login/?login_button=1&email=%s&password=%s' % (email, password) )
+    @expose
+    def import_dataset( self, trans, id, name, datatype='' ):
+        data_controller = DataController( self.app )
+        return data_controller.add( trans, datatype, 'galaxy', hda_id=id, name=name )
+
+class UrlLoadController( BaseController ):
+    @expose
+    def index( self, trans, url, name='', datatype='' ):
+        data_controller = DataController( self.app )
+        return data_controller.add( trans, datatype, 'url', url=url, name=name )
+
+
 class DataController( BaseController ):
     valid_providers = {
         'galaxy': GalaxyDataProvider,
         'file': FileDataProvider,
-        'local': LocalDataProvider
+        'local': LocalDataProvider,
+        'url': UrlDataProvider
     }
     
     @expose
@@ -117,7 +168,7 @@ class DataController( BaseController ):
     
     @expose
     def add( self, trans, datatype, provider, **kwargs ):
-        data_provider = self.valid_providers[provider]( datatype, **kwargs )
+        data_provider = self.valid_providers[provider]( trans, datatype, **kwargs )
         id = trans.storage.add( data_provider )
         dataset = data_provider.dataset
         return json.dumps({
@@ -148,6 +199,7 @@ class ProteinViewerWebTransaction( base.DefaultWebTransaction ):
         self.environ = environ
         base.DefaultWebTransaction.__init__( self, environ )
         self.__init_storage()
+        self.__init_cookiejar()
         
     def __init_storage(self):
         if 'storage' in self.environ['beaker.session']:
@@ -155,6 +207,14 @@ class ProteinViewerWebTransaction( base.DefaultWebTransaction ):
         else:
             self.session['storage'] = DataStorage()
         self.storage = self.session['storage']
+    
+    def __init_cookiejar(self):
+        if 'cookiejar' in self.environ['beaker.session']:
+            pass
+        else:
+            self.session['cookiejar'] = cookielib.CookieJar()
+        self.cookiejar = self.session['cookiejar']
+
 
 
 def app_factory( global_conf, **kwargs ):
@@ -166,6 +226,12 @@ def app_factory( global_conf, **kwargs ):
     
     webapp.add_controller( 'Plupload', PluploadController(webapp) )
     webapp.add_route('/plupload/:action/', controller='Plupload', action='index')
+    
+    webapp.add_controller( 'Galaxy', GalaxyController(webapp) )
+    webapp.add_route('/galaxy/:action/', controller='Galaxy', action='index')
+    
+    webapp.add_controller( 'Url', UrlLoadController(webapp) )
+    webapp.add_route('/urlload/:action/', controller='Url', action='index')
     
     webapp = wrap_in_middleware( webapp, global_conf, **kwargs )
     webapp = wrap_in_static( webapp, global_conf, **kwargs )
@@ -209,7 +275,7 @@ def wrap_in_static( app, global_conf, **local_conf ):
     urlmap["/"] = app
     # Define static mappings from config
     urlmap["/static"] = Static( conf.get( "static_dir" ), cache_time )
-    urlmap["/favicon.ico"] = Static( conf.get( "static_favicon_dir" ), cache_time )
+    #urlmap["/favicon.ico"] = Static( conf.get( "static_favicon_dir" ), cache_time )
     return urlmap
     
     
