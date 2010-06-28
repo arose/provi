@@ -9,3 +9,5 @@ doc/jsdoc/*
 doc/sphinx/_build
 
 *.pyc
+
+Icon

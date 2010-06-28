@@ -2,6 +2,13 @@
 
 (function() {
 
+Data = {
+    types: {
+        structure: ['pdb', 'sco', 'mbn', 'gro', 'cif', 'mmcif'],
+        isosurface: ['jvxl', 'mrc', 'cub']
+    }
+}
+
 /**
  * global dataset manager object
  * 
@@ -36,7 +43,7 @@ DatasetManager = {
 Dataset = function(params){
     this._change_fn_list = [];
     this._status = params.status || { local: null, server: null };
-    this.type = params.type;
+    this._set_type( params.type );
     this.data = params.data;
     this.name = params.name;
     this.applet = params.applet;
@@ -66,6 +73,22 @@ Dataset.prototype = /** @lends Dataset.prototype */ {
         this.data = data;
         this._change();
     },
+    _set_type: function(type){
+        this.type = type;
+        if( $.inArray(type, Data.types.structure) >= 0 ){
+            $.extend( this, StructureMixin );
+        }else if( type == 'mplane' ){
+            $.extend( this, MplaneMixin );
+        }else if( $.inArray(type, Data.types.isosurface) >= 0 ){
+            $.extend( this, IsosurfaceMixin );
+        }else{
+            //console.log('unkown file type');
+        }
+    },
+    set_type: function(type){
+        this._set_type(type);
+        this._change();
+    },
     _change_fn_list: [],
     change: function(fn, fn_this){
 	this._change_fn_list.push( {fn: fn, fn_this: fn_this} );
@@ -74,25 +97,158 @@ Dataset.prototype = /** @lends Dataset.prototype */ {
         $.each(this._change_fn_list, function(){
 	    this.fn.call( this.fn_this );
 	});
+    },
+    retrieve_data: function(){
+        var self = this;
+        var get_params = { 'id': response.id+'' };
+        $.getJSON( '../../data/get/', get_params, function(d){
+            self.set_data( d );
+        });
+    },
+    init: function(){
+        
     }
 };
+
+var MplaneMixin = {
+    available_widgets: {
+        'MplaneWidget': MplaneWidget
+    },
+    init: function( params ){
+        var self = this;
+        this.retrieve_data( function(d){
+            self.set_data( new Bio.MembranePlanes( d[0], d[1], d[2] ) );
+            if( params.applet ){
+                new MplaneWidget({
+                    parent_id: 'tab_widgets',
+                    dataset: self,
+                    applet: params.applet
+                });
+            }
+        });
+    },
+    retrieve_data: function( onload ){
+        var get_params = { 'id': this.server_id+'', 'data_action': 'get_planes' };
+        $.getJSON( '../../data/get/', get_params, onload );
+    }
+}
+
+var IsosurfaceMixin = {
+    available_widgets: {},
+    init: function( params ){
+        if( params.applet ){
+            this.load( params.applet );
+        }
+    },
+    load: function(applet){
+        applet.script('isosurface color black "../../data/get/?id=' + this.server_id + '" mesh nofill;');
+    }
+}
+
+var StructureMixin = {
+    available_widgets: {},
+    load_params_widget: {
+        name: 'load_as',
+        obj: JmolLoadAsSelectorWidget,
+        getter: 'get_value'
+    },
+    init: function(params){
+        if( typeof(params) == 'object' && params.applet && params.load_as ){
+            this.load( params.applet, params.load_as );
+        }
+    },
+    load: function( applet, load_as ){
+	var self = this;
+        var params = '?id=' + this.server_id;
+        if( $.inArray(this.type, ['pdb', 'sco', 'mbn']) >= 0 ){
+            params += '&data_action=get_pdb';
+        }
+        if(load_as == 'trajectory'){
+            applet.script('load TRAJECTORY "../../data/get/' + params + '";');
+        }else if(load_as == 'append'){
+            applet.script('load APPEND "../../data/get/' + params + '"; select *; zoom(selected) 20;');
+        //}else if(load_as == 'new'){
+        }else{
+            applet.script('load "../../data/get/' + params + '";');
+	    
+	    setTimeout(function(){
+		var selection = 'protein and {*/1.1}';
+		var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[atomName]\',%[atomNo],\'%[model]\'';
+		protein_data = applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
+		//console.log( protein_data );
+		protein_data = protein_data.replace(/\'\'/g,"'");
+		protein_data = eval( protein_data );
+		
+		var s = new Bio.Pdb.Structure('1');
+		var m = new Bio.Pdb.Model('1');
+		s.add( m );
+		
+		$.each(protein_data, function() {
+		    //console.log(this);
+		    var atom = this;
+		    //console.log(atom);
+		    var group = atom[0],
+			sequence = atom[1],
+			resno = atom[2],
+			chain = atom[3],
+			atomName = atom[4],
+			atomNo = atom[5];
+		    
+		    var c = m.get( chain );
+		    //console.log('chain', chain, c);
+		    if( !c ){
+			c = new Bio.Pdb.Chain( chain );
+			m.add( c );
+		    }
+		    
+		    var r = c.get( resno );
+		    //console.log('residue', resno, r);
+		    if( !r ){
+			r = new Bio.Pdb.Residue( resno, group );
+			c.add( r );
+		    }
+		    
+		    var a = new Bio.Pdb.Atom( atomName, [], 0, 0, "", atomName, atomNo, "" );
+		    try{
+			r.add( a );
+		    }catch(err){
+			//console.log(err);
+		    }
+		});
+		
+		//console.log(m);
+		self.set_data( s );
+		new TreeViewWidget({
+		    parent_id: 'tab_tree',
+		    dataset: self
+		});
+	    }, 1000 );
+        }
+    }
+}
+
+
+
+
+
 
 /**
  * widget class for loading datasets
  * @constructor
  * @extends Widget
  */
-DatasetLoadWidget = function(params){
+PluploadLoadWidget = function(params){
     Widget.call( this, params );
     this.input_id = this.id + '_input';
     this.container_id = this.id + '_container';
     this.filelist_id = this.id + '_filelist';
     this.pickfiles_id = this.id + '_pickfiles';
     this.uploadfiles_id = this.id + '_uploadfiles';
-    this.target_selector_id = this.id + '_target';
     this.type_selector_id = this.id + '_type';
+    this.load_as_selector_widget_id = this.id + '_load_as';
     this.applet_selector_widget_id = this.id + '_applet';
     var content = '<div class="control_group">' +
+        '<h3>File Upload</h3>' +
         '<div class="control_row">' +
             '<label for="' + this.type_selector_id + '">Filetype:</label>' +
             '<select id="' + this.type_selector_id + '" class="ui-state-default">' +
@@ -110,24 +266,15 @@ DatasetLoadWidget = function(params){
             '</select>' +
         '</div>' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.target_selector_id + '">Structure loading type:</label>' +
-            '<select id="' + this.target_selector_id + '" class="ui-state-default">' +
-                '<option value="new">new</option>' +
-                '<option value="append">append</option>' +
-                '<option value="trajectory">new trajectory</option>' +
-            '</select>' +
+        '<div id="' + this.load_as_selector_widget_id + '"></div>' +
+        '<div class="control_row" id="' + this.container_id + '">' +
+            //'<label for="' + this.input_id + '">Select file:</label>' +
+            //'<input type="file" id="' + this.input_id + '" />' +
+            '<div id="' + this.filelist_id + '">No runtime found.</div>' +
+            '<br />' +
+            '<a id="' + this.pickfiles_id + '" href="#">[Select files]</a>' +
+            '<a id="' + this.uploadfiles_id + '" href="#">[Upload files]</a>' +
         '</div>' +
-        '<form method="post" action="examples_dump.php">' +
-            '<div class="control_row" id="' + this.container_id + '">' +
-                //'<label for="' + this.input_id + '">Select file:</label>' +
-                //'<input type="file" id="' + this.input_id + '" />' +
-                '<div id="' + this.filelist_id + '">No runtime found.</div>' +
-                '<br />' +
-                '<a id="' + this.pickfiles_id + '" href="#">[Select files]</a>' +
-                '<a id="' + this.uploadfiles_id + '" href="#">[Upload files]</a>' +
-            '</div>' +
-        '</form>' +
     '</div>';
     $(this.dom).append( content );
     this.applet_selector = new JmolAppletSelectorWidget({
@@ -136,9 +283,12 @@ DatasetLoadWidget = function(params){
         new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
         allow_new_applets: true
     });
+    this.load_as_selector = new JmolLoadAsSelectorWidget({
+        parent_id: this.load_as_selector_widget_id
+    })
     this._init();
 }
-DatasetLoadWidget.prototype = Utils.extend(Widget, /** @lends DatasetLoadWidget.prototype */ {
+PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends PluploadLoadWidget.prototype */ {
     _init: function(){
         this._init_file_input();
     },
@@ -169,7 +319,7 @@ DatasetLoadWidget.prototype = Utils.extend(Widget, /** @lends DatasetLoadWidget.
                 });
                 $('#' + self.filelist_id).append(
                     '<div id="' + file.id + '">' +
-                    'File: ' + file.name + ' (' + plupload.formatSize(file.size) + ') <b></b>' +
+                        'File: ' + file.name + ' (' + plupload.formatSize(file.size) + ') <b></b>' +
                     '</div>'
                 );
             });
@@ -190,45 +340,12 @@ DatasetLoadWidget.prototype = Utils.extend(Widget, /** @lends DatasetLoadWidget.
         this.uploader.bind('FileUploaded', function(up, file, res) {
             var response = $.parseJSON( res.response );
             file.dataset.server_id = response.id;
-            file.dataset.type = response.type;
+            file.dataset.set_type( response.type );
             file.dataset.set_status( 'server', response.status );
-            var type = response.type;
-            var applet = self.applet_selector.get_value();
-            file.dataset.applet = applet;
-            
-            if( $.inArray(type, ['pdb', 'sco', 'mbn', 'gro', 'cif', 'mmcif']) >= 0 ){
-            
-                var load_as = $("#" + self.target_selector_id + " option:selected").val();
-                if(load_as == 'trajectory'){
-                    applet.script('load TRAJECTORY "../../data/get/?id=' + response.id + '";');
-                }else if(load_as == 'append'){
-                    applet.script('load APPEND "../../data/get/?id=' + response.id + '"; select *; zoom(selected) 20;');
-                }else if(load_as == 'new'){
-                    var get_params = { 'id': response.id+'' };
-                    if( $.inArray(type, ['pdb', 'sco', 'mbn']) >= 0 ){
-                        get_params.data_action = 'get_pdb';
-                    }
-                    //console.log('struc', get_params);
-                    $.get( '../../data/get/', get_params, function(get_response_data){
-                        applet.load_inline(get_response_data);
-                    });
-                }
-            
-            }else if( type == 'mplane' ){
-                var get_params = { 'id': response.id+'', 'data_action': 'get_planes' };
-                $.getJSON( '../../data/get/', get_params, function(d){
-                    var mp = new Bio.MembranePlanes( d[0], d[1], d[2] );
-                    file.dataset.set_data( mp );
-                    new MplaneWidget({
-                        parent_id: 'tab_data',
-                        dataset: file.dataset
-                    });
-                });
-            }else if( $.inArray(type, ['jvxl', 'mrc', 'cub']) >= 0 ){
-                applet.script('isosurface color black "../../data/get/?id=' + response.id + '" mesh nofill;');
-            }else{
-                console.log('unkown file type');
-            }
+            file.dataset.init({
+                applet: self.applet_selector.get_value(),
+                load_as: self.load_as_selector.get_value()
+            });
             up.refresh();
 	});
         
@@ -264,6 +381,290 @@ DatasetLoadWidget.prototype = Utils.extend(Widget, /** @lends DatasetLoadWidget.
 
 
 /**
+ * function to import a dataset from galaxy
+ * @returns {Dataset} dataset instance
+ */
+Data.import_galaxy = function(id, name, params, success){
+    var self = this;
+    var dataset = new Dataset({
+        name: name,
+        status: { local: null, server: 'importing' }
+    });
+    $.ajax({
+        url: '../../galaxy/import_dataset/',
+        data: { id: id, name: name },
+        success: function(response){
+            response = $.parseJSON( response );
+            dataset.server_id = response.id;
+            dataset.set_type( response.type );
+            dataset.set_status( 'server', response.status );
+            dataset.init( params );
+            if( $.isFunction(success) ){
+                success( dataset );
+            }
+        }
+    });
+    return dataset;
+}
+
+
+
+/**
+ * widget for loading data from a galaxy instance
+ * @constructor
+ * @extends Widget
+ */
+GalaxyLoadWidget = function(params){
+    Widget.call( this, params );
+    this.history_selector_id = this.id + '_history_selector';
+    this.dataset_list_id = this.id + '_dataset_list';
+    this.load_as_selector_widget_id = this.id + '_load_as';
+    this.applet_selector_widget_id = this.id + '_applet';
+    var content = '<div  class="control_group">' +
+        '<h3>Galaxy Import</h3>' +
+        '<div id="' + this.applet_selector_widget_id + '"></div>' +
+        '<div id="' + this.load_as_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.history_selector_id + '">History:</label>' +
+            '<select id="' + this.history_selector_id + '" class="ui-state-default"></select>' +
+        '</div>' +
+        '<div class="control_row" id="' + this.dataset_list_id + '"></div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id,
+        applet: params.applet,
+        new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
+        allow_new_applets: true
+    });
+    this.load_as_selector = new JmolLoadAsSelectorWidget({
+        parent_id: this.load_as_selector_widget_id
+    })
+    this.init();
+}
+GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.prototype */ {
+    init: function(){
+        var self = this;
+        this.login();
+        $("#" + this.history_selector_id).change(function(){
+            self.switch_history( $("#" + self.history_selector_id + " option:selected").val() );
+        });
+    },
+    update: function() {
+        this.history_list();
+        this.dataset_list();
+    },
+    login: function(){
+        var self = this;
+        $.ajax({
+            url: '../../galaxy/login/',
+            data: { galaxysession: $.cookie('galaxysession') },
+            success: function(){
+                self.update();
+            }
+        });
+    },
+    import_dataset: function(id, name){
+        var self = this;
+        var params = {
+            applet: this.applet_selector.get_value(),
+            load_as: this.load_as_selector.get_value()
+        }
+        Data.import_galaxy( id, name, params, function(dataset){
+            $('#' + self.dataset_list_id + '_' + id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
+        })
+    },
+    dataset_list: function(){
+        $("#" + this.dataset_list_id).empty();
+        var self = this;
+        $.ajax({
+            type: 'GET',
+            url: '../../galaxy/dataset_list/',
+            dataType: 'xml',
+            success: function(data, textStatus, XMLHttpRequest) {
+                var list = $('#' + self.dataset_list_id);
+                self.history_id = $(data).find("history").attr("id");
+                $("#" + self.history_selector_id).val( self.history_id );
+                $(data).find("history").find("data").each(function(){
+                    var id = $(this).attr("id");
+                    var state = $(this).attr("state");
+                    var name = $(this).attr("name");
+                    var button_id = self.dataset_list_id + '_' + id;
+                    list.append( '<div>' +
+                        '<button id="' + button_id + '">import</button>&nbsp;' +
+                        '<span>' + $(this).attr("hid") + ': ' + name + ' (' + state + ')</span>' +
+                    "</div>");
+                    $("#" + button_id).button().attr("disabled", state != 'ok').addClass(state != 'ok' ? 'ui-state-disabled' : '').click(function() {
+                        $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
+                        self.import_dataset( id, name );
+                    });
+                });
+                //.html(data);
+            }
+        });
+    },
+    history_list: function(){
+        var self = this;
+        $.ajax({
+            type: 'GET',
+            url: '../../galaxy/history_list/',
+            dataType: 'xml',
+            success: function(data, textStatus, XMLHttpRequest) {
+                var elm = $("#" + self.history_selector_id);
+                //var value = $("#" + self.history_selector_id + " option:selected").val();
+                elm.empty();
+                $(data).find("history_ids").find("data").each(function(){
+                    elm.append("<option value='" + $(this).attr("id") + "'>" + $(this).attr("hid") + ":&nbsp;" + $(this).attr("name") + "&nbsp;(" + $(this).attr("num") + ")</option>");
+                });
+                elm.val( self.history_id );
+            }
+        });
+    },
+    switch_history: function( history_id ){
+        var self = this;
+        $.ajax({
+            url: '../../galaxy/switch_history/',
+            data: { history_id: history_id },
+            success: function(data){
+                self.update();
+            }
+        });
+    }
+});
+
+
+/**
+ * function to import a dataset from some url
+ * @returns {Dataset} dataset instance
+ */
+Data.import_url = function(url, name, params, success){
+    var self = this;
+    var dataset = new Dataset({
+        name: name,
+        status: { local: null, server: 'importing' }
+    });
+    $.ajax({
+        url: '../../urlload/index/',
+        data: { url: url, name: name },
+        success: function(response){
+            response = $.parseJSON( response );
+            dataset.server_id = response.id;
+            dataset.set_type( response.type );
+            dataset.set_status( 'server', response.status );
+            dataset.init( params );
+            if( $.isFunction(success) ){
+                success( dataset );
+            }
+        }
+    });
+    return dataset;
+}
+
+
+Data.get_pdb_url = function(id){
+    return 'http://www.rcsb.org/pdb/files/' + id + '.pdb';
+}
+
+
+/**
+ * function to import a dataset from the pdb
+ * @returns {Dataset} dataset instance
+ */
+Data.import_pdb = function(id, params, success){
+    return Data.import_url( Data.get_pdb_url(id), id + '.pdb', params, success );
+}
+
+
+
+/**
+ * widget for loading data from a url
+ * @constructor
+ * @extends Widget
+ */
+UrlLoadWidget = function(params){
+    Widget.call( this, params );
+    this.input_id = this.id + '_input';
+    this.load_as_selector_widget_id = this.id + '_load_as';
+    this.applet_selector_widget_id = this.id + '_applet';
+    this.load_button_id = this.id + '_load_button';
+    var content = '<div  class="control_group">' +
+        '<h3>' + this.widget_name + '</h3>' +
+        '<div id="' + this.applet_selector_widget_id + '"></div>' +
+        '<div id="' + this.load_as_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.input_id + '">' + this.input_label + ':&nbsp;</label>' +
+            '<input type="text" id="' + this.input_id + '" class="ui-state-default"></input>&nbsp;' +
+            '<button id="' + this.load_button_id + '">import</button>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id,
+        applet: params.applet,
+        new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
+        allow_new_applets: true
+    });
+    this.load_as_selector = new JmolLoadAsSelectorWidget({
+        parent_id: this.load_as_selector_widget_id
+    })
+    this.init();
+}
+UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends UrlLoadWidget.prototype */ {
+    widget_name: 'Url Import',
+    input_label: 'Url',
+    init: function(){
+        var self = this;
+        
+        $("#" + this.load_button_id).button().click(function() {
+            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
+            self.import_url();
+        });
+    },
+    get_url: function(){
+        return $('#' + this.input_id).val();
+    },
+    get_name: function(){
+        return $('#' + this.input_id).val();
+    },
+    import_url: function(){
+        var url = this.get_url();
+        var name = this.get_name();
+        var self = this;
+        var params = {
+            applet: this.applet_selector.get_value(),
+            load_as: this.load_as_selector.get_value()
+        }
+        Data.import_url( url, name, params, function(dataset){
+            $('#' + self.load_button_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
+            $('#' + self.input_id).val('');
+        })
+    }
+});
+
+
+/**
+ * widget for loading data from the pdb
+ * @constructor
+ * @extends UrlLoadWidget
+ */
+PdbLoadWidget = function(params){
+    UrlLoadWidget.call( this, params );
+    $('#' + this.input_id).attr('size', '4');
+}
+PdbLoadWidget.prototype = Utils.extend(UrlLoadWidget, /** @lends PdbLoadWidget.prototype */ {
+    widget_name: 'Pdb Import',
+    input_label: 'Pdb id',
+    get_url: function(){
+        return Data.get_pdb_url( $('#' + this.input_id).val() );
+    },
+    get_name: function(){
+        return $('#' + this.input_id).val() + '.pdb';
+    }
+});
+
+
+
+/**
  * widget class for managing a single dataset
  * @constructor
  * @extends Widget
@@ -272,24 +673,60 @@ DatasetWidget = function(params){
     this.dataset = params.dataset;
     this.dataset.change(this.update, this);
     Widget.call( this, params );
-    //var content = '<div class="control_group">' +
-    //'</div>';
-    //$(this.dom).append( content );
+    this.load_widget_id = this.id + '_load_widget';
+    this.load_id = this.id + '_load';
+    this.info_id = this.id + '_info';
+    var content = '<div  class="control_group">' +
+        '<div class="control_row" id="' + this.info_id + '"></div>' +
+        '<div class="control_row" id="' + this.load_widget_id + '"></div>' +
+    '</div>'
+    $(this.dom).append( content );
+    
     this.update();
 }
 DatasetWidget.prototype = Utils.extend(Widget, /** @lends DatasetWidget.prototype */ {
     update: function(){
-        var elm = $(this.dom);
+        var self = this;
+        var elm = $('#' + this.info_id);
         elm.empty();
         var status = this.dataset.get_status();
         elm.append(
-            '<div class="control_row" style="background-color: lightgreen; margin: 5px; padding: 3px;">' +
-                '<div>Name: ' + this.dataset.name + '</div>' +
-                '<div>Type: ' + this.dataset.type + '</div>' +
-                '<div>Local Status: ' + status.local + '</div>' +
-                '<div>Server Status: ' + status.server + '</div>' +
+            '<div style="background-color: ' + ( status.server == 'Ok' ? 'lightgreen' : 'lightgrey' ) + '; margin: 5px; padding: 3px;">' +
+                '<div>' + this.dataset.name + ' (' + this.dataset.type + ')</div>' +
+                '<div>Local Status: ' + status.local + '&nbsp;|&nbsp;Server Status: ' + status.server + '</div>' +
             '</div>'
         );
+        
+        if( status.server == 'Ok'){
+            if( !this.applet_selector ){
+                this.applet_selector = new JmolAppletSelectorWidget({
+                    parent_id: this.load_widget_id,
+                    allow_new_applets: ( $.inArray(this.dataset.type, Data.types.structure.concat(Data.types.isosurface)) >= 0 )
+                });
+            }
+            if(this.dataset.load_params_widget && !this.load_params_widget){
+                this.load_params_widget = new this.dataset.load_params_widget.obj({
+                    parent_id: this.load_widget_id
+                })
+            }
+            if( !this._load_button_initialized ){
+                this._load_button_initialized = true;
+                $('#' + this.load_widget_id).append(
+                    '<button id="' + this.load_id + '">load</button>'
+                );
+                $("#" + this.load_id).button().click(function() {
+                    var params = {
+                        applet: self.applet_selector.get_value()
+                    }
+                    if(self.load_params_widget){
+                        var ds_lpw = self.dataset.load_params_widget;
+                        params[ ds_lpw.name ] = self.load_params_widget[ ds_lpw.getter ]();
+                    }
+                    console.log(params);
+                    self.dataset.init( params );
+                });
+            }
+        }
     }
 });
 
@@ -305,7 +742,7 @@ DatasetManagerWidget = function(params){
     DatasetManager.change(this.update, this);
     Widget.call( this, params );
     this.list_id = this.id + '_list';
-    var content = '<div class="control_group">' +
+    var content = '<div>' +
         '<div id="' + this.list_id + '"></div>' +
     '</div>';
     $(this.dom).append( content );
@@ -328,115 +765,6 @@ DatasetManagerWidget.prototype = Utils.extend(Widget, /** @lends DatasetManagerW
                 parent_id: this.list_id,
                 dataset: msg.add
             }));
-        }
-    }
-});
-
-
-
-
-/**
- * widget class for controlling a mplane dataset
- * @constructor
- * @extends Widget
- */
-MplaneWidget = function(params){
-    this.dataset = params.dataset;
-    this.color = "blue";
-    this.translucency = 0.6;
-    this.size = 500;
-    this.visibility = true;
-    Widget.call( this, params );
-    this.size_id = this.id + '_size';
-    this.size_slider_id = this.id + '_size_slider';
-    this.size_slider_option_id = this.id + '_size_slider_option';
-    this.visibility_id = this.id + '_visibility';
-    var content = '<div class="control_group">' +
-        '<div class="control_row">' +
-            '<label for="' + this.size_id + '">membrane plane size</label>' +
-            '<select id="' + this.size_id + '" class="ui-state-default">' +
-                '<option value="1">hide</option>' +
-                '<option id="' + this.size_slider_option_id + '" value="1">slider</option>' +
-                '<option value="100">100</option>' +
-                '<option value="200">200</option>' + 
-                '<option value="300">300</option>' +
-                '<option value="400">400</option>' +
-                '<option value="500" selected="selected">500</option>' +
-                '<option value="600">600</option>' +
-                '<option value="700">700</option>' +
-                '<option value="800">800</option>' +
-                '<option value="1000">1000</option>' +
-                '<option value="1200">1200</option>' +
-                '<option value="1400">1400</option>' +
-            '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<input id="' + this.visibility_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-            '<div id="' + this.size_slider_id + '"></div>' +
-        '</div>' +
-        '<i>the membrane planes are shown in blue and are semi transparent</i>' +
-    '</div>'
-    $(this.dom).append( content );
-    this._init();
-}
-MplaneWidget.prototype = Utils.extend(Widget, /** @lends MplaneWidget.prototype */ {
-    _init: function () {
-        this.visibility = $("#" + this.visibility_id).is(':checked');
-        $("#" + this.size_slider_option_id).hide();
-        $("#" + this.size_id).val(this.size);
-        this.draw();
-        var self = this;
-        
-        $("#" + this.visibility_id).bind('change click', function() {
-            self.visibility = $("#" + self.visibility_id).is(':checked');
-            self.draw();
-        });
-        $("#" + this.size_id).change( function() {
-            self.size = $("#" + self.size_id + " option:selected").val();
-            $("#" + self.size_slider_id).slider('option', 'value', self.size);
-            $("#" + self.size_slider_option_id).hide();
-            self.draw();
-        });
-        $("#" + this.size_slider_id).slider({min: 1, max: 1400, slide: function(event, ui){
-            self.size = ui.value;
-            self.update_size_slider();
-        }});
-        $("#" + this.size_slider_id).mousewheel( function(event, delta){
-            self.size = Math.round(self.size + 20*delta);
-            if(self.size > 1400) self.size = 1400;
-            if(self.size < 1) self.size = 1;
-            $("#" + self.size_slider_id).slider('option', 'value', self.size);
-            self.update_size_slider();
-        });
-        $("#" + this.size_slider_id).slider('option', 'value', this.size);
-    },
-    update_size_slider: function(){
-        if($("#" + this.size_id + " option:contains(" + this.size + ")").size()){
-            $("#" + this.size_slider_option_id).hide();
-        }else{
-            $("#" + this.size_slider_option_id).show();
-            $("#" + this.size_slider_option_id).val(this.size);
-            $("#" + this.size_slider_option_id).text(this.size);
-            
-            Array.prototype.sort.call(
-                $("#" + this.size_id + " option"),
-                function(a,b) {
-                    return parseInt($(a).val()) >= parseInt($(b).val()) ? 1 : -1;
-                }
-            ).appendTo("#" + this.size_id); 
-        }
-        $("#" + this.size_id).val(this.size);
-        this.draw();
-    },
-    draw: function(){
-        if(this.visibility){
-            var mp = this.dataset.data;
-            var mp_f = mp.format_as_jmol_planes();
-            var s = 'draw plane' + this.id + '_1 color TRANSLUCENT ' + this.translucency + ' ' + this.color + ' plane ' + this.size + ' ' + mp_f[0] + '; draw plane' + this.id + '_2 color TRANSLUCENT ' + this.translucency + ' ' + this.color + ' plane ' + this.size + ' ' + mp_f[1] + ';';
-            s += 'draw dist arrow {' + mp.plane1[2].join(',') + '} {' + mp.plane2[2].join(',') + '} "' + mp.distance.toFixed(2) + ' A";';
-            this.dataset.applet.script(s);
-        }else{
-            this.dataset.applet.script('draw plane' + this.id + '_* off;');
         }
     }
 });
