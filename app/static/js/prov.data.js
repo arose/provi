@@ -2,10 +2,15 @@
 
 (function() {
 
+/**
+ * The global Data object
+ * @name Data
+ * @namespace
+ */
 Data = {
     types: {
         structure: ['pdb', 'sco', 'mbn', 'gro', 'cif', 'mmcif'],
-        isosurface: ['jvxl', 'mrc', 'cub']
+        isosurface: ['jvxl', 'mrc', 'cub', 'ccp4']
     }
 }
 
@@ -81,6 +86,9 @@ Dataset.prototype = /** @lends Dataset.prototype */ {
             $.extend( this, MplaneMixin );
         }else if( $.inArray(type, Data.types.isosurface) >= 0 ){
             $.extend( this, IsosurfaceMixin );
+        }else if( type == 'jspt' ){
+            console.log(this);
+            $.extend( this, ScriptMixin );
         }else{
             //console.log('unkown file type');
         }
@@ -133,6 +141,27 @@ var MplaneMixin = {
     }
 }
 
+var ScriptMixin = {
+    available_widgets: {},
+    init: function( params ){
+        var self = this;
+        this.retrieve_data( function(d){
+            console.log(d);
+            self.set_data( d );
+            if( params.applet ){
+                self.load( params.applet );
+            }
+        });
+    },
+    retrieve_data: function( onload ){
+        var get_params = { 'id': this.server_id+'' };
+        $.get( '../../data/get/', get_params, onload, 'text' );
+    },
+    load: function(applet){
+        applet.script( this.data );
+    }
+}
+
 var IsosurfaceMixin = {
     available_widgets: {},
     init: function( params ){
@@ -170,60 +199,60 @@ var StructureMixin = {
         //}else if(load_as == 'new'){
         }else{
             applet.script('load "../../data/get/' + params + '";');
-	    
-	    setTimeout(function(){
-		var selection = 'protein and {*/1.1}';
-		var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[atomName]\',%[atomNo],\'%[model]\'';
-		protein_data = applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
-		//console.log( protein_data );
-		protein_data = protein_data.replace(/\'\'/g,"'");
-		protein_data = eval( protein_data );
-		
-		var s = new Bio.Pdb.Structure('1');
-		var m = new Bio.Pdb.Model('1');
-		s.add( m );
-		
-		$.each(protein_data, function() {
-		    //console.log(this);
-		    var atom = this;
-		    //console.log(atom);
-		    var group = atom[0],
-			sequence = atom[1],
-			resno = atom[2],
-			chain = atom[3],
-			atomName = atom[4],
-			atomNo = atom[5];
-		    
-		    var c = m.get( chain );
-		    //console.log('chain', chain, c);
-		    if( !c ){
-			c = new Bio.Pdb.Chain( chain );
-			m.add( c );
-		    }
-		    
-		    var r = c.get( resno );
-		    //console.log('residue', resno, r);
-		    if( !r ){
-			r = new Bio.Pdb.Residue( resno, group );
-			c.add( r );
-		    }
-		    
-		    var a = new Bio.Pdb.Atom( atomName, [], 0, 0, "", atomName, atomNo, "" );
-		    try{
-			r.add( a );
-		    }catch(err){
-			//console.log(err);
-		    }
-		});
-		
-		//console.log(m);
-		self.set_data( s );
-		new TreeViewWidget({
-		    parent_id: 'tab_tree',
-		    dataset: self
-		});
-	    }, 1000 );
         }
+    },
+    jmol_load: function(){
+        var selection = 'protein and {*}';
+        var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[atomName]\',%[atomNo],\'%[model]\'';
+        var protein_data = applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
+        //console.log( protein_data );
+        protein_data = protein_data.replace(/\'\'/g,"'");
+        //console.log( protein_data );
+        protein_data = eval( protein_data );
+        
+        var s = new Bio.Pdb.Structure('1');
+        var m = new Bio.Pdb.Model('1');
+        s.add( m );
+        
+        $.each(protein_data, function() {
+            //console.log(this);
+            var atom = this;
+            //console.log(atom);
+            var group = atom[0],
+                sequence = atom[1],
+                resno = atom[2],
+                chain = atom[3],
+                atomName = atom[4],
+                atomNo = atom[5];
+            
+            var c = m.get( chain );
+            //console.log('chain', chain, c);
+            if( !c ){
+                c = new Bio.Pdb.Chain( chain );
+                m.add( c );
+            }
+            
+            var r = c.get( resno );
+            //console.log('residue', resno, r);
+            if( !r ){
+                r = new Bio.Pdb.Residue( resno, group );
+                c.add( r );
+            }
+            
+            var a = new Bio.Pdb.Atom( atomName, [], 0, 0, "", atomName, atomNo, "" );
+            try{
+                r.add( a );
+            }catch(err){
+                //console.log(err);
+            }
+        });
+        
+        //console.log(m);
+        self.set_data( s );
+        new TreeViewWidget({
+            parent_id: 'tab_tree',
+            dataset: self
+        });
     }
 }
 
@@ -238,6 +267,7 @@ var StructureMixin = {
  * @extends Widget
  */
 PluploadLoadWidget = function(params){
+    params.heading = 'File Upload';
     Widget.call( this, params );
     this.input_id = this.id + '_input';
     this.container_id = this.id + '_container';
@@ -248,7 +278,7 @@ PluploadLoadWidget = function(params){
     this.load_as_selector_widget_id = this.id + '_load_as';
     this.applet_selector_widget_id = this.id + '_applet';
     var content = '<div class="control_group">' +
-        '<h3>File Upload</h3>' +
+        
         '<div class="control_row">' +
             '<label for="' + this.type_selector_id + '">Filetype:</label>' +
             '<select id="' + this.type_selector_id + '" class="ui-state-default">' +
@@ -384,7 +414,7 @@ PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends PluploadLoadWidge
  * function to import a dataset from galaxy
  * @returns {Dataset} dataset instance
  */
-Data.import_galaxy = function(id, name, params, success){
+Data.import_galaxy = function(id, name, filename, type, params, success, no_init){
     var self = this;
     var dataset = new Dataset({
         name: name,
@@ -392,13 +422,13 @@ Data.import_galaxy = function(id, name, params, success){
     });
     $.ajax({
         url: '../../galaxy/import_dataset/',
-        data: { id: id, name: name },
+        data: { id: id, name: name, filename: filename || 'index', datatype: type },
         success: function(response){
             response = $.parseJSON( response );
             dataset.server_id = response.id;
             dataset.set_type( response.type );
             dataset.set_status( 'server', response.status );
-            dataset.init( params );
+            if( !no_init ) dataset.init( params );
             if( $.isFunction(success) ){
                 success( dataset );
             }
@@ -415,13 +445,13 @@ Data.import_galaxy = function(id, name, params, success){
  * @extends Widget
  */
 GalaxyLoadWidget = function(params){
+    params.heading = 'Galaxy Import';
     Widget.call( this, params );
     this.history_selector_id = this.id + '_history_selector';
     this.dataset_list_id = this.id + '_dataset_list';
     this.load_as_selector_widget_id = this.id + '_load_as';
     this.applet_selector_widget_id = this.id + '_applet';
     var content = '<div  class="control_group">' +
-        '<h3>Galaxy Import</h3>' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div id="' + this.load_as_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
@@ -464,13 +494,13 @@ GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.pr
             }
         });
     },
-    import_dataset: function(id, name){
+    import_dataset: function(id, name, filename, type){
         var self = this;
         var params = {
             applet: this.applet_selector.get_value(),
             load_as: this.load_as_selector.get_value()
         }
-        Data.import_galaxy( id, name, params, function(dataset){
+        Data.import_galaxy( id, name, filename, type, params, function(dataset){
             $('#' + self.dataset_list_id + '_' + id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
         })
     },
@@ -537,7 +567,7 @@ GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.pr
  * function to import a dataset from some url
  * @returns {Dataset} dataset instance
  */
-Data.import_url = function(url, name, params, success){
+Data.import_url = function(url, name, type, params, success, no_init){
     var self = this;
     var dataset = new Dataset({
         name: name,
@@ -545,13 +575,13 @@ Data.import_url = function(url, name, params, success){
     });
     $.ajax({
         url: '../../urlload/index/',
-        data: { url: url, name: name },
+        data: { url: url, name: name, datatype: type },
         success: function(response){
             response = $.parseJSON( response );
             dataset.server_id = response.id;
             dataset.set_type( response.type );
             dataset.set_status( 'server', response.status );
-            dataset.init( params );
+            if( !no_init ) dataset.init( params );
             if( $.isFunction(success) ){
                 success( dataset );
             }
@@ -570,8 +600,8 @@ Data.get_pdb_url = function(id){
  * function to import a dataset from the pdb
  * @returns {Dataset} dataset instance
  */
-Data.import_pdb = function(id, params, success){
-    return Data.import_url( Data.get_pdb_url(id), id + '.pdb', params, success );
+Data.import_pdb = function(id, params, success, no_init){
+    return Data.import_url( Data.get_pdb_url(id), id + '.pdb', 'pdb', params, success, no_init );
 }
 
 
@@ -582,13 +612,13 @@ Data.import_pdb = function(id, params, success){
  * @extends Widget
  */
 UrlLoadWidget = function(params){
+    params.heading = this.widget_name;
     Widget.call( this, params );
     this.input_id = this.id + '_input';
     this.load_as_selector_widget_id = this.id + '_load_as';
     this.applet_selector_widget_id = this.id + '_applet';
     this.load_button_id = this.id + '_load_button';
     var content = '<div  class="control_group">' +
-        '<h3>' + this.widget_name + '</h3>' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div id="' + this.load_as_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
@@ -626,15 +656,19 @@ UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends UrlLoadWidget.prototyp
     get_name: function(){
         return $('#' + this.input_id).val();
     },
+    get_type: function(){
+        return '';
+    },
     import_url: function(){
         var url = this.get_url();
         var name = this.get_name();
+        var type = this.get_type();
         var self = this;
         var params = {
             applet: this.applet_selector.get_value(),
             load_as: this.load_as_selector.get_value()
         }
-        Data.import_url( url, name, params, function(dataset){
+        Data.import_url( url, name, type, params, function(dataset){
             $('#' + self.load_button_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
             $('#' + self.input_id).val('');
         })
@@ -659,6 +693,9 @@ PdbLoadWidget.prototype = Utils.extend(UrlLoadWidget, /** @lends PdbLoadWidget.p
     },
     get_name: function(){
         return $('#' + this.input_id).val() + '.pdb';
+    },
+    get_type: function(){
+        return 'pdb';
     }
 });
 
@@ -722,7 +759,6 @@ DatasetWidget.prototype = Utils.extend(Widget, /** @lends DatasetWidget.prototyp
                         var ds_lpw = self.dataset.load_params_widget;
                         params[ ds_lpw.name ] = self.load_params_widget[ ds_lpw.getter ]();
                     }
-                    console.log(params);
                     self.dataset.init( params );
                 });
             }

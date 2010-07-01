@@ -385,60 +385,85 @@ TreeViewWidget = function(params){
     this.dataset = params.dataset;
     Widget.call( this, params );
     this.canvas_id = this.id + '_canvas';
+    this.applet_selector_widget_id = this.id + '_applet';
+    this.draw_tree_id = this.id + '_draw_tree';
 
     var content = '<div class="control_group">' +
+        '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            '<button id="' + this.draw_tree_id + '">update</button>' +
+        '</div>' +
 	'<div class="control_row">' +
-            '<div id="' + this.canvas_id + '" style="width:300px;height:400px; overflow:auto;"></div>' +
+            '<div id="' + this.canvas_id + '" style="width:300px; overflow:auto;"></div>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id
+    });
     this._init();
 }
 TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.prototype */ {
     _init: function(){
-	this.tree_view();
         var self = this;
+        
+        this.tree_view();
+        $("#" + this.draw_tree_id).button().click(function() {
+            self.tree_view();
+        });
     },
     tree_view: function(){
         var self = this;
         
-        var tree_data = {};
-        var models = this.dataset.data.get_list();
-        for(var i = 0; i < models.length; ++i){
-            
-            var tree_chains = {};
-            var chains = models[i].get_list();
-            for(var j = 0; j < chains.length; ++j){
+        var raw_data = this.get_data();
+        //console.log(raw_data);
+        if( !raw_data ) return;
+        
+        var tree_structures = {};
+        for(var struc in raw_data){
+            console.log(struc);
+        
+            var tree_models = {};
+            var models = raw_data[ struc ].get_list();
+            for(var i = 0; i < models.length; ++i){
                 
-                var tree_residues = {};
-                var residues = chains[j].get_list();
-                for(var k = 0; k < residues.length; ++k){
+                var tree_chains = {};
+                var chains = models[i].get_list();
+                for(var j = 0; j < chains.length; ++j){
                     
-                    var tree_atoms = {};
-                    var atoms = residues[k].get_list();
-                    for(var l = 0; l < atoms.length; ++l){
-                        tree_atoms[ atoms[l].get_id() ] = atoms[l].serial_number;
+                    var tree_residues = {};
+                    var residues = chains[j].get_list();
+                    for(var k = 0; k < residues.length; ++k){
+                        
+                        var tree_atoms = {};
+                        var atoms = residues[k].get_list();
+                        for(var l = 0; l < atoms.length; ++l){
+                            tree_atoms[ atoms[l].get_id() ] = atoms[l].serial_number;
+                        }
+                        
+                        tree_residues[ residues[k].resname + " " + residues[k].get_id() ] = tree_atoms;
                     }
-                    
-                    tree_residues[ residues[k].resname + " " + residues[k].get_id() ] = tree_atoms;
+                    tree_chains[ chains[j].get_id() ] = tree_residues;
                 }
-                tree_chains[ chains[j].get_id() ] = tree_residues;
-            }
-            tree_data[ models[i].get_id() ] = tree_chains;
+                tree_models[ 'Model ' + models[i].get_id() ] = tree_chains;
+            };
+            tree_structures[ 'Structure/File ' + raw_data[ struc ].get_id() ] = tree_models;
         };
         
-        var root = pv.dom( tree_data )
-            .root( 'model 1' );
+        var root = pv.dom( tree_structures )
+            .root( 'Tree' );
         
         /* Recursively compute the package sizes. */
         root.visitAfter(function(node, depth) {
             if (node.firstChild) {
-                if( depth == 2){
+                if( depth == 3){
                     node.nodeValue = node.childNodes.length + " Residues";
-                }else if( depth == 1){
+                }else if( depth == 2){
                     node.nodeValue = node.childNodes.length + " Chains";
-                }if( depth == 0){
+                }else if( depth == 1){
                     node.nodeValue = node.childNodes.length + " Models";
+                }if( depth == 0){
+                    node.nodeValue = node.childNodes.length + " Structures";
                 }
             }
         });
@@ -463,7 +488,10 @@ TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.protot
             .strokeStyle(null)
             .fillStyle(null)
             .events("all")
-            .event("mousedown", toggle);
+            .event("mousedown", function(n) {
+                n.toggle(pv.event.altKey);
+                return layout.reset().root;
+            });
         
         node.anchor("left").add(pv.Dot)
             .strokeStyle("#1f77b4")
@@ -484,11 +512,84 @@ TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.protot
         
         vis.render();
         
-        /* Toggles the selected node, then updates the layout. */
-        function toggle(n) {
-            n.toggle(pv.event.altKey);
-            return layout.reset().root;
-        }
+    },
+    get_data: function(){
+        var applet = this.applet_selector.get_value(true);
+        if(!applet || !applet.loaded) return false;
+        
+        var selection = 'protein and {*}';
+        var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[atomName]\',%[atomNo],\'%[model]\'';
+        var protein_data = applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
+        //console.log( protein_data );
+        //console.log( protein_data );
+        //protein_data = protein_data.replace(/\'\'/g,"'");
+        
+        //protein_data = protein_data.replace(/\,\]/g,",null]");
+        
+        protein_data = eval( protein_data );
+        
+        var dat = {};
+        
+        $.each(protein_data, function() {
+            //console.log(this);
+            var atom = this;
+            //console.log(atom);
+            var group = atom[0],
+                sequence = atom[1],
+                resno = atom[2],
+                chain = atom[3],
+                atomName = atom[4],
+                atomNo = atom[5],
+                model = atom[6];
+            
+            
+            var model_file = model.split('.');
+            //console.log(model_file);
+            //console.log(model.length);
+            
+            //return;
+            if (model.length >= 2){
+                var model = model_file[1];
+                var file = model_file[0];
+            }else{
+                var model = model_file[0];
+                var file = 1;
+            }
+            
+            var s = dat[ file ];
+            if( !s ){
+                s = new Bio.Pdb.Structure( file );
+                dat[ file ] = s;
+            }
+            
+            var m = s.get( model );
+            if( !m ){
+                m = new Bio.Pdb.Model( model );
+                s.add( m );
+            }
+            
+            var c = m.get( chain );
+            //console.log('chain', chain, c);
+            if( !c ){
+                c = new Bio.Pdb.Chain( chain );
+                m.add( c );
+            }
+            
+            var r = c.get( resno );
+            //console.log('residue', resno, r);
+            if( !r ){
+                r = new Bio.Pdb.Residue( resno, group );
+                c.add( r );
+            }
+            
+            var a = new Bio.Pdb.Atom( atomName, [], 0, 0, "", atomName, atomNo, "" );
+            try{
+                r.add( a );
+            }catch(err){
+                //console.log(err);
+            }
+        });
+        return dat;
     }
 });
 
