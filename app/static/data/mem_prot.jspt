@@ -1,0 +1,21 @@
+sync * on;
+
+sync * "
+
+display all;
+select *;
+wireframe ONLY;
+
+select *.Na or *.Cl;
+spacefill ON;
+
+select protein;
+cartoon ON;
+
+select dmpc or dmp;
+spacefill 20%;
+
+hide water
+";
+
+sync * off;
