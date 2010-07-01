@@ -4,10 +4,9 @@ syntax: glob
 *.kpf
 *.sync.db
 *.sync.db-journal
+Icon*
 
 doc/jsdoc/*
 doc/sphinx/_build
 
 *.pyc
-
-Icon
