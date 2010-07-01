@@ -50,6 +50,8 @@ class Dataset( object ):
         self.name = name
         if not type or type == 'auto':
             type = sniff_datatype( data, name )
+        else:
+            type = extension_to_datatype_dict[ str(type).lower() ]
         self.type = type
 
 
@@ -148,6 +150,12 @@ class Mplane( Text ):
 
 class Gromacs( Text ):
     file_ext = 'gro'
+
+class JmolScript( Text ):
+    file_ext = 'jspt'
+
+class Ccp4( Binary ):
+    file_ext = 'ccp4'
 
 class JmolVoxel( Text ):
     file_ext = 'jvxl'
@@ -262,6 +270,7 @@ def pdb_tree_view(struc, **kwargs):
 
 extension_to_datatype_dict = {
     'bin': Binary(),
+    'ccp4': Ccp4(),
     'cif': Cif(),
     'cub': Cube(),
     'dat': Data(),
@@ -273,5 +282,6 @@ extension_to_datatype_dict = {
     'mrc': MrcDensityMap(),
     'pdb': Pdb(),
     'sco': Sco(),
+    'jspt': JmolScript(),
     'txt': Text(),
 }

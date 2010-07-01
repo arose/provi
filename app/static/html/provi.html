@@ -3,6 +3,8 @@
     >
 <html lang="en">
 <head>
+    <link rel="shortcut icon" href="../favicon.ico">
+    
     <title>Provi</title>
     
     <script type="text/javascript" src="../js/lib/jquery.js"></script>
@@ -19,10 +21,6 @@
     <script type="text/javascript" src="../js/lib/jlayout.border.js"></script>
     <script type="text/javascript" src="../js/lib/jlayout.flexgrid.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.jlayout.js"></script>
-    
-    <!--[if IE]><script language="javascript" type="text/javascript" src="../js/lib/flot/excanvas.min.js"></script><![endif]-->
-    <script language="javascript" type="text/javascript" src="../js/lib/flot/jquery.flot.js"></script>
-    <script language="javascript" type="text/javascript" src="../js/lib/flot/jquery.flot.image.js"></script>
     
     <script type="text/javascript" src="../js/lib/sylvester.js"></script>
     
@@ -65,6 +63,12 @@
             var main = $('#main');
             var tabs_panel = $('#tabs_panel');
             
+	    $('.collapsable').live('click', function() {
+		$(this).next().toggle();
+		$(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-s');
+		return false;
+	    }).next().hide();
+	    
             function layout_main() {
                 var n = Jmol.get_applet_list().length;
                 var i = Math.round( Math.sqrt(n) );
@@ -79,8 +83,8 @@
             $(window).resize(layout_main);
             $('#jmolWindow').resize(layout_main);
             
-            Jmol.init("../applet/jmol/11.8.24/");
-            //Jmol.init("../applet/jmol/12.0.RC18/");
+            //Jmol.init("../applet/jmol/11.8.24/");
+            Jmol.init("../applet/jmol/12.0.RC20/");
             Jmol.Applet.prototype.default_params.height = "99%";
             Jmol.Applet.prototype.default_params.width = "100%";
             JmolWidget.prototype.default_params.parent_id = "main";
@@ -97,6 +101,10 @@
 	    new RamachandranPlotWidget({
                 parent_id: 'tab_widgets'
             });
+	    
+	    new TreeViewWidget({
+		parent_id: 'tab_tree'
+	    });
 	    
 	    new JmolAnimationWidget({
                 parent_id: 'tab_controls'
@@ -130,12 +138,11 @@
                 parent_id: 'tab_data'
             });
             
-            $('#tab_scrollbox').scroll(function (event) {
-                $(this).data('scrollTop-tab-' + $("#tabs").tabs('option', 'selected'), $(this).scrollTop());
+            $('#tab_scrollbox').scroll(function (event, ui) {
+                $(this).data('scrollTop-tab-' + tabs_panel.tabs('option', 'selected'), $(this).scrollTop());
             });
             
             tabs_panel.bind('tabsshow', function(event, ui) {
-                //console.log(event, ui);
                 var scrollTop = $('#tab_scrollbox').data('scrollTop-tab-' + ui.index);
                 if(!scrollTop) scrollTop = 0;
                 $('#tab_scrollbox').scrollTop( scrollTop );
@@ -157,25 +164,32 @@
 	    $('#tabs_panel a[title]').tipsy({ gravity: 'n' });
 	    
 	    
-	    console.log( $.query.get() );
+	    //console.log( $.query.get() );
 	    
 	    // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane
+	    // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane&galaxy[2][id]=110&galaxy[2][name]=3dqb.pdb&galaxy[2][load_as]=append
 	    if( $.query.get('galaxy') ){
 		var jw = new JmolWidget({ parent: 'main' });
 		$.each( $.query.get('galaxy'), function(i, data){
-		    console.log( i, data );
-		    Data.import_galaxy( data.id, data.name, { applet: jw.applet, load_as: 'new' } );
+		    var load_as = (data.load_as || 'new');
+		    //console.log( i, data, load_as );
+		    Data.import_galaxy( data.id, data.name, data.filename, data.type, { applet: jw.applet, load_as: load_as } );
 		});
 	    // http://127.0.0.1:7070/static/html/provi.html?pdb=3cap,2eul
 	    }else if( $.query.get('pdb') ){
 		$.each( $.query.get('pdb').split(','), function(i, id){
-		    console.log( id );
+		    //console.log( id );
 		    var jw = new JmolWidget({ parent: 'main' });
 		    Data.import_pdb( id, { applet: jw.applet, load_as: 'new' } );
 		});
 	    }else{
 		var jw = new JmolWidget({ parent: 'main' });
-		Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', { applet: jw.applet, load_as: 'new' } );
+		Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: false, load_as: 'new' }, false, true );
+		Data.import_url( 'http://127.0.0.1:7070/static/data/npt.gro', 'npt.gro', 'gro', { applet: jw.applet, load_as: 'new' } );
+		Data.import_url( 'http://127.0.0.1:7070/static/data/mem_prot.jspt', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
+		Data.import_url( 'http://127.0.0.1:7070/static/data/intra_water.jspt', 'intra_water.jspt', 'jspt', { applet: false }, false, true );
+		Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
+		Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
 	    }
         });
         

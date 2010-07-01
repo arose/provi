@@ -43,13 +43,13 @@ class DataProvider(object):
     
     
 class GalaxyDataProvider( DataProvider ):
-    def __init__( self, trans, datatype, hda_id=None, name=None ):
-        data = self._retrieve( trans, hda_id )
+    def __init__( self, trans, datatype, hda_id=None, name=None, filename='' ):
+        data = self._retrieve( trans, hda_id, filename )
         DataProvider.__init__( self, trans, datatype, data, name=name )
-    def _retrieve( self, trans, hda_id ):
+    def _retrieve( self, trans, hda_id, filename ):
         # get from galaxy instance
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor( trans.cookiejar ))
-        return opener.open( 'http://127.0.0.1:9090/root/display/?id=%s' % (hda_id) ).read()
+        return opener.open( 'http://127.0.0.1:9090/datasets/%s/display/%s/?preview=0' % (hda_id, filename) ).read()
 
 
 class FileDataProvider( DataProvider ):
@@ -81,11 +81,36 @@ class LocalDataProvider( DataProvider ):
         return data
 
 
+class ExampleDataProvider( DataProvider ):
+    def __init__( self, trans, datatype, filename=None ):
+        data = self._retrieve( filename )
+        DataProvider.__init__( self, trans, datatype, data )
+    def _retrieve( self, filename ):
+        # read from local path
+        fp = open( os.path.join( trans.environ['paste.config']['here'], 'data', filename ) )
+        data = fp.read()
+        fp.close()
+        return data
+
+
 class BaseController( object ):
     def __init__( self, app ):
         """Initialize an interface for the application 'app'"""
         self.app = app
 
+
+class ExampleController( BaseController ):
+    @expose
+    def index( self, trans ):
+        return 'foo'
+    @expose
+    def example_list( self, trans ):
+        trans.response.set_content_type('text/xml')
+        return self.get( trans, 'http://127.0.0.1:9090/history/list_as_xml/' )
+    @expose
+    def import_example( self, trans, id ):
+        data_controller = DataController( self.app )
+        return data_controller.add( trans, datatype, 'example', filename=filename )
 
 class PluploadController( BaseController ):
     @expose
@@ -126,9 +151,9 @@ class GalaxyController( BaseController ):
             return
         return self.get( trans, 'http://127.0.0.1:9090/user/login/?login_button=1&email=%s&password=%s' % (email, password) )
     @expose
-    def import_dataset( self, trans, id, name, datatype='' ):
+    def import_dataset( self, trans, id, name, filename='', datatype=None ):
         data_controller = DataController( self.app )
-        return data_controller.add( trans, datatype, 'galaxy', hda_id=id, name=name )
+        return data_controller.add( trans, datatype, 'galaxy', hda_id=id, name=name, filename=filename )
 
 class UrlLoadController( BaseController ):
     @expose
@@ -142,7 +167,8 @@ class DataController( BaseController ):
         'galaxy': GalaxyDataProvider,
         'file': FileDataProvider,
         'local': LocalDataProvider,
-        'url': UrlDataProvider
+        'url': UrlDataProvider,
+        'example': ExampleDataProvider
     }
     
     @expose
@@ -224,6 +250,9 @@ def app_factory( global_conf, **kwargs ):
     webapp.add_controller( 'Data', DataController(webapp) )
     webapp.add_route('/data/:action/', controller='Data', action='index')
     
+    webapp.add_controller( 'Example', ExampleController(webapp) )
+    webapp.add_route('/example/:action/', controller='Example', action='index')
+    
     webapp.add_controller( 'Plupload', PluploadController(webapp) )
     webapp.add_route('/plupload/:action/', controller='Plupload', action='index')
     
@@ -235,6 +264,9 @@ def app_factory( global_conf, **kwargs ):
     
     webapp = wrap_in_middleware( webapp, global_conf, **kwargs )
     webapp = wrap_in_static( webapp, global_conf, **kwargs )
+    
+    from paste.deploy.config import ConfigMiddleware
+    webapp = ConfigMiddleware( webapp, global_conf )
     
     return webapp
 
@@ -275,7 +307,8 @@ def wrap_in_static( app, global_conf, **local_conf ):
     urlmap["/"] = app
     # Define static mappings from config
     urlmap["/static"] = Static( conf.get( "static_dir" ), cache_time )
-    #urlmap["/favicon.ico"] = Static( conf.get( "static_favicon_dir" ), cache_time )
+    print conf.get( "static_favicon_dir" )
+    urlmap["/favicon.ico"] = Static( conf.get( "static_favicon_dir" ), cache_time )
     return urlmap
     
     

@@ -51,7 +51,7 @@ Widget = function(params){
     WidgetManager.add_widget(this.id, this);
     
     var e = document.createElement( tag_name );
-    e.innerHTML = content;
+    e.innerHTML = (params.heading ? '<h3 class="collapsable ui-accordion-header"><span class="ui-icon ui-icon-triangle-1-s"></span><a>' + params.heading + '</a></h3>' : '') + content;
     e.id = this.id;
     $('#' + params.parent_id).append( e );
     this.dom = e;

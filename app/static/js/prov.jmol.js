@@ -1,4 +1,13 @@
 
+var jmol_anim_frame_callback = function( applet_name, frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
+    //console.log( applet_name+'' );
+    Jmol.get_applet_by_id( applet_name+'' )._anim_frame_callback( frameNo+'', fileNo+'', modelNo+'', firstNo+'', lastNo+'', isAnimationRunning+'', animationDirection+'', currentDirection+'' );
+    //console.log( frameNo+'', fileNo+'', modelNo+'', firstNo+'', lastNo+'', isAnimationRunning+'', animationDirection+'', currentDirection+'' );
+};
+
+var jmol_load_struct_callback = function(applet_name, url, get_params, msg, foo){
+    Jmol.get_applet_by_id( applet_name+'' )._load_struct_callback( url+'', get_params+'', msg+'', foo+'' );
+};
 
 
 (function() {
@@ -25,6 +34,14 @@ Jmol = {
      */
     get_applet: function(name_suffix){
 	return this._applet_dict[name_suffix];
+    },
+    /**
+     * Get an applet by its name suffix
+     */
+    get_applet_by_id: function(id){
+	// "jmol_applet_"
+	//console.log( id.substring(12) );
+	return this.get_applet( id.substring(12) );
     },
     /**
      * Get the list of all available applets
@@ -94,6 +111,7 @@ var Applet = Jmol.Applet = function(params){
     
     this._determining_load_status = false;
     this._on_load_fn_list = [];
+    this._anim_frame_callback_fn_list = [];
     
     this._init();
     if( typeof(Jmol._default_applet) == 'undefined' ){
@@ -273,6 +291,8 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
 	this._on_load_fn_list.push( {fn: fn, fn_this: fn_this, fn_args: fn_args} );
     },
     _load: function(){
+	this.applet.script('set AnimFrameCallback "jmol_anim_frame_callback"');
+	this.applet.script('set LoadStructCallback "jmol_load_struct_callback"');
         $.each(this._on_load_fn_list, function(){
 	    this.fn.apply( this.fn_this, this.fn_args );
 	});
@@ -300,6 +320,18 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
 	var s = result.replace(/\-*\d*\.\d*/,"")
 	if (s == "" && !isNaN(parseFloat(result))) return parseFloat(result);
 	return result;
+    },
+    anim_frame_callback: function( fn ){
+	this._anim_frame_callback_fn_list.push( fn );
+    },
+    _anim_frame_callback: function( frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
+	//console.log(frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection);
+        $.each(this._anim_frame_callback_fn_list, function(){
+	    this( frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection );
+	});
+    },
+    _load_struct_callback: function( url, get_params, msg, foo ){
+	console.log( url, get_params, msg, foo );
     }
 };
 
@@ -799,6 +831,7 @@ JmolAnimationWidget = function(params){
     this.previous_id = this.id + '_previous';
     this.first_id = this.id + '_first';
     this.last_id = this.id + '_last';
+    this.current_frame_id = this.id + '_current_frame';
     
     this.applet_selector_widget_id = this.id + '_applet';
     
@@ -819,6 +852,9 @@ JmolAnimationWidget = function(params){
 		'</span>' +
             '</span>' +
         '</div>' +
+	'<div class="control_row">' +
+	    'Frame <span id="' + this.current_frame_id + '"></span>' + 
+	'</div>' +
     '</div>';
     $(this.dom).append( content );
     this.applet_selector = new JmolAppletSelectorWidget({
@@ -830,6 +866,11 @@ JmolAnimationWidget.prototype = Utils.extend(Widget, /** @lends JmolAnimationWid
     _init: function(){
         var self = this;
         
+	this._init_anim_callback();
+	this.applet_selector.change( function() {
+            self._init_anim_callback();
+        });
+	
         $('#' + this.first_id).button({
             text: false,
             icons: {
@@ -920,15 +961,24 @@ JmolAnimationWidget.prototype = Utils.extend(Widget, /** @lends JmolAnimationWid
             self.set_animation_mode();
         });
     },
+    _init_anim_callback: function(){
+        var applet = this.applet_selector.get_value(true);
+	if(applet){
+	    var self = this;
+	    applet.anim_frame_callback(function( frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
+		$('#' + self.current_frame_id).html( frameNo +'' );
+	    });
+	}
+    },
     update_animation: function(script){
         this.set_animation_mode();
-        var applet = Jmol.get_default_applet();
+        var applet = this.applet_selector.get_value(true);
         if(applet){
             applet.script(script);
         }
     },
     set_animation_mode: function(script){
-        var applet = Jmol.get_default_applet();
+        var applet = this.applet_selector.get_value(true);
         if(applet){
             var s = '';
             var mode = $("#" + this.mode_id + " input[name=" + this.mode_id + "]:radio:checked").val();
@@ -997,6 +1047,9 @@ RamachandranPlotWidget.prototype = Utils.extend(Widget, /** @lends RamachandranP
             self.ramachandran_plot();
         });
     },
+    /**
+     * draw a ramachandran plot
+     */
     ramachandran_plot: function(){
         var applet = this.applet_selector.get_value(true);
 	var ramachandran_data = [];
@@ -1048,7 +1101,9 @@ RamachandranPlotWidget.prototype = Utils.extend(Widget, /** @lends RamachandranP
 	  .anchor("left").add(pv.Label)
 	    .text(y.tickFormat);
 	
-		/** Update the x- and y-scale domains per the new transform. */
+	/** Update the x- and y-scale domains per the new transform.
+	 * @private
+	*/
 	function transform() {
 	    var t = this.transform();
 	    var ti = t.invert();
