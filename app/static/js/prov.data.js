@@ -9,8 +9,9 @@
  */
 Data = {
     types: {
-        structure: ['pdb', 'sco', 'mbn', 'gro', 'cif', 'mmcif'],
-        isosurface: ['jvxl', 'mrc', 'cub', 'ccp4']
+        structure: ['pdb', 'gro', 'cif', 'mmcif'],
+        isosurface: ['jvxl', 'mrc', 'cub', 'ccp4'],
+        interface_contacts: ['sco', 'mbn']
     }
 }
 
@@ -30,8 +31,10 @@ DatasetManager = {
 	});
     },
     add: function(dataset){
+        var self = this;
         this._dataset_list.push(dataset);
         this._change( {'add': dataset} );
+        dataset.change( function(){ self._change( {'update': dataset} ); } );
     },
     update: function(){
         this._change();
@@ -82,13 +85,18 @@ Dataset.prototype = /** @lends Dataset.prototype */ {
         this.type = type;
         if( $.inArray(type, Data.types.structure) >= 0 ){
             $.extend( this, StructureMixin );
+        }else if( $.inArray(type, Data.types.interface_contacts) >= 0 ){
+            $.extend( this, InterfaceContactsMixin );
         }else if( type == 'mplane' ){
             $.extend( this, MplaneMixin );
         }else if( $.inArray(type, Data.types.isosurface) >= 0 ){
             $.extend( this, IsosurfaceMixin );
         }else if( type == 'jspt' ){
-            console.log(this);
             $.extend( this, ScriptMixin );
+        }else if( type == 'tmhelix' ){
+            $.extend( this, TmHelicesMixin );
+        }else if( type == 'anal' ){
+            $.extend( this, HbondsMixin );
         }else{
             //console.log('unkown file type');
         }
@@ -141,12 +149,57 @@ var MplaneMixin = {
     }
 }
 
+var TmHelicesMixin = {
+    available_widgets: {
+        'TmHelicesWidget': TmHelicesWidget
+    },
+    init: function( params ){
+        var self = this;
+        this.retrieve_data( function(d){
+            self.set_data( new Bio.TmHelices( d ) );
+            if( params.applet ){
+                new TmHelicesWidget({
+                    parent_id: 'tab_widgets',
+                    dataset: self,
+                    applet: params.applet
+                });
+            }
+        });
+    },
+    retrieve_data: function( onload ){
+        var get_params = { 'id': this.server_id+'', 'data_action': 'get_tm_helices' };
+        $.getJSON( '../../data/get/', get_params, onload );
+    }
+}
+
+var HbondsMixin = {
+    available_widgets: {
+        'HbondsWidget': HbondsWidget
+    },
+    init: function( params ){
+        var self = this;
+        this.retrieve_data( function(d){
+            self.set_data( new Bio.Hbonds( d ) );
+            if( params.applet ){
+                new HbondsWidget({
+                    parent_id: 'tab_widgets',
+                    dataset: self,
+                    applet: params.applet
+                });
+            }
+        });
+    },
+    retrieve_data: function( onload ){
+        var get_params = { 'id': this.server_id+'', 'data_action': 'get_hbonds' };
+        $.getJSON( '../../data/get/', get_params, onload );
+    }
+}
+
 var ScriptMixin = {
     available_widgets: {},
     init: function( params ){
         var self = this;
         this.retrieve_data( function(d){
-            console.log(d);
             self.set_data( d );
             if( params.applet ){
                 self.load( params.applet );
@@ -256,7 +309,60 @@ var StructureMixin = {
     }
 }
 
-
+var InterfaceContactsMixin = $.extend(true, {}, StructureMixin, {
+    available_widgets: {
+        'InterfaceContactsWidget': InterfaceContactsWidget
+    },
+    init: function( params ){
+        var self = this;
+        self.set_data( new Bio.InterfaceContacts( {}, [] ) );
+        this.retrieve_data( function(d){
+            self.data.names = d;
+            if( params.applet ){
+                new InterfaceContactsWidget({
+                    parent_id: 'tab_widgets',
+                    dataset: self,
+                    applet: params.applet
+                });
+            }
+        });
+        StructureMixin.init.call( this, params );
+    },
+    load: function(applet, load_as){
+        StructureMixin.load.call( this, applet, load_as );
+    },
+    retrieve_data: function( onload ){
+        var get_params = { 'id': this.server_id+'', 'data_action': 'get_helix_interface_names' };
+        $.getJSON( '../../data/get/', get_params, onload );
+    },
+    get_atoms: function( interface_ids, interface_names, cutoff, onload ){
+        var self = this;
+        console.log( cutoff );
+        this.get_interface_atoms( interface_ids, interface_names, cutoff, function( interface_data ){
+            self.get_structure_atoms( interface_names, function( structure_data ){
+                onload( interface_data, structure_data );
+            })
+        })
+    },
+    get_interface_atoms: function( interface_ids, interface_names, cutoff, onload ){
+        var get_params = {
+            'id': this.server_id+'',
+            'data_action': 'get_helix_interface_atoms',
+            'interface_ids': interface_ids,
+            'interface_names': interface_names,
+            'cutoff': cutoff
+        };
+        $.getJSON( '../../data/get/', get_params, onload );
+    },
+    get_structure_atoms: function( structure_name, onload ){
+        var get_params = {
+            'id': this.server_id+'',
+            'data_action': 'get_structure_atoms',
+            'structure_name': structure_name
+        };
+        $.getJSON( '../../data/get/', get_params, onload );
+    }
+});
 
 
 
@@ -321,6 +427,7 @@ PluploadLoadWidget = function(params){
 PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends PluploadLoadWidget.prototype */ {
     _init: function(){
         this._init_file_input();
+        Widget.prototype.init.call(this);
     },
     _init_file_input: function(){
         var self = this;
@@ -479,6 +586,7 @@ GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.pr
         $("#" + this.history_selector_id).change(function(){
             self.switch_history( $("#" + self.history_selector_id + " option:selected").val() );
         });
+        Widget.prototype.init.call(this);
     },
     update: function() {
         this.history_list();
@@ -488,7 +596,7 @@ GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.pr
         var self = this;
         $.ajax({
             url: '../../galaxy/login/',
-            data: { galaxysession: $.cookie('galaxysession') },
+            data: { galaxysession: $.cookie('galaxysession') || '' },
             success: function(){
                 self.update();
             }
@@ -613,6 +721,7 @@ Data.import_pdb = function(id, params, success, no_init){
  */
 UrlLoadWidget = function(params){
     params.heading = this.widget_name;
+    params.collapsed = true;
     Widget.call( this, params );
     this.input_id = this.id + '_input';
     this.load_as_selector_widget_id = this.id + '_load_as';
@@ -649,6 +758,7 @@ UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends UrlLoadWidget.prototyp
             $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
             self.import_url();
         });
+        Widget.prototype.init.call(this);
     },
     get_url: function(){
         return $('#' + this.input_id).val();

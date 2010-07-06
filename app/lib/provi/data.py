@@ -3,6 +3,7 @@ import simplejson as json
 import os
 import os.path
 from tempfile import TemporaryFile, NamedTemporaryFile
+import itertools
 
 from MembraneProtein.AndreanTools import contact
 from MembraneProtein.AndreanTools import membran_neu
@@ -121,12 +122,40 @@ class Pdb( Text ):
 class ScoBase( Text ):
     file_ext = None
     data_class = None
-    @expose
-    def get_pdb( self, dataset, **kwargs ):
+    def get_tmp_file( self, dataset ):
         tmp_file = NamedTemporaryFile()
         tmp_file.write( dataset.data )
         tmp_file.flush()
+        return tmp_file
+    @expose
+    def get_pdb( self, dataset, **kwargs ):
+        tmp_file = self.get_tmp_file( dataset )
         return self.data_class(tmp_file.name).getPdb()
+    @expose
+    def get_helix_interface_names( self, dataset, **kwargs ):
+        tmp_file = self.get_tmp_file( dataset )
+        data = self.data_class(tmp_file.name)
+        return json.dumps( data.getInterfaceNames('helix') )
+    @expose
+    def get_helix_interface_atoms( self, dataset, cutoff=1.5, interface_ids='', interface_names='', **kwargs ):
+        cutoff = float( cutoff )
+        if interface_ids:
+            interface_ids = [int(x) for x in interface_ids.split(',')]
+        else:
+            interface_ids = []
+        tmp_file = self.get_tmp_file( dataset )
+        data = self.data_class(tmp_file.name)
+        if interface_names:
+            interface_names = [ x.strip() for x in interface_names.split(',') if len(x.strip()) < 10 ]
+            # flatten
+            interface_ids.extend( itertools.chain( * [ data.getInterfaceIdByName(name) for name in interface_names ] ) )
+        atoms = data.getAtoms( cutoff=cutoff,interfaceIds=interface_ids )
+        return json.dumps( atoms )
+    @expose
+    def get_structure_atoms( self, dataset, structure_name, **kwargs ):
+        tmp_file = self.get_tmp_file( dataset )
+        data = self.data_class(tmp_file.name)
+        return json.dumps( data.getStructureAtoms( structure_name ) )
 
 class Sco ( ScoBase ):
     file_ext = 'sco'
@@ -171,6 +200,26 @@ class MmCif( Text ):
 
 class Cube( Text ):
     file_ext = 'cub'
+
+class Tmhelix( Text ):
+    file_ext = 'tmhelix'
+    @expose
+    def get_tm_helices( self, dataset, **kwargs ):
+        tmp_file = NamedTemporaryFile()
+        tmp_file.write( dataset.data )
+        tmp_file.flush()
+        from MembraneProtein.AndreanTools.parse_tm import get_tm_helices
+        return json.dumps( get_tm_helices( tmp_file.name ) )
+        
+class Hbx( Text ):
+    file_ext = 'anal'
+    @expose
+    def get_hbonds( self, dataset, **kwargs ):
+        tmp_file = NamedTemporaryFile()
+        tmp_file.write( dataset.data )
+        tmp_file.flush()
+        from MembraneProtein.HBexplore import parse_hbx_anal_output, get_hbonds_list
+        return json.dumps( get_hbonds_list( parse_hbx_anal_output( tmp_file.name ) ) )
 
 def pdb_tree_view(struc, **kwargs):
     
@@ -269,12 +318,14 @@ def pdb_tree_view(struc, **kwargs):
 
 
 extension_to_datatype_dict = {
+    'anal': Hbx(),
     'bin': Binary(),
     'ccp4': Ccp4(),
     'cif': Cif(),
     'cub': Cube(),
     'dat': Data(),
     'gro': Gromacs(),
+    'jspt': JmolScript(),
     'jvxl': JmolVoxel(),
     'mbn': Mbn(),
     'mmcif': MmCif(),
@@ -282,6 +333,6 @@ extension_to_datatype_dict = {
     'mrc': MrcDensityMap(),
     'pdb': Pdb(),
     'sco': Sco(),
-    'jspt': JmolScript(),
+    'tmhelix': Tmhelix(),
     'txt': Text(),
 }

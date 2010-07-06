@@ -47,18 +47,35 @@ WidgetManager._widget_dict.size = Utils.object_size_fn;
 Widget = function(params){
     var tag_name = params.tag_name || 'div';
     var content = typeof(params.content) != 'undefined' ? params.content : '';
+    this.heading = params.heading;
+    this.collapsed = params.collapsed;
     this.id = WidgetManager.get_widget_id(params.id);
     WidgetManager.add_widget(this.id, this);
     
+    if( params.heading ){
+        content = '<h3 class="collapsable ui-accordion-header"><span class="ui-icon ui-icon-triangle-1-s"></span><a>' + params.heading + '</a></h3>' + content;
+    }
+    
     var e = document.createElement( tag_name );
-    e.innerHTML = (params.heading ? '<h3 class="collapsable ui-accordion-header"><span class="ui-icon ui-icon-triangle-1-s"></span><a>' + params.heading + '</a></h3>' : '') + content;
+    e.innerHTML = content;
     e.id = this.id;
     $('#' + params.parent_id).append( e );
     this.dom = e;
+    //this.init();
 };
 // prototype for the widget class
 Widget.prototype = {
-    
+    init: function(){
+        if( this.heading ){
+            var header = $('#' + this.id + ' .collapsable');
+            header.click(function() {
+                $(this).next().toggle();
+                $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-s');
+                return false;
+            });
+            if( this.collapsed ) header.triggerHandler('click');
+        }
+    }
 };
 
 

@@ -594,6 +594,563 @@ TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.protot
 });
 
 
+/**
+ * @class Represents transmembrane helices
+ * @name Bio.TmHelices
+ */
+var TmHelices = Bio.TmHelices = function(tmh_list){
+    this.tmh_list = tmh_list;
+};
+TmHelices.prototype = /** @lends Bio.TmHelices.prototype */ {
+    
+};
+
+
+/**
+ * A widget to view transmembrane helix definitions
+ * @constructor
+ */
+TmHelicesWidget = function(params){
+    this.applet = params.applet;
+    this.dataset = params.dataset;
+    Widget.call( this, params );
+    this.canvas_id = this.id + '_canvas';
+
+    var content = '<div class="control_group">' +
+        '<div class="control_row">' +
+            '<span>Dataset: ' + this.dataset.name + '</span>&nbsp;|&nbsp;' +
+            '<span>Applet: ' + this.applet.name_suffix + '</span>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<div id="' + this.canvas_id + '" style="width:300px; overflow:auto;"></div>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this._init();
+}
+TmHelicesWidget.prototype = Utils.extend(Widget, /** @lends TmHelicesWidget.prototype */ {
+    _init: function(){
+        var self = this;
+        this.tree_view();
+    },
+    tree_view: function(){
+        var self = this;
+        
+        var raw_data = this.get_data();
+        //console.log(raw_data);
+        if( !raw_data ) return;
+        
+        var tmhelices = {};
+        $.each( raw_data, function(){
+            var tmh = this;
+            var chain = tmhelices[ tmh[0][0] ];
+            if( !chain ){
+                chain = tmhelices[ tmh[0][0] ] = {};
+            }
+            chain[ tmh[0][1] + ' - ' + tmh[1][1] ] = (tmh[1][1] - tmh[0][1]) + ' Residues';
+        })
+        
+        var root = pv.dom( tmhelices )
+            .root( 'Protein' );
+        
+        /* Recursively compute the package sizes. */
+        root.visitAfter(function(node, depth) {
+            if (node.firstChild) {
+                if( depth == 1){
+                    node.nodeValue = node.childNodes.length + " TMHs";
+                }if( depth == 0){
+                    node.nodeValue = node.childNodes.length + " Chains";
+                }
+            }
+        });
+        
+        var vis = new pv.Panel()
+            .canvas( this.canvas_id )
+            .width(260)
+            .height(function(){ return (root.nodes().length + 1) * 12 })
+            .margin(5);
+        
+        var layout = vis.add(pv.Layout.Indent)
+            .nodes(function(){ return root.nodes() })
+            .depth(12)
+            .breadth(12);
+        
+        layout.link.add(pv.Line);
+        
+        var node = layout.node.add(pv.Panel)
+            .top(function(n){ return n.y - 6 })
+            .height(12)
+            .right(6)
+            .strokeStyle(null)
+            .fillStyle(null)
+            .events("all")
+            .event("mousedown", function(n) {
+                n.toggle(pv.event.altKey);
+                return layout.reset().root;
+            })
+            .event("mouseup", function(n, foo) {
+                if( self.applet && n.childNodes.length == 0 && n.parentNode ){
+                    var beg_end = n.nodeName.split(' - ');
+                    self.applet.script(
+                        'select none; selectionHalos ON; ' +
+                        'select {resNo > ' + beg_end[0] + '} and {resNo < ' + beg_end[1] + '} and chain=' + n.parentNode.nodeName
+                    );
+                }
+            });
+        
+        node.anchor("left").add(pv.Dot)
+            .strokeStyle("#1f77b4")
+            .fillStyle(function(n){ return n.toggled ? "#1f77b4" : n.firstChild ? "#aec7e8" : "#ff7f0e" })
+            .title(function t(d){ return d.parentNode ? (t(d.parentNode) + "." + d.nodeName) : d.nodeName })
+          .anchor("right").add(pv.Label)
+            .text(function(n){ return n.nodeName });
+        
+        node.anchor("right").add(pv.Label)
+            .textStyle(function(n){ return n.firstChild || n.toggled ? "#aaa" : "#000" })
+            .text(function(n){ return n.nodeValue || ''; });
+        
+        root.visitAfter(function(node, depth){
+            if(depth > 1){
+                //node.toggle();
+            }
+        });
+        
+        vis.render();
+        
+    },
+    get_data: function(){
+        return this.dataset.data.tmh_list;
+    }
+});
+
+
+
+/**
+ * @class Represents hydrogen bonds
+ * @name Bio.Hbonds
+ */
+var Hbonds = Bio.Hbonds = function(hbonds_list){
+    this.hbonds_list = hbonds_list;
+};
+Hbonds.prototype = /** @lends Bio.Hbonds.prototype */ {
+    
+};
+
+
+/**
+ * A widget to view hydrogen bonds data
+ * @constructor
+ */
+HbondsWidget = function(params){
+    this.color = 'blue';
+    this.show_hbonds = '';
+    this.applet = params.applet;
+    this.dataset = params.dataset;
+    Widget.call( this, params );
+    this.canvas_id = this.id + '_canvas';
+    this.draw_id = this.id + '_draw';
+    this.draw_tree_id = this.id + '_draw_tree';
+    this.show_hbonds_check_id = this.id + '_show_hbonds_check';
+    this.show_hbonds_select_id = this.id + '_show_hbonds_select';
+
+    var content = '<div class="control_group">' +
+        '<div class="control_row">' +
+            '<span>Dataset: ' + this.dataset.name + '</span>&nbsp;|&nbsp;' +
+            '<span>Applet: ' + this.applet.name_suffix + '</span>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.show_hbonds_check_id + '">show hydrogen bonds</label>&nbsp;' +
+            '<input id="' + this.show_hbonds_check_id + '" type="checkbox" />' +
+            '<select id="' + this.show_hbonds_select_id + '" class="ui-state-default">' +
+                '<option value="" selected="selected">none</option>' +
+                '<option value="all">all available</option>' +
+                '<option value="interhelical">interhelical</option>' +
+            '</select>' +
+        '</div>' +
+        //'<div class="control_row">' +
+        //    '<i>the hydrogen bonds are shown in blue; residues donor and acceptor atoms are light green</i>' +
+        //'</div>' +
+        //'<div class="control_row">' +
+        //    '<button id="' + this.draw_id + '">draw</button>' +
+        //    '<button id="' + this.draw_tree_id + '">draw tree</button>' +
+        //'</div>' +
+	'<div class="control_row">' +
+            '<div id="' + this.canvas_id + '" style="width:300px; overflow:auto;"></div>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this._init();
+}
+HbondsWidget.prototype = Utils.extend(Widget, /** @lends HbondsWidget.prototype */ {
+    _init: function(){
+        DatasetManager.change(this._init_control, this);
+        var self = this;
+        this.update();
+        $("#" + this.draw_id).button().click(function() {
+            self.draw();
+        });
+        $("#" + this.draw_tree_id).button().click(function() {
+            self.draw_tree();
+        });
+        this._init_control();
+        $("#" + this.show_hbonds_select_id).hide();
+        $("#" + this.show_hbonds_check_id).change( function() {
+            self.show_hbonds = $("#" + self.show_hbonds_check_id).is(':checked');
+            console.log(self.show_hbonds);
+            self.update();
+        });
+        $("#" + this.show_hbonds_select_id).change( function() {
+            self.show_hbonds = $("#" + self.show_hbonds_select_id + " option:selected").val();
+            self.update();
+        });
+        this._init_control();
+    },
+    _init_control: function(){
+        var self = this;
+        $.each( DatasetManager.get_list(), function(){
+            if(this.type == 'tmhelix' && this.data){
+                //console.log(this);
+                self.tmh_dataset = this;
+                self.show_hbonds = self.show_hbonds ? 'all' : '';
+                //self.show_hbonds = 'interhelical'
+                $("#" + self.show_hbonds_select_id).val( self.show_hbonds );
+                self.update();
+                $("#" + self.show_hbonds_select_id).show();
+                $("#" + self.show_hbonds_check_id).hide();
+                return false;
+            }else{
+                $("#" + self.show_hbonds_select_id).hide();
+                $("#" + self.show_hbonds_check_id).show();
+                return true;
+            }
+        });
+    },
+    update: function(){
+        this.draw();
+        this.draw_tree();
+    },
+    draw: function(){
+        if( !this.applet ) return;
+        var hbonds = this.get_hbonds();
+        this.applet.script( 'draw hbond_' + this.id + '* off' );
+        if(hbonds){
+            var self = this;
+            var draw_hbonds = '';
+            var i = 0;
+            $.each(hbonds, function(){
+                draw_hbonds += 'draw hbond_' + self.id + '_all' + i + ' color ' + self.color + ' (' + this[0][3] + ':' + this[0][2] + '.' + $.trim(this[0][0]) + ') (' + this[1][3] + ':' + this[1][2] + '.' + $.trim(this[1][0]) + ');';
+                //draw_hbonds += 'select ' + this[0][3] + ':' + this[0][2] + ',' + this[1][3] + ':' + this[1][2] + '; color lightgreen; cartoon ONLY; wireframe 0.1;';
+                i = i+1;
+            });
+            this.applet.script( draw_hbonds );
+        }else{
+            this.applet.script( 'draw hbond_' + this.id + '* off' );
+        }
+    },
+    draw_tree: function(){
+        var self = this;
+        
+        var raw_data = this.get_hbonds();
+        //if( !raw_data ) return;
+        if( !raw_data ) raw_data = [];
+        
+        var hbonds = {};
+        $.each( raw_data, function(){
+            var hb = this;
+            var chain = hbonds[ hb[0][2] ];
+            if( !chain ){
+                chain = hbonds[ hb[0][2] ] = {};
+            }
+            chain[ hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) ] = 'Type: ' + hb[2] + '';
+        })
+        
+        var root = pv.dom( hbonds )
+            .root( 'Protein' );
+        
+        /* Recursively compute the package sizes. */
+        root.visitAfter(function(node, depth) {
+            if (node.firstChild) {
+                if( depth == 1){
+                    node.nodeValue = node.childNodes.length + " Hbonds";
+                }if( depth == 0){
+                    node.nodeValue = node.childNodes.length + " Chains";
+                }
+            }
+        });
+        
+        var vis = new pv.Panel()
+            .canvas( this.canvas_id )
+            .width(260)
+            .height(function(){ return (root.nodes().length + 1) * 12 })
+            .margin(5);
+        
+        var layout = vis.add(pv.Layout.Indent)
+            .nodes(function(){ return root.nodes() })
+            .depth(12)
+            .breadth(12);
+        
+        layout.link.add(pv.Line);
+        
+        var node = layout.node.add(pv.Panel)
+            .top(function(n){ return n.y - 6 })
+            .height(12)
+            .right(6)
+            .strokeStyle(null)
+            .fillStyle(null)
+            .events("all")
+            .event("mousedown", function(n) {
+                n.toggle(pv.event.altKey);
+                return layout.reset().root;
+            })
+            .event("mouseup", function(n) {
+                if( self.applet && n.childNodes.length == 0 && n.parentNode ){
+                    var hb_res = n.nodeName.split(' <> ');
+                    self.applet.script(
+                        'select none; selectionHalos ON; ' +
+                        'select {' + hb_res[0] + '} or {' + hb_res[1] + '}'
+                    );
+                }
+            });
+        
+        node.anchor("left").add(pv.Dot)
+            .strokeStyle("#1f77b4")
+            .fillStyle(function(n){ return n.toggled ? "#1f77b4" : n.firstChild ? "#aec7e8" : "#ff7f0e" })
+            .title(function t(d){ return d.parentNode ? (t(d.parentNode) + "." + d.nodeName) : d.nodeName })
+          .anchor("right").add(pv.Label)
+            .text(function(n){ return n.nodeName });
+        
+        node.anchor("right").add(pv.Label)
+            .textStyle(function(n){ return n.firstChild || n.toggled ? "#aaa" : "#000" })
+            .text(function(n){ return n.nodeValue || ''; });
+        
+        root.visitAfter(function(node, depth){
+            if(depth > 0){
+                node.toggle();
+            }
+        });
+        
+        vis.render();
+    },
+    get_hbonds: function(){
+        if(this.show_hbonds){
+            var self = this;
+            var hbonds = this.dataset.data.hbonds_list;
+            //console.log( 'helices', this.get_helices() );
+            if( this.show_hbonds == 'interhelical' && this.get_helices() ){
+                //console.log( this.get_helices() );
+                hbonds = $.map(hbonds, function(hb, i){
+                    var tmh_a = self.in_which_helix( hb[0] );
+                    var tmh_b = self.in_which_helix( hb[1] );
+                    if(tmh_a && tmh_b && tmh_a != tmh_b){
+                        return [hb];
+                    }else{
+                        return null;
+                    }
+                });
+            }
+            return hbonds;
+        }else{
+            return false;
+        }
+    },
+    in_which_helix: function (aa){
+        var tmh_list = this.get_helices();
+        if( tmh_list ){
+            var chain = aa[2];
+            var number = aa[3];
+            var ret = false;
+            $.each(tmh_list, function(){
+                if(this[0][0] == chain && this[1][0] == chain && this[0][1] <= number && this[1][1] >= number){
+                    ret = this;
+                    return false; // break
+                }
+                return true; // continue
+            });
+            return ret;
+        }
+        return undefined;
+    },
+    get_helices: function(){
+        if( this.tmh_dataset && this.tmh_dataset.data ){
+            return this.tmh_dataset.data.tmh_list;
+        }else{
+            return false;
+        }
+    }
+});
+
+
+
+/**
+ * @class Represents interface contacts from sco and mbn files
+ * @name Bio.InterfaceContacts
+ * @param atoms { cutoff: [atom] } A dictionary containing a list of atoms for different cutoff values
+ * @param names [name] A list of available interface names
+ */
+var InterfaceContacts = Bio.InterfaceContacts = function(atoms, names){
+    this.atoms = atoms;
+    this.names = names;
+};
+InterfaceContacts.prototype = /** @lends Bio.InterfaceContacts.prototype */ {
+    get_atoms: function( names, cutoff ){
+        try{
+            return this.atoms[ names ][ cutoff ];
+        }catch(err){
+            return false;
+        }
+    }
+};
+
+
+/**
+ * A widget to view interface contacts from sco and mbn data
+ * @constructor
+ */
+InterfaceContactsWidget = function(params){
+    this.color = 'orange';
+    this.cutoff = 1.5;
+    this.show_only_interface_atoms = false;
+    this.color_interface_residue = false;
+    this.interface_ids = '';
+    this.interface_names = '';
+    this.atoms = [];
+    this.structure_atoms = [];
+    this.applet = params.applet;
+    this.dataset = params.dataset;
+    this.dataset.change(this._init_control, this);
+    Widget.call( this, params );
+    this.interface_name_id = this.id + '_interface_name';
+    this.cutoff_id = this.id + '_cutoff';
+    this.show_only_interface_atoms_id = this.id + '_show_only_interface_atoms';
+    this.color_interface_residue_id = this.id + '_color_interface_residue';
+    
+    var content = '<div class="control_group">' +
+        '<div class="control_row">' +
+            '<span>Dataset: ' + this.dataset.name + '</span>&nbsp;|&nbsp;' +
+            '<span>Applet: ' + this.applet.name_suffix + '</span>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.interface_name_id + '">interface contacts for</label>' +
+            '<select id="' + this.interface_name_id + '" class="ui-state-default">' +
+                '<option value="">none</option>' +
+                '<option value="helix">all helices</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.cutoff_id + '">interface contact cutoff</label>' +
+            '<select id="' + this.cutoff_id + '" class="ui-state-default">' +
+                '<option value="2.8">2.8</option>' +
+                '<option value="2.5">2.5</option>' +
+                '<option value="2.0">2.0</option>' +
+                '<option value="1.5" selected="selected">1.5</option>' +
+                '<option value="1.0">1.0</option>' +
+                '<option value="0.5">0.5</option>' +
+                '<option value="0.0">0.0</option>' +
+                '<option value="-0.5">-0.5</option>' +
+            '</select>&nbsp;&#8491;' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="' + this.show_only_interface_atoms_id + '" type="checkbox" />' +
+            '<label for="' + this.show_only_interface_atoms_id + '">show only interface atoms/residues</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="' + this.color_interface_residue_id + '" type="checkbox" />' +
+            '<label for="' + this.color_interface_residue_id + '">color the complete residue (not only the contact making atom)</label>' +
+        '</div>' +
+        '<i>interface atoms are shown in orange</i>' +
+    '</div>';
+    $(this.dom).append( content );
+    this._init();
+}
+InterfaceContactsWidget.prototype = Utils.extend(Widget, /** @lends InterfaceContactsWidget.prototype */ {
+    _init: function(){
+        var self = this;
+        
+        if(this.dataset.type == 'mbn'){
+            $("#" + this.interface_name_id + ' option[value=]').after("<option value='membrane' selected='selected'>membrane</option>");
+            this.interface_names = 'membrane';
+        }else{
+            this.interface_names = 'helix';
+        }
+        $("#" + this.interface_name_id).val( this.interface_names );
+        
+        this._init_control();
+        this.retrieve_atoms();
+        
+        $("#" + this.cutoff_id).change( function() {
+            self.cutoff = $("#" + self.cutoff_id + " option:selected").val();
+            console.log( self.cutoff );
+            self.retrieve_atoms();
+        });
+        $("#" + this.interface_name_id).change( function() {
+            self.interface_names = $("#" + self.interface_name_id + " option:selected").val();
+            self.retrieve_atoms();
+        });
+        $("#" + self.color_interface_residue_id).bind('change click', function(){
+            self.color_interface_residue = $("#" + self.color_interface_residue_id).is(':checked');
+            self.draw();
+        });
+        $("#" + self.show_only_interface_atoms_id).bind('change click', function(){
+            self.show_only_interface_atoms = $("#" + self.show_only_interface_atoms_id).is(':checked');
+            self.draw();
+        });
+    },
+    _init_control: function(){
+        var self = this;
+        if( this.dataset.data.names ){
+            var data = this.dataset.data.names;
+            data.sort();
+            $.each(data, function(i){
+                $("#" + self.interface_name_id).append("<option value='" + this + "'>helix " + (i+1) + "</option>");
+            });
+        }
+    },
+    retrieve_atoms: function (){
+        if(this.interface_names){
+            var self = this;
+            this.dataset.get_atoms( this.interface_ids, this.interface_names, this.cutoff, function( interface_data, structure_data ){
+                self.atoms = interface_data;
+                self.structure_atoms = structure_data;
+                self.draw();
+            });
+        }else{
+            this.atoms = [];
+            this.structure_atoms = [];
+            this.draw();
+        }
+    },
+    draw: function(){
+        if(this.atoms && this.atoms.length){
+            var atoms = $.map(this.atoms, function(atom){
+                return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
+            });
+            atoms = atoms.join(',');
+            
+            if(this.color_interface_residue){
+                var cmd = 'display all; select all; color grey; select within(GROUP, (' + atoms + ') ); save selection MINTERF; color ' + this.color + ';';
+            }else{
+                var cmd = 'display all; select all; color grey; select (' + atoms + '); save selection MINTERF; color ' + this.color + ';';
+            }
+            
+            if(this.show_only_interface_atoms){
+                //cmd = cmd + ' restore selection MINTERF; display selected;';
+                cmd = cmd + ' display selected; zoom(selected) 100;';
+            }else if(this.structure_atoms && this.structure_atoms.length){
+                var structure_atoms = $.map(this.structure_atoms, function(atom){
+                    return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
+                });
+                structure_atoms = structure_atoms.join(',');
+                cmd = cmd + ' select (' + structure_atoms + '); save selection MSTRUC; color pink; zoom(selected) 100;';
+            }
+        }else{
+            var cmd = 'display all; select all; color grey;';
+        }
+        
+        this.applet.script(cmd + ' select none;');
+        //colorSelectedNodes($("#pdb_tree").dynatree("getTree"));
+    }
+});
+
 
 /*
 var test_entity = new Entity('my_entity');
