@@ -10,3 +10,5 @@ doc/jsdoc/*
 doc/sphinx/_build
 
 *.pyc
+
+provi_wsgi.ini
