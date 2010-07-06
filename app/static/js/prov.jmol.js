@@ -331,7 +331,7 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
 	});
     },
     _load_struct_callback: function( url, get_params, msg, foo ){
-	console.log( url, get_params, msg, foo );
+	//console.log( url, get_params, msg, foo );
     }
 };
 
@@ -705,9 +705,10 @@ JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lends JmolDisplayWidget.
         });
         
         // init style
-        $("#" + this.style_id).change( function() {
+        $("#" + this.style_id).bind('change click', function() {
             self.set_style();
         });
+	this.set_style();
         
         // init centering
         $('#' + this.center_id).button().click(function(){
@@ -792,9 +793,9 @@ JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lends JmolDisplayWidget.
                 this.style_cmd = 'cartoon ONLY;';
                 break;
         }
-        var applet = this.applet_selector.get_value();
+        var applet = this.applet_selector.get_value(true);
         if(applet){
-            applet.script('select all; ' + this.style_cmd);
+            applet.script('select all; ' + this.style_cmd + ' select none;');
         }
     },
     update_clipping: function(){
@@ -1056,7 +1057,7 @@ RamachandranPlotWidget.prototype = Utils.extend(Widget, /** @lends RamachandranP
 	
         if(applet && applet.loaded){
 	    var selection = 'protein and {*.ca}';
-	    var format = '%[phi],%[psi],\'%[group]\'';
+	    var format = '%[phi],%[psi],\'%[group]\', \'%[resNo]\', \'%[chain]\'';
 	    ramachandran_data = applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
 	    ramachandran_data = ramachandran_data.replace(/%\[psi\]/g,"");
 	    ramachandran_data = ramachandran_data.replace(/%\[phi\]/g,"");
@@ -1134,6 +1135,13 @@ RamachandranPlotWidget.prototype = Utils.extend(Widget, /** @lends RamachandranP
 	    .lineWidth(0)
 	    .text(function(d){ return d[2]; })
 	    .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}))
+	    .event("mouseup", function(d) {
+		applet.script(
+		    'select none; selectionHalos ON; ' +
+		    'select {resNo=' + d[3] + '}' +
+		    (d[4] ? 'and chain=' + d[4] : '')
+		);
+            })
 	    .fillStyle("black");
 	
 

@@ -49,7 +49,7 @@ class GalaxyDataProvider( DataProvider ):
     def _retrieve( self, trans, hda_id, filename ):
         # get from galaxy instance
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor( trans.cookiejar ))
-        return opener.open( 'http://127.0.0.1:9090/datasets/%s/display/%s/?preview=0' % (hda_id, filename) ).read()
+        return opener.open( '%s/datasets/%s/display/%s/?preview=0' % (trans.app.config.galaxy_url, hda_id, filename) ).read()
 
 
 class FileDataProvider( DataProvider ):
@@ -135,21 +135,26 @@ class GalaxyController( BaseController ):
     @expose
     def dataset_list( self, trans ):
         trans.response.set_content_type('text/xml')
-        return self.get( trans, 'http://127.0.0.1:9090/root/history/?as_xml=1' )
+        return self.get( trans, '%s/root/history/?as_xml=1' % (trans.app.config.galaxy_url) )
     @expose
     def history_list( self, trans ):
         trans.response.set_content_type('text/xml')
-        return self.get( trans, 'http://127.0.0.1:9090/history/list_as_xml/' )
+        return self.get( trans, '%s/history/list_as_xml/' % (trans.app.config.galaxy_url) )
     @expose
     def switch_history( self, trans, history_id ):
-        return self.get( trans, 'http://127.0.0.1:9090/history/list/?operation=switch&id=%s' % (history_id) )
+        return self.get( trans, '%s/history/list/?operation=switch&id=%s' % (trans.app.config.galaxy_url, history_id) )
     @expose
     def login( self, trans, email='alexander.rose@weirdbyte.de', password='foobar', galaxysession=None ):
         if galaxysession:
-            c = cookielib.Cookie(None, 'galaxysession', galaxysession, '9090', True, '127.0.0.1', True, False, '/', True, None, None, True, None, None, None)
+            print galaxysession
+            from urlparse import urlparse
+            url = urlparse( trans.app.config.galaxy_url )
+            # the port must be a string!!!
+            c = cookielib.Cookie(None, 'galaxysession', galaxysession, str(url.port), True, url.hostname, True, False, '/', True, None, None, True, None, None, None)
             trans.cookiejar.set_cookie( c )
             return
-        return self.get( trans, 'http://127.0.0.1:9090/user/login/?login_button=1&email=%s&password=%s' % (email, password) )
+        else:
+            return self.get( trans, '%s/user/login/?login_button=1&email=%s&password=%s' % (trans.app.config.galaxy_url, email, password) )
     @expose
     def import_dataset( self, trans, id, name, filename='', datatype=None ):
         data_controller = DataController( self.app )
@@ -205,8 +210,8 @@ class DataController( BaseController ):
 
 
 class ProteinViewerApplication( object ):
-    # add config object
-    pass
+    def __init__( self, **kwargs ):
+        self.config = Configuration( **kwargs )
 
 
 class WebApplication( base.WebApplication ):
@@ -244,7 +249,7 @@ class ProteinViewerWebTransaction( base.DefaultWebTransaction ):
 
 
 def app_factory( global_conf, **kwargs ):
-    provi_app = ProteinViewerApplication()
+    provi_app = ProteinViewerApplication( **kwargs )
     webapp = WebApplication( provi_app )
     
     webapp.add_controller( 'Data', DataController(webapp) )
@@ -312,5 +317,11 @@ def wrap_in_static( app, global_conf, **local_conf ):
     return urlmap
     
     
-
+class Configuration( object ):
+    def __init__( self, **kwargs ):
+        self.config_dict = kwargs
+        self.root = kwargs.get( 'root_dir', '.' )
+        self.galaxy_url = kwargs.get( 'galaxy_url', 'http://localhost:9090' )
+    def get( self, key, default ):
+        return self.config_dict.get( key, default )
 
