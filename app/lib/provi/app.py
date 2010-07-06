@@ -48,7 +48,7 @@ class GalaxyDataProvider( DataProvider ):
         DataProvider.__init__( self, trans, datatype, data, name=name )
     def _retrieve( self, trans, hda_id, filename ):
         # get from galaxy instance
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor( trans.cookiejar ))
+        opener = urllib2.build_opener( urllib2.HTTPCookieProcessor( trans.cookiejar ), urllib2.ProxyHandler({}) )
         return opener.open( '%s/datasets/%s/display/%s/?preview=0' % (trans.app.config.galaxy_url, hda_id, filename) ).read()
 
 
@@ -127,7 +127,7 @@ class PluploadController( BaseController ):
 
 class GalaxyController( BaseController ):
     def get( self, trans, url ):
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor( trans.cookiejar ))
+        opener = urllib2.build_opener( urllib2.HTTPCookieProcessor( trans.cookiejar ), urllib2.ProxyHandler({}) )
         return opener.open( url ).read()
     @expose
     def index( self, trans ):
