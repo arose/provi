@@ -21,6 +21,14 @@ mind the order, numpy is best installed before biopython
     Paste PasteScript webob weberror Routes Beaker simplejson Pygments
     
 
+Galaxy
+======
+
+to use it with Galaxy/Membrane Proteins add something like the following to galaxy's universe_wsgi.ini::
+    
+    # protein-viewer url
+    protein_viewer_url = http://localhost:7070/static/html/provi.html
+
 
 Jmol (client-side)
 ==================
