@@ -35,6 +35,7 @@
     <!--<script type="text/javascript" src="../applet/jmol/11.8.24/Jmol.js"></script>-->
     
     <script type="text/javascript" src="../js/utils.js"></script>
+    <script type="text/javascript" src="../js/lib/base64.js"></script>
     
     <script type="text/javascript" src="../js/prov.widget.js"></script>
     <script type="text/javascript" src="../js/prov.smcra.js"></script>
@@ -108,6 +109,10 @@
                 parent_id: 'tab_controls'
             });
             
+	    new SaveDataWidget({
+                parent_id: 'tab_load',
+            });
+	    
             var plupload = new PluploadLoadWidget({
                 parent_id: 'tab_load',
                 jmol_applet_parent_id: 'main'
@@ -123,6 +128,11 @@
                 jmol_applet_parent_id: 'main'
             });
 	    
+            new ExampleLoadWidget({
+                parent_id: 'tab_load',
+                jmol_applet_parent_id: 'main'
+            });
+            
 	    new GalaxyLoadWidget({
                 parent_id: 'tab_load',
                 jmol_applet_parent_id: 'main'
@@ -181,15 +191,15 @@
 		var jw = new JmolWidget({ parent: 'main' });
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.mbn', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.mplane', '3dqb.mplane', 'mplane', { applet: jw.applet } );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.tmhelix', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.anal', '3dqb.anal', 'anal', { applet: jw.applet }, false, false );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/npt.gro', 'npt.gro', 'gro', { applet: false, load_as: 'new' } );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/mem_prot.jspt', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/intra_water.jspt', 'intra_water.jspt', 'jspt', { applet: false }, false, true );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
-		Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
+		Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
+		Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
+		Data.import_example( 'web-data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
+		Data.import_example( 'web-data', '3dqb.anal', 'anal', { applet: jw.applet }, false, false );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/npt.gro', 'npt.gro', 'gro', { applet: false, load_as: 'new' } );
+		Data.import_example( 'web-data', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/intra_water.jspt', 'intra_water.jspt', 'jspt', { applet: false }, false, true );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
 	    }
         });
         

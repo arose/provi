@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, re, logging
+import sys, re, logging, os
 import cookielib, urllib2
 from paste import httpserver
 from webob import Request, Response
@@ -82,12 +82,12 @@ class LocalDataProvider( DataProvider ):
 
 
 class ExampleDataProvider( DataProvider ):
-    def __init__( self, trans, datatype, filename=None ):
-        data = self._retrieve( filename )
-        DataProvider.__init__( self, trans, datatype, data )
-    def _retrieve( self, filename ):
+    def __init__( self, trans, datatype, filepath, filename ):
+        data = self._retrieve( filepath, filename )
+        DataProvider.__init__( self, trans, datatype, data, name=filename )
+    def _retrieve( self, filepath, filename ):
         # read from local path
-        fp = open( os.path.join( trans.environ['paste.config']['here'], 'data', filename ) )
+        fp = open( os.path.join( filepath, filename ) )
         data = fp.read()
         fp.close()
         return data
@@ -104,13 +104,40 @@ class ExampleController( BaseController ):
     def index( self, trans ):
         return 'foo'
     @expose
-    def example_list( self, trans ):
-        trans.response.set_content_type('text/xml')
-        return self.get( trans, 'http://127.0.0.1:9090/history/list_as_xml/' )
+    def dataset_list( self, trans, directory_name=None ):
+        if not directory_name:
+            directory_name = trans.app.config.example_directories.iterkeys().next()
+        dirpath = trans.app.config.example_directories[ directory_name ]
+        l = len(dirpath)
+        file_list = []
+        for path, directories, files in os.walk( dirpath ):
+            for file in files:
+                if not file.startswith('.'):
+                    file_list.append( os.path.join( path[l:], file ) )
+        return json.dumps( {'file_list': file_list, 'directory_name': directory_name} )
     @expose
-    def import_example( self, trans, id ):
+    def directory_list( self, trans ):
+        return json.dumps( trans.app.config.example_directories.keys() )
+    @expose
+    def import_example( self, trans, directory_name, filename, datatype=None ):
         data_controller = DataController( self.app )
-        return data_controller.add( trans, datatype, 'example', filename=filename )
+        filepath = trans.app.config.example_directories[ directory_name ]
+        return data_controller.add( trans, datatype, 'example', filepath=filepath, filename=filename )
+
+
+class SaveController( BaseController ):
+    @expose
+    def index( self, trans ):
+        return 'foo'
+    @expose
+    def file( self, trans, name, data, type='application/download', encoding=None ):
+        if encoding == 'base64':
+            from base64 import b64decode
+            data = b64decode( data )
+        trans.response.set_content_type( type )
+        trans.response.headers[ "Content-Disposition" ] = "attachment; filename=%s" % name
+        return data
+
 
 class PluploadController( BaseController ):
     @expose
@@ -267,6 +294,9 @@ def app_factory( global_conf, **kwargs ):
     webapp.add_controller( 'Url', UrlLoadController(webapp) )
     webapp.add_route('/urlload/:action/', controller='Url', action='index')
     
+    webapp.add_controller( 'Save', SaveController(webapp) )
+    webapp.add_route('/save/:action/', controller='Save', action='index')
+    
     webapp = wrap_in_middleware( webapp, global_conf, **kwargs )
     webapp = wrap_in_static( webapp, global_conf, **kwargs )
     
@@ -322,6 +352,10 @@ class Configuration( object ):
         self.config_dict = kwargs
         self.root = kwargs.get( 'root_dir', '.' )
         self.galaxy_url = kwargs.get( 'galaxy_url', 'http://localhost:9090' )
+        self.example_directories = {}
+        for name_path in kwargs.get( 'example_directories', '' ).split(','):
+            name, path = name_path.split(':')
+            self.example_directories[name] = path
     def get( self, key, default ):
         return self.config_dict.get( key, default )
 
