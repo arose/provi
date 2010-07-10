@@ -19,8 +19,8 @@ var jmol_load_struct_callback = function(applet_name, url, get_params, msg, foo)
  */
 Jmol = {
     default_dir: '.',
-    default_jar: 'JmolApplet.jar',
-    archive_path: 'JmolApplet0.jar',
+    default_jar: 'JmolAppletSigned.jar',
+    archive_path: 'JmolAppletSigned0.jar',
     _applet_dict: {},
     _applet_list: [],
     _default_applet: undefined,
@@ -156,6 +156,7 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
     _get_params: function(){
         params = {
             loadInline: '',
+	    //script: 'load ../data/3dqb.pdb;cartoon on;color cartoon structure',
             script: 'javascript "Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");";',
             boxbgcolor: "white",
             boxfgcolor: "black",

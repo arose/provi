@@ -242,16 +242,23 @@ var StructureMixin = {
     load: function( applet, load_as ){
 	var self = this;
         var params = '?id=' + this.server_id;
+        var type = this.type;
         if( $.inArray(this.type, ['pdb', 'sco', 'mbn']) >= 0 ){
             params += '&data_action=get_pdb';
+            type = 'pdb';
         }
+        var jmol_types = {
+            pdb: 'PDB',
+            gro: 'GROMACS'
+        };
+        type = jmol_types[type];
         if(load_as == 'trajectory'){
-            applet.script('load TRAJECTORY "../../data/get/' + params + '";');
+            applet.script('load TRAJECTORY "' + type + '::../../data/get/' + params + '";');
         }else if(load_as == 'append'){
-            applet.script('load APPEND "../../data/get/' + params + '"; select *; zoom(selected) 20;');
+            applet.script('load APPEND "' + type + '::../../data/get/' + params + '"; select *; zoom(selected) 20;');
         //}else if(load_as == 'new'){
         }else{
-            applet.script('load "../../data/get/' + params + '";');
+            applet.script('load "' + type + '::../../data/get/' + params + '";');
         }
     },
     jmol_load: function(){
@@ -337,7 +344,7 @@ var InterfaceContactsMixin = $.extend(true, {}, StructureMixin, {
     },
     get_atoms: function( interface_ids, interface_names, cutoff, onload ){
         var self = this;
-        console.log( cutoff );
+        //console.log( cutoff );
         this.get_interface_atoms( interface_ids, interface_names, cutoff, function( interface_data ){
             self.get_structure_atoms( interface_names, function( structure_data ){
                 onload( interface_data, structure_data );
@@ -672,6 +679,137 @@ GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.pr
 
 
 /**
+ * function to import a dataset from from a example/local data directory
+ * @returns {Dataset} dataset instance
+ */
+Data.import_example = function( directory_name, filename, type, params, success, no_init){
+    var self = this;
+    var dataset = new Dataset({
+        name: filename,
+        status: { local: null, server: 'importing' }
+    });
+    $.ajax({
+        url: '../../example/import_example/',
+        data: { directory_name: directory_name, filename: filename, datatype: type },
+        success: function(response){
+            response = $.parseJSON( response );
+            dataset.server_id = response.id;
+            dataset.set_type( response.type );
+            dataset.set_status( 'server', response.status );
+            if( !no_init ) dataset.init( params );
+            if( $.isFunction(success) ){
+                success( dataset );
+            }
+        }
+    });
+    return dataset;
+}
+
+
+/**
+ * widget for loading example/local data
+ * @constructor
+ * @extends Widget
+ */
+ExampleLoadWidget = function(params){
+    params.heading = 'Example/Local Data';
+    this.directory_name = '';
+    Widget.call( this, params );
+    this.directory_selector_id = this.id + '_directory_selector';
+    this.dataset_list_id = this.id + '_dataset_list';
+    this.load_as_selector_widget_id = this.id + '_load_as';
+    this.applet_selector_widget_id = this.id + '_applet';
+    var content = '<div  class="control_group">' +
+        '<div id="' + this.applet_selector_widget_id + '"></div>' +
+        '<div id="' + this.load_as_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.directory_selector_id + '">Directory:</label>' +
+            '<select id="' + this.directory_selector_id + '" class="ui-state-default"></select>' +
+        '</div>' +
+        '<div class="control_row" id="' + this.dataset_list_id + '"></div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id,
+        applet: params.applet,
+        new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
+        allow_new_applets: true
+    });
+    this.load_as_selector = new JmolLoadAsSelectorWidget({
+        parent_id: this.load_as_selector_widget_id
+    })
+    this.init();
+}
+ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends ExampleLoadWidget.prototype */ {
+    init: function(){
+        var self = this;
+        this.update();
+        this.directory_name = $("#" + this.directory_selector_id + " option:selected").val();
+        $("#" + this.directory_selector_id).change(function(){
+            self.directory_name = $("#" + self.directory_selector_id + " option:selected").val();
+            self.update();
+        });
+        Widget.prototype.init.call(this);
+    },
+    update: function() {
+        this.directory_list();
+        this.dataset_list();
+    },
+    import_dataset: function(id, directory_name, filename, type){
+        var self = this;
+        var params = {
+            applet: this.applet_selector.get_value(),
+            load_as: this.load_as_selector.get_value()
+        }
+        Data.import_example( directory_name, filename, type, params, function(dataset){
+            $('#' + self.dataset_list_id + '_' + id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
+        })
+    },
+    dataset_list: function(){
+        $("#" + this.dataset_list_id).empty();
+        var self = this;
+        $.ajax({
+            url: '../../example/dataset_list/',
+            data: { directory_name: self.directory_name },
+            dataType: 'json',
+            success: function(data, textStatus, XMLHttpRequest) {
+                var list = $('#' + self.dataset_list_id);
+                self.directory_name = data.directory_name;
+                $.each(data.file_list, function(id,name){
+                    var button_id = self.dataset_list_id + '_' + id;
+                    list.append( '<div>' +
+                        '<button id="' + button_id + '">import</button>&nbsp;' +
+                        '<span>' + name + '</span>' +
+                    "</div>");
+                    $("#" + button_id).button().click(function() {
+                        console.log('id' ,id);
+                        console.log('name' ,name);
+                        $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
+                        self.import_dataset( id, self.directory_name, name );
+                    });
+                });
+            }
+        });
+    },
+    directory_list: function(){
+        var self = this;
+        $.ajax({
+            url: '../../example/directory_list/',
+            dataType: 'json',
+            success: function(data, textStatus, XMLHttpRequest) {
+                var elm = $("#" + self.directory_selector_id);
+                elm.empty();
+                $.each(data, function(i){
+                    elm.append("<option value='" + this + "'>" + this + "</option>");
+                });
+                elm.val( self.directory_id );
+            }
+        });
+    }
+});
+
+
+/**
  * function to import a dataset from some url
  * @returns {Dataset} dataset instance
  */
@@ -806,6 +944,101 @@ PdbLoadWidget.prototype = Utils.extend(UrlLoadWidget, /** @lends PdbLoadWidget.p
     },
     get_type: function(){
         return 'pdb';
+    }
+});
+
+
+
+
+/**
+ * widget for saving data
+ * @constructor
+ * @extends Widget
+ */
+SaveDataWidget = function(params){
+    params.heading = 'Save data';
+    params.collapsed = true;
+    Widget.call( this, params );
+    this.applet_selector_widget_id = this.id + '_applet';
+    this.form_id = this.id + '_form';
+    this.iframe_id = this.id + '_iframe';
+    this.save_structure_id = this.id + '_save_structure';
+    this.save_image_id = this.id + '_save_image';
+    this.save_state_id = this.id + '_save_state';
+    var content = '<div  class="control_group">' +
+        '<div id="' + this.applet_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            '<button id="' + this.save_structure_id + '">save structure</button>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<button id="' + this.save_image_id + '">save image</button>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<button id="' + this.save_state_id + '">save state</button>' +
+        '</div>' +
+        '<form id="' + this.form_id + '" style="display:hidden;" method="post" action="../../save/file/" target="' + this.iframe_id + '">' +
+            '<input type="hidden" name="name" value=""></input>' +
+            '<input type="hidden" name="data" value=""></input>' +
+            '<input type="hidden" name="encoding" value=""></input>' +
+        '</form>' +
+        '<iframe id="' + this.iframe_id + '" name="' + this.iframe_id + '" style="display:hidden;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id,
+        applet: params.applet,
+        allow_new_applets: false
+    });
+    this.init();
+}
+SaveDataWidget.prototype = Utils.extend(Widget, /** @lends SaveDataWidget.prototype */ {
+    init: function(){
+        var self = this;
+        
+        $("#" + this.save_structure_id).button().click(function() {
+            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
+            setTimeout(function(){
+                $("#" + self.save_structure_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save structure" );
+            }, 3000);
+            self.save_structure();
+        });
+        $("#" + this.save_image_id).button().click(function() {
+            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
+            setTimeout(function(){
+                $("#" + self.save_image_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save image" );
+            }, 3000);
+            self.save_image();
+        });
+        $("#" + this.save_state_id).button().click(function() {
+            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
+            setTimeout(function(){
+                $("#" + self.save_state_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save state" );
+            }, 3000);
+            self.save_state();
+        });
+        Widget.prototype.init.call(this);
+    },
+    save_data: function( data, name, encoding ){
+        var form = $('#' + this.form_id);
+        form.children('input[name=name]').val( name );
+        form.children('input[name=data]').val( data );
+        form.children('input[name=encoding]').val( encoding || '' );
+        form.submit();
+    },
+    save_structure: function(){
+        var data = this.applet_selector.get_value().evaluate('write("coords","pdb").split("\n")');
+        //var data = this.applet_selector.get_value().evaluate('write("ramachandran","r").split("\n")');
+        //var data = this.applet_selector.get_value().get_property_as_string("fileContents", '');
+        console.log(data);
+        this.save_data( data, 'structure.pdb' );
+    },
+    save_image: function(){
+        var data = this.applet_selector.get_value().get_property_as_string("image", '');
+        this.save_data( data, 'image.jpg', 'base64' );
+    },
+    save_state: function(){
+        var data = this.applet_selector.get_value().get_property_as_string("stateInfo", '');
+        this.save_data( data, 'state.jspt' );
     }
 });
 

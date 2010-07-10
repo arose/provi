@@ -488,10 +488,7 @@ TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.protot
             .strokeStyle(null)
             .fillStyle(null)
             .events("all")
-            .event("mousedown", function(n) {
-                n.toggle(pv.event.altKey);
-                return layout.reset().root;
-            });
+            .event("mousedown", toggle_node);
         
         node.anchor("left").add(pv.Dot)
             .strokeStyle("#1f77b4")
@@ -511,6 +508,11 @@ TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.protot
         });
         
         vis.render();
+        
+        function toggle_node(n){
+            n.toggle(pv.event.altKey);
+            return layout.reset().root;
+        }
         
     },
     get_data: function(){
@@ -684,19 +686,8 @@ TmHelicesWidget.prototype = Utils.extend(Widget, /** @lends TmHelicesWidget.prot
             .strokeStyle(null)
             .fillStyle(null)
             .events("all")
-            .event("mousedown", function(n) {
-                n.toggle(pv.event.altKey);
-                return layout.reset().root;
-            })
-            .event("mouseup", function(n, foo) {
-                if( self.applet && n.childNodes.length == 0 && n.parentNode ){
-                    var beg_end = n.nodeName.split(' - ');
-                    self.applet.script(
-                        'select none; selectionHalos ON; ' +
-                        'select {resNo > ' + beg_end[0] + '} and {resNo < ' + beg_end[1] + '} and chain=' + n.parentNode.nodeName
-                    );
-                }
-            });
+            .event("mousedown", toggle_node)
+            .event("mouseup", select_tmhelix);
         
         node.anchor("left").add(pv.Dot)
             .strokeStyle("#1f77b4")
@@ -717,6 +708,20 @@ TmHelicesWidget.prototype = Utils.extend(Widget, /** @lends TmHelicesWidget.prot
         
         vis.render();
         
+        function toggle_node(n){
+            n.toggle(pv.event.altKey);
+            return layout.reset().root;
+        }
+        
+        function select_tmhelix(n) {
+            if( self.applet && n.childNodes.length == 0 && n.parentNode ){
+                var beg_end = n.nodeName.split(' - ');
+                self.applet.script(
+                    'select none; selectionHalos ON; ' +
+                    'select {resNo > ' + beg_end[0] + '} and {resNo < ' + beg_end[1] + '} and chain=' + n.parentNode.nodeName
+                );
+            }
+        }
     },
     get_data: function(){
         return this.dataset.data.tmh_list;
@@ -898,19 +903,8 @@ HbondsWidget.prototype = Utils.extend(Widget, /** @lends HbondsWidget.prototype 
             .strokeStyle(null)
             .fillStyle(null)
             .events("all")
-            .event("mousedown", function(n) {
-                n.toggle(pv.event.altKey);
-                return layout.reset().root;
-            })
-            .event("mouseup", function(n) {
-                if( self.applet && n.childNodes.length == 0 && n.parentNode ){
-                    var hb_res = n.nodeName.split(' <> ');
-                    self.applet.script(
-                        'select none; selectionHalos ON; ' +
-                        'select {' + hb_res[0] + '} or {' + hb_res[1] + '}'
-                    );
-                }
-            });
+            .event("mousedown", toggle_node)
+            .event("mouseup", select_hbond);
         
         node.anchor("left").add(pv.Dot)
             .strokeStyle("#1f77b4")
@@ -930,6 +924,21 @@ HbondsWidget.prototype = Utils.extend(Widget, /** @lends HbondsWidget.prototype 
         });
         
         vis.render();
+        
+        function toggle_node(n){
+            n.toggle(pv.event.altKey);
+            return layout.reset().root;
+        }
+        
+        function select_hbond(n) {
+            if( self.applet && n.childNodes.length == 0 && n.parentNode ){
+                var hb_res = n.nodeName.split(' <> ');
+                self.applet.script(
+                    'select none; selectionHalos ON; ' +
+                    'select {' + hb_res[0] + '} or {' + hb_res[1] + '}'
+                );
+            }
+        }
     },
     get_hbonds: function(){
         if(this.show_hbonds){
@@ -1079,7 +1088,7 @@ InterfaceContactsWidget.prototype = Utils.extend(Widget, /** @lends InterfaceCon
         
         $("#" + this.cutoff_id).change( function() {
             self.cutoff = $("#" + self.cutoff_id + " option:selected").val();
-            console.log( self.cutoff );
+            //console.log( self.cutoff );
             self.retrieve_atoms();
         });
         $("#" + this.interface_name_id).change( function() {
