@@ -61,11 +61,23 @@ Widget = function(params){
     e.id = this.id;
     $('#' + params.parent_id).append( e );
     this.dom = e;
+    
+    if(params.applet){
+        var self = this;
+        params.applet.on_delete(function(){
+            $(self.dom).hide();
+            $(self.dom).appendTo('#trash');
+        });
+    }
+    
+    // should be called the subclasses of Widget
     //this.init();
 };
 // prototype for the widget class
 Widget.prototype = {
     init: function(){
+        $('#' + this.id + ' [title]').tipsy({ gravity: 'nw' });
+        
         if( this.heading ){
             var header = $('#' + this.id + ' .collapsable');
             header.click(function() {

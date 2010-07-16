@@ -83,17 +83,23 @@ Array.prototype.remove = function(from, to) {
 /**
  * @addon
  */
-Array.prototype.removeItems = function(itemsToRemove) {
+Array.prototype.removeItems = function(itemsToRemove, testFn) {
 
-    if (!/Array/.test(itemsToRemove.constructor)) {
+    if ( !/Array/.test(itemsToRemove.constructor) ){
         itemsToRemove = [ itemsToRemove ];
     }
-
+    
+    if(!testFn){
+        testFn = function(a, b){
+            return a == b;
+        }
+    }
+    
     var j;
-    for (var i = 0; i < itemsToRemove.length; i++) {
+    for (var i = 0; i < itemsToRemove.length; i++){
         j = 0;
         while (j < this.length) {
-            if (this[j] == itemsToRemove[i]) {
+            if ( testFn(this[j], itemsToRemove[i]) ){
                 this.splice(j, 1);
             } else {
                 j++;
@@ -101,6 +107,53 @@ Array.prototype.removeItems = function(itemsToRemove) {
         }
     }
 }
+
+
+if (!Array.prototype.reduce)
+{
+  Array.prototype.reduce = function(fun /*, initial*/)
+  {
+    var len = this.length;
+    if (typeof fun != "function")
+      throw new TypeError();
+
+    // no value to return if no initial value and an empty array
+    if (len == 0 && arguments.length == 1)
+      throw new TypeError();
+
+    var i = 0;
+    if (arguments.length >= 2)
+    {
+      var rv = arguments[1];
+    }
+    else
+    {
+      do
+      {
+        if (i in this)
+        {
+          rv = this[i++];
+          break;
+        }
+
+        // if array contains no values, no initial value to return
+        if (++i >= len)
+          throw new TypeError();
+      }
+      while (true);
+    }
+
+    for (; i < len; i++)
+    {
+      if (i in this)
+        rv = fun.call(null, rv, this[i], i, this);
+    }
+
+    return rv;
+  };
+}
+
+
 
 
 /**

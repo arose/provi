@@ -253,11 +253,13 @@ var StructureMixin = {
         };
         type = jmol_types[type];
         if(load_as == 'trajectory'){
+            applet._delete();
             applet.script('load TRAJECTORY "' + type + '::../../data/get/' + params + '";');
         }else if(load_as == 'append'){
             applet.script('load APPEND "' + type + '::../../data/get/' + params + '"; select *; zoom(selected) 20;');
         //}else if(load_as == 'new'){
         }else{
+            applet._delete();
             applet.script('load "' + type + '::../../data/get/' + params + '";');
         }
     },
@@ -745,7 +747,7 @@ ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends ExampleLoadWidget.
         var self = this;
         this.update();
         this.directory_name = $("#" + this.directory_selector_id + " option:selected").val();
-        $("#" + this.directory_selector_id).change(function(){
+        $("#" + this.directory_selector_id).click(function(){
             self.directory_name = $("#" + self.directory_selector_id + " option:selected").val();
             self.update();
         });
@@ -802,7 +804,7 @@ ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends ExampleLoadWidget.
                 $.each(data, function(i){
                     elm.append("<option value='" + this + "'>" + this + "</option>");
                 });
-                elm.val( self.directory_id );
+                elm.val( self.directory_name );
             }
         });
     }
@@ -963,12 +965,15 @@ SaveDataWidget = function(params){
     this.form_id = this.id + '_form';
     this.iframe_id = this.id + '_iframe';
     this.save_structure_id = this.id + '_save_structure';
+    this.save_structure_selected_id = this.id + '_save_structure_selected';
     this.save_image_id = this.id + '_save_image';
     this.save_state_id = this.id + '_save_state';
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
             '<button id="' + this.save_structure_id + '">save structure</button>' +
+            '<input id="' + this.save_structure_selected_id + '" type="checkbox"/>' +
+            '<label for="' + this.save_structure_selected_id + '">save only selected</label>' +
         '</div>' +
         '<div class="control_row">' +
             '<button id="' + this.save_image_id + '">save image</button>' +
@@ -976,12 +981,14 @@ SaveDataWidget = function(params){
         '<div class="control_row">' +
             '<button id="' + this.save_state_id + '">save state</button>' +
         '</div>' +
-        '<form id="' + this.form_id + '" style="display:hidden;" method="post" action="../../save/file/" target="' + this.iframe_id + '">' +
+        '<form id="' + this.form_id + '" style="display:hidden;" method="post" action="../../save/' + this.backend_type + '/" target="' + this.iframe_id + '">' +
             '<input type="hidden" name="name" value=""></input>' +
             '<input type="hidden" name="data" value=""></input>' +
+            '<input type="hidden" name="type" value=""></input>' +
             '<input type="hidden" name="encoding" value=""></input>' +
+            this.extra_input_fields +
         '</form>' +
-        '<iframe id="' + this.iframe_id + '" name="' + this.iframe_id + '" style="display:hidden;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
+        '<iframe id="' + this.iframe_id + '" name="' + this.iframe_id + '" style="display:none;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
     '</div>';
     $(this.dom).append( content );
     this.applet_selector = new JmolAppletSelectorWidget({
@@ -992,6 +999,8 @@ SaveDataWidget = function(params){
     this.init();
 }
 SaveDataWidget.prototype = Utils.extend(Widget, /** @lends SaveDataWidget.prototype */ {
+    backend_type: 'download',
+    extra_input_fields: '',
     init: function(){
         var self = this;
         
@@ -1026,10 +1035,14 @@ SaveDataWidget.prototype = Utils.extend(Widget, /** @lends SaveDataWidget.protot
         form.submit();
     },
     save_structure: function(){
-        var data = this.applet_selector.get_value().evaluate('write("coords","pdb").split("\n")');
+        var applet = this.applet_selector.get_value();
+        if( !$("#" + this.save_structure_selected_id).is(':checked') ){
+            applet.script_wait('select *;');
+        }
+        var data = applet.evaluate('write("coords","pdb").split("\n")');
         //var data = this.applet_selector.get_value().evaluate('write("ramachandran","r").split("\n")');
         //var data = this.applet_selector.get_value().get_property_as_string("fileContents", '');
-        console.log(data);
+        //console.log(data);
         this.save_data( data, 'structure.pdb' );
     },
     save_image: function(){

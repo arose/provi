@@ -56,7 +56,11 @@
 	    java_arguments: "-Xmx512M"
 	};
 	
-	
+	function layout_main() {
+            var n = Jmol.get_applet_list().length;
+            var i = Math.round( Math.sqrt(n) );
+            $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
+        }
 	
         $(document).ready(function(){
 	    
@@ -64,11 +68,7 @@
             var main = $('#main');
             var tabs_panel = $('#tabs_panel');
 	    
-            function layout_main() {
-                var n = Jmol.get_applet_list().length;
-                var i = Math.round( Math.sqrt(n) );
-                main.layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
-            }
+            
             layout_main();
             
             tabs_panel.tabs({ cookie: { expires: 30 } });
@@ -78,8 +78,8 @@
             $(window).resize(layout_main);
             $('#jmolWindow').resize(layout_main);
             
-            //Jmol.init("../applet/jmol/11.8.24/");
-            Jmol.init("../applet/jmol/12.0.RC20/");
+            Jmol.init("../applet/jmol/11.8.25/");
+            //Jmol.init("../applet/jmol/12.0.RC24/");
             Jmol.Applet.prototype.default_params.height = "99%";
             Jmol.Applet.prototype.default_params.width = "100%";
             JmolWidget.prototype.default_params.parent_id = "main";
@@ -93,10 +93,14 @@
                 parent_id: 'tab_controls'
             });
 	    
+	    new JmolModelingWidget({
+                parent_id: 'tab_controls'
+            });
+	    
 	    new RamachandranPlotWidget({
                 parent_id: 'tab_widgets'
             });
-	    
+            
 	    new TreeViewWidget({
 		parent_id: 'tab_tree'
 	    });
@@ -160,7 +164,8 @@
                 outline: true,
                 resizeToWidth: true,
                 cookie: "vsplitter",
-                anchorToWindow: true
+                anchorToWindow: true,
+                sizeRight: true
             });
 	    
 	    $('#tabs_panel a[title]:last').tipsy({ gravity: 'ne' });
@@ -191,12 +196,13 @@
 		var jw = new JmolWidget({ parent: 'main' });
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
-		Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
-		Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
-		Data.import_example( 'web-data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
-		Data.import_example( 'web-data', '3dqb.anal', 'anal', { applet: jw.applet }, false, false );
+		Data.import_example( 'web-data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' }, false, false );
+                //Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
+		//Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
+		//Data.import_example( 'web-data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
+		//Data.import_example( 'web-data', '3dqb.anal', 'anal', { applet: jw.applet }, false, false );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/npt.gro', 'npt.gro', 'gro', { applet: false, load_as: 'new' } );
-		Data.import_example( 'web-data', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
+		//Data.import_example( 'web-data', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/intra_water.jspt', 'intra_water.jspt', 'jspt', { applet: false }, false, true );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
@@ -234,6 +240,8 @@
             </div>
         </div>
     </div>
+    
+    <div id="trash" style="display:hidden;"></div>
     
 </body>
 </html>

@@ -1,9 +1,9 @@
 display all;
 select all;
 
-display WITHIN(2.0, false, (dmpc or dmp)) and not protein and not (dmpc or dmp);
+display WITHIN(3.0, false, (dmpc or dmp or popc or pop)) and not protein and not (dmpc or dmp or popc or pop);
 
-select not (dmpc or dmp);
+select not (dmpc or dmp or popc or pop);
 spacefill 100%;
 
 select all;
