@@ -5,10 +5,15 @@ var jmol_anim_frame_callback = function( applet_name, frameNo, fileNo, modelNo, 
     //console.log( frameNo+'', fileNo+'', modelNo+'', firstNo+'', lastNo+'', isAnimationRunning+'', animationDirection+'', currentDirection+'' );
 };
 
-var jmol_load_struct_callback = function(applet_name, url, get_params, msg, foo){
-    Jmol.get_applet_by_id( applet_name+'' )._load_struct_callback( url+'', get_params+'', msg+'', foo+'' );
+var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, modelName, ptLoad){
+    //console.log( Jmol.get_applet_by_id( applet_name+'' ).evaluate('_modelNumber') );
+    Jmol.get_applet_by_id( applet_name+'' )._load_struct_callback( fullPathName+'', fileName+'', modelName+'', ptLoad+'' );
 };
 
+var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
+    console.log( applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
+    Jmol.get_applet_by_id( applet_name+'' )._message_callback( msg1+'', msg2+'', msg3+'', msg4+'' );
+};
 
 (function() {
 
@@ -19,11 +24,12 @@ var jmol_load_struct_callback = function(applet_name, url, get_params, msg, foo)
  */
 Jmol = {
     default_dir: '.',
-    default_jar: 'JmolAppletSigned.jar',
-    archive_path: 'JmolAppletSigned0.jar',
+    default_jar: 'JmolApplet.jar',
+    archive_path: 'JmolApplet0.jar',
     _applet_dict: {},
     _applet_list: [],
     _default_applet: undefined,
+    _applet_counter: 0,
     init: function(codebase_directory){
 	if( this.initialized ) return;
 	this.initialized = true;
@@ -53,11 +59,28 @@ Jmol = {
      * add an applet to the global list of applets
      */
     add_applet: function(name_suffix, applet){
+	this._applet_counter += 1;
         if( typeof(this._applet_dict[name_suffix]) != 'undefined' ){
             throw "name_suffix '" + name_suffix + "' is already in use";
         }
         this._applet_dict[name_suffix] = applet;
         this._applet_list.push(applet);
+	this._applet_list_change();
+    },
+    remove_applet: function(name_suffix){
+	this._applet_list.removeItems(name_suffix, function(applet, name_suffix){
+	    return name_suffix == applet.name_suffix;
+	});
+	this._applet_dict[name_suffix]._delete();
+        delete this._applet_dict[name_suffix];
+	
+	if(this._default_applet.name_suffix == name_suffix){
+	    if(this._applet_list.length){
+		this._default_applet = this._applet_list[0];
+	    }else{
+		this._default_applet = undefined;
+	    }
+	}
 	this._applet_list_change();
     },
     get_applet_name_suffix: function(name_suffix){
@@ -66,7 +89,14 @@ Jmol = {
                 throw "name_suffix '" + name_suffix + "' is already in use";
             }
         }else{
-            name_suffix = this._applet_list.length;
+	    var self = this;
+	    var name_suffices_as_ints = $.map(self._applet_list, function(x){ console.log(x); return [parseInt(x.name_suffix)]; });
+	    //console.log( name_suffices_as_ints, self._applet_list, name_suffices_as_ints.length );
+	    name_suffix = 0;
+	    if( name_suffices_as_ints.length ){
+		name_suffix = 1 + Math.max.apply(Math, name_suffices_as_ints );
+	    }
+	    name_suffix = this._applet_counter + 1;
         }
         return name_suffix;
     },
@@ -112,6 +142,7 @@ var Applet = Jmol.Applet = function(params){
     this._determining_load_status = false;
     this._on_load_fn_list = [];
     this._anim_frame_callback_fn_list = [];
+    this._on_delete_fn_list = [];
     
     this._init();
     if( typeof(Jmol._default_applet) == 'undefined' ){
@@ -130,6 +161,14 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
     _init: function(){
 	this._create_html();
 	this._create_dom();
+    },
+    on_delete: function(fn, fn_this, fn_args){
+	this._on_delete_fn_list.push( {fn: fn, fn_this: fn_this, fn_args: fn_args} );
+    },
+    _delete: function(){
+        $.each(this._on_delete_fn_list, function(){
+	    this.fn.apply( this.fn_this, this.fn_args );
+	});
     },
     _create_html: function(){
         this.html = "<applet " +
@@ -294,6 +333,7 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
     _load: function(){
 	this.applet.script('set AnimFrameCallback "jmol_anim_frame_callback"');
 	this.applet.script('set LoadStructCallback "jmol_load_struct_callback"');
+	this.applet.script('set MessageCallback "jmol_message_callback"');
         $.each(this._on_load_fn_list, function(){
 	    this.fn.apply( this.fn_this, this.fn_args );
 	});
@@ -331,8 +371,14 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
 	    this( frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection );
 	});
     },
-    _load_struct_callback: function( url, get_params, msg, foo ){
-	//console.log( url, get_params, msg, foo );
+    _load_struct_callback: function( fullPathName, fileName, modelName, ptLoad ){
+	var self = this;
+	console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber'));
+	setTimeout( function(){ console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber')); }, 500 );
+	console.log( fullPathName, fileName, modelName, ptLoad );
+    },
+    _message_callback: function( msg1, msg2, msg3 ){
+	console.log(msg1, msg2, msg3);
     }
 };
 
@@ -346,9 +392,29 @@ JmolWidget = function(params){
     params.parent_id = typeof(params.parent_id) != 'undefined' ? params.parent_id : default_params.parent_id;
     Widget.call( this, params );
     this.applet = new Jmol.Applet(params);
+    this.applet_parent_id = this.id + '_applet';
+    this.delete_id = this.id + '_delete';
+    var content = 
+	'<div id="' + this.applet_parent_id + '" style="overflow:none; position:inherit; top:0px; bottom:30px; width:100%;"></div>' +
+	'<div class="" style="background:lightyellow; position:inherit; height:20px; padding:6px; bottom:0px; left:0px; right:0px;">' +
+	    '<span>Applet: ' + this.applet.name_suffix + '</span>' +
+            '<span title="delete" class="ui-icon ui-icon-trash" style="cursor:pointer; float:right;" id="' + this.delete_id + '">delete</span>' +
+	'</div>';
+    $(this.dom).append( content );
+    
     //$(this.dom).height( typeof(params.height) != 'undefined' ? params.height : '100%' );
     //$(this.dom).width( typeof(params.width) != 'undefined' ? params.width : '100%' );
-    this.dom.appendChild( this.applet.dom );
+    //$(this.dom).css('position', 'inherit');
+    $('#' + this.applet_parent_id).append( this.applet.dom );
+    
+    var self = this;
+    $('#' + this.delete_id).tipsy({ gravity: 'e' }).click(function(){
+	$(self.dom).hide();
+	$(self.dom).appendTo('#trash');
+	Jmol.remove_applet( self.applet.name_suffix );
+	//layout_main();
+    });
+
 };
 JmolWidget.prototype = Utils.extend(Widget,{
     default_params: {
@@ -706,7 +772,7 @@ JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lends JmolDisplayWidget.
         });
         
         // init style
-        $("#" + this.style_id).bind('change click', function() {
+        $("#" + this.style_id).bind('click', function() {
             self.set_style();
         });
 	this.set_style();
@@ -1149,6 +1215,174 @@ RamachandranPlotWidget.prototype = Utils.extend(Widget, /** @lends RamachandranP
 	
 	vis.render();
     }
+});
+
+
+/**
+ * A widget holding jmol modeling related controls
+ * @constructor
+ */
+JmolModelingWidget = function(params){
+    this.picking_select = 'ATOM';
+    this.drag_selected = false;
+    this.selection_halos = false;
+    Widget.call( this, params );
+    this.selection_halos_id = this.id + '_selection_halos';
+    this.picking_select_id = this.id + '_picking_select';
+    this.drag_selected_id = this.id + '_drag_selected';
+    this.rotate_selected_id = this.id + '_rotate_selected';
+    this.rotate_range_begin_id = this.id + '_rotate_range_begin';
+    this.rotate_range_end_id = this.id + '_rotate_range_end';
+    this.rotate_range_id = this.id + '_rotate_range';
+    this.applet_selector_widget_id = this.id + '_applet';
+    var content = '<div class="control_group">' +
+        '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+	'<div class="control_row">' +
+            '<input id="' + this.selection_halos_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.selection_halos_id + '" style="display:inline-block;">selection halos</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.picking_select_id + '">picking select</label>' +
+            '<select id="' + this.picking_select_id + '" class="ui-state-default">' +
+                '<option value="ATOM" selected="selected">atom</option>' +
+                '<option value="CHAIN">chain</option>' +
+                '<option value="GROUP">group/residue</option>' +
+                '<option value="MOLECULE">molecule</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="' + this.drag_selected_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.drag_selected_id + '" style="display:inline-block;" title="move selected atoms by pressing ALT-SHIFT-LEFT and dragging">drag selected</label>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<input id="' + this.rotate_selected_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.rotate_selected_id + '" style="display:inline-block;" title="rotate selected molecule by pressing ALT-LEFT and dragging">rotate selected molecule</label>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<input size="4" id="' + this.rotate_range_begin_id + '" type="text" class="ui-state-default"/>' +
+            '<label for="' + this.rotate_range_begin_id + '" >begin</label> ' +
+	    '<input size="4" id="' + this.rotate_range_end_id + '" type="text" class="ui-state-default"/>' +
+            '<label for="' + this.rotate_range_end_id + '" >end</label> ' +
+	    '<button id="' + this.rotate_range_id + '">rotate</button>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector = new JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id
+    });
+    this._init();
+}
+JmolModelingWidget.prototype = Utils.extend(Widget, /** @lends JmolModelingWidget.prototype */ {
+    _init: function(){
+        var self = this;
+	
+	// init selection halos
+        this.selection_halos = $("#" + this.selection_halos_id).is(':checked');
+        $('#' + this.selection_halos_id).click(function(){
+            var applet = self.applet_selector.get_value();
+            if(applet){
+		self.selection_halos = $("#" + self.selection_halos_id).is(':checked');
+		if(self.selection_halos){
+		    applet.script('selectionHalos ON');
+		}else{
+		    applet.script('selectionHalos OFF');
+		}
+            }
+        });
+	
+        // init drag selected
+        this.drag_selected = $("#" + this.drag_selected_id).is(':checked');
+        $('#' + this.drag_selected_id).click(function(){
+            var applet = self.applet_selector.get_value();
+            if(applet){
+		self.drag_selected = $("#" + self.drag_selected_id).is(':checked');
+		if(self.drag_selected){
+		    applet.script('set dragSelected ON');
+		}else{
+		    applet.script('set dragSelected OFF');
+		}
+            }
+        });
+	
+	// init rotate selected (molecule)
+        this.rotate_selected = $("#" + this.rotate_selected_id).is(':checked');
+        $('#' + this.rotate_selected_id).click(function(){
+            var applet = self.applet_selector.get_value();
+            if(applet){
+		self.rotate_selected = $("#" + self.rotate_selected_id).is(':checked');
+		if(self.rotate_selected){
+		    applet.script('set allowRotateSelected ON');
+		}else{
+		    applet.script('set allowRotateSelected OFF');
+		}
+            }
+        });
+        
+        // init picking select
+        $("#" + this.picking_select_id).bind('click', function() {
+            var applet = self.applet_selector.get_value();
+            if(applet){
+		self.picking_select = $("#" + self.picking_select_id).val();
+		switch( self.picking_select ){
+		    case 'ATOM':
+			applet.script('set picking SELECT ATOM;');
+			break;
+		    case 'CHAIN':
+			applet.script('set picking SELECT CHAIN;');
+			break;
+		    case 'GROUP':
+			applet.script('set picking SELECT GROUP;');
+			break;
+		    case 'MOLECULE':
+			applet.script('set picking SELECT MOLECULE;');
+			break;
+		    default:
+			applet.script('set picking SELECT ATOM;');
+			break;
+		}
+            }
+        });
+	
+	$("#" + this.rotate_range_id).button().click(function() {
+            self.rotate_range();
+        });
+	
+	$("#" + this.rotate_range_begin_id).change(function() {
+	    console.log($(this).val());
+	    self.rotate_range_begin = $(this).val();
+            self.update_rotate_range();
+        });
+	
+	$("#" + this.rotate_range_end_id).change(function() {
+	    console.log($(this).val());
+	    self.rotate_range_end = $(this).val();
+            self.update_rotate_range();
+        });
+	
+	// rotate {protein} 30 MOLECULAR
+	// rotateSelected {atomno=1604} {atomno=1882} 30 MOLECULAR
+	
+	
+	
+	Widget.prototype.init.call(this);
+    },
+    rotate_range: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.script('select {atomno>=' + this.rotate_range_begin + ' and atomno<=' + this.rotate_range_end + '};rotateSelected {atomno=' + this.rotate_range_begin + '} {atomno=' + this.rotate_range_end + '} 5 MOLECULAR;');
+	}
+    },
+    update_rotate_range: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet && this.rotate_range_begin && this.rotate_range_end){
+	    console.log( this.rotate_range_begin, this.rotate_range_end );
+	    applet.script('draw rotate_range_' + this.id + ' ARROW {atomno=' + this.rotate_range_begin + '} {atomno=' + this.rotate_range_end + '};');
+	}
+    }
+    
+    // set picking DRAW
+    // set MessageCallback "function name"
+    // show DRAW
 });
 
 

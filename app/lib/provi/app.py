@@ -129,14 +129,38 @@ class SaveController( BaseController ):
     @expose
     def index( self, trans ):
         return 'foo'
-    @expose
-    def file( self, trans, name, data, type='application/download', encoding=None ):
+    def decode( self, data, encoding ):
         if encoding == 'base64':
             from base64 import b64decode
             data = b64decode( data )
+        return data
+    @expose
+    def download( self, trans, name, data, type='application/download', encoding=None ):
+        data = self.decode( data, encoding )
         trans.response.set_content_type( type )
         trans.response.headers[ "Content-Disposition" ] = "attachment; filename=%s" % name
         return data
+    @expose
+    def galaxy( self, trans, name, data, type=None, encoding=None ):
+        data = self.decode( data, encoding )
+        from poster.encode import multipart_encode
+        from poster.streaminghttp import register_openers
+        register_openers()
+        # headers contains the necessary Content-Type and Content-Length
+        # datagen is a generator object that yields the encoded parameters
+        datagen, headers = multipart_encode({"pdbfile": open(pdbFile),
+                                             "go": "cgi"
+                                             })    
+        # Create the Request object
+        request = urllib2.Request(TMDET_URL + "index.php", datagen, headers)
+        # Actually do the request, and get the response
+        response = urllib2.urlopen(request).read()
+    @expose
+    def local( self, trans, name, data, directory_name, type=None, encoding=None ):
+        data = self.decode( data, encoding )
+        filepath = trans.app.config.example_directories[ directory_name ]
+        fh = open( os.path.join( filepath, name ) )
+        fh.write( data )
 
 
 class PluploadController( BaseController ):
