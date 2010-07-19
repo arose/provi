@@ -10,6 +10,7 @@
     <script type="text/javascript" src="../js/lib/jquery.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.query.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.mousewheel.min.js"></script>
+    <script type="text/javascript" src="../js/lib/jScrollPane.min.js"></script>
     <script src="../js/lib/jquery.cookie.js" type="text/javascript"></script>
     <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-ui/js/jquery-ui.min.js"></script>
@@ -45,7 +46,8 @@
     
     
     <link type="text/css" href="../js/lib/jquery-ui/css/smoothness/jquery-ui.css" rel="stylesheet" />
-    <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />	
+    <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
+    <link rel='stylesheet' type='text/css' href='../css/jScrollPane.css'>
     <link rel='stylesheet' type='text/css' href='../css/view.css'>
     <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
 </head>
@@ -78,8 +80,8 @@
             $(window).resize(layout_main);
             $('#jmolWindow').resize(layout_main);
             
-            Jmol.init("../applet/jmol/11.8.25/");
-            //Jmol.init("../applet/jmol/12.0.RC24/");
+            //Jmol.init("../applet/jmol/11.8.25/");
+            Jmol.init("../applet/jmol/12.0.RC25/");
             Jmol.Applet.prototype.default_params.height = "99%";
             Jmol.Applet.prototype.default_params.width = "100%";
             JmolWidget.prototype.default_params.parent_id = "main";
@@ -112,11 +114,10 @@
 	    new JmolConsoleWidget({
                 parent_id: 'tab_controls'
             });
-            
-	    new SaveDataWidget({
-                parent_id: 'tab_load',
-            });
 	    
+            
+            // load
+            
             var plupload = new PluploadLoadWidget({
                 parent_id: 'tab_load',
                 jmol_applet_parent_id: 'main'
@@ -142,6 +143,24 @@
                 jmol_applet_parent_id: 'main'
             });
 	    
+            
+            // save
+            
+            new SaveDataWidget({
+                parent_id: 'tab_save',
+            });
+            
+            new SaveGalaxyWidget({
+                parent_id: 'tab_save'
+            });
+            
+            new SaveExampleWidget({
+                parent_id: 'tab_save'
+            });
+            
+            
+            // data
+            
 	    new DatasetManagerWidget({
                 parent_id: 'tab_data'
             });
@@ -196,11 +215,11 @@
 		var jw = new JmolWidget({ parent: 'main' });
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
-		Data.import_example( 'web-data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' }, false, false );
+		//Data.import_example( 'web_data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
                 //Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
-		//Data.import_example( 'web-data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
-		//Data.import_example( 'web-data', '3dqb.anal', 'anal', { applet: jw.applet }, false, false );
+		//Data.import_example( 'web_data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
+		//Data.import_example( 'web_data', '3dqb.anal', 'anal', { applet: jw.applet } );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/npt.gro', 'npt.gro', 'gro', { applet: false, load_as: 'new' } );
 		//Data.import_example( 'web-data', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/intra_water.jspt', 'intra_water.jspt', 'jspt', { applet: false }, false, true );
@@ -225,6 +244,7 @@
                         <li><a title="General controls" href="#tab_controls">Controls</a></li>
                         <li><a href="#tab_tree">Tree</a></li>
                         <li><a title="Load from various datasources" href="#tab_load">Load</a></li>
+                        <li><a title="Save data" href="#tab_save">Save</a></li>
 			<li><a title="A list of all imported data" href="#tab_data">Data</a></li>
 			<li><a title="A collection of control elements" href="#tab_widgets">Widgets</a></li>
                     </ul>
@@ -233,6 +253,7 @@
                         <div id="tab_controls"></div>
                         <div id="tab_tree"></div>
                         <div id="tab_load"></div>
+                        <div id="tab_save"></div>
 			<div id="tab_data"></div>
 			<div id="tab_widgets"></div>
                     </div>

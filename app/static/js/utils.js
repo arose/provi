@@ -222,3 +222,21 @@ Utils.wait = function(timeout, checkFn, onEndFn) {
         }, timeout);
     }
 }
+
+Utils.in_array = function(array, item, testFn) {
+    if(!testFn){
+        testFn = function(a, b){
+            return a == b;
+        }
+    }
+    
+    var j = 0;
+    while (j < array.length) {
+        if ( testFn(array[j], item) ){
+            return true
+        } else {
+            j++;
+        }
+    }
+    return false;
+}

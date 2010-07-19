@@ -50,6 +50,7 @@ Widget = function(params){
     this.heading = params.heading;
     this.collapsed = params.collapsed;
     this.id = WidgetManager.get_widget_id(params.id);
+    this.parent_id = params.parent_id;
     WidgetManager.add_widget(this.id, this);
     
     if( params.heading ){
@@ -62,7 +63,7 @@ Widget = function(params){
     $('#' + params.parent_id).append( e );
     this.dom = e;
     
-    if(params.applet){
+    if(params.applet && !params.persist_on_applet_delete){
         var self = this;
         params.applet.on_delete(function(){
             $(self.dom).hide();

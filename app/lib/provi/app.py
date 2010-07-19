@@ -141,25 +141,48 @@ class SaveController( BaseController ):
         trans.response.headers[ "Content-Disposition" ] = "attachment; filename=%s" % name
         return data
     @expose
+    def galaxy_import( self, trans, id, **kwargs ):
+        # not secure
+        file = os.path.join( trans.app.config.galaxy_import_dir, id )
+        fh = open( file )
+        data = fh.read()
+        fh.close()
+        os.remove( file )
+        return data
+    @expose
     def galaxy( self, trans, name, data, type=None, encoding=None ):
         data = self.decode( data, encoding )
+        
+        import tempfile
+        foo, filename = tempfile.mkstemp( prefix="galaxy_import_", dir=trans.app.config.galaxy_import_dir )
+        fh = open( filename, 'w' )
+        fh.write( data )
+        fh.close()
+        
         from poster.encode import multipart_encode
         from poster.streaminghttp import register_openers
-        register_openers()
+        opener = register_openers()
+        opener.add_handler( urllib2.HTTPCookieProcessor( trans.cookiejar ) )
+        opener.add_handler( urllib2.ProxyHandler({}) )
+        params = {
+            'tool_id': 'provi_import',
+            'URL': '%s/save/galaxy_import/?id=%s' % (trans.app.config.provi_url, os.path.basename(filename) ),
+            'NAME': name,
+            'URL_method': 'post'
+        }
+        print params
         # headers contains the necessary Content-Type and Content-Length
         # datagen is a generator object that yields the encoded parameters
-        datagen, headers = multipart_encode({"pdbfile": open(pdbFile),
-                                             "go": "cgi"
-                                             })    
+        datagen, headers = multipart_encode( params )
         # Create the Request object
-        request = urllib2.Request(TMDET_URL + "index.php", datagen, headers)
+        request = urllib2.Request( '%s/tool_runner' % (trans.app.config.galaxy_url), datagen, headers)
         # Actually do the request, and get the response
-        response = urllib2.urlopen(request).read()
+        opener.open(request).read()
     @expose
     def local( self, trans, name, data, directory_name, type=None, encoding=None ):
         data = self.decode( data, encoding )
         filepath = trans.app.config.example_directories[ directory_name ]
-        fh = open( os.path.join( filepath, name ) )
+        fh = open( os.path.join( filepath, name ), 'w' )
         fh.write( data )
 
 
@@ -376,8 +399,10 @@ class Configuration( object ):
         self.config_dict = kwargs
         self.root = kwargs.get( 'root_dir', '.' )
         self.galaxy_url = kwargs.get( 'galaxy_url', 'http://localhost:9090' )
+        self.provi_url = kwargs.get( 'provi_url', 'http://localhost:7070' )
+        self.galaxy_import_dir = kwargs.get( 'galaxy_import_dir' )
         self.example_directories = {}
-        for name_path in kwargs.get( 'example_directories', '' ).split(','):
+        for name_path in kwargs.get( 'example_directories', '' ).replace('\n','').split(','):
             name, path = name_path.split(':')
             self.example_directories[name] = path
     def get( self, key, default ):

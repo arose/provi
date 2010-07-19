@@ -313,7 +313,7 @@ MplaneWidget = function(params){
     $(this.dom).append( content );
     this._init();
 }
-MplaneWidget.prototype = Utils.extend(Widget, /** @lends MplaneWidget.prototype */ {
+MplaneWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype */ {
     _init: function () {
         this.visibility = $("#" + this.visibility_id).is(':checked');
         $("#" + this.size_slider_option_id).hide();
@@ -378,6 +378,97 @@ MplaneWidget.prototype = Utils.extend(Widget, /** @lends MplaneWidget.prototype 
 
 
 /**
+ * A widget to create sequence view from molecular data
+ * @constructor
+ */
+SequenceViewWidget = function(params){
+    this.applet = params.applet
+    this.selection = [];
+    this.vis = false;
+    params.persist_on_applet_delete = true;
+    Widget.call( this, params );
+    this.canvas_id = this.id + '_canvas';
+    this.draw_sequence_id = this.id + '_draw_sequence';
+
+    var content = '<div>' +
+        '<button style="float:left" id="' + this.draw_sequence_id + '">update</button>' +
+        '<span id="' + this.canvas_id + '" style="margin-left:80px; position:absolute;"></span>' +
+    '</div>';
+    $(this.dom).append( content );
+    this._init();
+}
+SequenceViewWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype */ {
+    _init: function(){
+        var self = this;
+        
+        this.sequence_view();
+        $("#" + this.draw_sequence_id).button().click(function() {
+            self.sequence_view();
+        });
+        $(this.applet).bind('load_struct', function(){
+            self.sequence_view();
+        });
+        $(this.applet.selection_manager).bind('select', function( foo, selection, applet ){
+            self.selection = selection;
+            if(self.vis){
+                self.vis.render();
+            }else{
+                self.sequence_view();
+            }
+        });
+    },
+    sequence_view: function(){
+        var self = this;
+        
+        var raw_data = this.get_data();
+        //console.log(raw_data);
+        if( !raw_data ) return;
+        var max_y = pv.max( raw_data, function(d){ return d[5]} );
+        var h = 45;
+        var y = pv.Scale.linear(0, max_y).range(0, h);
+        var c = pv.Scale.linear(0, max_y/2, max_y).range("green", "yellow", "red");
+        
+        this.vis = new pv.Panel()
+            .canvas( this.canvas_id )
+            .width(20 + 24*raw_data.length)
+            .height( h )
+          .add(pv.Bar)
+            .data( raw_data )
+            .bottom(0)
+            .width(19)
+            .height(function(d){ return y( d[5] ); })
+            .left(function(){ return this.index * 24 + 5; })
+            .fillStyle(function(d){ return c(d[5]); })
+	    .lineWidth( function(d){ return self.in_selection(d) ? 2 : 0; })
+	    .strokeStyle( 'black' )
+            .event("mouseup", function(d) {
+		self.applet.selection_manager.select( 'resNo=' + d[2] + ' ' + (d[3] ? 'and chain=' + d[3] : '') );
+            })
+          .anchor("bottom").add(pv.Label)
+            .text(function(d){ return d[0]; })
+            .textAlign("left")
+            .textBaseline("middle")
+            .textAngle(-Math.PI / 2)
+          .root.render();
+    },
+    get_data: function(){
+        if(!this.applet || !this.applet.loaded) return false;
+        var selection = 'protein and {*.ca}';
+        var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[model]\',\'%[temperature]\'';
+        var protein_data = this.applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
+        protein_data = eval( protein_data );
+        return protein_data;
+    },
+    in_selection: function(d){
+	return Utils.in_array(this.selection, d, function(a,b){
+	    return a[2]==b[2] && (a[3]==b[3] || !b[3]);
+	});
+    }
+});
+
+
+
+/**
  * A widget to create tree view from molecular data
  * @constructor
  */
@@ -403,7 +494,7 @@ TreeViewWidget = function(params){
     });
     this._init();
 }
-TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.prototype */ {
+TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype */ {
     _init: function(){
         var self = this;
         
@@ -504,6 +595,8 @@ TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.protot
         root.visitAfter(function(node, depth){
             if(depth > 1){
                 node.toggle();
+            }else{
+                console.log(node);
             }
         });
         
@@ -630,7 +723,7 @@ TmHelicesWidget = function(params){
     $(this.dom).append( content );
     this._init();
 }
-TmHelicesWidget.prototype = Utils.extend(Widget, /** @lends TmHelicesWidget.prototype */ {
+TmHelicesWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype */ {
     _init: function(){
         var self = this;
         this.tree_view();
@@ -716,15 +809,15 @@ TmHelicesWidget.prototype = Utils.extend(Widget, /** @lends TmHelicesWidget.prot
         function select_tmhelix(n) {
             if( self.applet && n.childNodes.length == 0 && n.parentNode ){
                 var beg_end = n.nodeName.split(' - ');
-                self.applet.script(
-                    'select none; selectionHalos ON; ' +
-                    'select {resNo > ' + beg_end[0] + '} and {resNo < ' + beg_end[1] + '} and chain=' + n.parentNode.nodeName
-                );
+                self.applet.selection_manager.select( 'resNo > ' + beg_end[0] + ' and resNo < ' + beg_end[1] + ' and chain=' + n.parentNode.nodeName );
             }
         }
     },
     get_data: function(){
         return this.dataset.data.tmh_list;
+    },
+    select: function( selection, applet ){
+        
     }
 });
 
@@ -933,10 +1026,7 @@ HbondsWidget.prototype = Utils.extend(Widget, /** @lends HbondsWidget.prototype 
         function select_hbond(n) {
             if( self.applet && n.childNodes.length == 0 && n.parentNode ){
                 var hb_res = n.nodeName.split(' <> ');
-                self.applet.script(
-                    'select none; selectionHalos ON; ' +
-                    'select {' + hb_res[0] + '} or {' + hb_res[1] + '}'
-                );
+                self.applet.selection_manager.select(hb_res[0] + ' or ' + hb_res[1]);
             }
         }
     },
@@ -985,6 +1075,11 @@ HbondsWidget.prototype = Utils.extend(Widget, /** @lends HbondsWidget.prototype 
         }else{
             return false;
         }
+    },
+    in_selection: function(d){
+	return Utils.in_array(this.selection, d, function(a,b){
+	    return a[2]==b[2] && (a[3]==b[3] || !b[3]);
+	});
     }
 });
 

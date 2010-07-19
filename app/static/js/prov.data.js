@@ -15,13 +15,17 @@ Data = {
     }
 }
 
+
+
 /**
  * global dataset manager object
  * 
  */
 DatasetManager = {
+    _dataset_dict: {},
     _dataset_list: [],
     _change_fn_list: [],
+    _dataset_counter: 0,
     change: function(fn, fn_this){
 	this._change_fn_list.push( {fn: fn, fn_this: fn_this} );
     },
@@ -31,16 +35,22 @@ DatasetManager = {
 	});
     },
     add: function(dataset){
+        this._dataset_counter += 1;
         var self = this;
+        this._dataset_dict[this._dataset_counter] = dataset;
         this._dataset_list.push(dataset);
         this._change( {'add': dataset} );
         dataset.change( function(){ self._change( {'update': dataset} ); } );
+        return this._dataset_counter;
     },
     update: function(){
         this._change();
     },
     get_list: function(){
         return this._dataset_list;
+    },
+    get: function( id ){
+        return this._dataset_dict[ id ];
     }
 };
 
@@ -57,7 +67,7 @@ Dataset = function(params){
     this.applet = params.applet;
     this.server_id = params.server_id;
     this.plupload_id = params.plupload_id;
-    DatasetManager.add( this );
+    this.id = DatasetManager.add( this );
 };
 Dataset.prototype = /** @lends Dataset.prototype */ {
     /**
@@ -121,8 +131,14 @@ Dataset.prototype = /** @lends Dataset.prototype */ {
             self.set_data( d );
         });
     },
-    init: function(){
-        
+    init: function( params ){
+        if( params.applet ){
+            var name = this.name + ' (' + this.id + ')';
+            if( $('#' + params.applet.widget.data_id).text() ){
+                name = ', ' + name;
+            }
+            $('#' + params.applet.widget.data_id).append( name );
+        }
     }
 };
 
@@ -142,6 +158,7 @@ var MplaneMixin = {
                 });
             }
         });
+        Dataset.prototype.init.call(this, params);
     },
     retrieve_data: function( onload ){
         var get_params = { 'id': this.server_id+'', 'data_action': 'get_planes' };
@@ -165,6 +182,7 @@ var TmHelicesMixin = {
                 });
             }
         });
+        Dataset.prototype.init.call(this, params);
     },
     retrieve_data: function( onload ){
         var get_params = { 'id': this.server_id+'', 'data_action': 'get_tm_helices' };
@@ -188,6 +206,7 @@ var HbondsMixin = {
                 });
             }
         });
+        Dataset.prototype.init.call(this, params);
     },
     retrieve_data: function( onload ){
         var get_params = { 'id': this.server_id+'', 'data_action': 'get_hbonds' };
@@ -205,6 +224,7 @@ var ScriptMixin = {
                 self.load( params.applet );
             }
         });
+        Dataset.prototype.init.call(this, params);
     },
     retrieve_data: function( onload ){
         var get_params = { 'id': this.server_id+'' };
@@ -221,6 +241,7 @@ var IsosurfaceMixin = {
         if( params.applet ){
             this.load( params.applet );
         }
+        Dataset.prototype.init.call(this, params);
     },
     load: function(applet){
         applet.script('isosurface color black "../../data/get/?id=' + this.server_id + '" mesh nofill;');
@@ -238,6 +259,7 @@ var StructureMixin = {
         if( typeof(params) == 'object' && params.applet && params.load_as ){
             this.load( params.applet, params.load_as );
         }
+        Dataset.prototype.init.call(this, params);
     },
     load: function( applet, load_as ){
 	var self = this;
@@ -256,11 +278,12 @@ var StructureMixin = {
             applet._delete();
             applet.script('load TRAJECTORY "' + type + '::../../data/get/' + params + '";');
         }else if(load_as == 'append'){
-            applet.script('load APPEND "' + type + '::../../data/get/' + params + '"; select *; zoom(selected) 20;');
+            applet.script('load APPEND "' + type + '::../../data/get/' + params + '"; ');
         //}else if(load_as == 'new'){
         }else{
             applet._delete();
-            applet.script('load "' + type + '::../../data/get/' + params + '";');
+            // color cartoon structure; color structure; 
+            applet.script('load "' + type + '::../../data/get/' + params + '"; select all;spacefill off; wireframe off; backbone off; cartoon on; select ligand;wireframe 0.16;spacefill 0.5; color cpk ;');
         }
     },
     jmol_load: function(){
@@ -318,7 +341,7 @@ var StructureMixin = {
     }
 }
 
-var InterfaceContactsMixin = $.extend(true, {}, StructureMixin, {
+var InterfaceContactsMixin = $.extend(true, {}, StructureMixin, /** @lends StructureMixin.prototype */ {
     available_widgets: {
         'InterfaceContactsWidget': InterfaceContactsWidget
     },
@@ -553,6 +576,126 @@ Data.import_galaxy = function(id, name, filename, type, params, success, no_init
     return dataset;
 }
 
+GalaxyConnector = {
+    history_id: false,
+    set_history_id: function( id ){
+        this.history_id = id;
+        $(this).triggerHandler( 'switch' );
+    },
+    login: function( onsuccess ){
+        var self = this;
+        $.ajax({
+            url: '../../galaxy/login/',
+            data: { galaxysession: $.cookie('galaxysession') || '' },
+            success: function(){
+                if( $.isFunction(onsuccess) ) onsuccess();
+            }
+        });
+    },
+    update_history_id: function( onsuccess ){
+        var self = this;
+        $.ajax({
+            type: 'GET',
+            url: '../../galaxy/dataset_list/',
+            dataType: 'xml',
+            success: function(data, textStatus, XMLHttpRequest) {
+                $("#" + self.dataset_list_id).empty();
+                var list = $('#' + self.dataset_list_id);
+                self.set_history_id( $(data).find("history").attr("id") );
+                if( $.isFunction(onsuccess) ) onsuccess();
+            }
+        });
+    },
+    history_list: function( onsuccess ){
+        var self = this;
+        $.ajax({
+            type: 'GET',
+            url: '../../galaxy/history_list/',
+            dataType: 'xml',
+            success: function(data, textStatus, XMLHttpRequest) {
+                onsuccess( data, textStatus, XMLHttpRequest );
+            }
+        });
+    },
+    switch_history: function( history_id, onsuccess ){
+        var self = this;
+        $.ajax({
+            url: '../../galaxy/switch_history/',
+            data: { history_id: history_id },
+            success: function(data){
+                onsuccess( data );
+                self.set_history_id( history_id );
+            }
+        });
+    },
+    onswitch: function(fn){
+        $(this).bind('switch', fn);
+    }
+};
+
+/**
+ * A widget to select a Galaxy history
+ * @constructor
+ */
+GalaxyHistorySelectorWidget = function(params){
+    params.tag_name = 'span';
+    this.galaxy_connector = params.galaxy_connector || GalaxyConnector;
+    Widget.call( this, params );
+    this.history_selector_id = this.id + '_history';
+    this.refresh_id = this.id + '_refresh';
+    var content = '<span class="control_row">' +
+            '<label for="' + this.history_selector_id + '">History:</label>&nbsp;' +
+            '<select id="' + this.history_selector_id + '" class="ui-state-default"></select>&nbsp;' +
+            '<span title="refresh" class="ui-icon ui-icon-refresh" style="cursor:pointer;" id="' + this.refresh_id + '">refresh</span>' +
+        '</span>';
+    $(this.dom).append( content );
+    this._init();
+};
+GalaxyHistorySelectorWidget.prototype = Utils.extend(Widget,{
+    _init: function(){
+        var self = this;
+        this.galaxy_connector.login(function(){
+            self._update();
+        });
+        this.galaxy_connector.onswitch(function(){
+            $("#" + self.history_selector_id).val( self.galaxy_connector.history_id );
+            //self._update();
+            $("#" + self.history_selector_id).triggerHandler('switch');
+        });
+        $("#" + this.history_selector_id).change(function(){
+            self.galaxy_connector.switch_history( $("#" + self.history_selector_id + " option:selected").val(), function(){
+                //$("#" + self.history_selector_id).triggerHandler('switch');
+            });
+        });
+        $('#' + this.refresh_id).click(function(){
+            self._update();
+            self.galaxy_connector.update_history_id();
+            //$("#" + self.history_selector_id).triggerHandler('switch');
+        });
+    },
+    _update: function(){
+        var self = this;
+        this.galaxy_connector.history_list(function(data, textStatus, XMLHttpRequest) {
+            var elm = $("#" + self.history_selector_id);
+            //var value = $("#" + self.history_selector_id + " option:selected").val();
+            elm.empty();
+            $(data).find("history_ids").find("data").each(function(){
+                elm.append("<option value='" + $(this).attr("id") + "'>" + $(this).attr("hid") + ":&nbsp;" + $(this).attr("name") + "&nbsp;(" + $(this).attr("num") + ")</option>");
+            });
+            elm.val( self.galaxy_connector.history_id );
+        });
+    },
+    get_value: function(){
+        return $("#" + this.history_selector_id + " option:selected").val();
+    },
+    change: function(fn){
+	$("#" + this.history_selector_id).bind('switch', fn);
+    },
+    val: function(data){
+	$("#" + this.history_selector_id).val(data);
+    }
+});
+
 
 
 /**
@@ -561,19 +704,17 @@ Data.import_galaxy = function(id, name, filename, type, params, success, no_init
  * @extends Widget
  */
 GalaxyLoadWidget = function(params){
+    this.galaxy_connector = params.galaxy_connector || GalaxyConnector;
     params.heading = 'Galaxy Import';
     Widget.call( this, params );
-    this.history_selector_id = this.id + '_history_selector';
     this.dataset_list_id = this.id + '_dataset_list';
     this.load_as_selector_widget_id = this.id + '_load_as';
     this.applet_selector_widget_id = this.id + '_applet';
+    this.history_selector_widget_id = this.id + '_history';
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div id="' + this.load_as_selector_widget_id + '"></div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.history_selector_id + '">History:</label>' +
-            '<select id="' + this.history_selector_id + '" class="ui-state-default"></select>' +
-        '</div>' +
+        '<div id="' + this.history_selector_widget_id + '"></div>' +
         '<div class="control_row" id="' + this.dataset_list_id + '"></div>' +
     '</div>';
     $(this.dom).append( content );
@@ -585,31 +726,25 @@ GalaxyLoadWidget = function(params){
     });
     this.load_as_selector = new JmolLoadAsSelectorWidget({
         parent_id: this.load_as_selector_widget_id
-    })
+    });
+    this.history_selector = new GalaxyHistorySelectorWidget({
+        parent_id: this.history_selector_widget_id
+    });
     this.init();
 }
 GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.prototype */ {
     init: function(){
         var self = this;
-        this.login();
-        $("#" + this.history_selector_id).change(function(){
-            self.switch_history( $("#" + self.history_selector_id + " option:selected").val() );
+        this.galaxy_connector.login(function(){
+            self.update();
+        });
+        this.history_selector.change(function(){
+            self.update();
         });
         Widget.prototype.init.call(this);
     },
     update: function() {
-        this.history_list();
         this.dataset_list();
-    },
-    login: function(){
-        var self = this;
-        $.ajax({
-            url: '../../galaxy/login/',
-            data: { galaxysession: $.cookie('galaxysession') || '' },
-            success: function(){
-                self.update();
-            }
-        });
     },
     import_dataset: function(id, name, filename, type){
         var self = this;
@@ -622,16 +757,15 @@ GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.pr
         })
     },
     dataset_list: function(){
-        $("#" + this.dataset_list_id).empty();
         var self = this;
         $.ajax({
             type: 'GET',
             url: '../../galaxy/dataset_list/',
             dataType: 'xml',
             success: function(data, textStatus, XMLHttpRequest) {
+                $("#" + self.dataset_list_id).empty();
                 var list = $('#' + self.dataset_list_id);
-                self.history_id = $(data).find("history").attr("id");
-                $("#" + self.history_selector_id).val( self.history_id );
+                if( !self.galaxy_connector.history_id ) self.galaxy_connector.set_history_id( $(data).find("history").attr("id") );
                 $(data).find("history").find("data").each(function(){
                     var id = $(this).attr("id");
                     var state = $(this).attr("state");
@@ -647,33 +781,6 @@ GalaxyLoadWidget.prototype = Utils.extend(Widget, /** @lends GalaxyLoadWidget.pr
                     });
                 });
                 //.html(data);
-            }
-        });
-    },
-    history_list: function(){
-        var self = this;
-        $.ajax({
-            type: 'GET',
-            url: '../../galaxy/history_list/',
-            dataType: 'xml',
-            success: function(data, textStatus, XMLHttpRequest) {
-                var elm = $("#" + self.history_selector_id);
-                //var value = $("#" + self.history_selector_id + " option:selected").val();
-                elm.empty();
-                $(data).find("history_ids").find("data").each(function(){
-                    elm.append("<option value='" + $(this).attr("id") + "'>" + $(this).attr("hid") + ":&nbsp;" + $(this).attr("name") + "&nbsp;(" + $(this).attr("num") + ")</option>");
-                });
-                elm.val( self.history_id );
-            }
-        });
-    },
-    switch_history: function( history_id ){
-        var self = this;
-        $.ajax({
-            url: '../../galaxy/switch_history/',
-            data: { history_id: history_id },
-            success: function(data){
-                self.update();
             }
         });
     }
@@ -708,6 +815,61 @@ Data.import_example = function( directory_name, filename, type, params, success,
 }
 
 
+
+/**
+ * A widget to select an example/local data directory
+ * @constructor
+ */
+ExampleDirectorySelectorWidget = function(params){
+    params.tag_name = 'span';
+    Widget.call( this, params );
+    this.directory_selector_id = this.id + '_directory';
+    this.refresh_id = this.id + '_refresh';
+    var content = '<span class="control_row">' +
+            '<label for="' + this.directory_selector_id + '">Directory:</label>&nbsp;' +
+            '<select id="' + this.directory_selector_id + '" class="ui-state-default"></select>&nbsp;' +
+            '<span title="refresh" class="ui-icon ui-icon-refresh" style="cursor:pointer;" id="' + this.refresh_id + '">refresh</span>' +
+        '</span>';
+    $(this.dom).append( content );
+    this._init();
+};
+ExampleDirectorySelectorWidget.prototype = Utils.extend(Widget,{
+    _init: function(){
+        var self = this;
+        this._update();
+        $("#" + this.directory_selector_id).change(function(){
+            self.directory_name = $("#" + this.directory_selector_id).val();
+        });
+        $('#' + this.refresh_id).click(function(){
+            self._update();
+        });
+    },
+    _update: function(  ){
+        var self = this;
+        $.ajax({
+            url: '../../example/directory_list/',
+            dataType: 'json',
+            success: function(data, textStatus, XMLHttpRequest) {
+                var elm = $("#" + self.directory_selector_id);
+                self.directory_name = elm.val();
+                elm.empty();
+                $.each(data, function(i){
+                    elm.append("<option value='" + this + "'>" + this + "</option>");
+                });
+                if(self.directory_name) elm.val( self.directory_name );
+                elm.triggerHandler('change');
+            }
+        });
+    },
+    get_value: function(){
+        return $("#" + this.directory_selector_id + " option:selected").val();
+    },
+    change: function(fn){
+	$("#" + this.directory_selector_id).change(fn);
+    }
+});
+
+
 /**
  * widget for loading example/local data
  * @constructor
@@ -717,17 +879,14 @@ ExampleLoadWidget = function(params){
     params.heading = 'Example/Local Data';
     this.directory_name = '';
     Widget.call( this, params );
-    this.directory_selector_id = this.id + '_directory_selector';
+    this.directory_selector_widget_id = this.id + '_directory_selector';
     this.dataset_list_id = this.id + '_dataset_list';
     this.load_as_selector_widget_id = this.id + '_load_as';
     this.applet_selector_widget_id = this.id + '_applet';
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div id="' + this.load_as_selector_widget_id + '"></div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.directory_selector_id + '">Directory:</label>' +
-            '<select id="' + this.directory_selector_id + '" class="ui-state-default"></select>' +
-        '</div>' +
+        '<div id="' + this.directory_selector_widget_id + '"></div>' +
         '<div class="control_row" id="' + this.dataset_list_id + '"></div>' +
     '</div>';
     $(this.dom).append( content );
@@ -740,21 +899,23 @@ ExampleLoadWidget = function(params){
     this.load_as_selector = new JmolLoadAsSelectorWidget({
         parent_id: this.load_as_selector_widget_id
     })
+    this.directory_selector = new ExampleDirectorySelectorWidget({
+        parent_id: this.directory_selector_widget_id
+    })
     this.init();
 }
 ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends ExampleLoadWidget.prototype */ {
     init: function(){
         var self = this;
         this.update();
-        this.directory_name = $("#" + this.directory_selector_id + " option:selected").val();
-        $("#" + this.directory_selector_id).click(function(){
-            self.directory_name = $("#" + self.directory_selector_id + " option:selected").val();
+        this.directory_name = this.directory_selector.get_value();
+        this.directory_selector.change(function(){
+            self.directory_name = self.directory_selector.get_value();
             self.update();
         });
         Widget.prototype.init.call(this);
     },
     update: function() {
-        this.directory_list();
         this.dataset_list();
     },
     import_dataset: function(id, directory_name, filename, type){
@@ -768,7 +929,6 @@ ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends ExampleLoadWidget.
         })
     },
     dataset_list: function(){
-        $("#" + this.dataset_list_id).empty();
         var self = this;
         $.ajax({
             url: '../../example/dataset_list/',
@@ -776,7 +936,8 @@ ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends ExampleLoadWidget.
             dataType: 'json',
             success: function(data, textStatus, XMLHttpRequest) {
                 var list = $('#' + self.dataset_list_id);
-                self.directory_name = data.directory_name;
+                list.empty();
+                //self.directory_name = data.directory_name;
                 $.each(data.file_list, function(id,name){
                     var button_id = self.dataset_list_id + '_' + id;
                     list.append( '<div>' +
@@ -784,27 +945,10 @@ ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends ExampleLoadWidget.
                         '<span>' + name + '</span>' +
                     "</div>");
                     $("#" + button_id).button().click(function() {
-                        console.log('id' ,id);
-                        console.log('name' ,name);
                         $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
                         self.import_dataset( id, self.directory_name, name );
                     });
                 });
-            }
-        });
-    },
-    directory_list: function(){
-        var self = this;
-        $.ajax({
-            url: '../../example/directory_list/',
-            dataType: 'json',
-            success: function(data, textStatus, XMLHttpRequest) {
-                var elm = $("#" + self.directory_selector_id);
-                elm.empty();
-                $.each(data, function(i){
-                    elm.append("<option value='" + this + "'>" + this + "</option>");
-                });
-                elm.val( self.directory_name );
             }
         });
     }
@@ -958,8 +1102,8 @@ PdbLoadWidget.prototype = Utils.extend(UrlLoadWidget, /** @lends PdbLoadWidget.p
  * @extends Widget
  */
 SaveDataWidget = function(params){
-    params.heading = 'Save data';
-    params.collapsed = true;
+    params.heading = params.heading || 'Download data';
+    params.collapsed = false;
     Widget.call( this, params );
     this.applet_selector_widget_id = this.id + '_applet';
     this.form_id = this.id + '_form';
@@ -986,11 +1130,12 @@ SaveDataWidget = function(params){
             '<input type="hidden" name="data" value=""></input>' +
             '<input type="hidden" name="type" value=""></input>' +
             '<input type="hidden" name="encoding" value=""></input>' +
-            this.extra_input_fields +
         '</form>' +
         '<iframe id="' + this.iframe_id + '" name="' + this.iframe_id + '" style="display:none;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
     '</div>';
     $(this.dom).append( content );
+    
+    
     this.applet_selector = new JmolAppletSelectorWidget({
         parent_id: this.applet_selector_widget_id,
         applet: params.applet,
@@ -1027,11 +1172,12 @@ SaveDataWidget.prototype = Utils.extend(Widget, /** @lends SaveDataWidget.protot
         });
         Widget.prototype.init.call(this);
     },
-    save_data: function( data, name, encoding ){
+    save_data: function( data, name, encoding, type ){
         var form = $('#' + this.form_id);
         form.children('input[name=name]').val( name );
         form.children('input[name=data]').val( data );
         form.children('input[name=encoding]').val( encoding || '' );
+        form.children('input[name=type]').val( type || '' );
         form.submit();
     },
     save_structure: function(){
@@ -1055,6 +1201,79 @@ SaveDataWidget.prototype = Utils.extend(Widget, /** @lends SaveDataWidget.protot
     }
 });
 
+
+/**
+ * widget for saving data to a example/local directory
+ * @constructor
+ * @extends SaveDataWidget
+ */
+SaveExampleWidget = function(params){
+    params.heading = 'Save in example/local dir';
+    SaveDataWidget.call( this, params );
+    this.directory_selector_widget_id = this.id + '_directory_selector';
+    this.filename_id = this.id + '_filename';
+    $('#' + this.applet_selector_widget_id).after(
+        '<div id="' + this.directory_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            'Filename: ' +
+            '<input id="' + this.filename_id + '" type="text"/>' +
+        '</div>'
+    );
+    this.directory_selector = new ExampleDirectorySelectorWidget({
+        parent_id: this.directory_selector_widget_id
+    })
+    $('#' + this.form_id).append(
+        '<input type="hidden" name="directory_name" value=""></input>'
+    );
+}
+SaveExampleWidget.prototype = Utils.extend(SaveDataWidget, /** @lends SaveDataWidget.prototype */ {
+    init: function(){
+        SaveDataWidget.prototype.init.call( this );
+    },
+    backend_type: 'local',
+    save_data: function( data, name, encoding, type ){
+        name = $('#' + this.filename_id).val() || name;
+        var form = $('#' + this.form_id);
+        form.children('input[name=directory_name]').val( this.get_directory_name() );
+        SaveDataWidget.prototype.save_data.call( this, data, name, encoding, type );
+    },
+    get_directory_name: function(){
+        return this.directory_selector.get_value();
+    }
+});
+
+
+/**
+ * widget for saving data to a example/local directory
+ * @constructor
+ * @extends SaveDataWidget
+ */
+SaveGalaxyWidget = function(params){
+    params.heading = 'Save in Galaxy';
+    SaveDataWidget.call( this, params );
+    this.history_selector_widget_id = this.id + '_history_selector';
+    this.dataset_name_id = this.id + '_dataset_name';
+    $('#' + this.applet_selector_widget_id).after(
+        '<div id="' + this.history_selector_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            'Dataset name: ' +
+            '<input id="' + this.dataset_name_id + '" type="text"/>' +
+        '</div>'
+    );
+    this.history_selector = new GalaxyHistorySelectorWidget({
+        parent_id: this.history_selector_widget_id
+    })
+}
+SaveGalaxyWidget.prototype = Utils.extend(SaveDataWidget, /** @lends SaveDataWidget.prototype */ {
+    init: function(){
+        SaveDataWidget.prototype.init.call( this );
+    },
+    backend_type: 'galaxy',
+    save_data: function( data, name, encoding, type ){
+        name = $('#' + this.dataset_name_id).val() || name;
+        SaveDataWidget.prototype.save_data.call( this, data, name, encoding, type );
+    }
+});
 
 
 /**
@@ -1085,7 +1304,7 @@ DatasetWidget.prototype = Utils.extend(Widget, /** @lends DatasetWidget.prototyp
         var status = this.dataset.get_status();
         elm.append(
             '<div style="background-color: ' + ( status.server == 'Ok' ? 'lightgreen' : 'lightgrey' ) + '; margin: 5px; padding: 3px;">' +
-                '<div>' + this.dataset.name + ' (' + this.dataset.type + ')</div>' +
+                '<div>' + this.dataset.id + '. ' + this.dataset.name + ' (' + this.dataset.type + ')</div>' +
                 '<div>Local Status: ' + status.local + '&nbsp;|&nbsp;Server Status: ' + status.server + '</div>' +
             '</div>'
         );
