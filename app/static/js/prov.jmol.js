@@ -1,19 +1,26 @@
 
-var jmol_anim_frame_callback = function( applet_name, frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
+function jmol_anim_frame_callback( applet_name, frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
     //console.log( applet_name+'' );
     Jmol.get_applet_by_id( applet_name+'' )._anim_frame_callback( frameNo+'', fileNo+'', modelNo+'', firstNo+'', lastNo+'', isAnimationRunning+'', animationDirection+'', currentDirection+'' );
     //console.log( frameNo+'', fileNo+'', modelNo+'', firstNo+'', lastNo+'', isAnimationRunning+'', animationDirection+'', currentDirection+'' );
 };
 
-var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, modelName, ptLoad){
+var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
     //console.log( Jmol.get_applet_by_id( applet_name+'' ).evaluate('_modelNumber') );
-    Jmol.get_applet_by_id( applet_name+'' )._load_struct_callback( fullPathName+'', fileName+'', modelName+'', ptLoad+'' );
+    Jmol.get_applet_by_id( applet_name+'' )._load_struct_callback( fullPathName+'', fileName+'', modelName+'', ptLoad+'', previousCurrentModelNumberDotted+'', lastLoadedModelNumberDotted+'' );
 };
 
 var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
-    console.log( applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
+    //console.log( applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
     Jmol.get_applet_by_id( applet_name+'' )._message_callback( msg1+'', msg2+'', msg3+'', msg4+'' );
 };
+
+function jmol_pick_callback (applet_name, info, id){
+    console.log('foo');
+    //console.log( applet_name+'', info+'', id+'' );
+    Jmol.get_applet_by_id( applet_name+'' )._pick_callback( info+'', id+'' );
+};
+
 
 (function() {
 
@@ -66,6 +73,7 @@ Jmol = {
         this._applet_dict[name_suffix] = applet;
         this._applet_list.push(applet);
 	this._applet_list_change();
+	$(this).triggerHandler('applet_added', applet);
     },
     remove_applet: function(name_suffix){
 	this._applet_list.removeItems(name_suffix, function(applet, name_suffix){
@@ -138,11 +146,14 @@ var Applet = Jmol.Applet = function(params){
     this.css_class = typeof(params.css_class) != 'undefined' ? params.css_class : default_params.css_class;
     this.archive_path = Jmol.archive_path;
     this.codebase = Jmol.codebase;
+    this.widget = false;
     
     this._determining_load_status = false;
     this._on_load_fn_list = [];
     this._anim_frame_callback_fn_list = [];
     this._on_delete_fn_list = [];
+    
+    this.selection_manager = new SelectionManager({ applet: this });
     
     this._init();
     if( typeof(Jmol._default_applet) == 'undefined' ){
@@ -161,11 +172,16 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
     _init: function(){
 	this._create_html();
 	this._create_dom();
+	$(this.selection_manager).bind('select', this.select);
+    },
+    select: function( foo, selection, applet, selection_string ){
+	applet.script( 'select none; selectionHalos ON; select {' + selection_string + '};' );
     },
     on_delete: function(fn, fn_this, fn_args){
 	this._on_delete_fn_list.push( {fn: fn, fn_this: fn_this, fn_args: fn_args} );
     },
     _delete: function(){
+	$('#' + this.widget.data_id).empty();
         $.each(this._on_delete_fn_list, function(){
 	    this.fn.apply( this.fn_this, this.fn_args );
 	});
@@ -331,9 +347,10 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
 	this._on_load_fn_list.push( {fn: fn, fn_this: fn_this, fn_args: fn_args} );
     },
     _load: function(){
-	this.applet.script('set AnimFrameCallback "jmol_anim_frame_callback"');
-	this.applet.script('set LoadStructCallback "jmol_load_struct_callback"');
-	this.applet.script('set MessageCallback "jmol_message_callback"');
+	this.applet.script('set AnimFrameCallback "jmol_anim_frame_callback";');
+	this.applet.script('set LoadStructCallback "jmol_load_struct_callback";');
+	this.applet.script('set MessageCallback "jmol_message_callback";');
+	this.applet.script('set PickCallback "jmol_pick_callback";');
         $.each(this._on_load_fn_list, function(){
 	    this.fn.apply( this.fn_this, this.fn_args );
 	});
@@ -371,14 +388,27 @@ Applet.prototype = /** @lends Jmol.Applet.prototype */ {
 	    this( frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection );
 	});
     },
-    _load_struct_callback: function( fullPathName, fileName, modelName, ptLoad ){
+    _load_struct_callback: function( fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ){
 	var self = this;
-	console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber'));
-	setTimeout( function(){ console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber')); }, 500 );
-	console.log( fullPathName, fileName, modelName, ptLoad );
+	//console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber'));
+	//setTimeout( function(){ console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber')); }, 500 );
+	console.log( fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted );
+	$(this).triggerHandler('load_struct');
     },
     _message_callback: function( msg1, msg2, msg3 ){
-	console.log(msg1, msg2, msg3);
+	//console.log(msg1, msg2, msg3);
+    },
+    _pick_callback: function( info, id ){
+	console.log( info, id );
+	// [ARG]193:B.CZ #4197 40.248 -4.2279997 38.332996
+	var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
+	var chain = parsedInfo[2];
+	var res = parsedInfo[1];
+	var atom = parsedInfo[3];
+	console.log(chain, res, atom);
+	//this.selection_manager.select( 'resNo=' + res + ' ' + (chain ? 'and chain=' + chain : '') + ' and atomname=' + atom );
+	this.selection_manager.select( 'resNo=' + res + ' ' + (chain ? 'and chain=' + chain : '') );
+	$(this).triggerHandler('pick');
     }
 };
 
@@ -392,12 +422,21 @@ JmolWidget = function(params){
     params.parent_id = typeof(params.parent_id) != 'undefined' ? params.parent_id : default_params.parent_id;
     Widget.call( this, params );
     this.applet = new Jmol.Applet(params);
+    this.applet.widget = this;
     this.applet_parent_id = this.id + '_applet';
+    this.more_id = this.id + '_more';
+    this.data_id = this.id + '_data';
     this.delete_id = this.id + '_delete';
+    this.sequence_view_id = this.id + '_sequence_view';
     var content = 
-	'<div id="' + this.applet_parent_id + '" style="overflow:none; position:inherit; top:0px; bottom:30px; width:100%;"></div>' +
+	'<div title="more views" id="' + this.applet_parent_id + '" style="overflow:none; position:inherit; top:0px; bottom:30px; width:100%;"></div>' +
+	'<div id="' + this.sequence_view_id + '" class="" style="overflow:auto; background:lightblue; position:inherit; height:60px; margin-bottom:15px; padding:6px; bottom:20px; left:0px; right:0px;">' +
+	    //'<span>Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;</span>' +
+	'</div>' +
 	'<div class="" style="background:lightyellow; position:inherit; height:20px; padding:6px; bottom:0px; left:0px; right:0px;">' +
+	    '<span class="ui-icon ui-icon-triangle-1-e" id="' + this.more_id + '"></span>&nbsp;' +
 	    '<span>Applet: ' + this.applet.name_suffix + '</span>' +
+	    '<span style="margin-left:20px; margin-right:10px; overflow:hidden;">Data: <span id="' + this.data_id + '" ></span></span>' +
             '<span title="delete" class="ui-icon ui-icon-trash" style="cursor:pointer; float:right;" id="' + this.delete_id + '">delete</span>' +
 	'</div>';
     $(this.dom).append( content );
@@ -414,7 +453,24 @@ JmolWidget = function(params){
 	Jmol.remove_applet( self.applet.name_suffix );
 	//layout_main();
     });
-
+    
+    
+    $('#' + this.sequence_view_id).hide();
+    $('#' + this.more_id).tipsy({ gravity: 'w' }).click(function(){
+	$(this).toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-n');
+	if( $('#' + self.sequence_view_id).is(':visible') ){
+	    $('#' + self.applet_parent_id).css('bottom', '30px');
+	}else{
+	    $('#' + self.applet_parent_id).css('bottom', '110px');
+	}
+	$('#' + self.sequence_view_id).toggle();
+	
+    });
+    
+    this.sequence_view = new SequenceViewWidget({
+	parent_id: this.sequence_view_id,
+	applet: this.applet
+    });
 };
 JmolWidget.prototype = Utils.extend(Widget,{
     default_params: {
@@ -511,6 +567,31 @@ JmolLoadAsSelectorWidget.prototype = Utils.extend(Widget, /** @lends JmolLoadAsS
 });
 
 
+
+/**
+ * A class to provide a central instance for selecting atoms, residues, ...
+ * @name SelectionManager
+ * @constructor
+ */
+var SelectionManager = function(params) {
+    this.applet = params.applet;
+}
+SelectionManager.prototype = /** @lends SelectionManager.prototype */ {
+    select: function( selection ) {
+	console.log(selection);
+	var selection_array = this._eval( selection );
+        $(this).triggerHandler('select', [selection_array, this.applet, selection]);
+    },
+    _eval: function( selection ){
+	//selection = '{protein and {*.ca}}';
+	//selection = 'resNo > 150 and resNo < 171 and chain=A';
+        var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[model]\'';
+        return eval( this.applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"') );
+    }
+};
+
+
+
 /**
  * A class that save items in historical order and provides access to them
  * @name HistoryManager
@@ -520,7 +601,6 @@ var HistoryManager = function() {
     this.curr = -1;
     this.entries = [];
 }
-// foo
 HistoryManager.prototype = /** @lends HistoryManager.prototype */ {
     push: function(item) {
         if (this.entries.length && this.entries[0] == item) return;
@@ -1074,6 +1154,8 @@ RamachandranPlotWidget = function(params){
     this.favored_angles_id = this.id + '_favored_angles';
     this.do_ramachandran_plot_id = this.id + '_do_plot';
     this.applet_selector_widget_id = this.id + '_applet';
+    this.selection = [];
+    this.vis = false;
 
     var content = '<div class="control_group">' +
 	'<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
@@ -1114,11 +1196,39 @@ RamachandranPlotWidget.prototype = Utils.extend(Widget, /** @lends RamachandranP
 	this.applet_selector.change( function() {
             self.ramachandran_plot();
         });
+	
+	$.each( Jmol.get_applet_list(), function(applet){
+	    $(applet.selection_manager).bind('select', function( foo, selection, applet ){
+		self.selection = selection;
+		if(self.vis){
+		    self.vis.render();
+		}else{
+		    self.ramachandran_plot();
+		}
+	    });
+	    $(applet).bind('load_struct', function(){
+		if(applet == self.applet_selector.get_value(true)) self.ramachandran_plot();
+	    });
+	});
+	$(Jmol).bind('applet_added', function(event, applet){
+	    $(applet.selection_manager).bind('select', function( foo, selection, applet ){
+		self.selection = selection;
+		if(self.vis){
+		    self.vis.render();
+		}else{
+		    self.ramachandran_plot();
+		}
+	    });
+	    $(applet).bind('load_struct', function(){
+		if(applet == self.applet_selector.get_value(true)) self.ramachandran_plot();
+	    });
+	});
     },
     /**
      * draw a ramachandran plot
      */
     ramachandran_plot: function(){
+	var self = this;
         var applet = this.applet_selector.get_value(true);
 	var ramachandran_data = [];
 	
@@ -1198,22 +1308,29 @@ RamachandranPlotWidget.prototype = Utils.extend(Widget, /** @lends RamachandranP
 	    .data(ramachandran_data)
 	    .left(function(d){ return x(d[0]); })
 	    .top(function(d){ return y(-d[1]); })
-	    .size(3)
-	    .lineWidth(0)
+	    .size( function(d){ return self.in_selection(d) ? 7 : 3; })
+	    .lineWidth( function(d){ return self.in_selection(d) ? 2 : 0; })
+	    .strokeStyle( 'gold' )
 	    .text(function(d){ return d[2]; })
 	    .event("mouseover", pv.Behavior.tipsy({gravity: "s", fade: true}))
 	    .event("mouseup", function(d) {
-		applet.script(
-		    'select none; selectionHalos ON; ' +
-		    'select {resNo=' + d[3] + '}' +
-		    (d[4] ? 'and chain=' + d[4] : '')
-		);
+		applet.selection_manager.select( 'resNo=' + d[3] + ' ' + (d[4] ? 'and chain=' + d[4] : '') );
             })
-	    .fillStyle("black");
+	    .fillStyle('black');
 	
 
 	
 	vis.render();
+	self.vis = vis;
+    },
+    in_selection: function(d){
+	return Utils.in_array(this.selection, d, function(a,b){
+	    return a[2]==b[3] && (a[3]==b[4] || !b[4]);
+	});
+    },
+    select: function( foo, selection, applet ){
+	console.log(foo);
+	console.log( applet == this.applet_selector.get_value(true) );
     }
 });
 
@@ -1248,6 +1365,7 @@ JmolModelingWidget = function(params){
                 '<option value="CHAIN">chain</option>' +
                 '<option value="GROUP">group/residue</option>' +
                 '<option value="MOLECULE">molecule</option>' +
+		'<option value="DRAW" title="foobar">draw objects</option>' +
             '</select>' +
         '</div>' +
         '<div class="control_row">' +
@@ -1319,6 +1437,7 @@ JmolModelingWidget.prototype = Utils.extend(Widget, /** @lends JmolModelingWidge
         });
         
         // init picking select
+	$("#" + this.picking_select_id).children().tipsy({trigger: 'hover', gravity: 'w'});
         $("#" + this.picking_select_id).bind('click', function() {
             var applet = self.applet_selector.get_value();
             if(applet){
@@ -1335,6 +1454,9 @@ JmolModelingWidget.prototype = Utils.extend(Widget, /** @lends JmolModelingWidge
 			break;
 		    case 'MOLECULE':
 			applet.script('set picking SELECT MOLECULE;');
+			break;
+		    case 'DRAW':
+			applet.script('set picking DRAW;');
 			break;
 		    default:
 			applet.script('set picking SELECT ATOM;');
@@ -1380,7 +1502,8 @@ JmolModelingWidget.prototype = Utils.extend(Widget, /** @lends JmolModelingWidge
 	}
     }
     
-    // set picking DRAW
+    // set picking DRAW # SHIFT shifts or ALT drags corner
+    // set picking DRAGATOM
     // set MessageCallback "function name"
     // show DRAW
 });

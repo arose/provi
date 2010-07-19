@@ -10,18 +10,22 @@
 
 <script type="text/javascript">
 //jmolInitialize(".","http://chemapps.stolaf.edu/pe/protexpl/molview/JmolAppletSigned.jar")
-//jmolInitialize("../applet/jmol/12.0.RC20/","JmolApplet0.jar")
-jmolInitialize("../applet/jmol/11.8.25/","JmolApplet0.jar")
+jmolInitialize("../applet/jmol/12.0.RC25/","JmolApplet0.jar")
+//jmolInitialize("../applet/jmol/11.8.25/","JmolApplet0.jar")
 
-jmolApplet(["200","200"],"load ../data/3dqb.pdb;cartoon on;");
+jmolApplet(["200","200"],"load ../data/3dqb.pdb;cartoon on; select all; color cartoon structure; color structure; ");
 
 setTimeout(function(){
-    console.log( jmolGetPropertyAsArray("transformInfo") );
+    //console.log( jmolEvaluate("write('PDB','http://ar.local:7070?POST?')") );
 }, 2000);
 
-setTimeout(function(){
-    console.log( jmolGetPropertyAsArray("transformInfo") );
-}, 4000);
+function myPickCallback( appletId, info, id ){
+    console.log( appletId+'', info+'', id+'' );
+}
+
+jmolSetCallback( 'pickCallback', "myPickCallback" );
+
+
 </script>
 
 <!--
