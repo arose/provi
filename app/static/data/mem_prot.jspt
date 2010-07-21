@@ -1,6 +1,3 @@
-sync * on;
-
-sync * "
 
 display all;
 select *;
@@ -16,6 +13,3 @@ select dmpc or dmp;
 spacefill 20%;
 
 hide water
-";
-
-sync * off;
