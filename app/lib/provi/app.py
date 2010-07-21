@@ -112,12 +112,15 @@ class ExampleController( BaseController ):
         file_list = []
         for path, directories, files in os.walk( dirpath ):
             for file in files:
-                if not file.startswith('.'):
+                if not file.startswith('.') and not (file.startswith('#') and file.endswith('#')):
                     file_list.append( os.path.join( path[l:], file ) )
+        file_list.sort()
         return json.dumps( {'file_list': file_list, 'directory_name': directory_name} )
     @expose
     def directory_list( self, trans ):
-        return json.dumps( trans.app.config.example_directories.keys() )
+        dirs = trans.app.config.example_directories.keys()
+        dirs.sort()
+        return json.dumps( dirs )
     @expose
     def import_example( self, trans, directory_name, filename, datatype=None ):
         data_controller = DataController( self.app )
@@ -404,6 +407,7 @@ class Configuration( object ):
         self.example_directories = {}
         for name_path in kwargs.get( 'example_directories', '' ).replace('\n','').split(','):
             name, path = name_path.split(':')
+            if not path.endswith('/'): path += '/'
             self.example_directories[name] = path
     def get( self, key, default ):
         return self.config_dict.get( key, default )

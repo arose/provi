@@ -18,7 +18,7 @@ mind the order, numpy is best installed before biopython
 
 ::
 
-    Paste PasteScript webob weberror Routes Beaker simplejson Pygments
+    Paste PasteScript webob weberror Routes Beaker simplejson Pygments poster
     
 
 Galaxy
