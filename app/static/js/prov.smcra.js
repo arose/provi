@@ -425,7 +425,7 @@ SequenceViewWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype 
         if( !raw_data ) return;
         var max_y = pv.max( raw_data, function(d){ return d[5]} );
         var h = 45;
-        var y = pv.Scale.linear(0, max_y).range(0, h);
+        var y = pv.Scale.linear(0, max_y).range(0, h-4);
         var c = pv.Scale.linear(0, max_y/2, max_y).range("green", "yellow", "red");
         
         this.vis = new pv.Panel()
@@ -434,11 +434,14 @@ SequenceViewWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype 
             .height( h )
           .add(pv.Bar)
             .data( raw_data )
-            .bottom(0)
+            .bottom(2)
             .width(19)
             .height(function(d){ return y( d[5] ); })
             .left(function(){ return this.index * 24 + 5; })
             .fillStyle(function(d){ return c(d[5]); })
+          .add(pv.Panel)
+            .height( y(max_y) )
+            .fillStyle( 'rgba(255, 255, 255, 0.2)' )
 	    .lineWidth( function(d){ return self.in_selection(d) ? 2 : 0; })
 	    .strokeStyle( 'black' )
             .event("mouseup", function(d) {
