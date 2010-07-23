@@ -283,7 +283,11 @@ var StructureMixin = {
         }else{
             applet._delete();
             // color cartoon structure; color structure; 
-            applet.script('load "' + type + '::../../data/get/' + params + '"; select all;spacefill off; wireframe off; backbone off; cartoon on; select ligand;wireframe 0.16;spacefill 0.5; color cpk ;');
+            applet.script('load "' + type + '::../../data/get/' + params + '"; ' +
+		'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
+		'select ligand; wireframe 0.16; spacefill 0.5; color cpk; ' +
+		'select (dmpc or dmp or popc or pop); wireframe 0.1; '
+	    );
         }
     },
     jmol_load: function(){
