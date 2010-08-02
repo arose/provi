@@ -1,0 +1,14 @@
+syntax: glob
+
+*.DS_Store
+*.kpf
+*.sync.db
+*.sync.db-journal
+Icon*
+
+doc/jsdoc/*
+doc/sphinx/_build
+
+*.pyc
+
+provi_wsgi.ini

@@ -1,0 +1,13 @@
+display all;
+select all;
+
+display WITHIN(2.0, false, protein);
+
+select not protein;
+spacefill 100%;
+
+select all;
+wireframe off;
+
+select protein;
+cartoon only;

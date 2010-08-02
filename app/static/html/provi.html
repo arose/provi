@@ -1,0 +1,276 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd"
+    >
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="../favicon.ico">
+    
+    <title>Provi</title>
+    
+    <script type="text/javascript" src="../js/lib/jquery.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.query.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.mousewheel.min.js"></script>
+    <script src="../js/lib/jquery.cookie.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery-ui/js/jquery-ui.min.js"></script>
+    
+    <script type="text/javascript" src="../js/lib/tipsy/src/javascripts/jquery.tipsy.js"></script>
+    
+    <script type="text/javascript" src="../js/lib/jquery.sizes.js"></script>
+    <script type="text/javascript" src="../js/lib/jlayout.grid.js"></script>
+    <script type="text/javascript" src="../js/lib/jlayout.border.js"></script>
+    <script type="text/javascript" src="../js/lib/jlayout.flexgrid.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.jlayout.js"></script>
+    
+    <script type="text/javascript" src="../js/lib/sylvester.js"></script>
+    
+    <script language="javascript" type="text/javascript" src="../js/lib/protovis-r.js"></script>
+    <script language="javascript" type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>
+    
+    <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.min.js"></script>
+    
+    <!--<script type="text/javascript" src="../js/lib/uki.dev.js"></script>
+    <script type="text/javascript" src="../js/prov.uki.js"></script>-->
+    
+    <!--<script type="text/javascript" src="../applet/jmol/11.8.24/Jmol.js"></script>-->
+    
+    <script type="text/javascript" src="../js/utils.js"></script>
+    <script type="text/javascript" src="../js/lib/base64.js"></script>
+    
+    <script type="text/javascript" src="../js/prov.widget.js"></script>
+    <script type="text/javascript" src="../js/prov.smcra.js"></script>
+    
+    <script type="text/javascript" src="../js/prov.jmol.js"></script>
+    <script type="text/javascript" src="../js/prov.data.js"></script>
+    
+    
+    <link type="text/css" href="../js/lib/jquery-ui/css/smoothness/jquery-ui.css" rel="stylesheet" />
+    <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
+    <link rel='stylesheet' type='text/css' href='../css/view.css'>
+    <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
+</head>
+<body>
+    <script type="text/javascript">
+        
+	var _jmol = {
+	    java_arguments: "-Xmx512M"
+	};
+	
+	function layout_main() {
+            var n = Jmol.get_applet_list().length;
+            var i = Math.round( Math.sqrt(n) );
+            $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
+        }
+	
+        $(document).ready(function(){
+	    
+            var container = $('#container');
+            var main = $('#main');
+            var tabs_panel = $('#tabs_panel');
+	    
+            
+            layout_main();
+            
+            tabs_panel.tabs({ cookie: { expires: 30 } });
+            tabs_panel.children('ul').removeClass('ui-corner-all');
+            
+            // Hook up the re-layout to the window resize event.
+            $(window).resize(layout_main);
+            $('#jmolWindow').resize(layout_main);
+            
+            //Jmol.init("../applet/jmol/11.8.25/");
+            Jmol.init("../applet/jmol/12.0.RC25/");
+            Jmol.Applet.prototype.default_params.height = "99%";
+            Jmol.Applet.prototype.default_params.width = "100%";
+            JmolWidget.prototype.default_params.parent_id = "main";
+            Jmol.on_applet_list_change(layout_main, {});
+            
+	    new JmolGlobalControlWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+            new JmolDisplayWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+	    new JmolModelingWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+	    new RamachandranPlotWidget({
+                parent_id: 'tab_widgets'
+            });
+            
+	    new TreeViewWidget({
+		parent_id: 'tab_tree'
+	    });
+	    
+	    new JmolAnimationWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+	    new JmolConsoleWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+            
+            // load
+            
+            var plupload = new PluploadLoadWidget({
+                parent_id: 'tab_load',
+                jmol_applet_parent_id: 'main'
+            });
+	    
+	    new UrlLoadWidget({
+                parent_id: 'tab_load',
+                jmol_applet_parent_id: 'main'
+            });
+	    
+	    new PdbLoadWidget({
+                parent_id: 'tab_load',
+                jmol_applet_parent_id: 'main'
+            });
+	    
+            new ExampleLoadWidget({
+                parent_id: 'tab_load',
+                jmol_applet_parent_id: 'main'
+            });
+            
+	    new GalaxyLoadWidget({
+                parent_id: 'tab_load',
+                jmol_applet_parent_id: 'main'
+            });
+	    
+            
+            // save
+            
+            new SaveDataWidget({
+                parent_id: 'tab_save',
+            });
+            
+            new SaveGalaxyWidget({
+                parent_id: 'tab_save'
+            });
+            
+            new SaveExampleWidget({
+                parent_id: 'tab_save'
+            });
+            
+            
+            // data
+            
+	    new DatasetManagerWidget({
+                parent_id: 'tab_data'
+            });
+            
+            $('#tab_scrollbox').scroll(function (event, ui) {
+                $(this).data('scrollTop-tab-' + tabs_panel.tabs('option', 'selected'), $(this).scrollTop());
+            });
+            
+            tabs_panel.bind('tabsshow', function(event, ui) {
+                var scrollTop = $('#tab_scrollbox').data('scrollTop-tab-' + ui.index);
+                if(!scrollTop) scrollTop = 0;
+                $('#tab_scrollbox').scrollTop( scrollTop );
+                if(ui.index == 3){
+                    plupload.uploader.refresh();
+                }
+            });
+            
+            $("#container").splitter({
+                type: "v",
+                outline: true,
+                resizeToWidth: true,
+                cookie: "vsplitter",
+                anchorToWindow: true,
+                sizeRight: true
+            }).mousedown( function(edown){
+		$(edown.target).one('mouseup', function(eup){
+		    //if( edown.clientX == eup.clientX ) console.log('not moved');
+		});
+	    });
+	    
+	    $('#tabs_panel a[title]:last').tipsy({ gravity: 'ne' });
+	    $('#tabs_panel a[title]:first').tipsy({ gravity: 'nw' });
+	    $('#tabs_panel a[title]').tipsy({ gravity: 'n' });
+	    
+	    
+	    //console.log( $.query.get() );
+	    
+	    // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane
+	    // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane&galaxy[2][id]=110&galaxy[2][name]=3dqb.pdb&galaxy[2][load_as]=append
+	    if( $.query.get('galaxy') ){
+		var jw = new JmolWidget({ parent: 'main' });
+		jw.applet.script( 'cartoon ONLY; wireframe 0.015;' );
+		$.each( $.query.get('galaxy'), function(i, data){
+		    var load_as = (data.load_as || 'new');
+		    //console.log( i, data, load_as );
+		    Data.import_galaxy( data.id, data.name, data.filename, data.type, { applet: jw.applet, load_as: load_as } );
+		});
+	    // 	
+	    }else if( $.query.get('example') ){
+		$.each( $.query.get('example'), function(i, data){
+		    var jw = new JmolWidget({ parent: 'main' });
+		    Data.import_example( data.dir, data.filename, data.type, { applet: jw.applet, load_as: 'new' } );
+		});
+	    // http://127.0.0.1:7070/static/html/provi.html?pdb=3cap,2eul
+	    }else if( $.query.get('pdb') ){
+		$.each( $.query.get('pdb').split(','), function(i, id){
+		    //console.log( id );
+		    var jw = new JmolWidget({ parent: 'main' });
+		    Data.import_pdb( id, { applet: jw.applet, load_as: 'new' } );
+		});
+	    }else{
+		var jw = new JmolWidget({ parent: 'main' });
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' }, false, false );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
+		//Data.import_example( 'web_data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
+                //Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
+		//Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
+		//Data.import_example( 'web_data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
+		//Data.import_example( 'web_data', '3dqb.anal', 'anal', { applet: jw.applet } );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/npt.gro', 'npt.gro', 'gro', { applet: false, load_as: 'new' } );
+		//Data.import_example( 'web-data', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/intra_water.jspt', 'intra_water.jspt', 'jspt', { applet: false }, false, true );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
+	    }
+        });
+        
+    </script>
+    
+    <div id="container" style="height:100%; width:100%;">
+        
+        <div id="jmolWindow" class="" style="overflow:auto; height:100%">
+            <div id="main" style="height:100%; width:100%;"></div>
+        </div>
+        
+        <div id="jmolControls" class="" style="height:100%; width:400px;">
+            <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
+                <div id="tabs_panel" style="height:100%; width:100%;">
+                    <ul>
+			<li><a title="Infos about the protein viewer" href="#tab_about">About</a></li>
+                        <li><a title="General controls" href="#tab_controls">Controls</a></li>
+                        <li><a href="#tab_tree">Tree</a></li>
+                        <li><a title="Load from various datasources" href="#tab_load">Load</a></li>
+                        <li><a title="Save data" href="#tab_save">Save</a></li>
+			<li><a title="A list of all imported data" href="#tab_data">Data</a></li>
+			<li><a title="A collection of control elements" href="#tab_widgets">Widgets</a></li>
+                    </ul>
+                    <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
+			<div id="tab_about"></div>
+                        <div id="tab_controls"></div>
+                        <div id="tab_tree"></div>
+                        <div id="tab_load"></div>
+                        <div id="tab_save"></div>
+			<div id="tab_data"></div>
+			<div id="tab_widgets"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="trash" style="display:hidden;"></div>
+    
+</body>
+</html>

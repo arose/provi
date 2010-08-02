@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd"
+    >
+<html lang="en">
+<head>
+    <title><!-- Insert your title here --></title>
+    <script type="text/javascript" src="../applet/jmol/12.0.RC20/Jmol.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//jmolInitialize(".","http://chemapps.stolaf.edu/pe/protexpl/molview/JmolAppletSigned.jar")
+jmolInitialize("../applet/jmol/12.0.RC25/","JmolApplet0.jar")
+//jmolInitialize("../applet/jmol/11.8.25/","JmolApplet0.jar")
+
+jmolApplet(["200","200"],"load ../data/3dqb.pdb;cartoon on; select all; color cartoon structure; color structure; ");
+
+setTimeout(function(){
+    //console.log( jmolEvaluate("write('PDB','http://ar.local:7070?POST?')") );
+}, 2000);
+
+function myPickCallback( appletId, info, id ){
+    console.log( appletId+'', info+'', id+'' );
+}
+
+jmolSetCallback( 'pickCallback', "myPickCallback" );
+
+
+</script>
+
+<!--
+<object name="jmolAppletAX" id="jmolAppletAX" classid="java:JmolApplet" type="application/x-java-applet" width="200" height="200">
+  <param name="syncId" value="2030242811888456">
+  <param name="progressbar" value="true">
+  <param name="progresscolor" value="blue">
+  <param name="boxbgcolor" value="black">
+  <param name="boxfgcolor" value="white">
+  <param name="boxmessage" value="Downloading JmolApplet ...">
+  <param name="name" value="jmolAppletAX">
+  <param name="archive" value="JmolApplet0.jar">
+  <param name="mayscript" value="true">
+  <param name="codebase" value="../applet/jmol/12.0.RC23/">
+  <param name="java_arguments" value="-Xmx512m">
+  <param name="script" value="load ../data/3dqb.pdb;cartoon on;color cartoon structure">
+<p style="background-color:yellow; color:black; width:200px;height:200px;text-align:center;vertical-align:middle;">
+You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br>
+Check the warning message from your browser and/or enable Java applets in<br>
+your web browser preferences, or install the Java Runtime Environment from <a href="http://www.java.com">www.java.com</a><br></p></object>
+
+
+<object name="jmolAppletB" id="jmolAppletB" classid="java:JmolApplet" type="application/x-java-applet" width="200" height="200">
+  <param name="syncId" value="2030242811888456">
+  <param name="progressbar" value="true">
+  <param name="progresscolor" value="blue">
+  <param name="boxbgcolor" value="black">
+  <param name="boxfgcolor" value="white">
+  <param name="boxmessage" value="Downloading JmolApplet ...">
+  <param name="name" value="jmolAppletB">
+  <param name="archive" value="JmolApplet0.jar">
+  <param name="mayscript" value="true">
+  <param name="codebase" value="../applet/jmol/11.8.24/">
+  <param name="java_arguments" value="-Xmx512m">
+  <param name="script" value="load ../data/3dqb.pdb;calculate structure;cartoon on;color cartoon structure">
+<p style="background-color:yellow; color:black; width:200px;height:200px;text-align:center;vertical-align:middle;">
+You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br>
+Check the warning message from your browser and/or enable Java applets in<br>
+your web browser preferences, or install the Java Runtime Environment from <a href="http://www.java.com">www.java.com</a><br></p></object>
+-->
+
+</body>
+</html>
