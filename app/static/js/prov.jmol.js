@@ -448,11 +448,14 @@ JmolWidget = function(params){
     
     var self = this;
     $('#' + this.delete_id).tipsy({ gravity: 'e' }).click(function(){
+	$(this).trigger('mouseout');
 	$(self.dom).hide();
 	$(self.dom).appendTo('#trash');
 	Jmol.remove_applet( self.applet.name_suffix );
+	
 	//layout_main();
     });
+    
     
     
     $('#' + this.sequence_view_id).hide();
