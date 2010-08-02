@@ -209,7 +209,8 @@
 	    // 	
 	    }else if( $.query.get('example') ){
 		$.each( $.query.get('example'), function(i, data){
-		    Data.import_example( data.dir, data.filename, data.type, { applet: new JmolWidget({ parent: 'main' }), load_as: 'new' } );
+		    var jw = new JmolWidget({ parent: 'main' });
+		    Data.import_example( data.dir, data.filename, data.type, { applet: jw.applet, load_as: 'new' } );
 		});
 	    // http://127.0.0.1:7070/static/html/provi.html?pdb=3cap,2eul
 	    }else if( $.query.get('pdb') ){
