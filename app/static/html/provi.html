@@ -208,12 +208,8 @@
 		});
 	    // 	
 	    }else if( $.query.get('example') ){
-		var jw = new JmolWidget({ parent: 'main' });
-		jw.applet.script( 'cartoon ONLY; wireframe 0.015;' );
 		$.each( $.query.get('example'), function(i, data){
-		    var load_as = (data.load_as || 'new');
-		    //console.log( i, data, load_as );
-		    Data.import_example( data.dir, data.filename, data.type, { applet: jw.applet, load_as: load_as } );
+		    Data.import_example( data.dir, data.filename, data.type, { applet: new JmolWidget({ parent: 'main' }), load_as: 'new' } );
 		});
 	    // http://127.0.0.1:7070/static/html/provi.html?pdb=3cap,2eul
 	    }else if( $.query.get('pdb') ){
