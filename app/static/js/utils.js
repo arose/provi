@@ -225,6 +225,7 @@ Utils.wait = function(timeout, checkFn, onEndFn) {
 
 Utils.in_array = function(array, item, testFn) {
     if(!testFn){
+        /** @ignore */
         testFn = function(a, b){
             return a == b;
         }

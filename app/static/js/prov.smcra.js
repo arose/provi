@@ -313,7 +313,7 @@ MplaneWidget = function(params){
     $(this.dom).append( content );
     this._init();
 }
-MplaneWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype */ {
+MplaneWidget.prototype = Utils.extend(Widget, /** @lends MplaneWidget.prototype */ {
     _init: function () {
         this.visibility = $("#" + this.visibility_id).is(':checked');
         $("#" + this.size_slider_option_id).hide();
@@ -397,7 +397,7 @@ SequenceViewWidget = function(params){
     $(this.dom).append( content );
     this._init();
 }
-SequenceViewWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype */ {
+SequenceViewWidget.prototype = Utils.extend(Widget, /** @lends SequenceViewWidget.prototype */ {
     _init: function(){
         var self = this;
         
@@ -497,7 +497,7 @@ TreeViewWidget = function(params){
     });
     this._init();
 }
-TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype */ {
+TreeViewWidget.prototype = Utils.extend(Widget, /** @lends TreeViewWidget.prototype */ {
     _init: function(){
         var self = this;
         
@@ -726,7 +726,7 @@ TmHelicesWidget = function(params){
     $(this.dom).append( content );
     this._init();
 }
-TmHelicesWidget.prototype = Utils.extend(Widget, /** @lends Widget.prototype */ {
+TmHelicesWidget.prototype = Utils.extend(Widget, /** @lends TmHelicesWidget.prototype */ {
     _init: function(){
         var self = this;
         this.tree_view();

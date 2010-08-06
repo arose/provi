@@ -580,6 +580,11 @@ Data.import_galaxy = function(id, name, filename, type, params, success, no_init
     return dataset;
 }
 
+
+/**
+ * Galaxy conector object providing a set of functions to comunicate with a galaxy instance via the provi server component
+ * 
+ */
 GalaxyConnector = {
     history_id: false,
     set_history_id: function( id ){
@@ -1230,7 +1235,7 @@ SaveExampleWidget = function(params){
         '<input type="hidden" name="directory_name" value=""></input>'
     );
 }
-SaveExampleWidget.prototype = Utils.extend(SaveDataWidget, /** @lends SaveDataWidget.prototype */ {
+SaveExampleWidget.prototype = Utils.extend(SaveDataWidget, /** @lends SaveExampleWidget.prototype */ {
     init: function(){
         SaveDataWidget.prototype.init.call( this );
     },
@@ -1268,7 +1273,7 @@ SaveGalaxyWidget = function(params){
         parent_id: this.history_selector_widget_id
     })
 }
-SaveGalaxyWidget.prototype = Utils.extend(SaveDataWidget, /** @lends SaveDataWidget.prototype */ {
+SaveGalaxyWidget.prototype = Utils.extend(SaveDataWidget, /** @lends SaveGalaxyWidget.prototype */ {
     init: function(){
         SaveDataWidget.prototype.init.call( this );
     },

@@ -74,8 +74,7 @@ Widget = function(params){
     // should be called the subclasses of Widget
     //this.init();
 };
-// prototype for the widget class
-Widget.prototype = {
+Widget.prototype = /** @lends Widget.prototype */ {
     init: function(){
         $('#' + this.id + ' [title]').tipsy({ gravity: 'nw' });
         
