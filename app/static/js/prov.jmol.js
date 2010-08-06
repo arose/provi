@@ -475,7 +475,7 @@ JmolWidget = function(params){
 	applet: this.applet
     });
 };
-JmolWidget.prototype = Utils.extend(Widget,{
+JmolWidget.prototype = Utils.extend(Widget, /** @lends JmolWidget.prototype */ {
     default_params: {
         parent_id: null
     }
@@ -500,7 +500,7 @@ JmolAppletSelectorWidget = function(params){
     $(this.dom).append( content );
     this._init();
 };
-JmolAppletSelectorWidget.prototype = Utils.extend(Widget,{
+JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends JmolAppletSelectorWidget.prototype */ {
     _update: function(){
         var elm = $("#" + this.selector_id);
         var value = $("#" + this.selector_id + " option:selected").val();
