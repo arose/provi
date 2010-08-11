@@ -1,20 +1,32 @@
 
+/**
+ * Function to delegate a jmol animation frame callback to the corresponding applet wrapper
+ */
 function jmol_anim_frame_callback( applet_name, frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
     //console.log( applet_name+'' );
     Jmol.get_applet_by_id( applet_name+'' )._anim_frame_callback( frameNo+'', fileNo+'', modelNo+'', firstNo+'', lastNo+'', isAnimationRunning+'', animationDirection+'', currentDirection+'' );
     //console.log( frameNo+'', fileNo+'', modelNo+'', firstNo+'', lastNo+'', isAnimationRunning+'', animationDirection+'', currentDirection+'' );
 };
 
+/**
+ * Function to delegate a jmol structure loaded callback to the corresponding applet wrapper
+ */
 var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
     //console.log( Jmol.get_applet_by_id( applet_name+'' ).evaluate('_modelNumber') );
     Jmol.get_applet_by_id( applet_name+'' )._load_struct_callback( fullPathName+'', fileName+'', modelName+'', ptLoad+'', previousCurrentModelNumberDotted+'', lastLoadedModelNumberDotted+'' );
 };
 
+/**
+ * Function to delegate a jmol message callback to the corresponding applet wrapper
+ */
 var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
     //console.log( applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
     Jmol.get_applet_by_id( applet_name+'' )._message_callback( msg1+'', msg2+'', msg3+'', msg4+'' );
 };
 
+/**
+ * Function to delegate a jmol pick callback to the corresponding applet wrapper
+ */
 function jmol_pick_callback (applet_name, info, id){
     console.log('foo');
     //console.log( applet_name+'', info+'', id+'' );
