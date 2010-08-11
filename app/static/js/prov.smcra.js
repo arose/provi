@@ -423,7 +423,7 @@ SequenceViewWidget.prototype = Utils.extend(Widget, /** @lends SequenceViewWidge
         var raw_data = this.get_data();
         //console.log(raw_data);
         if( !raw_data ) return;
-        var max_y = pv.max( raw_data, function(d){ return d[5]} );
+        var max_y = pv.max( raw_data, function(d){ return d[5]} ) || 1;
         var h = 45;
         var y = pv.Scale.linear(0, max_y).range(0, h-4);
         var c = pv.Scale.linear(0, max_y/2, max_y).range("green", "yellow", "red");
