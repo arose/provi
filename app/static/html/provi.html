@@ -198,7 +198,11 @@
 	    
 	    // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane
 	    // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane&galaxy[2][id]=110&galaxy[2][name]=3dqb.pdb&galaxy[2][load_as]=append
+	    
+	    var nowidget = 1;
+	    
 	    if( $.query.get('galaxy') ){
+		nowidget = 0;
 		var jw = new JmolWidget({ parent: 'main' });
 		jw.applet.script( 'cartoon ONLY; wireframe 0.015;' );
 		$.each( $.query.get('galaxy'), function(i, data){
@@ -207,19 +211,26 @@
 		    Data.import_galaxy( data.id, data.name, data.filename, data.type, { applet: jw.applet, load_as: load_as } );
 		});
 	    // 	
-	    }else if( $.query.get('example') ){
+	    }
+	    if( $.query.get('example') ){
+		nowidget = 0;
+		querycheck = 1;
 		$.each( $.query.get('example'), function(i, data){
 		    var jw = new JmolWidget({ parent: 'main' });
 		    Data.import_example( data.dir, data.filename, data.type, { applet: jw.applet, load_as: 'new' } );
 		});
 	    // http://127.0.0.1:7070/static/html/provi.html?pdb=3cap,2eul
-	    }else if( $.query.get('pdb') ){
+	    }
+	    if( $.query.get('pdb') ){
+		nowidget = 0;
 		$.each( $.query.get('pdb').split(','), function(i, id){
 		    //console.log( id );
 		    var jw = new JmolWidget({ parent: 'main' });
 		    Data.import_pdb( id, { applet: jw.applet, load_as: 'new' } );
 		});
-	    }else{
+		
+	    }
+	    if (nowidget == 1){
 		var jw = new JmolWidget({ parent: 'main' });
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
