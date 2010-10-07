@@ -1,0 +1,55 @@
+# ---- HTTP Server ----------------------------------------------------------
+
+[server:main]
+
+use = egg:Paste#http
+port = 7070
+#host = 127.0.0.1
+host = 0.0.0.0
+use_threadpool = true
+threadpool_workers = 10
+
+[filter:gzip]
+use = egg:Paste#gzip
+
+
+# ---- Protein Viewer -------------------------------------------------
+
+[app:main]
+
+# Specifies the factory for the universe WSGI application
+paste.app_factory = provi.app:app_factory
+
+# Session support (beaker)
+#session.type = file
+session.type = memory
+session.lock_dir = %(here)s/database/beaker_sessions/lock
+session.data_dir = %(here)s/database/beaker_sessions/data
+session.key = provisessions
+session.secret = changethisinproduction
+session.auto = True
+
+# Serving static files (needed if running standalone)
+static_enabled = True
+static_cache_time = 360
+static_dir =  %(here)s/app/static/
+static_favicon_dir =  %(here)s/app/static/favicon.ico
+
+
+galaxy_url = http://127.0.0.1:9090
+provi_url = http://127.0.0.1:7070
+example_directories = data:%(here)s/data/,
+    web_data:%(here)s/app/static/data/,
+    showcase:%(here)s/app/static/data/showcase/,
+
+galaxy_import_dir = %(here)s/app/tmp/
+
+
+# ---- Logging and Debugging ------------------------------------------------
+
+# Verbosity of log messages
+log_level = DEBUG
+#log_level = WARNING
+
+# Interactive debugging - NEVER enable this on a public site
+use_interactive = True
