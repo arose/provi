@@ -17,3 +17,7 @@ provi_wsgi.ini
 
 
 app/static/applet/jmol/*
+
+
+paster.log
+paster.pid
