@@ -30,7 +30,7 @@
 #
 
 
-if [[ -n "$JSDOCDIR" ]]; then
+if [ -n "$JSDOCDIR" ]; then
         _DOCDIR="-Djsdoc.dir=$JSDOCDIR"
         _APPDIR="$JSDOCDIR/app"
 	_BASEDIR="$JSDOCDIR"
@@ -40,7 +40,7 @@ else
 	_BASEDIR="."
 fi
 
-if [[ -n "$JSDOCTEMPLATEDIR" ]]; then
+if [ -n "$JSDOCTEMPLATEDIR" ]; then
         _TDIR="-Djsdoc.template.dir=$JSDOCTEMPLATEDIR"
 else
         _TDIR=""
