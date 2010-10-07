@@ -38,7 +38,7 @@ pre.code
 {
 	margin-top: 24px;
 	float: left;
-	width: 160px;
+	width: 260px;
 	position: absolute;
 	left: 8px;
 	background-color: #F3F3F3;
@@ -47,7 +47,7 @@ pre.code
 
 #content
 {
-	margin-left: 190px;
+	margin-left: 290px;
 	width: 600px;
 }
 
