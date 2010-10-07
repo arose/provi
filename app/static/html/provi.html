@@ -248,14 +248,13 @@
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
 	    }
 	    
-	    
 	    // add some showcase examples
-	    $('#tab_about').append(
+	    $('#showcase_examples ').append(
 		$('<li class="load_example"><a>Voronoia results for PDB 2xc2</a></li>').click( function(){
 		    Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.vol', 'vol', { applet: Provi.Jmol.get_default_applet( true ), load_as: 'new' } );
 		})
 	    );
-	    $('#tab_about').append(
+	    $('#showcase_examples').append(
 		$('<li class="load_example"><a>MPlot results for PDB 3dqb</a></li>').click( function(){
 		    var applet = Provi.Jmol.get_default_applet( true );
 		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', { applet: applet, load_as: 'new' } );
@@ -264,13 +263,16 @@
 		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', { applet: applet } );
 		})
 	    );
-	    $('#tab_about').append(
+	    $('#showcase_examples').append(
 		$('<li class="load_example"><a>A crystallographic map</a></li>').click( function(){
 		    var applet = Provi.Jmol.get_default_applet( true );
 		    Provi.Data.Io.import_example( 'showcase', 'crystal_map/Test.pdb', 'pdb', { applet: applet, load_as: 'new' } );
 		    Provi.Data.Io.import_example( 'showcase', 'crystal_map/2fo-fc_map_sigma2.0.jvxl', 'jvxl', { applet: applet } );
 		})
 	    );
+	    
+	    // accordion for about section
+	    $('#tab_about .accordion').accordion();
         });
         
     </script>
@@ -296,8 +298,21 @@
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
 			<div id="tab_about">
 			    <h4><i>Provi</i> integrates the display of protein structures and related data into a convenient graphical user interface (GUI).</h4>
-			    <p>Click on the following examples to see for yourself. The <i>Widgets</i> tab provides GUI controls tailored to the displayed data. More general controls are found in the <i>Controls</i> and the <i>Tree</i> tab.</p>
-			    <ol></ol>
+			    <div class="accordion">
+				<h3><a href="#">For users</a></h3>
+				<div>
+				    <p>Click on the following examples to see for yourself. The <i>Widgets</i> tab provides GUI controls tailored to the displayed data. More general controls are found in the <i>Controls</i> and the <i>Tree</i> tab.</p>
+				    <ul id="showcase_examples"></ul>
+				</div>
+				<h3><a href="#">For developers</a></h3>
+				<div>
+				    <p>Some documentation is available</p>
+				    <ul>
+					<li><a href="../doc/sphinx/_build/index.html" target="_new">Documentation</a></li>
+					<li><a href="../doc/jsdoc/index.html" target="_new">JavaScript API</a></li>
+				    </ul>
+				</div>
+			    </div>
 			</div>
                         <div id="tab_controls"></div>
                         <div id="tab_tree"></div>
