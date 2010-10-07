@@ -38,9 +38,7 @@ static_favicon_dir =  %(here)s/app/static/favicon.ico
 
 galaxy_url = http://127.0.0.1:9090
 provi_url = http://127.0.0.1:7070
-example_directories = data:%(here)s/data/,
-    web_data:%(here)s/app/static/data/,
-    showcase:%(here)s/app/static/data/showcase/
+example_directories = showcase:%(here)s/app/static/data/showcase/
 
 galaxy_import_dir = %(here)s/app/tmp/
 
