@@ -21,3 +21,7 @@ app/static/applet/jmol/*
 
 paster.log
 paster.pid
+
+
+app/static/doc/jsdoc
+app/static/doc/sphinx
