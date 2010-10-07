@@ -9,21 +9,41 @@
 <body>
 
 <script type="text/javascript">
-//jmolInitialize(".","http://chemapps.stolaf.edu/pe/protexpl/molview/JmolAppletSigned.jar")
-jmolInitialize("../applet/jmol/12.0.RC25/","JmolApplet0.jar")
-//jmolInitialize("../applet/jmol/11.8.25/","JmolApplet0.jar")
+jmolInitialize("../applet/jmol/12.0.6/","JmolApplet0.jar");
 
-jmolApplet(["200","200"],"load ../data/3dqb.pdb;cartoon on; select all; color cartoon structure; color structure; ");
+jmolApplet(["400","400"],"");
+
+var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
+    console.log( applet_name+'', fullPathName+'', fileName+'', modelName+'', ptLoad+'', previousCurrentModelNumberDotted+'', lastLoadedModelNumberDotted+'' );
+};
+
+
 
 setTimeout(function(){
-    //console.log( jmolEvaluate("write('PDB','http://ar.local:7070?POST?')") );
+    jmolScriptWait('set LoadStructCallback "jmol_load_struct_callback";');
+    jmolScriptWait('load ../data/1u19.pdb;')
+    jmolScriptWait('load APPEND ../data/1u19_cav.pdb;');
+    jmolScriptWait('frame all');
+    //jmolScriptWait('hide hidden or 2.1');
+    //jmolScriptWait('select 1/2.1; color translucent blue; spacefill @{ {atomNo=1 and 2.1}.temperature/2 };select 2/2.1; color translucent blue; spacefill @{ {atomNo=2 and 2.1}.temperature/2 };select 3/2.1; color translucent blue; spacefill @{ {atomNo=3 and 2.1}.temperature/2 };select 4/2.1; color translucent blue; spacefill @{ {atomNo=4 and 2.1}.temperature/2 };select 5/2.1; color translucent blue; spacefill @{ {atomNo=5 and 2.1}.temperature/2 };select 6/2.1; color translucent blue; spacefill @{ {atomNo=6 and 2.1}.temperature/2 };select 7/2.1; color translucent blue; spacefill @{ {atomNo=7 and 2.1}.temperature/2 };select 8/2.1; color translucent blue; spacefill @{ {atomNo=8 and 2.1}.temperature/2 };select 9/2.1; color translucent blue; spacefill @{ {atomNo=9 and 2.1}.temperature/2 };select 10/2.1; color translucent blue; spacefill @{ {atomNo=10 and 2.1}.temperature/2 };select 11/2.1; color translucent blue; spacefill @{ {atomNo=11 and 2.1}.temperature/2 };select 12/2.1; color translucent blue; spacefill @{ {atomNo=12 and 2.1}.temperature/2 };select 13/2.1; color translucent blue; spacefill @{ {atomNo=13 and 2.1}.temperature/2 };select 14/2.1; color translucent blue; spacefill @{ {atomNo=14 and 2.1}.temperature/2 };select 15/2.1; color translucent blue; spacefill @{ {atomNo=15 and 2.1}.temperature/2 };select 16/2.1; color translucent blue; spacefill @{ {atomNo=16 and 2.1}.temperature/2 };select 17/2.1; color translucent blue; spacefill @{ {atomNo=17 and 2.1}.temperature/2 };select 18/2.1; color translucent blue; spacefill @{ {atomNo=18 and 2.1}.temperature/2 };select 19/2.1; color translucent blue; spacefill @{ {atomNo=19 and 2.1}.temperature/2 };select 20/2.1; color translucent blue; spacefill @{ {atomNo=20 and 2.1}.temperature/2 };select 21/2.1; color translucent blue; spacefill @{ {atomNo=21 and 2.1}.temperature/2 };select 22/2.1; color translucent blue; spacefill @{ {atomNo=22 and 2.1}.temperature/2 };select 23/2.1; color translucent blue; spacefill @{ {atomNo=23 and 2.1}.temperature/2 };select 24/2.1; color translucent blue; spacefill @{ {atomNo=24 and 2.1}.temperature/2 };select 25/2.1; color translucent blue; spacefill @{ {atomNo=25 and 2.1}.temperature/2 };select 26/2.1; color translucent blue; spacefill @{ {atomNo=26 and 2.1}.temperature/2 };select 27/2.1; color translucent blue; spacefill @{ {atomNo=27 and 2.1}.temperature/2 };select 28/2.1; color translucent blue; spacefill @{ {atomNo=28 and 2.1}.temperature/2 };select 29/2.1; color translucent blue; spacefill @{ {atomNo=29 and 2.1}.temperature/2 };select 30/2.1; color translucent blue; spacefill @{ {atomNo=30 and 2.1}.temperature/2 };select 31/2.1; color translucent blue; spacefill @{ {atomNo=31 and 2.1}.temperature/2 };select 32/2.1; color translucent blue; spacefill @{ {atomNo=32 and 2.1}.temperature/2 };select 33/2.1; color translucent blue; spacefill @{ {atomNo=33 and 2.1}.temperature/2 };select 34/2.1; color translucent blue; spacefill @{ {atomNo=34 and 2.1}.temperature/2 };select 35/2.1; color translucent blue; spacefill @{ {atomNo=35 and 2.1}.temperature/2 };select 36/2.1; color translucent blue; spacefill @{ {atomNo=36 and 2.1}.temperature/2 };select 37/2.1; color translucent blue; spacefill @{ {atomNo=37 and 2.1}.temperature/2 };select 38/2.1; color translucent blue; spacefill @{ {atomNo=38 and 2.1}.temperature/2 };select 39/2.1; color translucent blue; spacefill @{ {atomNo=39 and 2.1}.temperature/2 };select 40/2.1; color translucent blue; spacefill @{ {atomNo=40 and 2.1}.temperature/2 };select 41/2.1; color translucent blue; spacefill @{ {atomNo=41 and 2.1}.temperature/2 };select 42/2.1; color translucent blue; spacefill @{ {atomNo=42 and 2.1}.temperature/2 };select 43/2.1; color translucent blue; spacefill @{ {atomNo=43 and 2.1}.temperature/2 };select 44/2.1; color translucent blue; spacefill @{ {atomNo=44 and 2.1}.temperature/2 };select 45/2.1; color translucent blue; spacefill @{ {atomNo=45 and 2.1}.temperature/2 };select 46/2.1; color translucent blue; spacefill @{ {atomNo=46 and 2.1}.temperature/2 };select 47/2.1; color translucent blue; spacefill @{ {atomNo=47 and 2.1}.temperature/2 };select 48/2.1; color translucent blue; spacefill @{ {atomNo=48 and 2.1}.temperature/2 };select 49/2.1; color translucent blue; spacefill @{ {atomNo=49 and 2.1}.temperature/2 };select 50/2.1; color translucent blue; spacefill @{ {atomNo=50 and 2.1}.temperature/2 };select 51/2.1; color translucent blue; spacefill @{ {atomNo=51 and 2.1}.temperature/2 };select 52/2.1; color translucent blue; spacefill @{ {atomNo=52 and 2.1}.temperature/2 }; select all;');
+    //console.log( jmolScriptWait('show SELECTED;') );
+    //console.log( jmolEvaluate('script("show structure")') );
+    //console.log( jmolEvaluate('"[" + {selected or ( not 2.1 and ((chain=A and resNo=114) or (chain=A and resNo=114) or (chain=A and resNo=117) or (chain=A and resNo=117) or (chain=A and resNo=117) or (chain=A and resNo=118) or (chain=A and resNo=118) or (chain=A and resNo=118) or (chain=A and resNo=118) or (chain=A and resNo=118) or (chain=A and resNo=121) or (chain=A and resNo=121) or (chain=A and resNo=121) or (chain=A and resNo=122) or (chain=A and resNo=122) or (chain=A and resNo=122) or (chain=A and resNo=122) or (chain=A and resNo=125) or (chain=A and resNo=125) or (chain=A and resNo=167) or (chain=A and resNo=181) or (chain=A and resNo=186) or (chain=A and resNo=186) or (chain=A and resNo=187) or (chain=A and resNo=187) or (chain=A and resNo=188) or (chain=A and resNo=189) or (chain=A and resNo=189) or (chain=A and resNo=191) or (chain=A and resNo=207) or (chain=A and resNo=207) or (chain=A and resNo=207) or (chain=A and resNo=208) or (chain=A and resNo=208) or (chain=A and resNo=208) or (chain=A and resNo=208) or (chain=A and resNo=211) or (chain=A and resNo=212) or (chain=A and resNo=212) or (chain=A and resNo=212) or (chain=A and resNo=212) or (chain=A and resNo=212) or (chain=A and resNo=261) or (chain=A and resNo=261) or (chain=A and resNo=265) or (chain=A and resNo=265) or (chain=A and resNo=265) or (chain=A and resNo=265) or (chain=A and resNo=265) or (chain=A and resNo=265) or (chain=A and resNo=265) or (chain=A and resNo=268) or (chain=A and resNo=268) or (chain=A and resNo=268) or (chain=A and resNo=268) or (chain=A and resNo=268) or (chain=A and resNo=268) or (chain=A and resNo=269) or (chain=A and resNo=269) or (chain=A and resNo=272) or (chain=A and resNo=292) or (chain=A and resNo=292) or (chain=A and resNo=292) or (chain=A and resNo=295) or (chain=A and resNo=295) or (chain=A and resNo=296) or (chain=A and resNo=296) or (chain=A and resNo=296) or (chain=A and resNo=296) or (chain=A and resNo=298)) )}.label("[\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[model]\']").join(",") + "]"') );
+    //setInterval( function(){
+        
+        //jmolScriptWait('save selection tmp; select {not 2.1 and ((chain=A and resNo=37) or (chain=A and resNo=37) or (chain=A and resNo=40) or (chain=A and resNo=76))}; wireframe 0.2; restore SELECTION tmp; selectionHalos ON; select {selected or ( not 2.1 and ((chain=A and resNo=37) or (chain=A and resNo=37) or (chain=A and resNo=40) or (chain=A and resNo=76)) )}');
+        //jval( 'selected or ( not 2.1 and ((chain=A and resNo=37) or (chain=A and resNo=37) or (chain=A and resNo=40) or (chain=A and resNo=76)) or not 2.1 and ((chain=A and resNo=32) or (chain=A and resNo=59) or (chain=A and resNo=61)) )' );
+        //jval( 'selected and not ( not 2.1 and ((chain=A and resNo=32) or (chain=A and resNo=59) or (chain=A and resNo=61)) )' );
+    
+    //}, 1000);
+    
 }, 2000);
 
-function myPickCallback( appletId, info, id ){
-    console.log( appletId+'', info+'', id+'' );
+function jval(selection){
+    var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[model]\'';
+    var e = '"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"';
+    console.log( jmolEvaluate(e) );
 }
-
-jmolSetCallback( 'pickCallback', "myPickCallback" );
 
 
 </script>

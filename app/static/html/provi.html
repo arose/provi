@@ -7,10 +7,13 @@
     
     <title>Provi</title>
     
+    <!--<script type="text/javascript" src="../js/lib/ba-debug.min.js"></script>-->
+    <script type="text/javascript" src="../js/lib/stacktrace.min.js"></script>
+    
     <script type="text/javascript" src="../js/lib/jquery.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.query.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.mousewheel.min.js"></script>
-    <script src="../js/lib/jquery.cookie.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../js/lib/jquery.cookie.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-ui/js/jquery-ui.min.js"></script>
     
@@ -29,20 +32,48 @@
     
     <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.min.js"></script>
     
-    <!--<script type="text/javascript" src="../js/lib/uki.dev.js"></script>
-    <script type="text/javascript" src="../js/prov.uki.js"></script>-->
-    
-    <!--<script type="text/javascript" src="../applet/jmol/11.8.24/Jmol.js"></script>-->
-    
-    <script type="text/javascript" src="../js/utils.js"></script>
     <script type="text/javascript" src="../js/lib/base64.js"></script>
     
-    <script type="text/javascript" src="../js/prov.widget.js"></script>
-    <script type="text/javascript" src="../js/prov.smcra.js"></script>
+    <script type="text/javascript" src="../js/Provi.js"></script>
+    <script type="text/javascript" src="../js/Provi.Debug.js"></script>
+    <script type="text/javascript" src="../js/Provi.Utils.js"></script>
+    <script type="text/javascript" src="../js/Provi.Utils.Protovis.js"></script>
+    <script type="text/javascript" src="../js/Provi.Widget.js"></script>
     
-    <script type="text/javascript" src="../js/prov.jmol.js"></script>
-    <script type="text/javascript" src="../js/prov.data.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Smcra.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Voronoia.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Rotamers.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.MembranePlanes.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.TransmembraneHelices.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Sequence.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.HydrogenBonds.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.InterfaceContacts.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Isosurface.js"></script>
     
+    <script type="text/javascript" src="../js/Provi.Selection.js"></script>
+    
+    <script type="text/javascript" src="../js/Provi.Jmol.js"></script>
+    <script type="text/javascript" src="../js/Provi.Jmol.Controls.js"></script>
+    <script type="text/javascript" src="../js/Provi.Jmol.Analysis.js"></script>
+    <script type="text/javascript" src="../js/Provi.Jmol.Modeling.js"></script>
+    
+    <script type="text/javascript" src="../js/Provi.Data.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Io.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Io.Galaxy.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Io.Get.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.StructureMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.InterfaceContactsMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.MplaneMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.IsosurfaceMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.ScriptMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.TmHelicesMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.HbondsMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.VoronoiaMixin.js"></script>
+    
+    <link rel="stylesheet" media="screen" type="text/css" href="../js/lib/jquery-colorPicker/colorPicker.css" />
+    <script type="text/javascript" src="../js/lib/jquery-colorPicker/jquery.colorPicker.js"></script>
     
     <link type="text/css" href="../js/lib/jquery-ui/css/smoothness/jquery-ui.css" rel="stylesheet" />
     <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
@@ -51,18 +82,23 @@
 </head>
 <body>
     <script type="text/javascript">
-        
-	var _jmol = {
-	    java_arguments: "-Xmx512M"
-	};
+	
+	Provi.Debug.auto();
 	
 	function layout_main() {
-            var n = Jmol.get_applet_list().length;
+            var n = Provi.Jmol.get_applet_list().length;
             var i = Math.round( Math.sqrt(n) );
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 	
+	//Provi.Jmol.init("../applet/jmol/11.8.25/");
+	//Provi.Jmol.init("../applet/jmol/11.8.26/");
+	//Provi.Jmol.init("../applet/jmol/12.0.8/");
+	Provi.Jmol.init("../applet/jmol/12.1.10/");
+	
         $(document).ready(function(){
+	    
+	    Provi.Utils.event.init();
 	    
             var container = $('#container');
             var main = $('#main');
@@ -78,88 +114,86 @@
             $(window).resize(layout_main);
             $('#jmolWindow').resize(layout_main);
             
-            //Jmol.init("../applet/jmol/11.8.25/");
-            Jmol.init("../applet/jmol/12.0.RC25/");
-            Jmol.Applet.prototype.default_params.height = "99%";
-            Jmol.Applet.prototype.default_params.width = "100%";
-            JmolWidget.prototype.default_params.parent_id = "main";
-            Jmol.on_applet_list_change(layout_main, {});
             
-	    new JmolGlobalControlWidget({
+            Provi.Jmol.Applet.prototype.default_params.height = "99%";
+            Provi.Jmol.Applet.prototype.default_params.width = "100%";
+            Provi.Jmol.JmolWidget.prototype.default_params.parent_id = "main";
+            $(Provi.Jmol).bind('applet_list_change', layout_main);
+            
+	    new Provi.Jmol.Controls.JmolGlobalControlWidget({
                 parent_id: 'tab_controls'
             });
 	    
-            new JmolDisplayWidget({
+            new Provi.Jmol.Controls.JmolDisplayWidget({
                 parent_id: 'tab_controls'
             });
 	    
-	    new JmolModelingWidget({
+	    new Provi.Jmol.Modeling.JmolModelingWidget({
+                parent_id: 'tab_controls'
+            });
+            
+            new Provi.Bio.Rotamers.RotamersWidget({
                 parent_id: 'tab_controls'
             });
 	    
-	    new RamachandranPlotWidget({
+	    new Provi.Jmol.Analysis.RamachandranPlotWidget({
                 parent_id: 'tab_widgets'
             });
             
-	    new TreeViewWidget({
+	    new Provi.Bio.Sequence.TreeViewWidget({
 		parent_id: 'tab_tree'
 	    });
 	    
-	    new JmolAnimationWidget({
+	    new Provi.Jmol.Controls.JmolAnimationWidget({
                 parent_id: 'tab_controls'
             });
 	    
-	    new JmolConsoleWidget({
+	    new Provi.Jmol.Controls.JmolConsoleWidget({
                 parent_id: 'tab_controls'
             });
 	    
             
             // load
             
-            var plupload = new PluploadLoadWidget({
+            var plupload = new Provi.Data.Io.PluploadLoadWidget({
                 parent_id: 'tab_load',
-                jmol_applet_parent_id: 'main'
             });
 	    
-	    new UrlLoadWidget({
+	    new Provi.Data.Io.UrlLoadWidget({
                 parent_id: 'tab_load',
-                jmol_applet_parent_id: 'main'
             });
 	    
-	    new PdbLoadWidget({
+	    new Provi.Data.Io.PdbLoadWidget({
                 parent_id: 'tab_load',
-                jmol_applet_parent_id: 'main'
             });
 	    
-            new ExampleLoadWidget({
+            new Provi.Data.Io.ExampleLoadWidget({
                 parent_id: 'tab_load',
-                jmol_applet_parent_id: 'main'
             });
             
-	    new GalaxyLoadWidget({
+	    new Provi.Data.Io.Galaxy.GalaxyLoadWidget({
                 parent_id: 'tab_load',
-                jmol_applet_parent_id: 'main'
             });
 	    
             
             // save
             
-            new SaveDataWidget({
+            new Provi.Data.Io.SaveDataWidget({
                 parent_id: 'tab_save',
             });
             
-            new SaveGalaxyWidget({
+            new Provi.Data.Io.Galaxy.SaveGalaxyWidget({
                 parent_id: 'tab_save'
             });
             
-            new SaveExampleWidget({
+            new Provi.Data.Io.SaveExampleWidget({
                 parent_id: 'tab_save'
             });
             
             
             // data
             
-	    new DatasetManagerWidget({
+	    new Provi.Data.DatasetManagerWidget({
                 parent_id: 'tab_data'
             });
             
@@ -194,37 +228,16 @@
 	    $('#tabs_panel a[title]').tipsy({ gravity: 'n' });
 	    
 	    
-	    //console.log( $.query.get() );
-	    
-	    // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane
-	    // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane&galaxy[2][id]=110&galaxy[2][name]=3dqb.pdb&galaxy[2][load_as]=append
-	    if( $.query.get('galaxy') ){
-		var jw = new JmolWidget({ parent: 'main' });
-		jw.applet.script( 'cartoon ONLY; wireframe 0.015;' );
-		$.each( $.query.get('galaxy'), function(i, data){
-		    var load_as = (data.load_as || 'new');
-		    //console.log( i, data, load_as );
-		    Data.import_galaxy( data.id, data.name, data.filename, data.type, { applet: jw.applet, load_as: load_as } );
-		});
-	    // 	
-	    }else if( $.query.get('example') ){
-		$.each( $.query.get('example'), function(i, data){
-		    var jw = new JmolWidget({ parent: 'main' });
-		    Data.import_example( data.dir, data.filename, data.type, { applet: jw.applet, load_as: 'new' } );
-		});
-	    // http://127.0.0.1:7070/static/html/provi.html?pdb=3cap,2eul
-	    }else if( $.query.get('pdb') ){
-		$.each( $.query.get('pdb').split(','), function(i, id){
-		    //console.log( id );
-		    var jw = new JmolWidget({ parent: 'main' });
-		    Data.import_pdb( id, { applet: jw.applet, load_as: 'new' } );
-		});
-	    }else{
-		var jw = new JmolWidget({ parent: 'main' });
-		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' }, false, false );
+	    // when in debug mode, load some data for development purposes
+	    if( Provi.Debug.get_status() && !Provi.Data.Io.Get.init({}) ){
+		var applet = Provi.Jmol.get_default_applet( true );
+		//setTimeout( function(){ Data.import_example( 'voronoia', '2xc2.vol', 'vol', { applet: jw.applet, load_as: 'new' } ); }, 1000 );
+		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
-		//Data.import_example( 'web_data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
-                //Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
+		//Provi.Data.Io.import_example( 'web_data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
+		Provi.Data.Io.import_example( 'web_data', '1u19.pdb', 'pdb', { applet: applet, load_as: 'new' } );
+		//Provi.Data.Io.import_example( 'voronoia', '2xc2.vol', 'vol', { applet: jw.applet, load_as: 'new' } );
+		//Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
 		//Data.import_example( 'web_data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
 		//Data.import_example( 'web_data', '3dqb.anal', 'anal', { applet: jw.applet } );
@@ -234,6 +247,30 @@
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
 	    }
+	    
+	    
+	    // add some showcase examples
+	    $('#tab_about').append(
+		$('<li class="load_example"><a>Voronoia results for PDB 2xc2</a></li>').click( function(){
+		    Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.vol', 'vol', { applet: Provi.Jmol.get_default_applet( true ), load_as: 'new' } );
+		})
+	    );
+	    $('#tab_about').append(
+		$('<li class="load_example"><a>MPlot results for PDB 3dqb</a></li>').click( function(){
+		    var applet = Provi.Jmol.get_default_applet( true );
+		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', { applet: applet, load_as: 'new' } );
+		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', { applet: applet } );
+		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', { applet: applet } );
+		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', { applet: applet } );
+		})
+	    );
+	    $('#tab_about').append(
+		$('<li class="load_example"><a>A crystallographic map</a></li>').click( function(){
+		    var applet = Provi.Jmol.get_default_applet( true );
+		    Provi.Data.Io.import_example( 'showcase', 'crystal_map/Test.pdb', 'pdb', { applet: applet, load_as: 'new' } );
+		    Provi.Data.Io.import_example( 'showcase', 'crystal_map/2fo-fc_map_sigma2.0.jvxl', 'jvxl', { applet: applet } );
+		})
+	    );
         });
         
     </script>
@@ -257,7 +294,11 @@
 			<li><a title="A collection of control elements" href="#tab_widgets">Widgets</a></li>
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
-			<div id="tab_about"></div>
+			<div id="tab_about">
+			    <h4><i>Provi</i> integrates the display of protein structures and related data into a convenient graphical user interface (GUI).</h4>
+			    <p>Click on the following examples to see for yourself. The <i>Widgets</i> tab provides GUI controls tailored to the displayed data. More general controls are found in the <i>Controls</i> and the <i>Tree</i> tab.</p>
+			    <ol></ol>
+			</div>
                         <div id="tab_controls"></div>
                         <div id="tab_tree"></div>
                         <div id="tab_load"></div>

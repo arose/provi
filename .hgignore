@@ -2,6 +2,8 @@ syntax: glob
 
 *.DS_Store
 *.kpf
+*.komodoproject
+.komodotools
 *.sync.db
 *.sync.db-journal
 Icon*
@@ -12,3 +14,6 @@ doc/sphinx/_build
 *.pyc
 
 provi_wsgi.ini
+
+
+app/static/applet/jmol/*

@@ -3,6 +3,7 @@ import simplejson as json
 import os
 import os.path
 from tempfile import TemporaryFile, NamedTemporaryFile
+from cStringIO import StringIO
 import itertools
 
 from MembraneProtein.AndreanTools import contact
@@ -13,7 +14,13 @@ from MembraneProtein import HBexplore
 from Bio.PDB.PDBParser import PDBParser
 from provi.framework import expose
 
+from voronoia import VolParser
 
+def named_tmp_file( data ):
+    tmp_file = NamedTemporaryFile()
+    tmp_file.write( data )
+    tmp_file.flush()
+    return tmp_file
 
 def get_headers( data, sep, count=60, is_multi_byte=False ):
     """
@@ -74,14 +81,21 @@ class Text( Data ):
     file_ext = 'txt'
     pass
 
+class Sdf( Data ):
+    """Sdf datatype"""
+    file_ext = 'sdf'
+    pass
+
+class Mol( Data ):
+    """MOL datatype"""
+    file_ext = 'mol'
+    pass
 
 class Pdb( Text ):
     """PDB"""
     file_ext = 'pdb'
     def get_structure( self, dataset ):
-        tmp_file = NamedTemporaryFile()
-        tmp_file.write( dataset.data )
-        tmp_file.flush()
+        tmp_file = named_tmp_file( dataset.data )
         parser = PDBParser()
         struc = parser.get_structure( 'structure', tmp_file.name )
         return struc
@@ -122,18 +136,13 @@ class Pdb( Text ):
 class ScoBase( Text ):
     file_ext = None
     data_class = None
-    def get_tmp_file( self, dataset ):
-        tmp_file = NamedTemporaryFile()
-        tmp_file.write( dataset.data )
-        tmp_file.flush()
-        return tmp_file
     @expose
     def get_pdb( self, dataset, **kwargs ):
-        tmp_file = self.get_tmp_file( dataset )
+        tmp_file = named_tmp_file( dataset.data )
         return self.data_class(tmp_file.name).getPdb()
     @expose
     def get_helix_interface_names( self, dataset, **kwargs ):
-        tmp_file = self.get_tmp_file( dataset )
+        tmp_file = named_tmp_file( dataset.data )
         data = self.data_class(tmp_file.name)
         return json.dumps( data.getInterfaceNames('helix') )
     @expose
@@ -143,7 +152,7 @@ class ScoBase( Text ):
             interface_ids = [int(x) for x in interface_ids.split(',')]
         else:
             interface_ids = []
-        tmp_file = self.get_tmp_file( dataset )
+        tmp_file = named_tmp_file( dataset.data )
         data = self.data_class(tmp_file.name)
         if interface_names:
             interface_names = [ x.strip() for x in interface_names.split(',') if len(x.strip()) < 10 ]
@@ -153,7 +162,7 @@ class ScoBase( Text ):
         return json.dumps( atoms )
     @expose
     def get_structure_atoms( self, dataset, structure_name, **kwargs ):
-        tmp_file = self.get_tmp_file( dataset )
+        tmp_file = named_tmp_file( dataset.data )
         data = self.data_class(tmp_file.name)
         return json.dumps( data.getStructureAtoms( structure_name ) )
 
@@ -169,9 +178,7 @@ class Mplane( Text ):
     file_ext = 'mplane'
     @expose
     def get_planes( self, dataset, **kwargs ):
-        tmp_file = NamedTemporaryFile()
-        tmp_file.write( dataset.data )
-        tmp_file.flush()
+        tmp_file = named_tmp_file( dataset.data )
         mp = membran_plane.Mplanes(tmp_file.name)
         def f(p):
             return map( list, (p.a, p.b, p.c) )
@@ -205,9 +212,7 @@ class Tmhelix( Text ):
     file_ext = 'tmhelix'
     @expose
     def get_tm_helices( self, dataset, **kwargs ):
-        tmp_file = NamedTemporaryFile()
-        tmp_file.write( dataset.data )
-        tmp_file.flush()
+        tmp_file = named_tmp_file( dataset.data )
         from MembraneProtein.AndreanTools.parse_tm import get_tm_helices
         return json.dumps( get_tm_helices( tmp_file.name ) )
         
@@ -215,11 +220,42 @@ class Hbx( Text ):
     file_ext = 'anal'
     @expose
     def get_hbonds( self, dataset, **kwargs ):
-        tmp_file = NamedTemporaryFile()
-        tmp_file.write( dataset.data )
-        tmp_file.flush()
+        tmp_file = named_tmp_file( dataset.data )
         from MembraneProtein.HBexplore import parse_hbx_anal_output, get_hbonds_list
         return json.dumps( get_hbonds_list( parse_hbx_anal_output( tmp_file.name ) ) )
+
+class VoronoiaVolume( Text ):
+    file_ext = 'vol'
+    def parse_vol( self, data ):
+        tmp_file = named_tmp_file( data )
+        vol = VolParser.VolParser( tmp_file.name )
+        options = {
+            'discard_non_cavity_neighbors': 0,
+            'discard_surface': 0,
+            'discard_buried': 0,
+            'discard_cavity_neighbors': 0,
+            'mode': ''
+        }        
+        vol.parse_vol_file( options )
+        return vol
+    @expose
+    def get_cavities( self, dataset, **kwargs ):
+        vol = self.parse_vol( dataset.data )
+        return vol.get_cavities()
+    @expose
+    def get_atoms( self, dataset, **kwargs ):
+        vol = self.parse_vol( dataset.data )
+        return json.dumps( [ atom[0:11] for atom in vol.atoms ] )
+    @expose
+    def get_pdb( self, dataset, **kwargs ):
+        vol = self.parse_vol( dataset.data )
+        tmp_file = NamedTemporaryFile()
+        vol.write_pdb_file( tmp_file.name, { 'bfactor': 'packdens' } )
+        tmp_file.flush()
+        return tmp_file.read()
+
+class Xplor( Text ):
+    file_ext = 'xplor'
 
 def pdb_tree_view(struc, **kwargs):
     
@@ -329,10 +365,14 @@ extension_to_datatype_dict = {
     'jvxl': JmolVoxel(),
     'mbn': Mbn(),
     'mmcif': MmCif(),
+    'mol': Mol(),
     'mplane': Mplane(),
     'mrc': MrcDensityMap(),
     'pdb': Pdb(),
     'sco': Sco(),
+    'sdf': Sdf(),
     'tmhelix': Tmhelix(),
     'txt': Text(),
+    'vol': VoronoiaVolume(),
+    'xplor': Xplor(),
 }

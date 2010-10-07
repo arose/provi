@@ -131,3 +131,11 @@ div.control_group {
     display: inline-block !important;
 }
 
+.load_example a {
+    border-bottom: 1px dotted #ba0000;
+    text-decoration: none;
+}
+.load_example a:hover {
+    border-bottom: 1px solid #ba0000;
+    cursor: pointer;
+}
