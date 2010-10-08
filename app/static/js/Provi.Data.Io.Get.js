@@ -58,7 +58,7 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
             });
         }
         
-        return $.query.get('galaxy') && $.query.get('example') && $.query.get('pdb');
+        return $.query.get('galaxy') || $.query.get('example') || $.query.get('pdb');
     }
 });
 
