@@ -30,6 +30,40 @@ to use it with Galaxy/Membrane Proteins add something like the following to gala
     protein_viewer_url = http://localhost:7070/static/html/provi.html
 
 
+Example integration into a (normal) Galaxy instance
+---------------------------------------------------
+
+Create new config variable:
+
+.. code-block:: diff
+
+    Index: /Users/alexrose/Documents/uni/charite/development/repositories/galaxy_dist-dev/lib/galaxy/config.py
+    --- a/lib/galaxy/config.py	Thu Jul 01 19:12:24 2010 +0200
+    +++ b/lib/galaxy/config.py	Tue Jul 06 16:45:06 2010 +0200
+    @@ -90,6 +90,7 @@
+             self.bugs_email = kwargs.get( 'bugs_email', None )
+             self.blog_url = kwargs.get( 'blog_url', None )
+             self.screencasts_url = kwargs.get( 'screencasts_url', None )
+    +        self.protein_viewer_url = kwargs.get( 'protein_viewer_url', 'http://localhost:7070/static/html/provi.html' )
+             self.library_import_dir = kwargs.get( 'library_import_dir', None )
+             if self.library_import_dir is not None and not os.path.exists( self.library_import_dir ):
+                 raise ConfigurationError( "library_import_dir specified in config (%s) does not exist" % self.library_import_dir )
+    
+Add a display application to a pdb datatype::
+
+    class PDB( data.Text ):
+        """PDB"""
+        file_ext = "pdb"
+        def __init__(self, **kwargs):
+            super(PDB, self).__init__(**kwargs)
+            self.add_display_app( 'provi', '', '', 'provi_link' )
+        def provi_link( self, dataset, type, app, base_url ):
+            url =  '%s?galaxy[0][id]=%s&galaxy[0][name]=%s&galaxy[0][type]=pdb' % (app.config.protein_viewer_url, dataset.id, dataset.name)
+            return [('Provi', url)]
+
+For a definition of the URL GET format see the `Provi API documentation: <../../jsdoc/symbols/Provi.Data.Io.Get.html>`_
+
+
 Jmol (client-side)
 ==================
 
