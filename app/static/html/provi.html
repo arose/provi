@@ -270,6 +270,15 @@
 		    Provi.Data.Io.import_example( 'showcase', 'crystal_map/2fo-fc_map_sigma2.0.jvxl', 'jvxl', { applet: applet } );
 		})
 	    );
+	    $('#showcase_examples').append(
+		$('<li class="load_example"><a>Multiple rhodpson/opsin structrues side by side</a></li>').click( function(){
+		    $.each( ['1u19', '3cap', '3dqb', '3eml'], function(i, structure_name){
+			var jw = new Provi.Jmol.JmolWidget({});
+			Provi.Data.Io.import_example( 'showcase', 'rhodopsin/' + structure_name + '_aligned.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
+		    });
+		    Provi.Jmol.get_default_applet().script( 'sync * on; sync * "set syncMouse on";' );
+		})
+	    );
 	    
 	    // accordion for about section
 	    $('#tab_about .accordion').accordion();
