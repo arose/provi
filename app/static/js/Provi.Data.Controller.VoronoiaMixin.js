@@ -21,9 +21,7 @@ Provi.Data.Controller.VoronoiaMixin = $.extend(true, {}, Provi.Data.Controller.S
 	//Provi.Utils.pause(1000);
 	
 	this.retrieve_data( params.applet, function( atoms, cavities, cavities_model_number ){
-	    self.data.atoms = atoms;
-	    self.data.cavities = cavities;
-	    self.data.make_cavity_neighbours_dict();
+	    self.data.init( atoms, cavities );
 	    console.log( cavities_model_number, self.data );
 	    if( params.applet ){
                 new Provi.Bio.Voronoia.VoronoiaWidget({

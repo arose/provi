@@ -371,6 +371,7 @@ Provi.Bio.Smcra.Residue.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @le
     },
     _html_template: (function(){
 	return $.template('<ul>' +
+	    '<lh>Residue data</lh>' +
 	    '<li>Res. Name: ${resname}</li>' +
 	    '<li>Seg. id: ${segid}</li>' +
 	'</ul>');
@@ -435,6 +436,7 @@ Provi.Bio.Smcra.Atom.prototype = /** @lends Provi.Bio.Smcra.Atom.prototype */ {
     },
     _html_template: (function(){
 	return $.template('<ul>' +
+	    '<lh>Atom data</lh>' +
 	    '<li>Name: ${name}</li>' +
 	    '<li>Fullname: ${fullname}</li>' +
 	    '<li>B-factor: ${bfactor}</li>' +
@@ -460,37 +462,79 @@ Provi.Bio.Smcra.Atom.prototype = /** @lends Provi.Bio.Smcra.Atom.prototype */ {
 
 
 
+/**
+ * @class Represents a AbstractPropertyMap
+ */
+Provi.Bio.Smcra.AbstractPropertyMap = function( property_dict ){
+    this.property_dict = property_dict;
+};
+Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.AbstractPropertyMap.prototype */ {
+    get_dict: function(){
+	return this.property_dict;
+    },
+    /**
+     * @returns {int} Number of children
+     */
+    len: function(){
+        return this.property_dict.length;
+    },
+    _translate_id: function(id){
+	return id;
+    },
+    /**
+     * @param {mixed} id The id of a child entity.
+     * @return {mixed} The child entity.
+     */
+    get: function(id){
+        return this.property_dict[ this._translate_id(id) ];
+    },
+    has_id: function(id){
+        return this.property_dict.hasOwnProperty( this._translate_id(id) );
+    },
+    /**
+     * Holds the prepared html template for the corresponding level. Needs to be implemented by each level.
+     * For performance reasons implemented as a self executing function that is executed once.
+     */
+    _html_template: (function(){ return ''; })(),
+    /**
+     * Get the data to be injected in the html template of the corresponding level. Needs to be implemented by each level.
+     */
+    _html_data: function( property ){ return {}; },
+    html: function( id ){
+	return $.tmpl( this._html_template, this._html_data( this.get(id) ) ).html();
+    }
+};
 
-/*
-var test_entity = new Entity('my_entity');
-console.log(test_entity);
-var test_struc = new Structure('my_struc');
+
+/**
+ * @class Represents a AbstractAtomPropertyMap
+ */
+Provi.Bio.Smcra.AbstractAtomPropertyMap = function( property_dict ){
+    Provi.Bio.Smcra.AbstractPropertyMap.call(this, property_dict);
+};
+Provi.Bio.Smcra.AbstractAtomPropertyMap.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.AbstractAtomPropertyMap.prototype */ {
+    _translate_id: function(ent_id){
+	if( ent_id instanceof Provi.Bio.Smcra.Atom ){
+	    return ent_id.get_full_id();
+	}
+	return ent_id;
+    }
+});
 
 
-test_struc.add( new Model('m1') );
-test_struc.add( new Model('m2') );
-test_struc.add( new Model('m3') );
-
-test_struc.detach_child('m2');
-
-var m1 = test_struc.get('m1');
-var c1 = new Chain('C');
-var res = new Residue('r1');
-var at = new Atom('a1');
-res.add( at );
-res.add( new Atom('a2') );
-res.add( new Atom('a3') );
-
-m1.add( c1 );
-m1.add( new Chain('C2') );
-m1.add( new Chain('C3') );
-m1.add( new Chain('C4') );
-c1.add( res );
-
-var a = test_struc.get_chains()
-console.log( a );
-
-console.log( m1.get_atoms() );
-*/
+/**
+ * @class Represents a AbstractResiduePropertyMap
+ */
+Provi.Bio.Smcra.AbstractResiduePropertyMap = function( property_dict ){
+    Provi.Bio.Smcra.AbstractPropertyMap.call(this, property_dict);
+};
+Provi.Bio.Smcra.AbstractResiduePropertyMap.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.AbstractResiduePropertyMap.prototype */ {
+    _translate_id: function(ent_id){
+	if( ent_id instanceof Provi.Bio.Smcra.Residue ){
+	    return ent_id.get_full_id();
+	}
+	return ent_id;
+    }
+});
 
 })();

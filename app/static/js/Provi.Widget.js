@@ -148,6 +148,10 @@ Provi.Widget.PopupWidget = function(params){
     //params.collapsed = false;
     Widget.call( this, params );
     this._build_element_ids([ 'data' ]);
+    
+    this.position_my = params.position_my || 'left top';
+    this.position_at = params.position_at || 'bottom';
+    
     /** The template that gets filled with changeing data */
     this.template = $.template( params.template );
     var content = '<div style="background-color:lightblue; padding:7px;" id="' + this.data_id + '"></div>';
@@ -160,10 +164,10 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
 	$(this.dom).hide();
 	//Widget.prototype.init.call(this);
     },
-    show: function( target, data, template ){
+    show: function( target, data, template, position_my, position_at ){
         this.set_data( data, template );
         $(this.dom).show();
-        this.set_position( target );
+        this.set_position( target, position_my, position_at );
         
     },
     hide: function(){
@@ -175,12 +179,12 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
         $.tmpl( template || this.template, this.data ).appendTo( '#' + this.data_id );
         
     },
-    set_position: function( target ){
+    set_position: function( target, position_my, position_at ){
         //console.log('target',target, $(target), $(target).width(), $(target).height(), $(target).css('top'), $(target).css('left'));
         $(this.dom).position({
             of: target,
-            my: 'left top',
-            at: 'bottom'
+            my: position_my || this.position_my,
+            at: position_at || this.position_at
         });
     }
 });
