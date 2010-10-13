@@ -23,6 +23,8 @@ var Widget = Provi.Widget.Widget;
 
 /**
  * @class Represents voronoia cavities, neighbours and packing data
+ * @constructor
+ * @extends Provi.Bio.Smcra.AbstractAtomPropertyMap
  * @param {array} atoms A list containing lists with atom packing data.
  * @param {array} cavities A list of cavities.
  */
@@ -32,9 +34,34 @@ Provi.Bio.Voronoia.Vol = function(atoms, cavities){
     this.atoms = atoms;
     this.cavities = cavities;
     this.cavity_neighbours_dict = {};
+    this.init();
 };
-Provi.Bio.Voronoia.Vol.prototype = /** @lends Provi.Bio.Voronoia.Voronoia.prototype */ {
-    make_cavity_neighbours_dict: function(){
+Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAtomPropertyMap, /** @lends Provi.Bio.Voronoia.Voronoia.prototype */ {
+    init: function( atoms, cavities ){
+	if(atoms) this.atoms = atoms;
+	if(cavities) this.cavities = cavities;
+	if( this.atoms && this.cavities ){
+	    this._make_cavity_neighbours_dict();
+	}
+	if( this.atoms ){
+	    this._make_atoms_property_dict();
+	}
+    },
+    _make_atoms_property_dict: function(){
+	var self = this;
+	this.property_dict = {};
+	$.each( this.atoms, function(i, atom){
+	    self.property_dict[ [ atom[0], atom[1], atom[3] ] ] = {
+		packing_density: atom[4].toFixed(2),
+		vdw_volume: atom[5],
+		solv_ex_volume: atom[6],
+		total_volume: atom[7].toFixed(2),
+		surface: atom[8],
+		cavity_nb: atom[9]
+	    }
+	})
+    },
+    _make_cavity_neighbours_dict: function(){
         var self = this;
         if( this.atoms && this.cavities ){
             $.each( this.cavities, function(i){
@@ -51,8 +78,22 @@ Provi.Bio.Voronoia.Vol.prototype = /** @lends Provi.Bio.Voronoia.Voronoia.protot
                 }
             });
         }
+    },
+    _html_template: (function(){
+	return $.template('<ul>' +
+	    '<lh>Voronoia data</lh>' +
+	    '<li>Packing density: ${packing_density}</li>' +
+	    '<li>VdW volume: ${vdw_volume}</li>' +
+	    '<li>Solvent ex. vol.: ${solv_ex_volume}</li>' +
+	    '<li>Total vol.: ${total_volume}</li>' +
+	    '<li>Surface: ${surface}</li>' +
+	    '<li>Cavity number: ${cavity_nb}</li>' +
+	'</ul>');
+    })(),
+    _html_data: function( property ){
+	return property;
     }
-};
+});
 
 /**
  * A widget to view voronoia data: cavities, their neighbours and packing data
