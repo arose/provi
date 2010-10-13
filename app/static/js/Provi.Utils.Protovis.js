@@ -195,7 +195,7 @@ Provi.Utils.Protovis.Boundbox.prototype = /** @lends Provi.Utils.Protovis.Boundb
 	} else if (mark.properties.font) {
 	    //console.log('mark.properties.font', mark.top(), mark.textBaseline(), mark.font(), mark.left(), mark.right(), mark.textMargin());
 	    
-	    var f = parseInt( mark.font().split(" ")[0].split('px') ); 
+	    var f = parseInt( mark.font().split("px")[0] ); 
 	    //console.log(f);
 	    t.y -= f/2;
 	    this.bb.style.height = this.bb.style.width = f + 'px';
