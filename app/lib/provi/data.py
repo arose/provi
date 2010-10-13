@@ -244,6 +244,10 @@ class VoronoiaVolume( Text ):
         return vol.get_cavities()
     @expose
     def get_atoms( self, dataset, **kwargs ):
+        """
+        ["A", -3, "GLN", "N", 0.21612130885873901, 13.539999999999999, 49.109999999999999, 62.649999999999999, 1, 0, []]
+        chain_id, residue_number, residue_type, atom_type, packing_density, vdw_volume, solv_ex_volume, total_volume, surface, cavity_nb, cavities
+        """
         vol = self.parse_vol( dataset.data )
         return json.dumps( [ atom[0:11] for atom in vol.atoms ] )
     @expose
