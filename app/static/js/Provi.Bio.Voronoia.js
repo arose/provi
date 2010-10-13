@@ -27,6 +27,8 @@ var Widget = Provi.Widget.Widget;
  * @param {array} cavities A list of cavities.
  */
 Provi.Bio.Voronoia.Vol = function(atoms, cavities){
+    // 0: chain_id, 1: residue_number, 2: residue_type, 3:atom_type, 4: packing_density,
+    // 5: vdw_volume, 6: solv_ex_volume, 7: total_volume, 8: surface, 9: cavity_nb, 10: cavities
     this.atoms = atoms;
     this.cavities = cavities;
     this.cavity_neighbours_dict = {};
