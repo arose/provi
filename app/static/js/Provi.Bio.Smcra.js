@@ -134,6 +134,9 @@ Provi.Bio.Smcra.Entity.prototype = /** @lends Provi.Bio.Smcra.Entity.prototype *
         }
 	return entity;
     },
+    /**
+     * Get the jmol expression for the corresponding level. Needs to be implemented by each level.
+     */
     _jmol_expression: function(){
 	return '';
     },
@@ -150,6 +153,18 @@ Provi.Bio.Smcra.Entity.prototype = /** @lends Provi.Bio.Smcra.Entity.prototype *
 	}else{
 	    return l.filter( Boolean ).join(' and ');
 	}
+    },
+    /**
+     * Holds the prepared html template for the corresponding level. Needs to be implemented by each level.
+     * For performance reasons implemented as a self executing function that is executed once.
+     */
+    _html_template: (function(){ return ''; })(),
+    /**
+     * Get the data to be injected in the html template of the corresponding level. Needs to be implemented by each level.
+     */
+    _html_data: function(){ return {}; },
+    html: function(){
+	return $.tmpl( this._html_template, this._html_data() ).html();
     }
 };
 
@@ -243,6 +258,16 @@ Provi.Bio.Smcra.Structure.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @
     get_atoms: Provi.Bio.Smcra.Collection.prototype.get_atoms,
     _jmol_expression: function(){
 	return 'file=' + this.id;
+    },
+    _html_template: (function(){
+	return $.template('<ul>' +
+	    '<li>Structure: ${id}</li>' +
+	'</ul>');
+    })(),
+    _html_data: function(){
+	return {
+	    id: this.id
+	};
     }
 });
 
@@ -267,6 +292,16 @@ Provi.Bio.Smcra.Model.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @lend
     get_atoms: Provi.Bio.Smcra.Collection.prototype.get_atoms,
     _jmol_expression: function(){
 	return 'model=' + this.id;
+    },
+    _html_template: (function(){
+	return $.template('<ul>' +
+	    '<li>Model: ${id}</li>' +
+	'</ul>');
+    })(),
+    _html_data: function(){
+	return {
+	    id: this.id
+	};
     }
 });
 
@@ -290,6 +325,16 @@ Provi.Bio.Smcra.Chain.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @lend
     get_atoms: Provi.Bio.Smcra.Collection.prototype.get_atoms,
     _jmol_expression: function(){
 	return 'chain="' + this.id + '"';
+    },
+    _html_template: (function(){
+	return $.template('<ul>' +
+	    '<li>Chain: ${id}</li>' +
+	'</ul>');
+    })(),
+    _html_data: function(){
+	return {
+	    id: this.id
+	};
     }
 });
 
@@ -312,6 +357,9 @@ Provi.Bio.Smcra.Residue.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @le
      * @returns {Provi.Bio.Smcra.Atom[]} An array of atoms.
      */
     get_atoms: Provi.Bio.Smcra.Entity.prototype.get_list,
+    /**
+     * @returns {float} The mean of the B-factors of the residues' atoms.
+     */
     get_bfactor: function(){
 	if( typeof this._bfactor_mean == 'undefined' ){
 	    this._bfactor_mean = pv.mean( this.get_atoms(), function(a){ return a.bfactor } );
@@ -320,6 +368,18 @@ Provi.Bio.Smcra.Residue.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @le
     },
     _jmol_expression: function(){
 	return 'resno=' + this.id;
+    },
+    _html_template: (function(){
+	return $.template('<ul>' +
+	    '<li>Res. Name: ${resname}</li>' +
+	    '<li>Seg. id: ${segid}</li>' +
+	'</ul>');
+    })(),
+    _html_data: function(){
+	return {
+	    resname: this.resname,
+	    segid: this.segid
+	};
     }
 });
 
@@ -329,6 +389,7 @@ Provi.Bio.Smcra.Residue.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @le
  * @borrows Provi.Bio.Smcra.Entity#get_parent as this.get_parent
  * @borrows Provi.Bio.Smcra.Entity#get_id as this.get_id
  * @borrows Provi.Bio.Smcra.Entity#jmol_expression as this.jmol_expression
+ * @borrows Provi.Bio.Smcra.Entity#html as this.html
  */
 Provi.Bio.Smcra.Atom = function(name, coord, bfactor, occupancy, altloc, fullname, serial_number, element){
     this.name = name;
@@ -362,13 +423,39 @@ Provi.Bio.Smcra.Atom.prototype = /** @lends Provi.Bio.Smcra.Atom.prototype */ {
         }
         return this.full_id;
     },
+    /**
+     * @returns {float} The B-factor of the atom.
+     */
     get_bfactor: function(){
 	return this.bfactor;
     },
     jmol_expression: Provi.Bio.Smcra.Entity.prototype.jmol_expression,
     _jmol_expression: function(){
 	return 'atomno=' + this.serial_number;
-    }
+    },
+    _html_template: (function(){
+	return $.template('<ul>' +
+	    '<li>Name: ${name}</li>' +
+	    '<li>Fullname: ${fullname}</li>' +
+	    '<li>B-factor: ${bfactor}</li>' +
+	    '<li>Occupancy: ${occupancy}</li>' +
+	    '<li>Altloc: ${altloc}</li>' +
+	    '<li>Serial number: ${serial_number}</li>' +
+	    '<li>Element: ${element}</li>' +
+	'</ul>');
+    })(),
+    _html_data: function(){
+	return {
+	    name: this.name,
+	    fullname: this.fullname,
+	    bfactor: this.bfactor,
+	    occupancy: this.occupancy,
+	    altloc: this.altloc,
+	    serial_number: this.serial_number,
+	    element: this.element
+	};
+    },
+    html: Provi.Bio.Smcra.Entity.prototype.html
 };
 
 

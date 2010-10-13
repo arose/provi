@@ -11,6 +11,7 @@
     <script type="text/javascript" src="../js/lib/stacktrace.min.js"></script>
     
     <script type="text/javascript" src="../js/lib/jquery.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.tmpl.min.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.query.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.mousewheel.min.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.cookie.js"></script>
@@ -27,8 +28,8 @@
     
     <script type="text/javascript" src="../js/lib/sylvester.js"></script>
     
-    <script language="javascript" type="text/javascript" src="../js/lib/protovis-r.js"></script>
-    <script language="javascript" type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>
+    <script type="text/javascript" src="../js/lib/protovis-r.js"></script>
+    <script type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>
     
     <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.min.js"></script>
     
@@ -235,7 +236,7 @@
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Provi.Data.Io.import_example( 'web_data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
-		Provi.Data.Io.import_example( 'showcase/mplot', '3dqb.pdb', 'pdb', { applet: applet, load_as: 'new' } );
+		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.pdb', 'pdb', { applet: applet, load_as: 'new' } );
 		//Provi.Data.Io.import_example( 'voronoia', '2xc2.vol', 'vol', { applet: jw.applet, load_as: 'new' } );
 		//Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
