@@ -69,9 +69,13 @@ Provi.Widget.WidgetManager._widget_dict.size = Utils.object_size_fn;
 Provi.Widget.Widget = function(params){
     var tag_name = params.tag_name || 'div';
     var content = typeof(params.content) != 'undefined' ? params.content : '';
+    /** The text of the widget's heading */
     this.heading = params.heading;
+    /** Weather the widget is collapsed or not */
     this.collapsed = params.collapsed;
+    /** Dom id of the widget itself */
     this.id = Provi.Widget.WidgetManager.get_widget_id(params.id);
+    /** Id of the parent dom object */
     this.parent_id = params.parent_id;
     Provi.Widget.WidgetManager.add_widget(this.id, this);
     
@@ -83,6 +87,7 @@ Provi.Widget.Widget = function(params){
     e.innerHTML = content;
     e.id = this.id;
     $('#' + params.parent_id).append( e );
+    /** The dom object */
     this.dom = e;
     
     if(params.applet && !params.persist_on_applet_delete){
@@ -111,6 +116,13 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
             if( this.collapsed ) header.triggerHandler('click');
         }
     },
+    /**
+    * Helper function to create unique ids for dom elements that belong to the widget.
+    * The ids are build for each name in names from the following template: this.id + '_' + name.
+    * 
+    * @param {array} names An array containing the names to create ids for.
+    * @returns {void}
+    */
     _build_element_ids: function( names ){
 	var self = this;
 	$.each( names, function(i, name){
@@ -118,6 +130,60 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	});
     }
 };
+
+
+/** @exports Widget as Provi.Widget.Widget */
+var Widget = Provi.Widget.Widget;
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Widget.PopupWidget = function(params){
+    //params.persist_on_applet_delete = false;
+    //params.heading = '';
+    //params.collapsed = false;
+    Widget.call( this, params );
+    this._build_element_ids([ 'data' ]);
+    /** The template that gets filled with changeing data */
+    this.template = $.template( params.template );
+    var content = '<div style="background-color:lightblue; padding:7px;" id="' + this.data_id + '"></div>';
+    $(this.dom).append( content ).css('position', 'absolute');
+    this._init();
+};
+Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.PopupWidget.prototype */ {
+    _init: function(){
+        var self = this;
+	$(this.dom).hide();
+	//Widget.prototype.init.call(this);
+    },
+    show: function( target, data, template ){
+        this.set_data( data, template );
+        $(this.dom).show();
+        this.set_position( target );
+        
+    },
+    hide: function(){
+        $( '#' + this.data_id ).empty();
+        $(this.dom).hide();
+    },
+    set_data: function( data, template ){
+        this.data = data;
+        $.tmpl( template || this.template, this.data ).appendTo( '#' + this.data_id );
+        
+    },
+    set_position: function( target ){
+        //console.log('target',target, $(target), $(target).width(), $(target).height(), $(target).css('top'), $(target).css('left'));
+        $(this.dom).position({
+            of: target,
+            my: 'left top',
+            at: 'bottom'
+        });
+    }
+});
 
 
 /**

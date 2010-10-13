@@ -292,6 +292,15 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
         
         layout.link.add(pv.Line);
         
+	// popup widget
+	var popup = new Provi.Widget.PopupWidget({
+	    parent_id: this.parent_id,
+	    template: '<div>{{html content}}</div>'
+	});
+	
+	// boundbox
+	var boundbox = new Provi.Utils.Protovis.Boundbox({});
+	
         var node = layout.node.add(pv.Panel)
             .top(function(n){ return n.y - 6 })
             .height(12)
@@ -299,19 +308,31 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
             .strokeStyle(null)
             .fillStyle(null)
             .events("all")
-            .event("mousedown", toggle_node);
+	    .event("mousedown", toggle_node);
         
         node.anchor("left").add(pv.Dot)
             .strokeStyle("#1f77b4")
             .fillStyle(function(n){ return n.toggled ? "#1f77b4" : n.firstChild ? "#aec7e8" : "#ff7f0e" })
             .title(function t(d){ return d.parentNode ? (t(d.parentNode) + "." + d.nodeName) : d.nodeName })
           .anchor("right").add(pv.Label)
-            .text(function(n){ return n.nodeName });
+            .text(function(n){ return n.nodeName })
+	    .events("all")
+	    .event('mouseover', function(d){
+		if( d.smcra_entity ){
+		    boundbox.attach( this );
+		    $(pv.event.target).one('mouseleave', function(){ popup.hide() });
+		    popup.show( boundbox.bb, { content: d.smcra_entity.html() } );
+		}
+	    })
+	    .event('mouseleave', function(){
+		popup.hide();
+	    });
 	  
 	var center = node.anchor("center").add(pv.Panel)
 	    .top(0)
             .width(15);
 	
+	// bfactor
 	center.anchor("right").add(pv.Dot)
             .strokeStyle("")
             .fillStyle(function(n){
@@ -321,8 +342,23 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 		}
 		return '';
 	    })
-            .shape('square');
+            .shape('square')
+	    .event('mouseover', function(d){
+		
+		if( d.smcra_entity ){
+		    var e = d.smcra_entity;
+		    if(e.level == 'A' || e.level == 'R'){
+			boundbox.attach( this );
+			$(pv.event.target).one('mouseleave', function(){ popup.hide() });
+			popup.show( boundbox.bb, {bfactor: e.get_bfactor()}, '${bfactor}' );
+		    }
+		}
+	    })
+	    .event('mouseleave', function(){
+		popup.hide();
+	    });
 	
+	// select toggler, responsible for selecting and deselecting nodes
 	var select_toggler = this.select_toggler = new Provi.Utils.Protovis.NodeToggler({
 	    toggle_name: 'selected',
 	    layout_obj: layout,
@@ -340,12 +376,14 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	    }
 	});
 	
+	// select checkbox
 	center.anchor('left').add(pv.Dot)
             .strokeStyle("#1f77b4")
 	    .shape('square')
 	    .fillStyle(function(n){ return select_toggler.value_switch(n, "black", "white", "lightgrey") })
             .event("mousedown", function(n){ return select_toggler.toggle(n) });
-	    
+	
+	//// Image for a node instead of an icon
 	//center.anchor('left').add(pv.Image)
 	//    .url("../img/icons/eye.png")
 	//    .top(-2)
@@ -353,12 +391,14 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	//    .height(15)
 	//    .event("mousedown", function(n){ return select_toggler.toggle(n) });
         
+	// node text
         node.anchor("right").add(pv.Label)
             .textStyle(function(n){ return n.firstChild || n.toggled ? "#aaa" : "#000" })
             .text(function(n){ return n.nodeValue || ''; });
         
         vis.render();
         
+	// register tree with the applet's selection manager
 	$(applet.selection_manager).bind('select', function( e, selection, applet, sele_string, smcra ){
 	    self.selection = selection;
 	    console.log( smcra );
