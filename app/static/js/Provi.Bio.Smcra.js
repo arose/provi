@@ -163,6 +163,9 @@ Provi.Bio.Smcra.Entity.prototype = /** @lends Provi.Bio.Smcra.Entity.prototype *
      * Get the data to be injected in the html template of the corresponding level. Needs to be implemented by each level.
      */
     _html_data: function(){ return {}; },
+    /**
+     * @returns {string} Html representation of the entity.
+     */
     html: function(){
 	return $.tmpl( this._html_template, this._html_data() ).html();
     }
