@@ -437,9 +437,11 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	}
 	
 	var s = ""
-	for(var i=ret.length;--i>=0;){
-	    for(var j=0;j< ret[i].length;j++){
-		s+=ret[i][j]+"\n"
+	if( ret ){
+	    for(var i=ret.length;--i>=0;){
+		for(var j=0;j< ret[i].length;j++){
+		    s+=ret[i][j]+"\n"
+		}
 	    }
 	}
 	return s;
