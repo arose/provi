@@ -138,7 +138,12 @@ Provi.Utils.Protovis.node_visit_after = function(node, f) {
 };
 
 
-
+/**
+ * Class representing a bounding box for protovis svg objects.
+ * The bounding box can be used to attach events from the html world to svg objects with jQuery.
+ * Inspired by pv.Behavior.tipsy.js from the protovis project.
+ * @constructor
+ */
 Provi.Utils.Protovis.Boundbox = function( params ){
     this.canvas = params.canvas;
     this.bb;

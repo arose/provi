@@ -36,7 +36,7 @@ Provi.Bio.Voronoia.Vol = function(atoms, cavities){
     this.cavity_neighbours_dict = {};
     this.init();
 };
-Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAtomPropertyMap, /** @lends Provi.Bio.Voronoia.Voronoia.prototype */ {
+Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAtomPropertyMap, /** @lends Provi.Bio.Voronoia.Vol.prototype */ {
     init: function( atoms, cavities ){
 	if(atoms) this.atoms = atoms;
 	if(cavities) this.cavities = cavities;
