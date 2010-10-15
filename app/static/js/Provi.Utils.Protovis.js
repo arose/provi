@@ -141,7 +141,7 @@ Provi.Utils.Protovis.node_visit_after = function(node, f) {
 /**
  * Class representing a bounding box for protovis svg objects.
  * The bounding box can be used to attach events from the html world to svg objects with jQuery.
- * Inspired by pv.Behavior.tipsy.js from the protovis project.
+ * Heaviliy inspired by pv.Behavior.tipsy.js from the protovis project.
  * @constructor
  */
 Provi.Utils.Protovis.Boundbox = function( params ){
@@ -170,7 +170,6 @@ Provi.Utils.Protovis.Boundbox.prototype = /** @lends Provi.Utils.Protovis.Boundb
 	    this.bb.style.position = "absolute";
 	    this.bb.style.pointerEvents = "none"; // ignore mouse events
 	    
-	    //console.log( this.bb.style );
 	    //this.bb.style["background-color"] = "red";
 	    //this.bb.style["z-index"] = 1000;
 	}
@@ -205,11 +204,20 @@ Provi.Utils.Protovis.Boundbox.prototype = /** @lends Provi.Utils.Protovis.Boundb
 	    t.y -= f/2;
 	    this.bb.style.height = this.bb.style.width = f + 'px';
 	}
-	console.log('height,width', this.bb.style.height, this.bb.style.width);
 	this.bb.style.left = Math.floor(mark.left() * t.k + t.x) + "px";
 	this.bb.style.top = Math.floor(mark.top() * t.k + t.y) + "px";
+	//console.log('height, width, left, top', this.bb.style.height, this.bb.style.width, this.bb.style.left, this.bb.style.top);
     }
 }
+
+
+/**
+ * @class
+ */
+Provi.Utils.Protovis.PropertyMapVisualisationMixin = {
+    
+    
+};
 
 
 })();

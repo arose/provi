@@ -53,7 +53,29 @@ test('instanceof', function() {
 });
 
 
-test('Provi.Bio.Smcra.AbstractPropertyMap', function(){
+test('AbstractPropertyMap construction', function(){
+    var struc = make_struc();
+    
+    var property_dict = {};
+    $.each( struc.get_atoms(), function(i, atom){
+        property_dict[ atom.get_full_id() ] = atom.bfactor
+    });
+    
+    
+    $.each( property_dict, function(i, e){
+        console.log( i, e );
+    })
+    
+    var property_map = new Smcra.AbstractPropertyMap( property_dict );
+    
+    same( property_map.get( [ "my_struc", "m1", "C", "r1", "a1" ] ), 11, 'get element from property map' );
+    
+    console.log( 'list', property_map.get_list() );
+    same( property_map.get_list(), [11, 22, 33], 'get list of all elements from property map' );
+});
+
+
+test('AbstractAtomPropertyMap.has_id()', function(){
     var struc = make_struc();
     
     var property_dict = {};
@@ -68,11 +90,19 @@ test('Provi.Bio.Smcra.AbstractPropertyMap', function(){
         console.log( i, e );
     })
     
-    var property_map = new Smcra.AbstractPropertyMap( property_dict );
+    var property_map = new Smcra.AbstractAtomPropertyMap( property_dict );
     
-    console.log( property_map );
+    console.log( 'property_map', property_map );
     
-    same( property_map.get( [ "my_struc", "m1", "C", "r1", "a1" ] ), 11, 'access property map' );
+    ok( property_map.has_id( [ "my_struc", "m1", "C", "r1", "a1" ] ), 'find by array id' );
+    ok( property_map.has_id( [ "my_collection", "my_struc", "m1", "C", "r1", "a1" ], 1 ), 'find by array id, one element to big, slicing neccesary' );
+    ok( !property_map.has_id( [ "my_collection", "my_struc", "m1", "C", "r1", "a1" ] ), 'not find by array id, one element to big, slicing ommited' );
+    
+    ok( !property_map.has_id( false ), 'not find by missing "false" id' );
+    ok( !property_map.has_id( {} ), 'not find by empty object "{}" id' );
+    
+    ok( property_map.has_id( struc.get_atoms()[0] ), 'find by Atom entity id' );
+    ok( !property_map.has_id( struc.get_residues()[0] ), 'not find by Residue entity id' );
 });
 
 

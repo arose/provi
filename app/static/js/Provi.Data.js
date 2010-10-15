@@ -92,7 +92,9 @@ Provi.Data.Dataset = function(params){
     this._set_type( params.type );
     this.data = params.data;
     this.name = params.name;
-    this.applet = params.applet;
+    //this.applet = params.applet;
+    /** list of applets this dataset has been loaded into */
+    this.applet_list = []
     this.server_id = params.server_id;
     this.plupload_id = params.plupload_id;
     this.id = Provi.Data.DatasetManager.add( this );
@@ -148,6 +150,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     },
     init: function( params ){
         if( params.applet ){
+	    this.applet_list.push( params.applet );
             var name = this.name + ' (' + this.id + ')';
             if( $('#' + params.applet.widget.data_id).text() ){
                 name = ', ' + name;
