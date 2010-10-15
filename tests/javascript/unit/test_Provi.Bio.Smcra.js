@@ -1,3 +1,8 @@
+/**
+ * @fileOverview Tests for the {@link Provi.Bio.Smcra} module.
+ * @author <a href="mailto:alexander.rose@charite.de">Alexander Rose</a>
+ */
+
 
 module( 'Provi.Bio.Smcra' );
 
