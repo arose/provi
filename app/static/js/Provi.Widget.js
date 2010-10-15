@@ -165,6 +165,7 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
 	//Widget.prototype.init.call(this);
     },
     show: function( target, data, template, position_my, position_at ){
+        $( '#' + this.data_id ).empty();
         this.set_data( data, template );
         $(this.dom).show();
         this.set_position( target, position_my, position_at );

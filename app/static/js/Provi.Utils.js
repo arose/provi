@@ -259,6 +259,12 @@ Provi.Utils.pause = function(ms){
     while( current_date - start_date < ms );
 }
 
+/**
+ * @param {array} array The array where the item is searched.
+ * @param {mixed} item The item to look for.
+ * @param {function} testFn A function (array_member, item) to compare the given item and the array members.
+ * @returns {boolean} Weather or not the item is contained in the array
+ */
 Provi.Utils.in_array = function(array, item, testFn) {
     if(!testFn){
         /** @ignore */

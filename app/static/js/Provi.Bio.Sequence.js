@@ -173,14 +173,17 @@ Provi.Bio.Sequence.SequenceViewWidget.prototype = Utils.extend(Widget, /** @lend
 Provi.Bio.Sequence.TreeViewWidget = function(params){
     this.dataset = params.dataset;
     this.applet = params.applet;
+    /** A list of property maps used for displaying purposes in this widget */
+    this.display_property_maps = [];
     params.persist_on_applet_delete = true;
     Widget.call( this, params );
-    this.canvas_id = this.id + '_canvas';
-    this.applet_selector_widget_id = this.id + '_applet';
-    this.draw_tree_id = this.id + '_draw_tree';
+    this._build_element_ids([ 'canvas', 'applet_selector_widget', 'draw_tree', 'dataset_property_maps' ]);
 
     var content = '<div class="control_group">' +
         (!this.applet ? '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' : '') +
+	'<div class="control_row">' +
+	    '<select class="ui-state-default" id="' + this.dataset_property_maps_id + '"></select>' +
+	'</div>' +
         '<div class="control_row">' +
             '<button id="' + this.draw_tree_id + '">update</button>' +
         '</div>' +
@@ -202,14 +205,36 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
         var self = this;
 	if( this.applet ){
 	    $(this.applet).bind('load_struct', function(){
-		self.tree_view();
+		self.update();
 	    });
 	}
-        this.tree_view();
+	
         $("#" + this.draw_tree_id).button().click(function() {
-            self.tree_view();
+            self.update();
         });
-	$(Provi.Data.DatasetManager).bind('change', function(){ self.tree_view() });
+	$(Provi.Data.DatasetManager).bind('change', function(){
+	    self.update();
+	});
+	$('#' + this.dataset_property_maps_id).bind( 'change', function(){
+	    
+	});
+	this.update();
+    },
+    update: function(){
+	this._tree_view();
+	this._init_property_maps_builder();
+    },
+    _init_property_maps_builder: function(){
+	var elm = $('#' + this.dataset_property_maps_id);
+        var value = $("#" + this.dataset_property_maps_id + " option:selected").val();
+        elm.empty();
+        elm.append(
+            '<option value=""></option>'
+        );
+        $.each(this.get_property_map_datasets(), function(i, dataset){
+            elm.append("<option value='" + dataset.id + "'>" + dataset.name + " (" + dataset.id + ")</option>");
+        });
+        elm.val( value );
     },
     get_applet: function(){
 	if( this.applet ){
@@ -221,7 +246,7 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
     select: function( e, selection, applet, selection_string ){
 	applet.script_wait( 'selectionHalos On; select {' + selection_string + '};' );
     },
-    tree_view: function(){
+    _tree_view: function(){
         var self = this;
 	var applet = this.get_applet();
 	if(!applet) return;
@@ -235,7 +260,8 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	// get a scaling function for each structure seperately
 	$.each( smcra.get_structures(), function(i, s){
 	    var max_bfactor = pv.max( s.get_atoms(), function(d){ return d.bfactor} ) || 1;
-	    color_bfactor[s.id] = pv.Scale.linear(0, max_bfactor/2, max_bfactor).range("green", "yellow", "red");
+	    var min_bfactor = pv.min( s.get_atoms(), function(d){ return d.bfactor} ) || 0;
+	    color_bfactor[s.id] = pv.Scale.linear(min_bfactor, (min_bfactor+max_bfactor)/2, max_bfactor).range("green", "yellow", "red");
 	});
 	var c_bf = function( entity ){
 	    return color_bfactor[entity.structure().id]( entity.get_bfactor() );
@@ -325,18 +351,52 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 		    $(pv.event.target).one('mouseleave', function(){ popup.hide() });
 		    popup.show( boundbox.bb, { content: d.smcra_entity.html() } );
 		}
-	    })
-	    .event('mouseleave', function(){
-		popup.hide();
 	    });
 	  
 	var center = node.anchor("center").add(pv.Panel)
 	    .top(0)
             .width(15);
 	
+	if( this.display_property_maps.length == 0 ){
+	    var bfactor_dict = {};
+	    $.each( smcra.get_atoms(), function(i, atom){
+		bfactor_dict[ atom.get_full_id().slice(2) ] = atom.bfactor;
+	    });
+	    var bfactor_map = new Provi.Bio.Smcra.AbstractAtomPropertyMap( bfactor_dict );
+	    bfactor_map.is_numeric = true;
+	    this.display_property_maps.push( bfactor_map );
+	}
+	
+	
+	$.each( this.get_property_maps(), function(i, property_map){
+	    
+	    var color_property = function(d){ return 'lightgrey'; }
+	    if( property_map.is_numeric ){
+		var max_property = pv.max( property_map.get_list() ) || 1;
+		var min_property = pv.min( property_map.get_list() ) || 0;
+		color_property = pv.Scale.linear(min_property, (min_property+max_property)/2, max_property).range("green", "yellow", "red");
+	    }
+	    
+	    center.anchor("right").add(pv.Dot)
+		.left(6+(i+2)*12)
+		.strokeStyle("")
+		.fillStyle( function(d){
+		    return property_map.has_id(d.smcra_entity, 2) ? color_property( property_map.get( d.smcra_entity, 2 ) ) : '';
+		})
+		.shape('square')
+		.event('mouseover', function(d){
+		    if( property_map.has_id( d.smcra_entity, 2 ) ){
+			boundbox.attach( this );
+			$(pv.event.target).one('mouseleave', function(){ popup.hide() });
+			popup.show( boundbox.bb, { content: property_map.html( d.smcra_entity, 2 ) }, undefined, 'center top' );
+		    }
+		});
+	})
+	
 	// bfactor
 	center.anchor("right").add(pv.Dot)
             .strokeStyle("")
+	    .left(6+12)
             .fillStyle(function(n){
 		if( n.smcra_entity ){
 		    var e = n.smcra_entity;
@@ -352,52 +412,10 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 		    if(e.level == 'A' || e.level == 'R'){
 			boundbox.attach( this );
 			$(pv.event.target).one('mouseleave', function(){ popup.hide() });
-			popup.show( boundbox.bb, { bfactor: e.get_bfactor() }, 'B-factor: ${bfactor}', undefined, 'center top' );
+			popup.show( boundbox.bb, { bfactor: e.get_bfactor() }, 'B-factor: ${bfactor.toFixed(2)}', 'center top' );
 		    }
 		}
-	    })
-	    .event('mouseleave', function(){
-		popup.hide();
 	    });
-	
-	$.each( this.get_property_maps(), function(i, property_map){
-	    console.log( property_map );
-	    
-	    var map_has_data = function(d){
-		if( d.smcra_entity ){
-		    var e = d.smcra_entity;
-		    
-		    if( (property_map instanceof Provi.Bio.Smcra.AbstractAtomPropertyMap && e.level === 'A') ||
-			(property_map instanceof Provi.Bio.Smcra.AbstractResiduePropertyMap && e.level === 'R') ){
-			
-			var id = e.get_full_id().slice(2);
-			console.log('id', id);
-			if( property_map.has_id( id ) ){
-			    return true;
-			}
-		    }
-		}
-		return false;
-	    };
-	    
-	    center.anchor("right").add(pv.Dot)
-		.left(6+(i+2)*12)
-		.strokeStyle("")
-		.fillStyle( function(d){ return map_has_data(d) ? 'lightgrey' : '' } )
-		.shape('diamond')
-		.event('mouseover', function(d){
-		    if( map_has_data(d) ){
-			var id = d.smcra_entity.get_full_id().slice(2);
-			boundbox.attach( this );
-			$(pv.event.target).one('mouseleave', function(){ popup.hide() });
-			popup.show( boundbox.bb, { content: property_map.html( id ) }, undefined, 'center top' );
-		    }
-		})
-		.event('mouseleave', function(){
-		    popup.hide();
-		});
-	})
-	
 	
 	// select toggler, responsible for selecting and deselecting nodes
 	var select_toggler = this.select_toggler = new Provi.Utils.Protovis.NodeToggler({
@@ -465,14 +483,17 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	if(!applet || !applet.loaded) return false;
 	return applet.get_smcra();
     },
-    get_property_maps: function(){
+    get_property_map_datasets: function(){
+	var applet = this.get_applet();
 	return $.map( Provi.Data.DatasetManager.get_list(), function(dataset, i){
-	    console.log( 'dataset', dataset.type, dataset.data, dataset, i );
-            if(dataset.data instanceof Provi.Bio.Smcra.AbstractPropertyMap){
-		return dataset.data;
+            if(dataset.data instanceof Provi.Bio.Smcra.AbstractPropertyMap && Utils.in_array(dataset.applet_list, applet) ){
+		return dataset;
 	    }
 	    return null;
 	});
+    },
+    get_property_maps: function(){
+	return $.map( this.get_property_map_datasets(), function(dataset, i){ return dataset.data } ).concat( this.display_property_maps );
     },
     in_selection: function(res){
 	return Utils.in_array(this.selection, res, function(a,r){

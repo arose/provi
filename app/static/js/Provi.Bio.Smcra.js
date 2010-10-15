@@ -470,10 +470,23 @@ Provi.Bio.Smcra.Atom.prototype = /** @lends Provi.Bio.Smcra.Atom.prototype */ {
  */
 Provi.Bio.Smcra.AbstractPropertyMap = function( property_dict ){
     this.property_dict = property_dict;
+    this.property_list = [];
+    var self = this;
+    $.each( property_dict, function(i, e){ return self.property_list.push(e); } );
 };
 Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.AbstractPropertyMap.prototype */ {
+    /**
+     * To be set be child classes. Used to allow smcra entities as ids to access properties.
+     */
+    _entity_class: false,
+    /**
+     * @returns {object} The property map dictionary.
+     */
     get_dict: function(){
 	return this.property_dict;
+    },
+    get_list: function(){
+	return this.property_list;
     },
     /**
      * @returns {int} Number of children
@@ -481,30 +494,56 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
     len: function(){
         return this.property_dict.length;
     },
-    _translate_id: function(id){
-	return id;
+    /**
+     * @param {array|mixed} id The id of a child entity.
+     * @param {int} [slice] Number id elements from the begining of the id that should be discarded.
+     * @return {array} The translated id.
+     */
+    _translate_id: function(ent_id, slice){
+	if( this._entity_class && ent_id instanceof this._entity_class ){
+	    ent_id = ent_id.get_full_id();
+	}
+	return slice ? ent_id.slice( slice ) : ent_id;
     },
     /**
-     * @param {mixed} id The id of a child entity.
+     * @param {array|mixed} id The id of a child entity.
+     * @param {int} [slice] Number id elements from the begining of the id that should be discarded.
      * @return {mixed} The child entity.
      */
-    get: function(id){
-        return this.property_dict[ this._translate_id(id) ];
+    get: function(id, slice){
+        return id ? this.property_dict[ this._translate_id(id, slice) ] : undefined;
     },
-    has_id: function(id){
-        return this.property_dict.hasOwnProperty( this._translate_id(id) );
+    /**
+     * @param {array|Provi.Bio.Smcra.Entity|Provi.Bio.Smcra.Atom} id The id to look for, also in form of an smcra entity or atom.
+     * @param {int} [slice] Number id elements from the begining of the id that should be discarded.
+     * @returns {boolean} Weather there is data for the given id or not.
+     */
+    has_id: function(ent_id, slice){
+	if(!ent_id) return false;
+	
+	if( (this._entity_class && !(ent_id instanceof this._entity_class)) &&
+	    !(ent_id instanceof Array) ){
+	    return false;
+	}else{
+	    return this.property_dict.hasOwnProperty( this._translate_id(ent_id, slice) );
+	}
     },
     /**
      * Holds the prepared html template for the corresponding level. Needs to be implemented by each level.
      * For performance reasons implemented as a self executing function that is executed once.
      */
-    _html_template: (function(){ return ''; })(),
+    _html_template: (function(){ return '<div>${content}</div>'; })(),
     /**
      * Get the data to be injected in the html template of the corresponding level. Needs to be implemented by each level.
      */
-    _html_data: function( property ){ return {}; },
-    html: function( id ){
-	return $.tmpl( this._html_template, this._html_data( this.get(id) ) ).html();
+    _html_data: function( property ){ return {content: property}; },
+    /**
+     * @param {mixed} id The id of a child entity.
+     * @param {int} [slice] Number id elements from the begining of the id that should be discarded.
+     * @return {mixed} The rendered html.
+     */
+    html: function( id, slice ){
+	return $.tmpl( this._html_template, this._html_data( this.get(id, slice) ) ).html();
     }
 };
 
@@ -516,12 +555,7 @@ Provi.Bio.Smcra.AbstractAtomPropertyMap = function( property_dict ){
     Provi.Bio.Smcra.AbstractPropertyMap.call(this, property_dict);
 };
 Provi.Bio.Smcra.AbstractAtomPropertyMap.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.AbstractAtomPropertyMap.prototype */ {
-    _translate_id: function(ent_id){
-	if( ent_id instanceof Provi.Bio.Smcra.Atom ){
-	    return ent_id.get_full_id();
-	}
-	return ent_id;
-    }
+    _entity_class: Provi.Bio.Smcra.Atom
 });
 
 
@@ -532,12 +566,10 @@ Provi.Bio.Smcra.AbstractResiduePropertyMap = function( property_dict ){
     Provi.Bio.Smcra.AbstractPropertyMap.call(this, property_dict);
 };
 Provi.Bio.Smcra.AbstractResiduePropertyMap.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.AbstractResiduePropertyMap.prototype */ {
-    _translate_id: function(ent_id){
-	if( ent_id instanceof Provi.Bio.Smcra.Residue ){
-	    return ent_id.get_full_id();
-	}
-	return ent_id;
-    }
+    _entity_class: Provi.Bio.Smcra.Residue
 });
+
+
+
 
 })();
