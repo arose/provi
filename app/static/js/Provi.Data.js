@@ -92,9 +92,11 @@ Provi.Data.Dataset = function(params){
     this._set_type( params.type );
     this.data = params.data;
     this.name = params.name;
+    this.data_list = [];
+    this.data_dict = {};
     //this.applet = params.applet;
     /** list of applets this dataset has been loaded into */
-    this.applet_list = []
+    this.applet_list = [];
     this.server_id = params.server_id;
     this.plupload_id = params.plupload_id;
     this.id = Provi.Data.DatasetManager.add( this );
@@ -132,6 +134,19 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     _set_type: function(type){
         this.type = type;
 	Provi.Data.Controller.extend_by_type( this, type );
+    },
+    add_data: function( name, data ){
+	this.data_list.push( data );
+	this.data_dict[ name ] = data;
+    },
+    get: function( name ){
+	return this.data_dict[ name ];
+    },
+    get_list: function(){
+	return [ this.data ].concat( this.data_list );
+    },
+    get_dict: function(){
+	return $.extend( { main: this.data }, this.data_dict );
     },
     /**
      * Sets the type of the dataset.
