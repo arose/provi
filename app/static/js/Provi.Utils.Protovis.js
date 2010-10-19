@@ -211,13 +211,5 @@ Provi.Utils.Protovis.Boundbox.prototype = /** @lends Provi.Utils.Protovis.Boundb
 }
 
 
-/**
- * @class
- */
-Provi.Utils.Protovis.PropertyMapVisualisationMixin = {
-    
-    
-};
-
 
 })();

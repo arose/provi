@@ -177,13 +177,11 @@ Provi.Bio.Sequence.TreeViewWidget = function(params){
     this.display_property_maps = [];
     params.persist_on_applet_delete = true;
     Widget.call( this, params );
-    this._build_element_ids([ 'canvas', 'applet_selector_widget', 'draw_tree', 'dataset_property_maps' ]);
+    this._build_element_ids([ 'canvas', 'applet_selector_widget', 'draw_tree', 'property_map_vis_builder_widget' ]);
 
     var content = '<div class="control_group">' +
         (!this.applet ? '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' : '') +
-	'<div class="control_row">' +
-	    '<select class="ui-state-default" id="' + this.dataset_property_maps_id + '"></select>' +
-	'</div>' +
+	'<div class="control_row" id="' + this.property_map_vis_builder_widget_id + '"></div>' +
         '<div class="control_row">' +
             '<button id="' + this.draw_tree_id + '">update</button>' +
         '</div>' +
@@ -198,6 +196,10 @@ Provi.Bio.Sequence.TreeViewWidget = function(params){
 	    parent_id: this.applet_selector_widget_id
 	});
     }
+    this.property_map_vis_builder = new Provi.Bio.Smcra.PropertyMapVisBuilderWidget({
+	parent_id: this.property_map_vis_builder_widget_id,
+	applet: this.get_applet()
+    });
     this._init();
 }
 Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Sequence.TreeViewWidget.prototype */ {
@@ -215,33 +217,19 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	$(Provi.Data.DatasetManager).bind('change', function(){
 	    self.update();
 	});
-	$('#' + this.dataset_property_maps_id).bind( 'change', function(){
-	    
+	$(this.property_map_vis_builder).bind('built', function( property_map ){
+	    self._property_map_visualisation_count = 0;
+	    self._tree_view();
 	});
 	this.update();
     },
     update: function(){
+	this._property_map_visualisation_count = 0;
 	this._tree_view();
-	this._init_property_maps_builder();
-    },
-    _init_property_maps_builder: function(){
-	var elm = $('#' + this.dataset_property_maps_id);
-        var value = $("#" + this.dataset_property_maps_id + " option:selected").val();
-        elm.empty();
-        elm.append(
-            '<option value=""></option>'
-        );
-        $.each(this.get_property_map_datasets(), function(i, dataset){
-            elm.append("<option value='" + dataset.id + "'>" + dataset.name + " (" + dataset.id + ")</option>");
-        });
-        elm.val( value );
+	this.property_map_vis_builder.update( this.get_data(), this.get_applet() );
     },
     get_applet: function(){
-	if( this.applet ){
-	    return this.applet;
-	}else{
-	    return this.applet_selector.get_value(true);
-	}
+	return this.applet ? this.applet : this.applet_selector.get_value(true);
     },
     select: function( e, selection, applet, selection_string ){
 	applet.script_wait( 'selectionHalos On; select {' + selection_string + '};' );
@@ -251,11 +239,20 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	var applet = this.get_applet();
 	if(!applet) return;
         
-	var smcra = this.get_data();
+	var smcra = this._smcra = this.get_data();
         if( !smcra ) return;
         
         var tree_map = Provi.Bio.Sequence.smcra_to_map( smcra );
         
+	// popup widget
+	this._popup = new Provi.Widget.PopupWidget({
+	    parent_id: this.parent_id,
+	    template: '<div>{{html content}}</div>'
+	});
+	
+	// boundbox
+	this._boundbox = new Provi.Utils.Protovis.Boundbox({});
+	
 	var color_bfactor = {};
 	// get a scaling function for each structure seperately
 	$.each( smcra.get_structures(), function(i, s){
@@ -267,7 +264,7 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	    return color_bfactor[entity.structure().id]( entity.get_bfactor() );
 	}
 	
-        var root = pv.dom( tree_map )
+        var root = this._tree_root_node = pv.dom( tree_map )
             .root( 'Tree' );
         console.log('root', root);
 	
@@ -319,15 +316,6 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
         
         layout.link.add(pv.Line);
         
-	// popup widget
-	var popup = new Provi.Widget.PopupWidget({
-	    parent_id: this.parent_id,
-	    template: '<div>{{html content}}</div>'
-	});
-	
-	// boundbox
-	var boundbox = new Provi.Utils.Protovis.Boundbox({});
-	
         var node = layout.node.add(pv.Panel)
             .top(function(n){ return n.y - 6 })
             .height(12)
@@ -347,75 +335,20 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	    .events("all")
 	    .event('mouseover', function(d){
 		if( d.smcra_entity ){
-		    boundbox.attach( this );
-		    $(pv.event.target).one('mouseleave', function(){ popup.hide() });
-		    popup.show( boundbox.bb, { content: d.smcra_entity.html() } );
+		    self._boundbox.attach( this );
+		    $(pv.event.target).one('mouseleave', function(){ self._popup.hide() });
+		    self._popup.show( self._boundbox.bb, { content: d.smcra_entity.html() } );
 		}
 	    });
 	  
-	var center = node.anchor("center").add(pv.Panel)
+	var center = this._tree_center_panel = node.anchor("center").add(pv.Panel)
 	    .top(0)
             .width(15);
 	
-	if( this.display_property_maps.length == 0 ){
-	    var bfactor_dict = {};
-	    $.each( smcra.get_atoms(), function(i, atom){
-		bfactor_dict[ atom.get_full_id().slice(2) ] = atom.bfactor;
-	    });
-	    var bfactor_map = new Provi.Bio.Smcra.AbstractAtomPropertyMap( bfactor_dict );
-	    bfactor_map.is_numeric = true;
-	    this.display_property_maps.push( bfactor_map );
-	}
 	
-	
-	$.each( this.get_property_maps(), function(i, property_map){
-	    
-	    var color_property = function(d){ return 'lightgrey'; }
-	    if( property_map.is_numeric ){
-		var max_property = pv.max( property_map.get_list() ) || 1;
-		var min_property = pv.min( property_map.get_list() ) || 0;
-		color_property = pv.Scale.linear(min_property, (min_property+max_property)/2, max_property).range("green", "yellow", "red");
-	    }
-	    
-	    center.anchor("right").add(pv.Dot)
-		.left(6+(i+2)*12)
-		.strokeStyle("")
-		.fillStyle( function(d){
-		    return property_map.has_id(d.smcra_entity, 2) ? color_property( property_map.get( d.smcra_entity, 2 ) ) : '';
-		})
-		.shape('square')
-		.event('mouseover', function(d){
-		    if( property_map.has_id( d.smcra_entity, 2 ) ){
-			boundbox.attach( this );
-			$(pv.event.target).one('mouseleave', function(){ popup.hide() });
-			popup.show( boundbox.bb, { content: property_map.html( d.smcra_entity, 2 ) }, undefined, 'center top' );
-		    }
-		});
+	$.each( this.property_map_vis_builder.get_list(), function(i, property_map){
+	    self.add_property_map_visualisation( property_map );
 	})
-	
-	// bfactor
-	center.anchor("right").add(pv.Dot)
-            .strokeStyle("")
-	    .left(6+12)
-            .fillStyle(function(n){
-		if( n.smcra_entity ){
-		    var e = n.smcra_entity;
-		    if(e.level == 'A' || e.level == 'R') return c_bf(e);
-		}
-		return '';
-	    })
-            .shape('square')
-	    .event('mouseover', function(d){
-		
-		if( d.smcra_entity ){
-		    var e = d.smcra_entity;
-		    if(e.level == 'A' || e.level == 'R'){
-			boundbox.attach( this );
-			$(pv.event.target).one('mouseleave', function(){ popup.hide() });
-			popup.show( boundbox.bb, { bfactor: e.get_bfactor() }, 'B-factor: ${bfactor.toFixed(2)}', 'center top' );
-		    }
-		}
-	    });
 	
 	// select toggler, responsible for selecting and deselecting nodes
 	var select_toggler = this.select_toggler = new Provi.Utils.Protovis.NodeToggler({
@@ -460,7 +393,7 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	// register tree with the applet's selection manager
 	$(applet.selection_manager).bind('select', function( e, selection, applet, sele_string, smcra ){
 	    self.selection = selection;
-	    console.log( smcra );
+	    //console.log( smcra );
 	    Provi.Utils.Protovis.node_visit_after(root, function(node, depth) {
 		//console.log(node);
 		if(node.smcra_entity){
@@ -483,17 +416,39 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	if(!applet || !applet.loaded) return false;
 	return applet.get_smcra();
     },
-    get_property_map_datasets: function(){
-	var applet = this.get_applet();
-	return $.map( Provi.Data.DatasetManager.get_list(), function(dataset, i){
-            if(dataset.data instanceof Provi.Bio.Smcra.AbstractPropertyMap && Utils.in_array(dataset.applet_list, applet) ){
-		return dataset;
-	    }
-	    return null;
-	});
-    },
-    get_property_maps: function(){
-	return $.map( this.get_property_map_datasets(), function(dataset, i){ return dataset.data } ).concat( this.display_property_maps );
+    add_property_map_visualisation: function( property_map ){
+	var self = this;
+	this._property_map_visualisation_count += 1;
+	var color_property = function(d){ return 'lightgrey'; }
+	if( property_map.is_atomic ){
+	    var p_list = property_map.get_list();
+	    var max_property = pv.max( p_list ) || 1;
+	    var min_property = pv.min( p_list ) || 0;
+	    color_property = pv.Scale.linear(min_property, (min_property+max_property)/2, max_property).range("green", "yellow", "red");
+	}
+	
+	this._tree_center_panel.anchor("right").add(pv.Dot)
+	    .left(6+(this._property_map_visualisation_count)*12)
+	    .strokeStyle("")
+	    .fillStyle( function(d){
+		if( d === self._tree_root_node ){
+		    return 'black'
+		}else{
+		    return property_map.has_id(d.smcra_entity) ? color_property( property_map.get( d.smcra_entity ) ) : '';
+		}
+	    })
+	    .shape( function(d){ return d === self._tree_root_node ? 'triangle' : 'square'; })
+	    .event('mouseover', function(d){
+		if( d === self._tree_root_node ){
+		    self._boundbox.attach( this );
+		    $(pv.event.target).one('mouseleave', function(){ self._popup.hide() });
+		    self._popup.show( self._boundbox.bb, { content: property_map.info }, undefined, 'center top' );
+		} else if( property_map.has_id( d.smcra_entity ) ){
+		    self._boundbox.attach( this );
+		    $(pv.event.target).one('mouseleave', function(){ self._popup.hide() });
+		    self._popup.show( self._boundbox.bb, { content: property_map.html( d.smcra_entity ) }, undefined, 'center top' );
+		}
+	    });
     },
     in_selection: function(res){
 	return Utils.in_array(this.selection, res, function(a,r){
@@ -502,6 +457,75 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
     }
 });
 
+
+
+/**
+ * Converts a protein loaded into Jmol to a {@link Provi.Bio.Smcra.Collection}.
+ *
+ * @param {Provi.Jmol.Applet} applet A Jmol applet instance.
+ * @param {string} selection A Jmol atom expression.
+ */
+Provi.Bio.Sequence.GraphWidget = function( params ){
+    
+    this.property_maps = params.property_maps || [];
+}
+Provi.Bio.Sequence.GraphWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Sequence.GraphWidget.prototype */ {
+    _init: function(){
+	
+    },
+    build_graph: function(){
+	var data = pv.range(100).map(function(x) {
+	    return {x: x, y: Math.random(), z: Math.pow(10, 2 * Math.random())};
+	});
+	
+	var w = 300,
+	    h = 300,
+	    x = pv.Scale.linear(0, 99).range(0, w),
+	    y = pv.Scale.linear(0, 1).range(0, h),
+	    c = pv.Scale.log(1, 100).range("orange", "brown");
+	
+	/* The root panel. */
+	var vis = new pv.Panel()
+	    .width(w)
+	    .height(h)
+	    .bottom(20)
+	    .left(20)
+	    .right(10)
+	    .top(5);
+	
+	/* Y-axis and ticks. */
+	vis.add(pv.Rule)
+	    .data(y.ticks())
+	    .bottom(y)
+	    .strokeStyle(function(d){ d ? "#eee" : "#000" })
+	  .anchor("left").add(pv.Label)
+	    .visible(function(d){ d > 0 && d < 1 })
+	    .text(y.tickFormat);
+	
+	/* X-axis and ticks. */
+	vis.add(pv.Rule)
+	    .data(x.ticks())
+	    .left(x)
+	    .strokeStyle(function(d){ d ? "#eee" : "#000" })
+	  .anchor("bottom").add(pv.Label)
+	    .visible(function(d){ d > 0 && d < 100 })
+	    .text(x.tickFormat);
+	
+	/* The dot plot! */
+	vis.add(pv.Panel)
+	    .data(data)
+	  .add(pv.Dot)
+	    .left(function(d){ x(d.x) })
+	    .bottom(function(d){ y(d.y) })
+	    .strokeStyle(function(d){ c(d.z) })
+	    .fillStyle(function(){ this.strokeStyle().alpha(.2) })
+	    .size(function(d){ d.z })
+	    .title(function(d){ d.z.toFixed(1) });
+	
+	vis.render();
+
+    }
+});
 
 
 /**
