@@ -37,6 +37,7 @@ Provi.Bio.Voronoia.Vol = function(atoms, cavities){
     this.init();
 };
 Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAtomPropertyMap, /** @lends Provi.Bio.Voronoia.Vol.prototype */ {
+    key_length: 3,
     init: function( atoms, cavities ){
 	if(atoms) this.atoms = atoms;
 	if(cavities) this.cavities = cavities;
@@ -50,8 +51,9 @@ Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAt
     _make_atoms_property_dict: function(){
 	var self = this;
 	this.property_dict = {};
+	this.property_list = [];
 	$.each( this.atoms, function(i, atom){
-	    self.property_dict[ [ atom[0], atom[1], atom[3] ] ] = {
+	    var property = {
 		packing_density: atom[4].toFixed(2),
 		vdw_volume: atom[5],
 		solv_ex_volume: atom[6],
@@ -59,6 +61,8 @@ Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAt
 		surface: atom[8],
 		cavity_nb: atom[9]
 	    }
+	    self.property_dict[ [ atom[0], atom[1], atom[3] ] ] = property;
+	    self.property_list.push( property );
 	})
     },
     _make_cavity_neighbours_dict: function(){
@@ -78,6 +82,14 @@ Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAt
                 }
             });
         }
+    },
+    _property_names: {
+	packing_density: 'Packing density',
+	vdw_volume: 'VdW volume',
+	solv_ex_volume: 'Solvent ex. vol.',
+	total_volume: 'Total vol.',
+	surface: 'Surface',
+	cavity_nb: 'Cavity number'
     },
     _html_template: (function(){
 	return $.template('<ul>' +

@@ -27,6 +27,16 @@ var Utils = Provi.Utils;
 var Widget = Provi.Widget.Widget;
 
 
+/** Mapping between entity level and corresponding get list function name */
+Provi.Bio.Smcra.level_get_fn_map = {
+    'S': 'get_structures',
+    'M': 'get_model',
+    'C': 'get_chains',
+    'R': 'get_residues',
+    'A': 'get_atoms'
+};
+
+
 /**
  * Entity class, a base class for protein structure related entities.
  * @constructor
@@ -48,11 +58,11 @@ Provi.Bio.Smcra.Entity.prototype = /** @lends Provi.Bio.Smcra.Entity.prototype *
         return this.child_list.length;
     },
     /**
-     * @param {mixed} id The id of a child entity.
+     * @param {mixed} ent_id The id of a child entity.
      * @return {mixed} The child entity.
      */
     get: function(id){
-        return this.child_dict[id];
+	return this.child_dict[ id ];
     },
     next: function() {
         if( this._ptr < this.child_list.length ) {
@@ -95,10 +105,10 @@ Provi.Bio.Smcra.Entity.prototype = /** @lends Provi.Bio.Smcra.Entity.prototype *
      * @returns {mixed[]} An array of child entities.
      */
     get_list: function(){
-        return this.child_list;
+	return this.child_list;
     },
-    has_id: function(id){
-        return this.child_dict.hasOwnProperty( id );
+    has_id: function( id ){
+	return this.child_dict.hasOwnProperty( id );
     },
     /**
      * @returns {mixed} The parent entity.
@@ -164,6 +174,7 @@ Provi.Bio.Smcra.Entity.prototype = /** @lends Provi.Bio.Smcra.Entity.prototype *
      */
     _html_data: function(){ return {}; },
     /**
+     * 
      * @returns {string} Html representation of the entity.
      */
     html: function(){
@@ -372,10 +383,14 @@ Provi.Bio.Smcra.Residue.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @le
     _jmol_expression: function(){
 	return 'resno=' + this.id;
     },
+    _property_names: {
+	resname: 'Res. name',
+	segid: 'Seg. id'
+    },
     _html_template: (function(){
 	return $.template('<ul>' +
 	    '<lh>Residue data</lh>' +
-	    '<li>Res. Name: ${resname}</li>' +
+	    '<li>Res. name: ${resname}</li>' +
 	    '<li>Seg. id: ${segid}</li>' +
 	'</ul>');
     })(),
@@ -437,6 +452,15 @@ Provi.Bio.Smcra.Atom.prototype = /** @lends Provi.Bio.Smcra.Atom.prototype */ {
     _jmol_expression: function(){
 	return 'atomno=' + this.serial_number;
     },
+    _property_names: {
+	name: 'Name',
+	fullname: 'Fullname',
+	bfactor: 'B-factor',
+	occupancy: 'Occupancy',
+	altloc: 'Altloc',
+	serial_number: 'Serial number',
+	element: 'Element'
+    },
     _html_template: (function(){
 	return $.template('<ul>' +
 	    '<lh>Atom data</lh>' +
@@ -464,6 +488,15 @@ Provi.Bio.Smcra.Atom.prototype = /** @lends Provi.Bio.Smcra.Atom.prototype */ {
 };
 
 
+/** Mapping between entity level and corresponding class */
+Provi.Bio.Smcra.level_entity_class_map = {
+    'S': Provi.Bio.Smcra.Structure,
+    'M': Provi.Bio.Smcra.Model,
+    'C': Provi.Bio.Smcra.Chain,
+    'R': Provi.Bio.Smcra.Residue,
+    'A': Provi.Bio.Smcra.Atom
+};
+
 
 /**
  * @class Represents a AbstractPropertyMap
@@ -476,17 +509,24 @@ Provi.Bio.Smcra.AbstractPropertyMap = function( property_dict ){
 };
 Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.AbstractPropertyMap.prototype */ {
     /**
-     * To be set be child classes. Used to allow smcra entities as ids to access properties.
+     * To be set by inheriting classes. Used to allow smcra entities as ids to access properties.
      */
     _entity_class: false,
+    key_length: 5,
     /**
      * @returns {object} The property map dictionary.
      */
     get_dict: function(){
 	return this.property_dict;
     },
-    get_list: function(){
-	return this.property_list;
+    get_list: function( key_fn ){
+	return key_fn ? $.map( this.property_list, key_fn ) : this.property_list;
+    },
+    get_property_names: function(){
+	//var property_names = [];
+	//console.log('get_property_names', property_names, this.property_list, this);
+	//for( var name in this.property_list[0] ){ property_names.push( name ) }
+	return this._property_names;
     },
     /**
      * @returns {int} Number of children
@@ -503,6 +543,7 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
 	if( this._entity_class && ent_id instanceof this._entity_class ){
 	    ent_id = ent_id.get_full_id();
 	}
+	//console.log(ent_id);
 	return slice ? ent_id.slice( slice ) : ent_id;
     },
     /**
@@ -510,8 +551,10 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
      * @param {int} [slice] Number id elements from the begining of the id that should be discarded.
      * @return {mixed} The child entity.
      */
-    get: function(id, slice){
-        return id ? this.property_dict[ this._translate_id(id, slice) ] : undefined;
+    get: function(id, slice, key_fn){
+	if( !id ) return undefined;
+	var property = this.property_dict[ this._translate_id(id, slice) ];
+        return key_fn ? key_fn( property ) : property;
     },
     /**
      * @param {array|Provi.Bio.Smcra.Entity|Provi.Bio.Smcra.Atom} id The id to look for, also in form of an smcra entity or atom.
@@ -525,14 +568,14 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
 	    !(ent_id instanceof Array) ){
 	    return false;
 	}else{
-	    return this.property_dict.hasOwnProperty( this._translate_id(ent_id, slice) );
+	    return typeof this.get( ent_id, slice ) !== 'undefined';
 	}
     },
     /**
      * Holds the prepared html template for the corresponding level. Needs to be implemented by each level.
      * For performance reasons implemented as a self executing function that is executed once.
      */
-    _html_template: (function(){ return '<div>${content}</div>'; })(),
+    _html_template: (function(){ return $.template('<div>${content}</div>'); })(),
     /**
      * Get the data to be injected in the html template of the corresponding level. Needs to be implemented by each level.
      */
@@ -542,10 +585,206 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
      * @param {int} [slice] Number id elements from the begining of the id that should be discarded.
      * @return {mixed} The rendered html.
      */
-    html: function( id, slice ){
-	return $.tmpl( this._html_template, this._html_data( this.get(id, slice) ) ).html();
+    html: function( id, slice, key_fn, template ){
+	return $.tmpl( template || this._html_template, this._html_data( this.get(id, slice, key_fn) ) ).html();
     }
 };
+
+
+/**
+ * @class Represents a PropertyMapEntityWrapper
+ */
+Provi.Bio.Smcra.PropertyMapEntityWrapper = function( entity, level ){
+    this.entity = entity;
+    console.log('eclass', Provi.Bio.Smcra.level_entity_class_map, level, Provi.Bio.Smcra.level_get_fn_map[ level ], entity);
+    this._entity_class = Provi.Bio.Smcra.level_entity_class_map[ level ];
+    this.property_list = entity[ Provi.Bio.Smcra.level_get_fn_map[ level ] ]();
+    this._property_names = this.property_list[0]._property_names;
+};
+Provi.Bio.Smcra.PropertyMapEntityWrapper.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.PropertyMapEntityWrapper.prototype */ {
+    /**
+     * @param {array|mixed} id The id of a child entity.
+     * @param {int} [slice] Number id elements from the begining of the id that should be discarded.
+     * @return {mixed} The child entity.
+     */
+    get: function(id, slice, key_fn){
+	if( !id ) return undefined;
+	var property = this.entity.get_by_full_id( this._translate_id(id, slice) );
+        return key_fn ? key_fn( property ) : property;
+    }
+});
+
+
+/**
+ * @class Represents a PropertyMapWrapper
+ */
+Provi.Bio.Smcra.PropertyMapVisualisationWrapper = function( property_map, params ){
+    if( property_map.hasOwnProperty( '_wrapped_property_map' ) ){
+	property_map = property_map._wrapped_property_map;
+    }
+    
+    return $.extend( {}, property_map, {
+	is_atomic: params.is_atomic,
+	info: params.info,
+	_wrapped_property_map: property_map,
+	get: function(id){
+	    return property_map.get.call( property_map, id, params.slice, params.key_fn );
+	},
+	get_list: function(){
+	    return property_map.get_list.call( property_map, params.key_fn );
+	},
+	_html_data: function( property ){
+	    //console.log( 'property', property );
+	    return typeof property === 'object' ? property : {content: property};
+	},
+	html: function( id, slice, key_fn, template ){
+	    return property_map.html.call( this, id, slice || params.slice, key_fn || params.key_fn, template || params.template );
+	}
+    });
+};
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Bio.Smcra.PropertyMapVisBuilderWidget = function(params){
+    params.persist_on_applet_delete = true;
+    //params.heading = '';
+    //params.collapsed = false;
+    Provi.Widget.Widget.call( this, params );
+    this.max_key_length = params.max_key_length || 5;
+    this.applet = params.applet;
+    this._build_element_ids([ 'property_map_selector', 'property_selector' ]);
+
+    var content = '<div class="control_group">' +
+	'<div class="control_row">' +
+	    '<select class="ui-state-default" id="' + this.property_map_selector_id + '"></select>' +
+	'</div>' +
+	'<div class="control_row">' +
+	    '<select class="ui-state-default" id="' + this.property_selector_id + '"></select>' +
+	'</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this._init();
+}
+Provi.Bio.Smcra.PropertyMapVisBuilderWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Smcra.PropertyMapVisBuilderWidget.prototype */ {
+    _property_maps: [],
+    _ds_property_maps: [],
+    _built_property_maps: [],
+    _init: function(){
+        var self = this;
+	
+	$('#' + this.property_map_selector_id).bind( 'change', function(){
+	    self._update_property_selector();
+	});
+	$('#' + this.property_selector_id).bind( 'change', function(){
+	    $(self).triggerHandler('built', self._build_property_map_vis() );
+	});
+	
+	//this.update();
+	//Provi.Widget.Widget.prototype.init.call(this);
+    },
+    update: function( smcra, applet ){
+	if( typeof smcra !== 'undefined' ) this.smcra = smcra;
+	if( typeof applet !== 'undefined' ) this.applet = applet;
+	
+	this._property_maps = [];
+	this._ds_property_maps = [];
+	this._make_dataset_property_maps();
+	this._make_smcra_property_maps();
+	
+	this._update_property_maps_selector();
+	this._update_property_selector();
+    },
+    _make_dataset_property_maps: function(){
+	var self = this;
+	$.each( Provi.Data.DatasetManager.get_list(), function(i, dataset){
+	    console.log('DS DS DS',dataset);
+	    if( Utils.in_array(dataset.applet_list, self.applet) ){
+		$.each( dataset.get_list(), function(key, data){
+		    
+		    if(data instanceof Provi.Bio.Smcra.AbstractPropertyMap ){
+			var vis_map = new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
+			    data,
+			    {
+				slice: self.max_key_length-dataset.data.key_length,
+				info: dataset.name + ' (' + dataset.id + ')'
+			    }
+			)
+			self._ds_property_maps.push( vis_map );
+			self._property_maps.push( vis_map );
+		    }
+		});
+	    }
+	});
+    },
+    _make_smcra_property_maps: function(){
+	if( !this.smcra ) return;
+	this._property_maps.push(
+	    new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
+		new Provi.Bio.Smcra.PropertyMapEntityWrapper( this.smcra, 'R' ),
+		{
+		    info: 'loaded protein(s): residue map'
+		}));
+	this._property_maps.push(
+	    new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
+		new Provi.Bio.Smcra.PropertyMapEntityWrapper( this.smcra, 'A' ),
+		{
+		    info: 'loaded protein(s): atom map'
+		}));
+	console.log('SMCRA',this.smcra, this._property_maps);
+    },
+    _update_property_maps_selector: function(){
+	var elm = $('#' + this.property_map_selector_id);
+        var value = $("#" + this.property_map_selector_id + " option:selected").val();
+        elm.empty().append( '<option value="-1"></option>' );
+	
+        $.each(this._property_maps, function(i, property_map){
+            elm.append('<option value="' + i + '">' + property_map.info + '</option>');
+        });
+        elm.val( value );
+    },
+    _update_property_selector: function(){
+	var elm = $('#' + this.property_selector_id);
+        elm.empty().append( '<option value="-1"></option>' );
+	
+	var property_map_id = $("#" + this.property_map_selector_id + " option:selected").val();
+	
+	if( property_map_id != -1 ){
+	    var property_map = this._property_maps[ property_map_id ];
+	    $.each( property_map.get_property_names(), function(property_name, property_label){
+	        elm.append( '<option value="' + property_name + '">' + property_label + '</option>' );
+	    });
+	}
+    },
+    _build_property_map_vis: function(){
+	var property_map_id = $("#" + this.property_map_selector_id + " option:selected").val();
+	var property_name = $("#" + this.property_selector_id + " option:selected").val();
+	
+	if( property_map_id != -1 && property_name != -1 ){
+	    var property_map = this._property_maps[ property_map_id ];
+	    var pvis = new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
+		property_map,
+		{
+		    slice: this.max_key_length-property_map.key_length,
+		    key_fn: function(p){ return p && typeof p === 'object' ? p[ property_name ] : p; },
+		    is_atomic: true,
+		    info: property_name + ' - ' + property_map.info + '',
+		    template: $.template( '<div>' + property_name + ': ${content}</div>' )
+		}
+	    );
+	    this._built_property_maps.push( pvis );
+	    return pvis;
+	}
+	return null;
+    },
+    get_list: function(){
+	return this._ds_property_maps.concat( this._built_property_maps );
+    }
+});
 
 
 /**
@@ -555,7 +794,8 @@ Provi.Bio.Smcra.AbstractAtomPropertyMap = function( property_dict ){
     Provi.Bio.Smcra.AbstractPropertyMap.call(this, property_dict);
 };
 Provi.Bio.Smcra.AbstractAtomPropertyMap.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.AbstractAtomPropertyMap.prototype */ {
-    _entity_class: Provi.Bio.Smcra.Atom
+    _entity_class: Provi.Bio.Smcra.Atom,
+    key_length: 5
 });
 
 
@@ -566,8 +806,10 @@ Provi.Bio.Smcra.AbstractResiduePropertyMap = function( property_dict ){
     Provi.Bio.Smcra.AbstractPropertyMap.call(this, property_dict);
 };
 Provi.Bio.Smcra.AbstractResiduePropertyMap.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.AbstractResiduePropertyMap.prototype */ {
-    _entity_class: Provi.Bio.Smcra.Residue
+    _entity_class: Provi.Bio.Smcra.Residue,
+    key_length: 4
 });
+
 
 
 
