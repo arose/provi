@@ -42,19 +42,17 @@ Provi.Data.Controller.StructureMixin = {
             'select (dmpc or dmp or popc or pop); wireframe 0.1;';
         
         if( load_as != 'append' ) applet._delete();
-        //Utils.pause(5000); // does not work, still crashes
-	//setTimeout( function(){ // needed, other wise the applet crashes for unknown reasons
-	    if(load_as == 'trajectory'){
-		applet.script('load TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style);
-	    }else if(load_as == 'append'){
-		applet.script('load APPEND "' + type + '../../data/get/' + params + '"; frame all; ' + style);
-	    //}else if(load_as == 'new'){
-	    }else{
-		console.log('../../data/get/' + params);
-		applet.script('load "' + type + '../../data/get/' + params + '"; ' + style);
-	    }
-	//}, 2000);
-        //Utils.pause(2000);
+	
+	// load structural data into the jmol applet
+	if(load_as == 'trajectory'){
+	    applet.script('load TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style);
+	}else if(load_as == 'append'){
+	    applet.script('load APPEND "' + type + '../../data/get/' + params + '"; frame all; ' + style);
+	//}else if(load_as == 'new'){
+	}else{
+	    console.log('../../data/get/' + params);
+	    applet.script('load "' + type + '../../data/get/' + params + '"; ' + style);
+	}
     },
     jmol_load: function(){
         var selection = 'protein and {*}';
