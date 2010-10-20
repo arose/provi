@@ -57,7 +57,9 @@ Provi.Utils.Protovis.NodeToggler.prototype = /** @lends Provi.Utils.Protovis.Nod
         });
         this.update();
 	this.after_toggle( n, n[this.toggle_name], toggle_data );
-	return this.layout_obj.reset().root;
+	//return this.layout_obj.reset().root; // reset only neccesary if network structure changes
+	//n.render();
+	return this.layout_obj.root;
     },
     _toggle: function( n, toggle ){
 	if( typeof(toggle) == 'undefined' ) toggle = n[this.toggle_name];
@@ -87,6 +89,7 @@ Provi.Utils.Protovis.NodeToggler.prototype = /** @lends Provi.Utils.Protovis.Nod
                 node[self.toggle_name] = Provi.Utils.Protovis.toggle_type.MIXED;
             }
         });
+	this.layout_obj.render();
     },
     value_switch: function(node, on, off, mixed){
         return Provi.Utils.Protovis.toggle_type_switch( node[this.toggle_name], on, off, mixed );
