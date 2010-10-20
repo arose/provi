@@ -217,9 +217,12 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	$(Provi.Data.DatasetManager).bind('change', function(){
 	    self.update();
 	});
-	$(this.property_map_vis_builder).bind('built', function( property_map ){
-	    self._property_map_visualisation_count = 0;
-	    self._tree_view();
+	$(this.property_map_vis_builder).bind('built', function( e, property_map ){
+	    console.log( property_map );
+	    self.add_property_map_visualisation( property_map );
+	    self.render();
+	    //self._property_map_visualisation_count = 0;
+	    //self._tree_view();
 	});
 	this.update();
     },
@@ -227,6 +230,9 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	this._property_map_visualisation_count = 0;
 	this._tree_view();
 	this.property_map_vis_builder.update( this.get_data(), this.get_applet() );
+    },
+    render: function(){
+	if( this._vis ) this._vis.render();
     },
     get_applet: function(){
 	return this.applet ? this.applet : this.applet_selector.get_value(true);
@@ -303,12 +309,12 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
             }
         });
         
-        var vis = this.vis = new pv.Panel()
+        var vis = this._vis = new pv.Panel()
             .canvas( this.canvas_id )
             .width(350)
             .height(function(){ return (root.nodes().length + 1) * 12 })
             .margin(5);
-        
+	
         var layout = vis.add(pv.Layout.Indent)
             .nodes(function(){ return root.nodes() })
             .depth(12)
@@ -402,7 +408,6 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 		}
 	    });
 	    select_toggler.update();
-	    vis.render();
 	});
 	
         function toggle_node(n){
