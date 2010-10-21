@@ -40,18 +40,27 @@ Provi.Bio.Sequence.SequenceViewWidget = function(params){
     this.vis = false;
     params.persist_on_applet_delete = true;
     Widget.call( this, params );
-    this.canvas_id = this.id + '_canvas';
-    this.draw_sequence_id = this.id + '_draw_sequence';
+    this._build_element_ids([ 'canvas', 'draw_sequence', 'property_map_vis_builder_widget' ]);
     
     var content = '<div>' +
         '<div style="float:left; ">' +
-	    '<button id="' + this.draw_sequence_id + '">update</button>&nbsp;' +
+	    '<button style="float:left; " id="' + this.draw_sequence_id + '">update</button>&nbsp;' +
+	'</div>' +
+	'<div style="float:left; ">' +
+	    '<div class="control_row" id="' + this.property_map_vis_builder_widget_id + '"></div>' +
 	'</div>' +
 	'<div style="display:block; overflow:auto;">' +
 	    '<span id="' + this.canvas_id + '" style="display:inline;"></span>' +
 	'</div>' +
     '</div>';
     $(this.dom).append( content );
+    
+    this.property_map_vis_builder = new Provi.Bio.Smcra.PropertyMapVisBuilderWidget({
+	parent_id: this.property_map_vis_builder_widget_id,
+	applet: this.applet,
+	level: ['R'],
+	max_key_length: 5
+    });
     this._init();
 }
 Provi.Bio.Sequence.SequenceViewWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Sequence.SequenceViewWidget.prototype */ {
@@ -60,19 +69,23 @@ Provi.Bio.Sequence.SequenceViewWidget.prototype = Utils.extend(Widget, /** @lend
         
         this.sequence_view();
         $("#" + this.draw_sequence_id).button().click(function() {
-            self.sequence_view();
+            self.update();
         });
         $(this.applet).bind('load_struct', function(){
-            self.sequence_view();
+            self.update();
         });
         $(this.applet.selection_manager).bind('select', function( e, selection, applet ){
             self.selection = selection;
-            if(self.vis){
-                self.vis.render();
-            }else{
-                self.sequence_view();
-            }
+            self.vis ? self.vis.render() : self.update();
         });
+	$(this.property_map_vis_builder).bind('built', function( e, property_map ){
+	    self.property_map = property_map;
+	    self.sequence_view();
+	});
+    },
+    update: function(){
+	this.property_map_vis_builder.update( this.get_data() );
+	this.sequence_view();
     },
     sequence_view: function(){
         var self = this;
@@ -109,15 +122,40 @@ Provi.Bio.Sequence.SequenceViewWidget.prototype = Utils.extend(Widget, /** @lend
             .margin( 0 )
             .width( w )
             .height( h );
-            
-        var bar = this.vis.add(pv.Bar)
+        
+	
+	var property_map = this.property_map;
+	if( !property_map ){
+	    var bfactor_dict = {};
+	    $.each( residues, function(i, res){
+		bfactor_dict[ res.get_full_id() ] = res.get_bfactor();
+	    });
+	    property_map = new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
+		new Provi.Bio.Smcra.AbstractResiduePropertyMap( bfactor_dict ),
+		{ is_atomic: true }
+	    );
+	}
+	
+	var color_property = function(d){ return 'lightgrey'; }
+	if( property_map.is_atomic ){
+	    var p_list = property_map.get_list();
+	    var max_property = pv.max( p_list ) || 1;
+	    var min_property = pv.min( p_list ) || 0;
+	    color_property = pv.Scale.linear(min_property, (min_property+max_property)/2, max_property).range("green", "yellow", "red");
+	    y_property = pv.Scale.linear(min_property, max_property).range(0, h-13);
+	}
+	
+	
+        var bar = this._bar = this.vis.add(pv.Bar)
             .data( residues )
             .bottom(12)
             .width(19)
-            .height(function(r){ return y_bf(r); })
+            .height(function(r){ return y_property( property_map.get(r) ); })
             .left(function(){ return this.index * 24 + 5; })
-            .fillStyle(function(r){ return c_bf(r); });
-          
+            .fillStyle(function(r){
+		return property_map.has_id(r) ? color_property( property_map.get(r) ) : ''; });
+	
+	
         bar.add(pv.Panel)
             .height( h-13 )
             .fillStyle( 'rgba(255, 255, 255, 0.2)' )
@@ -218,7 +256,7 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	    self.update();
 	});
 	$(this.property_map_vis_builder).bind('built', function( e, property_map ){
-	    console.log( property_map );
+	    //console.log( 'built map', property_map );
 	    self.add_property_map_visualisation( property_map );
 	    self.render();
 	    //self._property_map_visualisation_count = 0;
