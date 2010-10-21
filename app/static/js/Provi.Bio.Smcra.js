@@ -608,7 +608,7 @@ Provi.Bio.Smcra.PropertyMapEntityWrapper = function( entity, level ){
     this.entity = entity;
     this._entity_class = Provi.Bio.Smcra.level_entity_class_map[ level ];
     this.property_list = entity[ Provi.Bio.Smcra.level_get_fn_map[ level ] ]();
-    this._property_names = this.property_list[0]._property_names;
+    this._property_names = this.property_list[0] ? this.property_list[0]._property_names : {};
     this.level = level;
 };
 Provi.Bio.Smcra.PropertyMapEntityWrapper.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.PropertyMapEntityWrapper.prototype */ {
