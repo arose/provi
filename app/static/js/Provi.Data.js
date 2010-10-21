@@ -100,8 +100,14 @@ Provi.Data.Dataset = function(params){
     this.server_id = params.server_id;
     this.plupload_id = params.plupload_id;
     this.id = Provi.Data.DatasetManager.add( this );
+    this._init();
 };
 Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
+    _init: function(){
+	$(this).bind('change', function(){
+	    $(Provi.Data.DatasetManager).triggerHandler('change');
+	});
+    },
     /**
      * get the status of the dataset
      * @returns {object} status object
@@ -138,6 +144,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     add_data: function( name, data ){
 	this.data_list.push( data );
 	this.data_dict[ name ] = data;
+	$(this).triggerHandler('change');
     },
     get: function( name ){
 	return this.data_dict[ name ];
