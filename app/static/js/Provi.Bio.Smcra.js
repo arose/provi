@@ -376,7 +376,7 @@ Provi.Bio.Smcra.Residue.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @le
      */
     get_bfactor: function(){
 	if( typeof this._bfactor_mean == 'undefined' ){
-	    this._bfactor_mean = pv.mean( this.get_atoms(), function(a){ return a.bfactor } );
+	    this._bfactor_mean = pv.mean( this.get_atoms(), function(a){ return a.bfactor } ).toFixed(2);
 	}
 	return this._bfactor_mean;
     },
@@ -385,19 +385,22 @@ Provi.Bio.Smcra.Residue.prototype = Utils.extend(Provi.Bio.Smcra.Entity, /** @le
     },
     _property_names: {
 	resname: 'Res. name',
-	segid: 'Seg. id'
+	segid: 'Seg. id',
+	get_bfactor: 'B-factor mean'
     },
     _html_template: (function(){
 	return $.template('<ul>' +
 	    '<lh>Residue data</lh>' +
 	    '<li>Res. name: ${resname}</li>' +
 	    '<li>Seg. id: ${segid}</li>' +
+	    '<li>B-factor mean: ${bfactor_mean}</li>' +
 	'</ul>');
     })(),
     _html_data: function(){
 	return {
 	    resname: this.resname,
-	    segid: this.segid
+	    segid: this.segid,
+	    bfactor_mean: this.get_bfactor()
 	};
     }
 });
@@ -512,6 +515,7 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
      * To be set by inheriting classes. Used to allow smcra entities as ids to access properties.
      */
     _entity_class: false,
+    level: null,
     key_length: 5,
     /**
      * @returns {object} The property map dictionary.
@@ -521,6 +525,13 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
     },
     get_list: function( key_fn ){
 	return key_fn ? $.map( this.property_list, key_fn ) : this.property_list;
+    },
+    get_keys: function(){
+	if( !this._keys ){
+	    this._keys = [];
+	    $.each( this.property_dict, function(key, item){ this._keys.push(key) });
+	}
+	return this._keys;
     },
     get_property_names: function(){
 	//var property_names = [];
@@ -543,7 +554,6 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
 	if( this._entity_class && ent_id instanceof this._entity_class ){
 	    ent_id = ent_id.get_full_id();
 	}
-	//console.log(ent_id);
 	return slice ? ent_id.slice( slice ) : ent_id;
     },
     /**
@@ -596,10 +606,10 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
  */
 Provi.Bio.Smcra.PropertyMapEntityWrapper = function( entity, level ){
     this.entity = entity;
-    console.log('eclass', Provi.Bio.Smcra.level_entity_class_map, level, Provi.Bio.Smcra.level_get_fn_map[ level ], entity);
     this._entity_class = Provi.Bio.Smcra.level_entity_class_map[ level ];
     this.property_list = entity[ Provi.Bio.Smcra.level_get_fn_map[ level ] ]();
     this._property_names = this.property_list[0]._property_names;
+    this.level = level;
 };
 Provi.Bio.Smcra.PropertyMapEntityWrapper.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.PropertyMapEntityWrapper.prototype */ {
     /**
@@ -622,10 +632,9 @@ Provi.Bio.Smcra.PropertyMapVisualisationWrapper = function( property_map, params
     if( property_map.hasOwnProperty( '_wrapped_property_map' ) ){
 	property_map = property_map._wrapped_property_map;
     }
-    
     return $.extend( {}, property_map, {
-	is_atomic: params.is_atomic,
-	info: params.info,
+	is_atomic: typeof params.is_atomic !== 'undefined' ? params.is_atomic : property_map.is_atomic,
+	info: typeof params.info !== 'undefined' ? params.info : property_map.info,
 	_wrapped_property_map: property_map,
 	get: function(id){
 	    return property_map.get.call( property_map, id, params.slice, params.key_fn );
@@ -657,9 +666,10 @@ Provi.Bio.Smcra.PropertyMapVisBuilderWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this.max_key_length = params.max_key_length || 5;
     this.applet = params.applet;
+    this.level = params.level;
     this._build_element_ids([ 'property_map_selector', 'property_selector' ]);
 
-    var content = '<div class="control_group">' +
+    var content = '<div>' +
 	'<div class="control_row">' +
 	    '<select class="ui-state-default" id="' + this.property_map_selector_id + '"></select>' +
 	'</div>' +
@@ -683,8 +693,11 @@ Provi.Bio.Smcra.PropertyMapVisBuilderWidget.prototype = Utils.extend(Provi.Widge
 	$('#' + this.property_selector_id).bind( 'change', function(){
 	    $(self).triggerHandler('built', self._build_property_map_vis() );
 	});
+	$( Provi.Data.DatasetManager ).bind( 'change', function(){
+	    self.update();
+	});
 	
-	//this.update();
+	this.update();
 	//Provi.Widget.Widget.prototype.init.call(this);
     },
     update: function( smcra, applet ){
@@ -702,16 +715,15 @@ Provi.Bio.Smcra.PropertyMapVisBuilderWidget.prototype = Utils.extend(Provi.Widge
     _make_dataset_property_maps: function(){
 	var self = this;
 	$.each( Provi.Data.DatasetManager.get_list(), function(i, dataset){
-	    console.log('DS DS DS',dataset);
 	    if( Utils.in_array(dataset.applet_list, self.applet) ){
-		$.each( dataset.get_list(), function(key, data){
+		$.each( dataset.get_dict(), function(key, data){
 		    
-		    if(data instanceof Provi.Bio.Smcra.AbstractPropertyMap ){
+		    if(data instanceof Provi.Bio.Smcra.AbstractPropertyMap && (!self.level || Utils.in_array(self.level, data.level) ) ){
 			var vis_map = new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
 			    data,
 			    {
-				slice: self.max_key_length-dataset.data.key_length,
-				info: dataset.name + ' (' + dataset.id + ')'
+				slice: -data.key_length,
+				info: key + ' : ' + dataset.name + ' (' + dataset.id + ')'
 			    }
 			)
 			self._ds_property_maps.push( vis_map );
@@ -723,19 +735,23 @@ Provi.Bio.Smcra.PropertyMapVisBuilderWidget.prototype = Utils.extend(Provi.Widge
     },
     _make_smcra_property_maps: function(){
 	if( !this.smcra ) return;
-	this._property_maps.push(
-	    new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
-		new Provi.Bio.Smcra.PropertyMapEntityWrapper( this.smcra, 'R' ),
-		{
-		    info: 'loaded protein(s): residue map'
-		}));
-	this._property_maps.push(
-	    new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
-		new Provi.Bio.Smcra.PropertyMapEntityWrapper( this.smcra, 'A' ),
-		{
-		    info: 'loaded protein(s): atom map'
-		}));
-	console.log('SMCRA',this.smcra, this._property_maps);
+	
+	if( (!this.level || Utils.in_array(this.level, 'R') ) ){
+	    this._property_maps.push(
+		new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
+		    new Provi.Bio.Smcra.PropertyMapEntityWrapper( this.smcra, 'R' ),
+		    {
+			info: 'loaded protein(s): residue map'
+		    }));
+	}
+	if( (!this.level || Utils.in_array(this.level, 'A') ) ){
+	    this._property_maps.push(
+		new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
+		    new Provi.Bio.Smcra.PropertyMapEntityWrapper( this.smcra, 'A' ),
+		    {
+			info: 'loaded protein(s): atom map'
+		    }));
+	}
     },
     _update_property_maps_selector: function(){
 	var elm = $('#' + this.property_map_selector_id);
@@ -754,6 +770,7 @@ Provi.Bio.Smcra.PropertyMapVisBuilderWidget.prototype = Utils.extend(Provi.Widge
 	var property_map_id = $("#" + this.property_map_selector_id + " option:selected").val();
 	
 	if( property_map_id != -1 ){
+	    elm.append( '<option value="__info__">General info</option>' );
 	    var property_map = this._property_maps[ property_map_id ];
 	    $.each( property_map.get_property_names(), function(property_name, property_label){
 	        elm.append( '<option value="' + property_name + '">' + property_label + '</option>' );
@@ -765,17 +782,25 @@ Provi.Bio.Smcra.PropertyMapVisBuilderWidget.prototype = Utils.extend(Provi.Widge
 	var property_name = $("#" + this.property_selector_id + " option:selected").val();
 	
 	if( property_map_id != -1 && property_name != -1 ){
+	    
 	    var property_map = this._property_maps[ property_map_id ];
-	    var pvis = new Provi.Bio.Smcra.PropertyMapVisualisationWrapper(
-		property_map,
-		{
-		    slice: this.max_key_length-property_map.key_length,
-		    key_fn: function(p){ return p && typeof p === 'object' ? p[ property_name ] : p; },
-		    is_atomic: true,
-		    info: property_name + ' - ' + property_map.info + '',
-		    template: $.template( '<div>' + property_name + ': ${content}</div>' )
+	    
+	    if( property_name === '__info__' ){
+		var options = {
+		    slice: -property_map.key_length,
+		    info: property_map.info
 		}
-	    );
+	    }else{
+		var options = {
+		    slice: -property_map.key_length,
+		    key_fn: function(p){ return p && typeof p === 'object' ? (typeof p[ property_name ] === 'function' ? p[ property_name ]() : p[ property_name ]) : p; },
+		    is_atomic: true,
+		    info: (property_map._property_names[ property_name ] || property_name ) + ' - ' + property_map.info + '',
+		    template: $.template( '<div>' + (property_map._property_names[ property_name ] || property_name ) + ': ${content}</div>' )
+		}
+	    }
+	    
+	    var pvis = new Provi.Bio.Smcra.PropertyMapVisualisationWrapper( property_map, options );
 	    this._built_property_maps.push( pvis );
 	    return pvis;
 	}
@@ -795,6 +820,7 @@ Provi.Bio.Smcra.AbstractAtomPropertyMap = function( property_dict ){
 };
 Provi.Bio.Smcra.AbstractAtomPropertyMap.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.AbstractAtomPropertyMap.prototype */ {
     _entity_class: Provi.Bio.Smcra.Atom,
+    level: 'A',
     key_length: 5
 });
 
@@ -807,6 +833,7 @@ Provi.Bio.Smcra.AbstractResiduePropertyMap = function( property_dict ){
 };
 Provi.Bio.Smcra.AbstractResiduePropertyMap.prototype = Utils.extend(Provi.Bio.Smcra.AbstractPropertyMap, /** @lends Provi.Bio.Smcra.AbstractResiduePropertyMap.prototype */ {
     _entity_class: Provi.Bio.Smcra.Residue,
+    level: 'R',
     key_length: 4
 });
 
