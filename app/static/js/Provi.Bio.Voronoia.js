@@ -54,10 +54,10 @@ Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAt
 	this.property_list = [];
 	$.each( this.atoms, function(i, atom){
 	    var property = {
-		packing_density: atom[4].toFixed(2),
+		packing_density: atom[4],
 		vdw_volume: atom[5],
 		solv_ex_volume: atom[6],
-		total_volume: atom[7].toFixed(2),
+		total_volume: atom[7],
 		surface: atom[8],
 		cavity_nb: atom[9]
 	    }
@@ -94,10 +94,10 @@ Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAt
     _html_template: (function(){
 	return $.template('<ul>' +
 	    '<lh>Voronoia data</lh>' +
-	    '<li>Packing density: ${packing_density}</li>' +
-	    '<li>VdW volume: ${vdw_volume}</li>' +
-	    '<li>Solvent ex. vol.: ${solv_ex_volume}</li>' +
-	    '<li>Total vol.: ${total_volume}</li>' +
+	    '<li>Packing density: ${packing_density.toFixed(2)}</li>' +
+	    '<li>VdW volume: ${vdw_volume.toFixed(2)}</li>' +
+	    '<li>Solvent ex. vol.: ${solv_ex_volume.toFixed(2)}</li>' +
+	    '<li>Total vol.: ${total_volume.toFixed(2)}</li>' +
 	    '<li>Surface: ${surface}</li>' +
 	    '<li>Cavity number: ${cavity_nb}</li>' +
 	'</ul>');
@@ -106,6 +106,70 @@ Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAt
 	return property;
     }
 });
+
+
+/**
+ * @class Represents voronoia cavities, neighbours and packing data
+ * @constructor
+ * @extends Provi.Bio.Smcra.AbstractResiduePropertyMap
+ * @param {Provi.Bio.Voronoia.Vol} vol An object with voronoia vol atom data.
+ */
+Provi.Bio.Voronoia.VolResidueMap = function( vol ){
+    this.vol = vol;
+    this.init();
+};
+Provi.Bio.Voronoia.VolResidueMap.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractResiduePropertyMap, /** @lends Provi.Bio.Voronoia.VolResidueMap.prototype */ {
+    key_length: 2,
+    init: function(  ){
+	this._make_property_dict();
+	console.log( 'VolResidueMap', this );
+    },
+    _make_property_dict: function(){
+	var self = this;
+	
+	var by_res_vol_dict = {};
+	$.each( this.vol.get_dict(), function(key, property){
+	    var res_key = key.split(',').slice(0,2);
+	    //console.log(res_key, key);
+	    if( !by_res_vol_dict[ res_key ] ) by_res_vol_dict[ res_key ] = [];
+	    by_res_vol_dict[ res_key ].push( property );
+	});
+	
+	this.property_dict = {};
+	this.property_list = [];
+	//console.log('by_res_vol_dict', by_res_vol_dict);
+	$.each( by_res_vol_dict, function(key, property_list){
+	    var property = {
+		packing_density: pv.mean( property_list, function(p){ return p['packing_density'] } ),
+		vdw_volume: pv.sum( property_list, function(p){ return p['vdw_volume'] } ),
+		solv_ex_volume: pv.sum( property_list, function(p){ return p['solv_ex_volume'] } ),
+		total_volume: pv.sum( property_list, function(p){ return p['total_volume'] } )
+	    }
+	    self.property_dict[ key ] = property;
+	    self.property_list.push( property );
+	});
+    },
+    _property_names: {
+	packing_density: 'Packing density mean',
+	vdw_volume: 'VdW volume sum',
+	solv_ex_volume: 'Solvent ex. vol. sum',
+	total_volume: 'Total vol. sum'
+    },
+    _html_template: (function(){
+	return $.template('<ul>' +
+	    '<lh>Voronoia residue data</lh>' +
+	    '<li>Packing density mean: ${packing_density.toFixed(2)}</li>' +
+	    '<li>VdW volume sum: ${vdw_volume.toFixed(2)}</li>' +
+	    '<li>Solvent ex. vol. sum: ${solv_ex_volume.toFixed(2)}</li>' +
+	    '<li>Total vol. sum: ${total_volume.toFixed(2)}</li>' +
+	'</ul>');
+    })(),
+    _html_data: function( property ){
+	return property;
+    }
+});
+
+
 
 /**
  * A widget to view voronoia data: cavities, their neighbours and packing data
