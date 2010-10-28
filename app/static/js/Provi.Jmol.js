@@ -582,12 +582,12 @@ Provi.Jmol.JmolWidget = function(params){
     this.delete_id = this.id + '_delete';
     this.sequence_view_id = this.id + '_sequence_view';
     var content = 
-	'<div title="more views" id="' + this.applet_parent_id + '" style="overflow:none; position:inherit; top:0px; bottom:30px; width:100%;"></div>' +
+	'<div id="' + this.applet_parent_id + '" style="overflow:none; position:inherit; top:0px; bottom:30px; width:100%;"></div>' +
 	'<div id="' + this.sequence_view_id + '" class="" style="overflow:auto; background:lightblue; position:inherit; height:65px; margin-bottom:15px; padding:6px; bottom:20px; left:0px; right:0px;">' +
 	    //'<span>Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;</span>' +
 	'</div>' +
 	'<div class="" style="background:lightyellow; position:inherit; height:20px; padding:6px; bottom:0px; left:0px; right:0px;">' +
-	    '<span class="ui-icon ui-icon-triangle-1-e" id="' + this.more_id + '"></span>&nbsp;' +
+	    '<span title="more views" class="ui-icon ui-icon-triangle-1-e" id="' + this.more_id + '"></span>&nbsp;' +
 	    '<span>Applet: ' + this.applet.name_suffix + '</span>' +
 	    '<span style="margin-left:20px; margin-right:10px; overflow:hidden;">Data: <span id="' + this.data_id + '" ></span></span>' +
             '<span title="delete" class="ui-icon ui-icon-trash" style="cursor:pointer; float:right;" id="' + this.delete_id + '">delete</span>' +
