@@ -20,6 +20,9 @@ mind the order, numpy is best installed before biopython
 
     Paste PasteScript webob weberror Routes Beaker simplejson Pygments poster
     
+for a clustering script::
+
+    hcluster
 
 Galaxy
 ======
