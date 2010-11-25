@@ -38,9 +38,12 @@ Provi.Data.Controller.StructureMixin = {
         var style = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
 	    //'select protein; color cartoon structure; color structure; ' +
 	    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
-            'select ligand; wireframe 0.16; spacefill 0.5; color cpk; ' +
+            'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
             'select water; wireframe 0.01;' +
-	    'select (dmpc or dmp or popc or pop); wireframe 0.1;';
+	    'select group=hoh; cpk 20%;' +
+	    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
+	    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
+	    'select none;';
         
         if( load_as != 'append' ) applet._delete();
 	
