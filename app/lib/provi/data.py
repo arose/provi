@@ -199,6 +199,10 @@ class JmolVoxel( Text ):
 class MrcDensityMap( Text ):
     file_ext = 'mrc'
 
+class Obj( Text ):
+    """3D objects"""
+    file_ext = 'obj'
+
 class Cif( Text ):
     file_ext = 'cif'
 
@@ -275,6 +279,7 @@ extension_to_datatype_dict = {
     'mol': Mol(),
     'mplane': Mplane(),
     'mrc': MrcDensityMap(),
+    'obj': Obj(),
     'pdb': Pdb(),
     'sco': Sco(),
     'sdf': Sdf(),
