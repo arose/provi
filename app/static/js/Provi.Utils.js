@@ -173,12 +173,14 @@ Provi.Utils = {};
 
 
 Provi.Utils.event = {
-    _keys: ['alt', 'shift', 'meta', 'ctrl'],
+    _keys: { 18:'alt', 16:'shift', 91:'meta', 17:'ctrl' },
     init: function(){
         var self = this;
         $(document).keydown(function(event) {
-            $.each( self._keys, function(){
-                if( event[ this + 'Key' ] ) self[ this + 'Key' ] = true;
+            //console.log(event);
+            $.each( self._keys, function( code, name ){
+                //console.log( event[ name + 'Key' ] );
+                if( event[ name + 'Key' ] || event.which == code ) self[ name + 'Key' ] = true;
             });
         });
         $(document).keyup(function(event){
