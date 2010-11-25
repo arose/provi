@@ -279,7 +279,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         });
 	
         // init style
-        $("#" + this.style_id).bind('click', function() {
+        $("#" + this.style_id).bind('click change', function() {
             self.set_style();
         });
 	this.set_style();
