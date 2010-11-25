@@ -57,6 +57,16 @@ var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
 };
 
 /**
+ * Function to delegate a jmol script callback to the corresponding applet wrapper.
+ * Also available as a global function because Jmol would not accept it otherwise.
+ * @memberOf Provi.Jmol
+ */
+var jmol_script_callback = function(applet_name, status, message, millisec, errorUntranslated){
+    console.log( applet_name+'', status+'', message+'', millisec+'', errorUntranslated+'' );
+    Provi.Jmol.get_applet_by_id( applet_name+'' )._message_callback( status+'', message+'', millisec+'', errorUntranslated+'' );
+};
+
+/**
  * Function to delegate a jmol pick callback to the corresponding applet wrapper.
  * Also available as a global function because Jmol would not accept it otherwise.
  * @memberOf Provi.Jmol
@@ -431,7 +441,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	
 	try{
 	    var ret = this.applet.scriptWait(script);
-	    //var ret = this.applet.script( script );
 	}catch(e){
 	    console.log('scriptWait ERROR', e, script);
 	}
@@ -452,12 +461,38 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     script_wait: function(script, maintain_selection){
 	//console.log( 'SCRIPT: ' + script );
 	if(this.loaded){
-	    //return this._script_wait(script, maintain_selection);
 	    return this._script_wait(script, maintain_selection);
 	}else{
 	    console.log('defered');
 	    var self = this;
 	    $(this).bind('load', function(){ self.script_wait(script, maintain_selection) });
+	    return -1;
+	}
+    },
+    _script_wait_output: function(script, maintain_selection){
+	if(maintain_selection) script = 'save selection tmp; ' + script + ' restore selection tmp;';
+	
+	try{
+	    var ret = this.applet.scriptWaitOutput(script);
+	}catch(e){
+	    console.log('scriptWaitOutput ERROR', e, script);
+	}
+	
+	// remove first line and last two lines then return
+	return ret.split('\n').slice(1,-3).join('\n')
+    },
+    /**
+     * executes a jmol script synchronously and returns the output
+     */
+    script_wait_output: function(script, maintain_selection){
+	//console.log( 'SCRIPT: ' + script );
+	if(this.loaded){
+	    //return this._script_wait_output(script, maintain_selection);
+	    return this._script_wait_output(script, maintain_selection);
+	}else{
+	    console.log('defered');
+	    var self = this;
+	    $(this).bind('load', function(){ self.script_wait_output(script, maintain_selection) });
 	    return -1;
 	}
     },
@@ -483,6 +518,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	this.applet.script('set AnimFrameCallback "jmol_anim_frame_callback";');
 	this.applet.script('set LoadStructCallback "jmol_load_struct_callback";');
 	this.applet.script('set MessageCallback "jmol_message_callback";');
+	this.applet.script('set ScriptCallback "jmol_script_callback";');
 	this.applet.script('set PickCallback "jmol_pick_callback";');
 	this.loaded = true;
 	$(this).triggerHandler('load');
@@ -543,6 +579,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     _message_callback: function( msg1, msg2, msg3 ){
 	//console.log(msg1, msg2, msg3);
 	$(this).triggerHandler('message', [ msg1, msg2, msg3 ]);
+    },
+    _script_callback: function( status, message, millisec, errorUntranslated ){
+	//console.log(status, message, millisec, errorUntranslated);
+	$(this).triggerHandler('script', [ status, message, millisec, errorUntranslated ]);
     },
     _pick_callback: function( info, id ){
 	console.log( 'pick_callback', info, id );
