@@ -14,7 +14,7 @@ from MembraneProtein import HBexplore
 from Bio.PDB.PDBParser import PDBParser
 from provi.framework import expose
 
-from voronoia import VolParser
+from voronoia import VolParser, Voronoia
 
 def named_tmp_file( data ):
     tmp_file = NamedTemporaryFile()
@@ -199,6 +199,10 @@ class JmolVoxel( Text ):
 class MrcDensityMap( Text ):
     file_ext = 'mrc'
 
+class Obj( Text ):
+    """3D objects"""
+    file_ext = 'obj'
+
 class Cif( Text ):
     file_ext = 'cif'
 
@@ -229,14 +233,12 @@ class VoronoiaVolume( Text ):
     def parse_vol( self, data ):
         tmp_file = named_tmp_file( data )
         vol = VolParser.VolParser( tmp_file.name )
-        options = {
-            'discard_non_cavity_neighbors': 0,
-            'discard_surface': 0,
-            'discard_buried': 0,
-            'discard_cavity_neighbors': 0,
-            'mode': ''
-        }        
-        vol.parse_vol_file( options )
+        self.options = Voronoia.get_options()
+        self.options['discard_surface'] = False
+        self.options['bfactor'] = 'zscore'
+        self.options['atomtyping'] = 'native'
+        self.options['reference_file'] = Voronoia.INSTALL_DIR +'data'+os.sep+"avg_scop_native.avg"
+        vol.parse_vol_file( self.options )
         return vol
     @expose
     def get_cavities( self, dataset, **kwargs ):
@@ -254,7 +256,7 @@ class VoronoiaVolume( Text ):
     def get_pdb( self, dataset, **kwargs ):
         vol = self.parse_vol( dataset.data )
         tmp_file = NamedTemporaryFile()
-        vol.write_pdb_file( tmp_file.name, { 'bfactor': 'packdens' } )
+        vol.write_pdb_file( tmp_file.name, self.options )
         tmp_file.flush()
         return tmp_file.read()
 
@@ -277,6 +279,7 @@ extension_to_datatype_dict = {
     'mol': Mol(),
     'mplane': Mplane(),
     'mrc': MrcDensityMap(),
+    'obj': Obj(),
     'pdb': Pdb(),
     'sco': Sco(),
     'sdf': Sdf(),

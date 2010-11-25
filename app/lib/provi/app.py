@@ -205,7 +205,10 @@ class PluploadController( BaseController ):
 class GalaxyController( BaseController ):
     def get( self, trans, url ):
         opener = urllib2.build_opener( urllib2.HTTPCookieProcessor( trans.cookiejar ), urllib2.ProxyHandler({}) )
-        return opener.open( url ).read()
+        try:
+            return opener.open( url ).read()
+        except:
+            return ''
     @expose
     def index( self, trans ):
         return 'foo'
@@ -223,7 +226,7 @@ class GalaxyController( BaseController ):
     @expose
     def login( self, trans, email='alexander.rose@weirdbyte.de', password='foobar', galaxysession=None ):
         if galaxysession:
-            print galaxysession
+            #print galaxysession
             from urlparse import urlparse
             url = urlparse( trans.app.config.galaxy_url )
             # the port must be a string!!!
