@@ -140,6 +140,10 @@
 	    new Provi.Jmol.Analysis.RamachandranPlotWidget({
                 parent_id: 'tab_widgets'
             });
+	    
+	    new Provi.Jmol.Analysis.HbondsWidget({
+                parent_id: 'tab_widgets'
+            });
             
 	    new Provi.Bio.Sequence.TreeViewWidget({
 		parent_id: 'tab_tree'
@@ -237,7 +241,7 @@
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Provi.Data.Io.import_example( 'web_data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
 		//Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.pdb', 'pdb', { applet: applet, load_as: 'new' } );
-		Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.vol', 'vol', { applet: applet, load_as: 'new' } );
+		Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.pdb', 'pdb', { applet: applet, load_as: 'new' } );
 		//Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
 		//Data.import_example( 'web_data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
@@ -273,7 +277,7 @@
 	    );
 	    $('#showcase_examples').append(
 		$('<li class="load_example"><a>Multiple rhodpson/opsin structrues side by side</a></li>').click( function(){
-		    $.each( ['1u19', '3cap', '3dqb', '3eml'], function(i, structure_name){
+		    $.each( ['1u19', '2g87', '2hpy', '3cap'], function(i, structure_name){
 			var jw = new Provi.Jmol.JmolWidget({});
 			Provi.Data.Io.import_example( 'showcase', 'rhodopsin/' + structure_name + '_aligned.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
 		    });
