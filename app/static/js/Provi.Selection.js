@@ -55,7 +55,7 @@ Provi.Selection.Selection.prototype = /** @lends Provi.Selection.Selection.proto
      * Triggers the {@link Provi.Selection.SelectionManager#event:select} event.
      */
     _select: function( selection ) {
-	console.log( 'select', selection );
+	//console.log( 'select', selection );
 	//$.each( Utils.event._keys, function(){ console.log( this + ': ' + Utils.event[ this + 'Key' ] ); });
 	this.selection = selection;
 	this.selection_array = this._eval( selection );
@@ -64,7 +64,7 @@ Provi.Selection.Selection.prototype = /** @lends Provi.Selection.Selection.proto
     },
     select: function() {
 	//console.log( 'select', this.selection );
-	Utils.event.metaKey ? this.add() : this._select( this.selection );
+	Utils.event.ctrlKey ? this.add() : this._select( this.selection );
 	//this._select( this.selection );
     },
     deselect: function() {
