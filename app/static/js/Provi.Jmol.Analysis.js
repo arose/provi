@@ -221,4 +221,108 @@ Provi.Jmol.Analysis.RamachandranPlotWidget.prototype = Utils.extend(Widget, /** 
 
 
 
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Analysis.HbondsWidget = function(params){
+    //params.persist_on_applet_delete = false;
+    //params.heading = '';
+    //params.collapsed = false;
+    Provi.Widget.Widget.call( this, params );
+    this._build_element_ids([ 'angle_min', 'dist_max', 'calc', 'applet_selector_widget', 'display', 'display_residues' ]);
+    
+    this.angle_min = 90;
+    this.dist_max = 3.5;
+    this.visibility = true;
+    
+    var content = '<div class="control_group">' +
+	'<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+	'<div class="control_row">' +
+            '<input id="' + this.display_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.display_id + '" style="display:inline-block;">display hbonds</label>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<input size="4" id="' + this.angle_min_id + '" type="text" class="ui-state-default"/>' +
+            '<label for="' + this.angle_min_id + '" >min angle</label> ' +
+	    '<input size="4" id="' + this.dist_max_id + '" type="text" class="ui-state-default"/>' +
+            '<label for="' + this.dist_max_id + '" >max distance</label> ' +
+	    '<button id="' + this.calc_id + '">calc hbonds</button>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<button id="' + this.display_residues_id + '">display residues</button>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id
+    });
+    this._init();
+}
+Provi.Jmol.Analysis.HbondsWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.HbondsWidget.prototype */ {
+    _init: function(){
+        var self = this;
+	
+        $('#' + this.display_id).click(function(){
+	    self.visibility = $("#" + self.display_id).is(':checked');
+            self.display();
+        }).attr( 'checked', this.visibility );
+	
+	$("#" + this.calc_id).button().click(function() {
+            self.calc();
+        });
+	
+	$("#" + this.angle_min_id).change(function() {
+	    self.angle_min = $(this).val();
+            self.calc();
+        }).val( this.angle_min );
+	
+	$("#" + this.dist_max_id).change(function() {
+	    self.dist_max = $(this).val();
+            self.calc();
+        }).val( this.dist_max );
+	
+	$("#" + this.display_residues_id).button().click(function() {
+            self.display_residues();
+        });
+	
+	//Provi.Widget.Widget.prototype.init.call(this);
+    },
+    calc: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.script(
+		"select not backbone;" +
+		"hbonds delete;" +
+		"set hbondsRasmol FALSE;" +
+		"set hbondsAngleMinimum " + this.angle_min + ";" +
+		"set hbondsDistanceMaximum " + this.dist_max + ";" +
+		"calculate hbonds;",
+	    true );
+	}
+    },
+    display: function(){
+	applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.script( 'select all; hbonds ' + ( this.visibility ? 'on' : 'off' ) + ';', true );
+	}
+    },
+    display_residues: function(){
+	applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.script(
+		'var x = connected("hbond").atoms; ' +
+		'select @x or within(group, @x);' +
+		'wireframe 0.1;',
+	    true );
+	}
+    }
+    
+    
+    // 
+});
+
+
 })();
