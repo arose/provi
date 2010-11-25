@@ -83,7 +83,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         $('#' + this.color_id).change(function(){
             console.log($('#' + self.color_id).val());
             var id = 'isosurface_' + self.id;
-            self.applet.script('color $' + id + ' [x' + $('#' + self.color_id).val().substring(1) + '];');
+            self.applet.script('color $' + id + ' [x' + $('#' + self.color_id).val().substring(1) + '] translucent;');
         });
         
         // init display within
@@ -103,23 +103,25 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         this.set_show();
         var s = 'isosurface id "' + this.isosurface_name + '" display within ' + parseFloat(this.display_within) + ' ({' + this.sele + '}); ' +
             'center {' + this.sele + '}; slab on; set slabRange 10.0;';
-        this.applet.script(s);
+        //this.applet.script(s);
     },
     load_isosurface: function(){
         var self = this;
         var id = 'isosurface_' + this.id;
-        this.applet.script('select all; wireframe -0.1; ' +
-            'isosurface id "' + this.isosurface_name + '" color black cutoff ' + this.cutoff + ' resolution ' + this.resolution + ' sigma ' + this.sigma + ' "../../data/get/?id=' + this.dataset.server_id + '" mesh nofill; ' +
-            'hide $' + this.isosurface_name + ';', true);
-        $(this.applet).bind('pick', function(event, info, applet_id){
-            var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
-            var chain = parsedInfo[2];
-            var res = parsedInfo[1];
-            var atom = parsedInfo[3];
-            self.sele = 'resNo=' + res + (chain ? ' and chain=' + chain : '') + ' and atomName="' + atom + '"';
-            self.show_isosurface();
-        })
-        this.sele = 'atomIndex=1';
+        this.applet.script(
+	    //'select all; wireframe -0.1; ' +
+            'isosurface id "' + this.isosurface_name + '" color black cutoff ' + this.cutoff + ' resolution ' + this.resolution + ' sigma ' + this.sigma + ' "../../data/get/?id=' + this.dataset.server_id + '" translucent;' + //mesh nofill; ' +
+            //'hide $' + this.isosurface_name + ';'
+	    '', true);
+        //$(this.applet).bind('pick', function(event, info, applet_id){
+        //    var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
+        //    var chain = parsedInfo[2];
+        //    var res = parsedInfo[1];
+        //    var atom = parsedInfo[3];
+        //    self.sele = 'resNo=' + res + (chain ? ' and chain=' + chain : '') + ' and atomName="' + atom + '"';
+        //    self.show_isosurface();
+        //})
+        //this.sele = 'atomIndex=1';
         this.show_isosurface();
     }
 });
