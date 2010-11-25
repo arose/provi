@@ -499,13 +499,7 @@ Provi.Data.Io.SaveDataWidget = function(params){
     params.heading = params.heading || 'Download data';
     params.collapsed = false;
     Widget.call( this, params );
-    this.applet_selector_widget_id = this.id + '_applet';
-    this.form_id = this.id + '_form';
-    this.iframe_id = this.id + '_iframe';
-    this.save_structure_id = this.id + '_save_structure';
-    this.save_structure_selected_id = this.id + '_save_structure_selected';
-    this.save_image_id = this.id + '_save_image';
-    this.save_state_id = this.id + '_save_state';
+    this._build_element_ids(['save_structure', 'save_structure_selected', 'save_image', 'save_state', 'save_isosurface', 'applet_selector_widget', 'form', 'iframe']);
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
@@ -518,6 +512,9 @@ Provi.Data.Io.SaveDataWidget = function(params){
         '</div>' +
         '<div class="control_row">' +
             '<button id="' + this.save_state_id + '">save state</button>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<button id="' + this.save_isosurface_id + '">save isosurface</button>' +
         '</div>' +
         '<form id="' + this.form_id + '" style="display:hidden;" method="post" action="../../save/' + this.backend_type + '/" target="' + this.iframe_id + '">' +
             '<input type="hidden" name="name" value=""></input>' +
@@ -564,6 +561,13 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
             }, 3000);
             self.save_state();
         });
+	$("#" + this.save_isosurface_id).button().click(function() {
+            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
+            setTimeout(function(){
+                $("#" + self.save_isosurface_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save isosurface" );
+            }, 3000);
+            self.save_isosurface();
+        });
         Widget.prototype.init.call(this);
     },
     save_data: function( data, name, encoding, type ){
@@ -576,6 +580,7 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
     },
     save_structure: function(){
         var applet = this.applet_selector.get_value();
+	applet.script_wait('save selection tmp' + this.id + ';');
         if( !$("#" + this.save_structure_selected_id).is(':checked') ){
             applet.script_wait('select *;');
         }
@@ -584,6 +589,7 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
         //var data = this.applet_selector.get_value().get_property_as_string("fileContents", '');
         //console.log(data);
         this.save_data( data, 'structure.pdb' );
+	applet.script_wait('restore selection tmp' + this.id + ';');
     },
     save_image: function(){
         var data = this.applet_selector.get_value().get_property_as_string("image", '');
@@ -592,6 +598,11 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
     save_state: function(){
         var data = this.applet_selector.get_value().get_property_as_string("stateInfo", '');
         this.save_data( data, 'state.jspt' );
+    },
+    save_isosurface: function(){
+        var data = this.applet_selector.get_value().evaluate("script('show isosurface')");
+	console.log(data);
+        this.save_data( data, 'isosurface.jvxl' );
     }
 });
 
