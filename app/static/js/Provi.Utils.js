@@ -286,6 +286,15 @@ Provi.Utils.in_array = function(array, item, testFn) {
 
 
 /**
+ * http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric/1830844#1830844
+ */
+function isNumber(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+
+
+/**
  * A class that save items in historical order and provides access to them
  * @constructor
  */
