@@ -33,14 +33,8 @@ Provi.Jmol.Modeling.JmolModelingWidget = function(params){
     this.drag_selected = false;
     this.selection_halos = false;
     Widget.call( this, params );
-    this.selection_halos_id = this.id + '_selection_halos';
-    this.picking_select_id = this.id + '_picking_select';
-    this.drag_selected_id = this.id + '_drag_selected';
-    this.rotate_selected_id = this.id + '_rotate_selected';
-    this.rotate_range_begin_id = this.id + '_rotate_range_begin';
-    this.rotate_range_end_id = this.id + '_rotate_range_end';
-    this.rotate_range_id = this.id + '_rotate_range';
-    this.applet_selector_widget_id = this.id + '_applet';
+    this._build_element_ids([ 'selection_halos', 'picking_select', 'drag_selected', 'rotate_selected', 'rotate_range_begin', 'rotate_range_end', 'rotate_range', 'duplicate_selection', 'applet_selector_widget' ]);
+    
     var content = '<div class="control_group">' +
         '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
 	'<div class="control_row">' +
@@ -71,6 +65,9 @@ Provi.Jmol.Modeling.JmolModelingWidget = function(params){
 	    '<input size="4" id="' + this.rotate_range_end_id + '" type="text" class="ui-state-default"/>' +
             '<label for="' + this.rotate_range_end_id + '" >end</label> ' +
 	    '<button id="' + this.rotate_range_id + '">rotate</button>' +
+        '</div>' +
+	'<div class="control_row">' +
+	    '<button id="' + this.duplicate_selection_id + '">duplicate selection</button>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
@@ -173,7 +170,9 @@ Provi.Jmol.Modeling.JmolModelingWidget.prototype = Utils.extend(Widget, /** @len
 	// rotate {protein} 30 MOLECULAR
 	// rotateSelected {atomno=1604} {atomno=1882} 30 MOLECULAR
 	
-	
+	$("#" + this.duplicate_selection_id).button().click(function() {
+            self.duplicate_selection();
+        });
 	
 	Widget.prototype.init.call(this);
     },
@@ -188,6 +187,22 @@ Provi.Jmol.Modeling.JmolModelingWidget.prototype = Utils.extend(Widget, /** @len
         if(applet && this.rotate_range_begin && this.rotate_range_end){
 	    console.log( this.rotate_range_begin, this.rotate_range_end );
 	    applet.script('draw rotate_range_' + this.id + ' ARROW {atomno=' + this.rotate_range_begin + '} {atomno=' + this.rotate_range_end + '};');
+	}
+    },
+    duplicate_selection: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.script(
+		"selectionHalos OFF;" +
+		"var n = {*}.atomIndex.max;" +
+		"var x = write('coords','pdb');" +
+		"set appendNew OFF;" +
+		"load append '@x';" +
+		"set appendNew ON;" +
+		"select atomIndex > n;" +
+		
+		"selectionHalos ON;"
+	    );
 	}
     }
     
