@@ -38,7 +38,7 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
     }else if( type == 'vol' ){
         $.extend( obj, Ctrl.VoronoiaMixin );
     }else{
-        //console.log('unkown file type');
+        console.log('unkown file type', obj);
     }
 }
 
