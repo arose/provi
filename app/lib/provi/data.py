@@ -235,7 +235,8 @@ class VoronoiaVolume( Text ):
         vol = VolParser.VolParser( tmp_file.name )
         self.options = Voronoia.get_options()
         self.options['discard_surface'] = False
-        self.options['bfactor'] = 'zscore'
+        self.options['bfactor'] = 'packdens'
+        #self.options['bfactor'] = 'zscore'
         self.options['atomtyping'] = 'native'
         self.options['reference_file'] = Voronoia.INSTALL_DIR +'data'+os.sep+"avg_scop_native.avg"
         vol.parse_vol_file( self.options )
