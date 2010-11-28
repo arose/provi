@@ -72,16 +72,16 @@ Provi.Data.Controller.VoronoiaMixin = $.extend(true, {}, Provi.Data.Controller.S
         //console.log( cavities );
         cavities = eval( cavities );
 	//console.log(cavities);
-	applet.script('frame all;');
+	applet._script_wait('frame all;');
 	console.log('get cavities, after frame all');
-	applet.script('hide hidden or ' + model_number);
+	applet._script_wait('hide hidden or ' + model_number);
         //applet.script_wait('set refreshing true;');
 	console.log('get cavities, after hide');
 	var s = '';
 	$.each( cavities, function(i){
 	    s += 'select ' + this[0] + '/' + model_number + '; color translucent blue; spacefill @{ {atomNo=' + this[0] + ' and ' + model_number + '}.temperature/2 };';
 	});
-	applet.script( s );
+	applet._script_wait( s );
 	console.log('get cavities, after cav');
 	
 	onload( cavities, model_number );

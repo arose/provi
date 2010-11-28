@@ -51,7 +51,16 @@ Provi.Data.Controller.StructureMixin = {
 	if(load_as == 'trajectory'){
 	    applet.script('load TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style);
 	}else if(load_as == 'append'){
-	    applet.script('load APPEND "' + type + '../../data/get/' + params + '"; frame all; ' + style);
+	    var style2 = 'select file = _currentFileNumber; spacefill off; wireframe off; backbone off; cartoon on; ' +
+		//'select protein; color cartoon structure; color structure; ' +
+		'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
+		'select (file = _currentFileNumber and (ligand or ypl or lrt)); wireframe 0.16; spacefill 0.5; color cpk; ' +
+		'select (file = _currentFileNumber and water); wireframe 0.01;' +
+		'select (file = _currentFileNumber and group=hoh); cpk 20%;' +
+		'select (file = _currentFileNumber and (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt))); wireframe 0.1;' + 
+		'select (file = _currentFileNumber and (dmpc or dmp or popc or pop)); wireframe 0.1;' +
+		'select none;';
+	    applet.script('load APPEND "' + type + '../../data/get/' + params + '"; ' + style2 + ' frame all; ');
 	//}else if(load_as == 'new'){
 	}else{
 	    console.log('../../data/get/' + params);
