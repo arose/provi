@@ -44,9 +44,16 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
         }
         
         if( $.query.get('example') ){
+	    var jw_dict = {};
             $.each( $.query.get('example'), function(i, data){
-                var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
-                Provi.Data.Io.import_example( data.dir, data.filename, data.type, { applet: jw.applet, load_as: 'new' } );
+		if(jw_dict[data.applet]){
+		    var jw = jw_dict[data.applet];
+		}else{
+		    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
+		    jw_dict[i] = jw;
+		}
+                Provi.Data.Io.import_example( data.dir, data.filename, data.type, { applet: jw.applet, load_as: (data.load_as || 'new') } );
+		
             });
         }
         
