@@ -270,15 +270,19 @@ Provi.Data.Io.ExampleLoadWidget = function(params){
     params.heading = 'Example/Local Data';
     this.directory_name = '';
     Widget.call( this, params );
-    this.directory_selector_widget_id = this.id + '_directory_selector';
-    this.dataset_list_id = this.id + '_dataset_list';
-    this.load_as_selector_widget_id = this.id + '_load_as';
-    this.applet_selector_widget_id = this.id + '_applet';
+    this._build_element_ids([ 'directory_selector_widget', 'load_as_selector_widget', 'applet_selector_widget', 'dataset_list', 'dataset_list_collapse_all', 'dataset_list_collapse_none' ]);
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div id="' + this.load_as_selector_widget_id + '"></div>' +
         '<div id="' + this.directory_selector_widget_id + '"></div>' +
-        '<div class="control_row" id="' + this.dataset_list_id + '"></div>' +
+	'<div>' +
+	    '<div>' +
+		'<span>Collapse directories: </span>' +
+		'<button id="' + this.dataset_list_collapse_all_id + '">show all</button>' +
+		'<button id="' + this.dataset_list_collapse_none_id + '">hide all</button>' +
+	    '</div>' +
+	    '<div class="control_row" id="' + this.dataset_list_id + '"></div>' +
+	'</div>' +
     '</div>';
     $(this.dom).append( content );
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
@@ -298,6 +302,7 @@ Provi.Data.Io.ExampleLoadWidget = function(params){
 Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.Io.ExampleLoadWidget.prototype */ {
     init: function(){
         var self = this;
+	this._directories = [];
 	this._directory_collapsed = {};
 	this._directory_collapsed[ this.directory_name ] = {};
         this.update();
@@ -307,6 +312,22 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
 	    if(!self._directory_collapsed[self.directory_name]) self._directory_collapsed[self.directory_name] = {};
             self.update();
         });
+	$('#' + this.dataset_list_collapse_all_id).button().click( function(){
+	    var dir_col = self._directory_collapsed[self.directory_name];
+	    $.each(self._directories, function(key,id){
+		$("#" + id).next().show();
+		$("#" + id).children('.ui-icon').addClass('ui-icon-triangle-1-s').removeClass('ui-icon-triangle-1-e');
+		dir_col[id] = dir_col[id] ? false : true;
+	    });
+	});
+	$('#' + this.dataset_list_collapse_none_id).button().click( function(){
+	    var dir_col = self._directory_collapsed[self.directory_name];
+	    $.each(self._directories, function(key,id){
+		$("#" + id).next().hide();
+		$("#" + id).children('.ui-icon').addClass('ui-icon-triangle-1-e').removeClass('ui-icon-triangle-1-s');
+		dir_col[id] = dir_col[id] ? false : true;
+	    });
+	});
         Widget.prototype.init.call(this);
     },
     update: function() {
@@ -350,7 +371,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
 		    }
                 });
 		
-		var directories = [];
+		self._directories = [];
 		
 		function tree_to_html( tree, level ){
 		    html = '';
@@ -370,7 +391,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
 				    '<span style="font-weight: bold;">' + key + '</span>' +
 				'</div>' +
 				tree_to_html( data, level+1 );
-			    directories.push( dir_id );
+			    self._directories.push( dir_id );
 			}
 		    });
 		    return '<div style="' + (level>0 ? 'padding-left:20px;' : '') + 'position:relative;">' + html + '</div>';
@@ -380,7 +401,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
 		list.append( html );
 		
 		// register on click handlers to show subtrees
-		$.each(directories, function(key,id){
+		$.each(self._directories, function(key,id){
 		    $("#" + id).click(function() {
 			$("#" + id).next().toggle();
 			$("#" + id).children('.ui-icon').toggleClass('ui-icon-triangle-1-s').toggleClass('ui-icon-triangle-1-e');
