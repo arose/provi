@@ -298,10 +298,13 @@ Provi.Data.Io.ExampleLoadWidget = function(params){
 Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.Io.ExampleLoadWidget.prototype */ {
     init: function(){
         var self = this;
+	this._directory_collapsed = {};
+	this._directory_collapsed[ this.directory_name ] = {};
         this.update();
         this.directory_name = this.directory_selector.get_value();
         this.directory_selector.change(function(){
             self.directory_name = self.directory_selector.get_value();
+	    if(!self._directory_collapsed[self.directory_name]) self._directory_collapsed[self.directory_name] = {};
             self.update();
         });
         Widget.prototype.init.call(this);
@@ -321,6 +324,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
     },
     dataset_list: function(){
         var self = this;
+	var dir_col = self._directory_collapsed[self.directory_name];
         $.ajax({
             url: '../../example/dataset_list/',
             data: { directory_name: self.directory_name },
@@ -328,18 +332,75 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
             success: function(data, textStatus, XMLHttpRequest) {
                 var list = $('#' + self.dataset_list_id);
                 list.empty();
-                //self.directory_name = data.directory_name;
+		var tree = {};
                 $.each(data.file_list, function(id,name){
-                    var button_id = self.dataset_list_id + '_' + id;
-                    list.append( '<div>' +
-                        '<button id="' + button_id + '">import</button>&nbsp;' +
-                        '<span>' + name + '</span>' +
-                    "</div>");
-                    $("#" + button_id).button().click(function() {
-                        $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
-                        self.import_dataset( id, self.directory_name, name );
-                    });
+		    var name_list = name.split('/').reverse();
+		    var cur_name = name_list.pop();
+		    var cur_subtree = tree;
+		    while( cur_name ){
+			if( name_list.length > 0 ){
+			    if( !cur_subtree[cur_name] ){
+				cur_subtree[cur_name] = { '__path__': name+name_list.length };
+			    }
+			    cur_subtree = cur_subtree[cur_name];
+			}else{
+			    cur_subtree[ cur_name ] = [id, name];
+			}
+			cur_name = name_list.pop();
+		    }
                 });
+		
+		var directories = [];
+		
+		function tree_to_html( tree, level ){
+		    html = '';
+		    $.each(tree, function(key,data){
+			if( $.isArray(data) ){
+			    var id = data[0];
+			    var button_id = self.dataset_list_id + '_' + id;
+			    html += '<div style="padding-left:0px;">' +
+				'<button id="' + button_id + '">import</button>&nbsp;' +
+				'<span>' + key + '</span>' +
+			    "</div>";
+			}else if( data['__path__'] ){
+			    var dir_id = self.dataset_list_id + '_dir_' + data['__path__'].split('/').join('_').split('-').join('_').split('.').join('_');
+			    html += '' +
+				'<div style="padding-top:5px; padding-bottom:5px; " id="' + dir_id + '">' +
+				    '<span class="ui-icon ui-icon-triangle-1-' + (dir_col ? 's' : 'e') + '"></span>' +
+				    '<span style="font-weight: bold;">' + key + '</span>' +
+				'</div>' +
+				tree_to_html( data, level+1 );
+			    directories.push( dir_id );
+			}
+		    });
+		    return '<div style="' + (level>0 ? 'padding-left:20px;' : '') + 'position:relative;">' + html + '</div>';
+		}
+		
+		var html = tree_to_html( tree, 0 );
+		list.append( html );
+		
+		// register on click handlers to show subtrees
+		$.each(directories, function(key,id){
+		    $("#" + id).click(function() {
+			$("#" + id).next().toggle();
+			$("#" + id).children('.ui-icon').toggleClass('ui-icon-triangle-1-s').toggleClass('ui-icon-triangle-1-e');
+			dir_col[id] = dir_col[id] ? false : true;
+		    });
+		    
+		    if( !dir_col[id] ){
+			$("#" + id).next().toggle();
+			$("#" + id).children('.ui-icon').toggleClass('ui-icon-triangle-1-s').toggleClass('ui-icon-triangle-1-e');
+		    }
+		});
+		
+		// register on click handlers to import datasets
+		$.each(data.file_list, function(id,name){
+		    var button_id = self.dataset_list_id + '_' + id;
+		    $("#" + button_id).button().click(function() {
+			$(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
+			self.import_dataset( id, self.directory_name, name );
+		    });
+		});
             }
         });
     }
