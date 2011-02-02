@@ -142,7 +142,7 @@ Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype = Utils.extend(Widget, 
         function select_tmhelix(n) {
             if( self.applet && n.childNodes.length == 0 && n.parentNode ){
                 var beg_end = n.nodeName.split(' - ');
-                self.applet.selection_manager.select( 'resNo > ' + beg_end[0] + ' and resNo < ' + beg_end[1] + ' and chain=' + n.parentNode.nodeName );
+                self.applet.selection_manager.select( 'resNo >= ' + beg_end[0] + ' and resNo <= ' + beg_end[1] + ' and chain=' + n.parentNode.nodeName );
             }
         }
     },
