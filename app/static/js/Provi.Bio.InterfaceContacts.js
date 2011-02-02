@@ -54,15 +54,14 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     this.color_interface_residue = false;
     this.interface_ids = '';
     this.interface_names = '';
+    this.tmh_filter = false;
+    this.tmh_list = false;
     this.atoms = [];
     this.structure_atoms = [];
     this.applet = params.applet;
     this.dataset = params.dataset;
     Widget.call( this, params );
-    this.interface_name_id = this.id + '_interface_name';
-    this.cutoff_id = this.id + '_cutoff';
-    this.show_only_interface_atoms_id = this.id + '_show_only_interface_atoms';
-    this.color_interface_residue_id = this.id + '_color_interface_residue';
+    this._build_element_ids([ 'interface_name', 'cutoff', 'show_only_interface_atoms', 'color_interface_residue', 'tmh_filter_check' ]);
     
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
@@ -97,6 +96,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
             '<input id="' + this.color_interface_residue_id + '" type="checkbox" />' +
             '<label for="' + this.color_interface_residue_id + '">color the complete residue (not only the contact making atom)</label>' +
         '</div>' +
+        '<div class="control_row">' +
+            '<input id="' + this.tmh_filter_check_id + '" type="checkbox" />' +
+            '<label for="' + this.tmh_filter_check_id + '">limit interface contacts to tmh atoms</label>&nbsp;' +
+        '</div>' +
         '<i>interface atoms are shown in orange</i>' +
     '</div>';
     console.log(content);
@@ -106,6 +109,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
 Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype */ {
     _init: function(){
         var self = this;
+        $(Provi.Data.DatasetManager).bind('change', function(){ self._init_tmh_filter() });
         
         if(this.dataset.type == 'mbn'){
             $("#" + this.interface_name_id + ' option[value=]').after("<option value='membrane' selected='selected'>membrane</option>");
@@ -136,6 +140,11 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             self.show_only_interface_atoms = $("#" + self.show_only_interface_atoms_id).is(':checked');
             self.draw();
         });
+        this._init_tmh_filter();
+        $("#" + this.tmh_filter_check_id).change( function() {
+            self.tmh_filter = $("#" + self.tmh_filter_check_id).is(':checked');
+            self.draw();
+        });
     },
     _init_control: function(){
         var self = this;
@@ -146,6 +155,21 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 $("#" + self.interface_name_id).append("<option value='" + this + "'>helix " + (i+1) + "</option>");
             });
         }
+    },
+    /** initialize the tmh filter controls */
+    _init_tmh_filter: function(){
+        var self = this;
+        $.each( Provi.Data.DatasetManager.get_list(), function(i, dataset){
+            $("#" + self.tmh_filter_check_id).parent().hide();
+            if( dataset.type == 'tmhelix' && dataset.data && Utils.in_array(dataset.applet_list, self.applet) ){
+                self.tmh_list = dataset.data.tmh_list;
+                self.tmh_filter = false;
+                $("#" + self.tmh_filter_check_id).parent().show();
+                return false;
+            }else{
+                return true;
+            }
+        });
     },
     retrieve_atoms: function (){
         if(this.interface_names){
@@ -167,6 +191,17 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
             });
             atoms = atoms.join(',');
+            
+            if( this.tmh_filter && this.tmh_list ){
+                console.log( this.tmh_list );
+                var tmh_filter = []
+                $.each( this.tmh_list, function( i, tmh ){
+                    tmh_filter.push(
+                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
+                    );
+                });
+                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+            }
             
             if(this.color_interface_residue){
                 var cmd = 'display all; select all; color grey; select within(GROUP, (' + atoms + ') ); save selection MINTERF; color ' + this.color + ';';
