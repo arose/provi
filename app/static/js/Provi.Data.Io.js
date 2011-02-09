@@ -384,7 +384,8 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
 				'<span>' + key + '</span>' +
 			    "</div>";
 			}else if( data['__path__'] ){
-			    var dir_id = self.dataset_list_id + '_dir_' + data['__path__'].split('/').join('_').split('-').join('_').split('.').join('_');
+			    var dir_id = self.dataset_list_id + '_dir_' + data['__path__'].replace( new RegExp( "[^A-Za-z0-9_]", "gi" ), "_" );
+			    console.log( dir_id );
 			    html += '' +
 				'<div style="padding-top:5px; padding-bottom:5px; " id="' + dir_id + '">' +
 				    '<span class="ui-icon ui-icon-triangle-1-' + (dir_col ? 's' : 'e') + '"></span>' +
