@@ -47,6 +47,7 @@
     <script type="text/javascript" src="../js/Provi.Bio.Rotamers.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.MembranePlanes.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.TransmembraneHelices.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Indices.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Sequence.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.HydrogenBonds.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.InterfaceContacts.js"></script>
@@ -70,6 +71,7 @@
     <script type="text/javascript" src="../js/Provi.Data.Controller.IsosurfaceMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.ScriptMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.TmHelicesMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.NdxMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.HbondsMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.VoronoiaMixin.js"></script>
     
@@ -97,8 +99,10 @@
 	//Provi.Jmol.init("../applet/jmol/12.0.8/");
 	//Provi.Jmol.init("../applet/jmol/12.1.10/");
 	//Provi.Jmol.init("../applet/jmol/12.1.23/");
-	//Provi.Jmol.init("../applet/jmol/2010-11-23/");
-	Provi.Jmol.init("../applet/jmol/12.1.28/", true);
+	//Provi.Jmol.init("../applet/jmol/2010-11-23/", true);
+	//Provi.Jmol.init("../applet/jmol/12.1.28/", true);
+	//Provi.Jmol.init("../applet/jmol/2011-01-06/");
+	Provi.Jmol.init("../applet/jmol/12.1.35/", true);
 	
         $(document).ready(function(){
 	    
@@ -244,16 +248,19 @@
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Provi.Data.Io.import_example( 'web_data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
 		//Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.pdb', 'pdb', { applet: applet, load_as: 'new' } );
-		Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.pdb', 'pdb', { applet: applet, load_as: 'new' } );
+		//Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.pdb', 'pdb', { applet: applet, load_as: 'new' } );
 		//Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
 		//Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
-		//Data.import_example( 'web_data', '3dqb.tmhelix', 'tmhelix', { applet: jw.applet } );
+		//Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', { applet: applet } );
 		//Data.import_example( 'web_data', '3dqb.anal', 'anal', { applet: jw.applet } );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/npt.gro', 'npt.gro', 'gro', { applet: false, load_as: 'new' } );
 		//Data.import_example( 'web-data', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/intra_water.jspt', 'intra_water.jspt', 'jspt', { applet: false }, false, true );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
+		
+		Provi.Data.Io.import_example( 'showcase', 'gromacs/pr01_moved.part0001.gro', 'gro', { applet: applet, load_as: 'new' } );
+		Provi.Data.Io.import_example( 'showcase', 'gromacs/dowser_water.ndx', 'ndx', { applet: applet } );
 	    }
 	    
 	    // add some showcase examples

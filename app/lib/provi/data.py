@@ -2,9 +2,12 @@ import re
 import simplejson as json
 import os
 import os.path
+import logging
 from tempfile import TemporaryFile, NamedTemporaryFile
 from cStringIO import StringIO
 import itertools
+from collections import defaultdict
+from utils.odict import odict
 
 from MembraneProtein.AndreanTools import contact
 from MembraneProtein.AndreanTools import membran_neu
@@ -15,6 +18,10 @@ from Bio.PDB.PDBParser import PDBParser
 from provi.framework import expose
 
 from voronoia import VolParser, Voronoia
+
+logging.basicConfig( level=logging.DEBUG )
+LOG = logging.getLogger('provi')
+LOG.setLevel( logging.DEBUG )
 
 def named_tmp_file( data ):
     tmp_file = NamedTemporaryFile()
@@ -45,6 +52,7 @@ def get_headers( data, sep, count=60, is_multi_byte=False ):
 
 def sniff_datatype( data, name ):
     extension = name.split('.')[-1].lower()
+    LOG.debug( extension )
     if extension in extension_to_datatype_dict:
         return extension_to_datatype_dict[ extension ]
     else:
@@ -53,13 +61,16 @@ def sniff_datatype( data, name ):
 
 
 class Dataset( object ):
-    def __init__( self, data, type=None, name="" ):
+    def __init__( self, data, type=None, name="", extra_data={} ):
         self.data = data
+        self.extra_data = extra_data
         self.name = name
+        LOG.debug( type )
         if not type or type == 'auto':
             type = sniff_datatype( data, name )
         else:
             type = extension_to_datatype_dict[ str(type).lower() ]
+        LOG.debug( type )
         self.type = type
 
 
@@ -186,6 +197,24 @@ class Mplane( Text ):
 
 class Gromacs( Text ):
     file_ext = 'gro'
+    
+class Ndx( Text ):
+    """Gromacs atom index files"""
+    file_ext = 'ndx'
+    def parse_ndx( self, ndx ):
+        ndx_dict = odict()
+        index_group = ''
+        for line in ndx.split('\n'):
+            if line.startswith('['):
+                index_group = line.strip(' []')
+                ndx_dict[ index_group ] = []
+            else:
+                ndx_dict[ index_group ] += line.split()
+        return ndx_dict
+    @expose
+    def get_json_ndx( self, dataset, **kwargs ):
+        ndx_dict = self.parse_ndx( dataset.data )
+        return json.dumps( zip( ndx_dict.keys(), ndx_dict.values() ) )
 
 class JmolScript( Text ):
     file_ext = 'jspt'
@@ -200,7 +229,7 @@ class MrcDensityMap( Text ):
     file_ext = 'mrc'
 
 class Obj( Text ):
-    """3D objects"""
+    """Wavefront 3D objects"""
     file_ext = 'obj'
 
 class Cif( Text ):
@@ -211,6 +240,9 @@ class MmCif( Text ):
 
 class Cube( Text ):
     file_ext = 'cub'
+
+class Msms( Text ):
+    file_ext = 'vert'
 
 class Tmhelix( Text ):
     file_ext = 'tmhelix'
@@ -265,6 +297,14 @@ class Xplor( Text ):
     file_ext = 'xplor'
 
 
+class Xyzr( Text ):
+    file_ext = 'xyzr'
+
+
+class Xyzrn( Text ):
+    file_ext = 'xyzrn'
+
+
 extension_to_datatype_dict = {
     'anal': Hbx(),
     'bin': Binary(),
@@ -280,12 +320,16 @@ extension_to_datatype_dict = {
     'mol': Mol(),
     'mplane': Mplane(),
     'mrc': MrcDensityMap(),
+    'ndx': Ndx(),
     'obj': Obj(),
     'pdb': Pdb(),
     'sco': Sco(),
     'sdf': Sdf(),
     'tmhelix': Tmhelix(),
     'txt': Text(),
+    'vert': Msms(),
     'vol': VoronoiaVolume(),
     'xplor': Xplor(),
+    'xyzr': Xyzr(),
+    'xyzrn': Xyzrn()
 }
