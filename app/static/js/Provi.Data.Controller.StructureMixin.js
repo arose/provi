@@ -34,6 +34,7 @@ Provi.Data.Controller.StructureMixin = {
         };
         type = jmol_types[type];
 	type = type ? (type + '::') : '';
+	type = '';
 	
         var style = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
 	    //'select protein; color cartoon structure; color structure; ' +

@@ -107,12 +107,13 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
     },
     load_isosurface: function(){
         var self = this;
+	console.log(this.dataset);
         var id = 'isosurface_' + this.id;
         this.applet.script(
 	    //'select all; wireframe -0.1; ' +
             'isosurface id "' + this.isosurface_name + '" ' +
 	    'color black cutoff ' + this.cutoff + ' resolution ' + this.resolution + ' sigma ' + this.sigma + ' ' +
-	    '"../../data/get/?id=' + this.dataset.server_id + '" translucent;' + //mesh nofill; ' +
+	    '"../../data/get/?id=' + this.dataset.server_id + '&dataname=data.vert" translucent;' + //mesh nofill; ' +
             //'hide $' + this.isosurface_name + ';'
 	    '', true);
         //$(this.applet).bind('pick', function(event, info, applet_id){

@@ -25,8 +25,8 @@ var Widget = Provi.Widget.Widget;
  * mapping of file extension to Provi datatypes
  */
 Provi.Data.types = {
-    structure: ['pdb', 'gro', 'cif', 'mmcif', 'mol', 'sdf'],
-    isosurface: ['jvxl', 'mrc', 'cub', 'ccp4', 'obj'],
+    structure: ['pdb', 'gro', 'cif', 'mmcif', 'mol', 'sdf', 'xyzr', 'xyzrn'],
+    isosurface: ['jvxl', 'mrc', 'cub', 'ccp4', 'obj', 'vert'],
     interface_contacts: ['sco', 'mbn']
 }
 
@@ -147,6 +147,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
 	$(this).triggerHandler('change');
     },
     get: function( name ){
+	if( typeof(name) == 'undefined' ) name = 'main';
 	return this.data_dict[ name ];
     },
     get_list: function(){
@@ -165,7 +166,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     },
     retrieve_data: function(){
         var self = this;
-        var get_params = { 'id': response.id+'' };
+        var get_params = { 'id': this.id+'' };
         $.getJSON( '../../data/get/', get_params, function(d){
             self.set_data( d );
         });

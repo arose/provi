@@ -222,7 +222,7 @@ Provi.Jmol.Analysis.RamachandranPlotWidget.prototype = Utils.extend(Widget, /** 
 
 
 /**
- * A widget
+ * A widget to access Jmol's calculate hbonds functionality
  * @constructor
  * @extends Provi.Widget.Widget
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
@@ -234,8 +234,8 @@ Provi.Jmol.Analysis.HbondsWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this._build_element_ids([ 'angle_min', 'dist_max', 'calc', 'applet_selector_widget', 'display', 'display_residues' ]);
     
-    this.angle_min = 90;
-    this.dist_max = 3.5;
+    this.angle_min = 60;
+    this.dist_max = 3.9;
     this.visibility = true;
     
     var content = '<div class="control_group">' +
@@ -294,7 +294,8 @@ Provi.Jmol.Analysis.HbondsWidget.prototype = Utils.extend(Provi.Widget.Widget, /
 	var applet = this.applet_selector.get_value();
         if(applet){
 	    applet.script(
-		"select not backbone;" +
+		//"select not backbone and not hydrogen;" +
+		"select not hydrogen;" +
 		"hbonds delete;" +
 		"set hbondsRasmol FALSE;" +
 		"set hbondsAngleMinimum " + this.angle_min + ";" +
@@ -323,6 +324,54 @@ Provi.Jmol.Analysis.HbondsWidget.prototype = Utils.extend(Provi.Widget.Widget, /
     
     // 
 });
+
+
+/**
+ * A widget to access Jmol's isosruface creation functionality
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Analysis.IsosurfaceWidget = function(params){
+    //params.persist_on_applet_delete = false;
+    //params.heading = '';
+    //params.collapsed = false;
+    Provi.Widget.Widget.call( this, params );
+    this._build_element_ids([ 'angle_min', 'dist_max', 'calc', 'applet_selector_widget', 'display', 'display_residues' ]);
+    
+    this.angle_min = 60;
+    this.dist_max = 3.9;
+    this.visibility = true;
+    
+    var content = '<div class="control_group">' +
+	'<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+	'<div class="control_row">' +
+            '<input id="' + this.display_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.display_id + '" style="display:inline-block;">display hbonds</label>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<input size="4" id="' + this.angle_min_id + '" type="text" class="ui-state-default"/>' +
+            '<label for="' + this.angle_min_id + '" >min angle</label> ' +
+	    '<input size="4" id="' + this.dist_max_id + '" type="text" class="ui-state-default"/>' +
+            '<label for="' + this.dist_max_id + '" >max distance</label> ' +
+	    '<button id="' + this.calc_id + '">calc hbonds</button>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<button id="' + this.display_residues_id + '">display residues</button>' +
+        '</div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
+        parent_id: this.applet_selector_widget_id
+    });
+    this._init();
+}
+Provi.Jmol.Analysis.IsosurfaceWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.IsosurfaceWidget.prototype */ {
+    _init: function(){
+        var self = this;
+    }
+});
+
 
 
 })();

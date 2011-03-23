@@ -62,7 +62,7 @@ var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
  * @memberOf Provi.Jmol
  */
 var jmol_script_callback = function(applet_name, status, message, millisec, errorUntranslated){
-    console.log( applet_name+'', status+'', message+'', millisec+'', errorUntranslated+'' );
+    //console.log( applet_name+'', status+'', message+'', millisec+'', errorUntranslated+'' );
     Provi.Jmol.get_applet_by_id( applet_name+'' )._message_callback( status+'', message+'', millisec+'', errorUntranslated+'' );
 };
 
@@ -165,9 +165,9 @@ Provi.Jmol = $.extend(Provi.Jmol, /** @lends Provi.Jmol */ {
 	
 	if(this._default_applet.name_suffix == name_suffix){
 	    if(this._applet_list.length){
-		this._default_applet = this._applet_list[0];
+		this.set_default_applet( this._applet_list[0] );
 	    }else{
-		this._default_applet = undefined;
+		this.set_default_applet( undefined );
 	    }
 	}
 	$(this).triggerHandler('applet_list_change');
@@ -206,8 +206,15 @@ Provi.Jmol = $.extend(Provi.Jmol, /** @lends Provi.Jmol */ {
 	    return this._default_applet;
 	}
     },
-    set_default_applet: function(name_suffix){
-	this._default_applet = this._applet_dict[name_suffix];
+    set_default_applet: function(name_suffix_or_applet){
+	if( name_suffix_or_applet instanceof Provi.Jmol.Applet ){
+	    this._default_applet = name_suffix_or_applet;
+	}else if( typeof(name_suffix_or_applet) == 'undefined' ){
+	    this._default_applet = name_suffix_or_applet;
+	}else{
+	    this._default_applet = this._applet_dict[name_suffix_or_applet];
+	}
+	$(Provi.Jmol).triggerHandler( 'default_applet_change' );
     }
 });
 Provi.Jmol._applet_dict.size = Utils.object_size_fn;
@@ -279,10 +286,14 @@ Provi.Jmol.Applet = function(params){
     
     this._init();
     if( typeof(Provi.Jmol._default_applet) == 'undefined' ){
-	//Jmol.set_default_applet( this.name_suffix );
+	//Provi.Jmol.set_default_applet( this.name_suffix );
 	Provi.Jmol._default_applet = this;
+	Provi.Jmol.add_applet(this.name_suffix, this);
+	$(Provi.Jmol).triggerHandler( 'default_applet_change' );
+    }else{
+	Provi.Jmol.add_applet(this.name_suffix, this);
     }
-    Provi.Jmol.add_applet(this.name_suffix, this);
+    
 };
 Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     default_params: {
@@ -694,6 +705,7 @@ Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Jmo
 Provi.Jmol.JmolAppletSelectorWidget = function(params){
     this._jmol_applet = typeof(params.applet) != 'undefined' ? params.applet : null;
     this.new_jmol_applet_parent_id = params.new_jmol_applet_parent_id;
+    this.show_default_applet = typeof(params.show_default_applet) != 'undefined' ? params.show_default_applet : true;
     params.tag_name = 'span';
     Widget.call( this, params );
     this.selector_id = this.id + '_applet';
@@ -709,9 +721,15 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
     _update: function(){
         var elm = $("#" + this.selector_id);
         var value = $("#" + this.selector_id + " option:selected").val();
+	var default_applet_name = '';
+	var applet = Provi.Jmol.get_default_applet();
+	if(applet){
+	    default_applet_name = ' (' + applet.name_suffix + ')';
+	}
         elm.empty();
         elm.append(
-            '<option value="default">default</option>' +
+	    (!this.show_default_applet && !this.allow_new_applets ? '<option value=""></option>' : '' ) +
+            (this.show_default_applet ? '<option value="default">default' + default_applet_name + '</option>' : '' ) +
             (this.allow_new_applets ? '<option value="new">new</option><option value="new once">new once</option>' : '')
         );
         $.each(Provi.Jmol.get_applet_list(), function(){
@@ -724,6 +742,10 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         this._update();
 	var self = this;
         $(Provi.Jmol).bind('applet_list_change', function(){ self._update() });
+	$('#' + this.selector_id).change( function(){
+	    $(self).triggerHandler('change_selected');
+	});
+	$(Provi.Jmol).bind('default_applet_change', function(){ self._update() });
     },
     get_value: function( do_not_force_new ){
         var applet_name = $("#" + this.selector_id + " option:selected").val();
@@ -740,6 +762,10 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         }else{
             return Provi.Jmol.get_applet(applet_name);
         }
+    },
+    set_value: function( value ){
+	console.log( 'set_value ' + value );
+	$("#" + this.selector_id).val( value );
     },
     change: function(fn){
 	$("#" + this.selector_id).change(fn);

@@ -176,23 +176,32 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
  * function to import a dataset from from a example/local data directory
  * @returns {Provi.Data.Dataset} dataset instance
  */
-Provi.Data.Io.import_example = function( directory_name, filename, type, params, success, no_init){
+Provi.Data.Io.import_example = function( directory_name, filename, type, params, success, no_init ){
     var self = this;
     var dataset = new Provi.Data.Dataset({
         name: filename,
         status: { local: null, server: 'importing' }
     });
+    var extra_files = '';
+    console.log( 'ext: ', filename.substring( filename.lastIndexOf('.') ) );
+    if( filename.substring( filename.lastIndexOf('.') ) == '.vert' ){
+	extra_files = 'data.face:' + filename.slice( 0, filename.lastIndexOf('.') ) + '.face';
+	console.log( 'extra_files: ', extra_files );
+    }
     $.ajax({
         url: '../../example/import_example/',
-        data: { directory_name: directory_name, filename: filename, datatype: type },
+        data: { directory_name: directory_name, filename: filename, datatype: type, extra_files: extra_files },
         success: function(response){
             response = $.parseJSON( response );
             dataset.server_id = response.id;
             dataset.set_type( response.type );
             dataset.set_status( 'server', response.status );
-            if( !no_init ) dataset.init( params );
+	    console.log(response);
+	    if( dataset ){
+		dataset.init( params );
+	    }
             if( $.isFunction(success) ){
-                success( dataset );
+		success( dataset );
             }
         }
     });
@@ -385,7 +394,6 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
 			    "</div>";
 			}else if( data['__path__'] ){
 			    var dir_id = self.dataset_list_id + '_dir_' + data['__path__'].replace( new RegExp( "[^A-Za-z0-9_]", "gi" ), "_" );
-			    console.log( dir_id );
 			    html += '' +
 				'<div style="padding-top:5px; padding-bottom:5px; " id="' + dir_id + '">' +
 				    '<span class="ui-icon ui-icon-triangle-1-' + (dir_col ? 's' : 'e') + '"></span>' +
@@ -427,6 +435,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
         });
     }
 });
+
 
 
 /**

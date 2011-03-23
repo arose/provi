@@ -94,7 +94,6 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
         $("#" + this.show_hbonds_select_id).hide();
         $("#" + this.show_hbonds_check_id).change( function() {
             self.show_hbonds = $("#" + self.show_hbonds_check_id).is(':checked');
-            console.log(self.show_hbonds);
             self.update();
         });
         $("#" + this.show_hbonds_select_id).change( function() {
