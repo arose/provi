@@ -155,7 +155,8 @@ class ScoBase( Text ):
     def get_helix_interface_names( self, dataset, **kwargs ):
         tmp_file = named_tmp_file( dataset.data )
         data = self.data_class(tmp_file.name)
-        return json.dumps( data.getInterfaceNames('helix') )
+        #return json.dumps( data.getInterfaceNames('helix') )
+        return json.dumps( data.getInterfaceNames() )
     @expose
     def get_helix_interface_atoms( self, dataset, cutoff=1.5, interface_ids='', interface_names='', **kwargs ):
         cutoff = float( cutoff )
