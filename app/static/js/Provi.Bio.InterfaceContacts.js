@@ -152,7 +152,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             var data = this.dataset.data.names;
             data.sort();
             $.each(data, function(i){
-                $("#" + self.interface_name_id).append("<option value='" + this + "'>helix " + (i+1) + "</option>");
+                //$("#" + self.interface_name_id).append("<option value='" + this + "'>helix " + (i+1) + "</option>");
+                $("#" + self.interface_name_id).append("<option value='" + this + "'>" + this + "</option>");
             });
         }
     },
