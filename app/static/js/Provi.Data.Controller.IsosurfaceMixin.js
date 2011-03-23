@@ -24,6 +24,7 @@ Provi.Data.Controller.IsosurfaceMixin = {
     init: function( params ){
         var self = this;
         Provi.Data.Dataset.prototype.init.call(this, params);
+        console.log( this, params );
         if( params.applet ){
             new Provi.Bio.Isosurface.IsosurfaceWidget({
                 parent_id: 'tab_widgets',

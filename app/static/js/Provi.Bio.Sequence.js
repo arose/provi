@@ -284,7 +284,7 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	if(!applet) return;
         
 	var smcra = this._smcra = this.get_data();
-        if( !smcra ) return;
+        if( !smcra || !smcra.len() ) return;
         
         var tree_map = Provi.Bio.Sequence.smcra_to_map( smcra );
         

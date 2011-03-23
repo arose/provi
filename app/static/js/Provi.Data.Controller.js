@@ -37,8 +37,10 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.HbondsMixin );
     }else if( type == 'vol' ){
         $.extend( obj, Ctrl.VoronoiaMixin );
+    }else if( type == 'ndx' ){
+        $.extend( obj, Ctrl.NdxMixin );
     }else{
-        console.log('unkown file type', obj);
+        console.log('unkown file type', obj, type);
     }
 }
 

@@ -132,7 +132,7 @@ Provi.Jmol.Controls.JmolConsoleWidget.prototype = Utils.extend(Widget, /** @lend
 Provi.Jmol.Controls.JmolGlobalControlWidget = function(params){
     this.sync_mouse = false;
     Widget.call( this, params );
-    this._build_element_ids([ 'sync_mouse', 'sync_orientation', 'applet_sync_orientation' ]);
+    this._build_element_ids([ 'sync_mouse', 'sync_orientation', 'applet_sync_orientation', 'change_default_applet' ]);
     
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
@@ -140,13 +140,21 @@ Provi.Jmol.Controls.JmolGlobalControlWidget = function(params){
             '<label for="' + this.sync_mouse_id + '">sync mouse</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button id="' + this.sync_orientation_id + '">sync orientation</button>' +
+            '<button id="' + this.sync_orientation_id + '">sync orientation</button>&nbsp;' +
             '<span id="' + this.applet_selector_sync_orientation_id + '"></span>' +
+        '</div>' +
+	'<div class="control_row">' +
+            'Change default&nbsp;' +
+            '<span id="' + this.change_default_applet_id + '"></span>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
     this.applet_selector_sync_orientation = new Provi.Jmol.JmolAppletSelectorWidget({
         parent_id: this.applet_selector_sync_orientation_id
+    });
+    this.change_default_applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
+        parent_id: this.change_default_applet_id,
+	show_default_applet: false
     });
     this._init();
 }
@@ -163,6 +171,19 @@ Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /**
         $("#" + this.sync_orientation_id).button().click(function() {
             self.sync_orientation();
         });
+	$(this.change_default_applet_selector).bind('change_selected', function( event ) {
+	    var applet = self.change_default_applet_selector.get_value(true);
+	    var default_applet = Provi.Jmol.get_default_applet();
+	    if(applet && applet != default_applet){
+		Provi.Jmol.set_default_applet( applet );
+	    }
+        });
+	$(Provi.Jmol).bind('default_applet_change', function(){
+	    var applet = Provi.Jmol.get_default_applet();
+	    if(applet && self.change_default_applet_selector.get_value(true) != applet){
+		self.change_default_applet_selector.set_value( applet.name_suffix );
+	    }
+	});
     },
     update_sync_mouse: function(){
         var s = '';
