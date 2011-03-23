@@ -39,7 +39,6 @@ var Widget = Provi.Widget.Widget;
  * @constructor
  */
 Provi.Selection.Selection = function(params){
-    console.log(params.selection);
     this.selection = params.selection;
     this.selection_array;
     this.selection_smcra;
@@ -51,6 +50,9 @@ Provi.Selection.Selection = function(params){
     }
 };
 Provi.Selection.Selection.prototype = /** @lends Provi.Selection.Selection.prototype */ {
+    set_id: function(id){
+	this.id = id;
+    },
     /**
      * Triggers the {@link Provi.Selection.SelectionManager#event:select} event.
      */
@@ -123,8 +125,8 @@ Provi.Selection.SelectionManager.prototype = /** @lends Provi.Selection.Selectio
     _selection_list: [],
     _selection_counter: 0,
     add: function(selection){
-	console.log('add selection: ', selection);
         this._selection_counter += 1;
+	selection.set_id( this._selection_counter );
         var self = this;
         this._selection_dict[this._selection_counter] = selection;
         this._selection_list.push(selection);
@@ -156,12 +158,15 @@ Provi.Selection.SelectionManager.prototype = /** @lends Provi.Selection.Selectio
 Provi.Selection.SelectionWidget = function(params){
     this.selection = params.selection;
     Widget.call( this, params );
-    this.select_id = this.id + '_select';
-    this.info_id = this.id + '_info';
-    var content = '<div  class="control_group">' +
+    this._build_element_ids([ 'info', 'select', 'show', 'hide']);
+    var content = '<div  class="control_group" style="margin:0;">' +
         '<div>' +
 	    this.selection.id + ': ' + this.selection.name + '&nbsp;' +
-	    '<button id="' + this.select_id + '">select</button>' +
+	    '<div style="float:right;">' +
+		'<button id="' + this.select_id + '">select</button>' +
+		'<button id="' + this.show_id + '">show</button>' +
+		'<button id="' + this.hide_id + '">hide</button>' +
+	    '</div>' +
 	'</div>' +
     '</div>'
     $(this.dom).append( content );
@@ -170,10 +175,15 @@ Provi.Selection.SelectionWidget = function(params){
 }
 Provi.Selection.SelectionWidget.prototype = Utils.extend(Widget, /** @lends Provi.Selection.SelectionWidget.prototype */ {
     init: function(){
-	console.log('init selectionWidget');
         var self = this;
 	$("#" + this.select_id).button().click(function() {
 	    self.selection.select();
+	});
+	$("#" + this.show_id).button().click(function() {
+	    self.selection.applet.script_wait( 'display displayed or (' + self.selection.selection + ');' );
+	});
+	$("#" + this.hide_id).button().click(function() {
+	    self.selection.applet.script_wait( 'hide hidden or (' + self.selection.selection + ');' );
 	});
     }
 });
