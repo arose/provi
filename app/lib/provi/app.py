@@ -35,11 +35,17 @@ class DataStorage(object):
 
 
 class DataProvider(object):
-    def __init__( self, trans, datatype, data, name=None ):
-        self.dataset = Dataset( data, name=name, type=datatype )
+    def __init__( self, trans, datatype, data, name=None, extra_data={} ):
+        self.dataset = Dataset( data, name=name, type=datatype, extra_data=extra_data )
         self.datatype = self.dataset.type
-    def get_raw_data( self ):
-        return self.dataset.data
+    def get_data( self, name=None ):
+        if name:
+            try:
+                return self.dataset.extra_data[ name ]
+            except Exception:
+                return self.dataset.data
+        else:
+            return self.dataset.data
     
     
 class GalaxyDataProvider( DataProvider ):
@@ -82,9 +88,12 @@ class LocalDataProvider( DataProvider ):
 
 
 class ExampleDataProvider( DataProvider ):
-    def __init__( self, trans, datatype, filepath, filename ):
+    def __init__( self, trans, datatype, filepath, filename, extra_files={} ):
         data = self._retrieve( filepath, filename )
-        DataProvider.__init__( self, trans, datatype, data, name=filename )
+        extra_data = {}
+        for name, extra_filename in extra_files.iteritems():
+            extra_data[ name ] = self._retrieve( filepath, extra_filename )
+        DataProvider.__init__( self, trans, datatype, data, name=filename, extra_data=extra_data )
     def _retrieve( self, filepath, filename ):
         # read from local path
         fp = open( os.path.join( filepath, filename ) )
@@ -122,10 +131,20 @@ class ExampleController( BaseController ):
         dirs.sort()
         return json.dumps( dirs )
     @expose
-    def import_example( self, trans, directory_name, filename, datatype=None ):
+    def import_example( self, trans, directory_name, filename, datatype=None, extra_files={} ):
         data_controller = DataController( self.app )
         filepath = trans.app.config.example_directories[ directory_name ]
-        return data_controller.add( trans, datatype, 'example', filepath=filepath, filename=filename )
+        if extra_files:
+            try:
+                extra_files = dict( [ f.split(':') for f in extra_files.split(',') ] )
+            except Exception:
+                extra_files = {}
+        else:
+            extra_files = {}
+        return data_controller.add(
+            trans, datatype, 'example', filepath=filepath, filename=filename,
+            extra_files=extra_files
+        )
 
 
 class SaveController( BaseController ):
@@ -261,10 +280,10 @@ class DataController( BaseController ):
         return 'data storage %s' % str( trans.storage.data_dict )
     
     @expose
-    def get( self, trans, id, data_action=None, **kwargs ):
+    def get( self, trans, id, data_action=None, dataname=None, **kwargs ):
         data_provider = trans.storage.get( int(id) )
         if not data_action:
-            return data_provider.get_raw_data()
+            return data_provider.get_data( dataname )
         datatype = data_provider.datatype
         method = getattr( datatype, data_action, None )
         if method is None:
@@ -308,6 +327,10 @@ class ProteinViewerWebTransaction( base.DefaultWebTransaction ):
         self.app = app
         self.webapp = webapp
         self.environ = environ
+        
+        from pprint import pformat
+        LOG.debug( pformat(environ['PATH_INFO'] + '?' + environ['QUERY_STRING']) )
+        
         base.DefaultWebTransaction.__init__( self, environ )
         self.__init_storage()
         self.__init_cookiejar()
