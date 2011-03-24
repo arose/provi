@@ -232,6 +232,8 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
         '<div class="control_row">' +
             '<label for="' + this.style_id + '">style</label>' +
             '<select id="' + this.style_id + '" class="ui-state-default">' +
+		'<option value="default">default</option>' +
+		'<option value="default+wireframe">default & wireframe</option>' +
                 '<option value="backbone">backbone</option>' +
                 '<option value="wireframe">wireframe</option>' +
                 '<option value="cartoon">cartoon</option>' +
@@ -383,6 +385,28 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
     },
     set_style: function (){
         switch($("#" + this.style_id + " option:selected").val()){
+	    case 'default':
+                this.style_cmd = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
+		    //'select protein; color cartoon structure; color structure; ' +
+		    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
+		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
+		    'select water; wireframe 0.01;' +
+		    'select group=hoh; cpk 20%;' +
+		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
+		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
+		    'select none;';
+                break;
+	    case 'default+wireframe':
+                this.style_cmd = 'select all; spacefill off; wireframe off; backbone off; cartoon on; wireframe 0.01;' +
+		    //'select protein; color cartoon structure; color structure; ' +
+		    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
+		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
+		    'select water; wireframe 0.01;' +
+		    'select group=hoh; cpk 20%;' +
+		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
+		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
+		    'select none;';
+                break;
             case 'backbone':
                 this.style_cmd = 'backbone ONLY; backbone 0.3;';
                 break;
