@@ -52,6 +52,10 @@ def get_headers( data, sep, count=60, is_multi_byte=False ):
 
 def sniff_datatype( data, name ):
     extension = name.split('.')[-1].lower()
+    if extension == 'gz':
+        extension = name.split('.')[-2].lower()
+    elif extension == 'zip':
+        extension = name.split('.')[-2].lower()
     LOG.debug( extension )
     if extension in extension_to_datatype_dict:
         return extension_to_datatype_dict[ extension ]
@@ -90,6 +94,11 @@ class Binary( Data ):
 class Text( Data ):
     """Text datatype"""
     file_ext = 'txt'
+    pass
+
+class Dx( Data ):
+    """Dx datatype"""
+    file_ext = 'dx'
     pass
 
 class Sdf( Data ):
@@ -143,6 +152,17 @@ class Pdb( Text ):
         except:
             return False
     
+
+class Pqr( Text ):
+    """PQR"""
+    file_ext = 'pqr'
+    @expose
+    def get_pdb( self, dataset, **kwargs ):
+        return dataset.data
+
+class Ent( Pdb ):
+    """PDB with another file extension"""
+    file_ext = 'ent'
 
 class ScoBase( Text ):
     file_ext = None
@@ -313,6 +333,8 @@ extension_to_datatype_dict = {
     'cif': Cif(),
     'cub': Cube(),
     'dat': Data(),
+    'dx': Dx(),
+    'ent': Ent(),
     'gro': Gromacs(),
     'jspt': JmolScript(),
     'jvxl': JmolVoxel(),
@@ -324,6 +346,7 @@ extension_to_datatype_dict = {
     'ndx': Ndx(),
     'obj': Obj(),
     'pdb': Pdb(),
+    'pqr': Pqr(),
     'sco': Sco(),
     'sdf': Sdf(),
     'tmhelix': Tmhelix(),
