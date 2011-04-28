@@ -25,8 +25,9 @@ var Widget = Provi.Widget.Widget;
  * mapping of file extension to Provi datatypes
  */
 Provi.Data.types = {
-    structure: ['pdb', 'gro', 'cif', 'mmcif', 'mol', 'sdf', 'xyzr', 'xyzrn'],
-    isosurface: ['jvxl', 'mrc', 'cub', 'ccp4', 'obj', 'vert'],
+    structure: ['pdb', 'ent', 'pqr', 'gro', 'cif', 'mmcif', 'mol', 'sdf', 'xyzr', 'xyzrn'],
+    isosurface: ['jvxl', 'obj', 'vert'],
+    volume: ['mrc', 'cub', 'ccp4', 'dx'],
     interface_contacts: ['sco', 'mbn']
 }
 
@@ -234,7 +235,7 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
             if(this.dataset.load_params_widget && !this.load_params_widget.length){
 		$.each(this.dataset.load_params_widget, function(i, lpw){
 		    self.load_params_widget.push(
-			new lpw.obj({ parent_id: self.load_widget_id })
+			new lpw.obj({ parent_id: self.load_widget_id, dataset: self.dataset })
 		    );
 		});
             }
@@ -262,6 +263,7 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
                     }
 		    console.log(params);
                     self.dataset.init( params );
+		    $(self).triggerHandler('loaded');
                 });
             }
         }

@@ -24,12 +24,13 @@ Provi.Data.Controller.StructureMixin = {
 	var self = this;
         var params = '?id=' + this.server_id;
         var type = this.type;
-        if( $.inArray(this.type, ['pdb', 'sco', 'mbn', 'vol']) >= 0 ){
+        if( $.inArray(this.type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol']) >= 0 ){
             params += '&data_action=get_pdb';
             type = 'pdb';
         }
         var jmol_types = {
             pdb: 'PDB',
+	    ent: 'PDB',
             gro: 'GROMACS'
         };
         type = jmol_types[type];
@@ -51,6 +52,8 @@ Provi.Data.Controller.StructureMixin = {
 	// load structural data into the jmol applet
 	if(load_as == 'trajectory'){
 	    applet.script('load TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style);
+	}else if(load_as == 'trajectory+append'){
+	    applet.script('load APPEND TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style);
 	}else if(load_as == 'append'){
 	    var style2 = 'select file = _currentFileNumber; spacefill off; wireframe off; backbone off; cartoon on; ' +
 		//'select protein; color cartoon structure; color structure; ' +

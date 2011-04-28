@@ -29,6 +29,8 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.MplaneMixin );
     }else if( $.inArray(type, Provi.Data.types.isosurface) >= 0 ){
         $.extend( obj, Ctrl.IsosurfaceMixin );
+    }else if( $.inArray(type, Provi.Data.types.volume) >= 0 ){
+        $.extend( obj, Ctrl.VolumeMixin );
     }else if( type == 'jspt' ){
         $.extend( obj, Ctrl.ScriptMixin );
     }else if( type == 'tmhelix' ){

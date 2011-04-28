@@ -327,48 +327,64 @@ Provi.Jmol.Analysis.HbondsWidget.prototype = Utils.extend(Provi.Widget.Widget, /
 
 
 /**
- * A widget to access Jmol's isosruface creation functionality
+ * A widget to access Jmol's isosurface creation functionality
  * @constructor
  * @extends Provi.Widget.Widget
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
-Provi.Jmol.Analysis.IsosurfaceWidget = function(params){
+Provi.Jmol.Analysis.IsosurfaceConstructionWidget = function(params){
     //params.persist_on_applet_delete = false;
     //params.heading = '';
     //params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
-    this._build_element_ids([ 'angle_min', 'dist_max', 'calc', 'applet_selector_widget', 'display', 'display_residues' ]);
-    
-    this.angle_min = 60;
-    this.dist_max = 3.9;
-    this.visibility = true;
+    this._build_element_ids([
+	'applet_selector_widget', 'surface_params_widget', 'isosurface_params_widget', 'construct' ]);
     
     var content = '<div class="control_group">' +
 	'<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+	'<div class="control_row" id="' + this.surface_params_widget_id + '"></div>' +
+	'<div class="control_row" id="' + this.isosurface_params_widget_id + '"></div>' +
 	'<div class="control_row">' +
-            '<input id="' + this.display_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.display_id + '" style="display:inline-block;">display hbonds</label>' +
-        '</div>' +
-	'<div class="control_row">' +
-            '<input size="4" id="' + this.angle_min_id + '" type="text" class="ui-state-default"/>' +
-            '<label for="' + this.angle_min_id + '" >min angle</label> ' +
-	    '<input size="4" id="' + this.dist_max_id + '" type="text" class="ui-state-default"/>' +
-            '<label for="' + this.dist_max_id + '" >max distance</label> ' +
-	    '<button id="' + this.calc_id + '">calc hbonds</button>' +
-        '</div>' +
-	'<div class="control_row">' +
-            '<button id="' + this.display_residues_id + '">display residues</button>' +
-        '</div>' +
+	    '<button id="' + this.construct_id + '">construct</button>' +
+	'</div>' + 
     '</div>';
     $(this.dom).append( content );
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
         parent_id: this.applet_selector_widget_id
     });
+    this.surface_params = new Provi.Bio.Isosurface.SurfaceParamsWidget({
+        parent_id: this.surface_params_widget_id
+    });
+    this.isosurface_params = new Provi.Bio.Isosurface.LoadParamsWidget({
+        parent_id: this.isosurface_params_widget_id
+    });
     this._init();
 }
-Provi.Jmol.Analysis.IsosurfaceWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.IsosurfaceWidget.prototype */ {
+Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype */ {
     _init: function(){
         var self = this;
+	
+	this.surface_params.set_applet( this.applet_selector.get_value(true) );
+	$(this.applet_selector).bind('change', function(event, applet){
+	    self.surface_params.set_applet( applet );
+	});
+	
+	$( '#' + this.construct_id ).button().click( function(){
+	    var applet = self.applet_selector.get_value();
+	    if( applet ){
+		new Provi.Bio.Isosurface.SurfaceWidget({
+		    parent_id: 'tab_widgets',
+		    dataset: self,
+		    applet: applet,
+		    within: self.isosurface_params.get_within(),
+		    type: self.surface_params.get_type(),
+		    resolution: self.surface_params.get_resolution(),
+		    select: self.surface_params.get_select(),
+		    ignore: self.surface_params.get_ignore(),
+		    map: self.surface_params.get_map()
+		});
+	    }
+	});
     }
 });
 
