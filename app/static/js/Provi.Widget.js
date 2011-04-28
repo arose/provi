@@ -147,14 +147,17 @@ Provi.Widget.PopupWidget = function(params){
     //params.heading = '';
     //params.collapsed = false;
     Widget.call( this, params );
-    this._build_element_ids([ 'data' ]);
+    this._build_element_ids([ 'data', 'close' ]);
     
     this.position_my = params.position_my || 'left top';
     this.position_at = params.position_at || 'bottom';
     
     /** The template that gets filled with changeing data */
     this.template = $.template( params.template );
-    var content = '<div style="background-color:lightblue; padding:7px;" id="' + this.data_id + '"></div>';
+    var content = '<div style="background-color:lightblue; padding:7px;">' +
+	'<span title="close" id="' + this.close_id + '" class="ui-icon ui-icon-close" style="float:right;"></span>' +
+	'<div id="' + this.data_id + '"></div>' +
+    '</div>';
     $(this.dom).append( content ).css('position', 'absolute');
     this._init();
 };
@@ -162,14 +165,23 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
     _init: function(){
         var self = this;
 	$(this.dom).hide();
+	$( '#' + this.close_id ).tipsy({ gravity: 'e' }).click( function(){
+	    self.hide();
+	});
 	//Widget.prototype.init.call(this);
     },
     show: function( target, data, template, position_my, position_at ){
-        $( '#' + this.data_id ).empty();
-        this.set_data( data, template );
-        $(this.dom).show();
-        this.set_position( target, position_my, position_at );
-        
+        if( data ){
+	    $( '#' + this.data_id ).empty();
+	    this.set_data( data, template );
+	}
+	console.log( target, position_my, position_at );
+	$(this.dom).show();
+	// TODO FIX arose
+	// for an unknown reason this needs to be called twice to be visible
+	// after the very first call to show
+	this.set_position( target, position_my, position_at );
+	this.set_position( target, position_my, position_at );
     },
     hide: function(){
         $( '#' + this.data_id ).empty();
@@ -178,7 +190,6 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
     set_data: function( data, template ){
         this.data = data;
         $.tmpl( template || this.template, this.data ).appendTo( '#' + this.data_id );
-        
     },
     set_position: function( target, position_my, position_at ){
         //console.log('target',target, $(target), $(target).width(), $(target).height(), $(target).css('top'), $(target).css('left'));

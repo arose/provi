@@ -41,6 +41,8 @@
     <script type="text/javascript" src="../js/Provi.Utils.Protovis.js"></script>
     <script type="text/javascript" src="../js/Provi.Widget.js"></script>
     
+    <script type="text/javascript" src="../js/Provi.Selection.js"></script>
+    
     <script type="text/javascript" src="../js/Provi.Bio.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Smcra.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Voronoia.js"></script>
@@ -52,8 +54,6 @@
     <script type="text/javascript" src="../js/Provi.Bio.HydrogenBonds.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.InterfaceContacts.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Isosurface.js"></script>
-    
-    <script type="text/javascript" src="../js/Provi.Selection.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Jmol.js"></script>
     <script type="text/javascript" src="../js/Provi.Jmol.Controls.js"></script>
@@ -97,12 +97,16 @@
 	//Provi.Jmol.init("../applet/jmol/11.8.25/");
 	//Provi.Jmol.init("../applet/jmol/11.8.26/");
 	//Provi.Jmol.init("../applet/jmol/12.0.8/");
+	//Provi.Jmol.init("../applet/jmol/12.0.40/", true);
 	//Provi.Jmol.init("../applet/jmol/12.1.10/");
 	//Provi.Jmol.init("../applet/jmol/12.1.23/");
 	//Provi.Jmol.init("../applet/jmol/2010-11-23/", true);
 	//Provi.Jmol.init("../applet/jmol/12.1.28/", true);
 	//Provi.Jmol.init("../applet/jmol/2011-01-06/");
-	Provi.Jmol.init("../applet/jmol/12.1.35/", true);
+	//Provi.Jmol.init("../applet/jmol/12.1.35/", true);
+	//Provi.Jmol.init("../applet/jmol/12.1.41/", true);
+	//Provi.Jmol.init("../applet/jmol/12.1.42/", true);
+	Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
 	
         $(document).ready(function(){
 	    
@@ -152,6 +156,10 @@
                 parent_id: 'tab_widgets'
             });
             
+	    new Provi.Jmol.Analysis.IsosurfaceConstructionWidget({
+		parent_id: 'tab_tree'
+	    });
+	    
 	    new Provi.Bio.Sequence.TreeViewWidget({
 		parent_id: 'tab_tree'
 	    });
@@ -261,6 +269,12 @@
 		
 		Provi.Data.Io.import_example( 'showcase', 'gromacs/pr01_moved.part0001.gro', 'gro', { applet: applet, load_as: 'new' } );
 		Provi.Data.Io.import_example( 'showcase', 'gromacs/dowser_water.ndx', 'ndx', { applet: applet } );
+		new Provi.Selection.Selection({
+		    persist: true,
+		    applet: applet,
+		    name: 'Lys296 ',
+		    selection: '296'
+		});
 	    }
 	    
 	    // add some showcase examples
@@ -282,7 +296,33 @@
 		$('<li class="load_example"><a>A crystallographic map</a></li>').click( function(){
 		    var applet = Provi.Jmol.get_default_applet( true );
 		    Provi.Data.Io.import_example( 'showcase', 'crystal_map/Test.pdb', 'pdb', { applet: applet, load_as: 'new' } );
-		    Provi.Data.Io.import_example( 'showcase', 'crystal_map/2fo-fc_map_sigma2.0.jvxl', 'jvxl', { applet: applet } );
+		    Provi.Data.Io.import_example(
+			'showcase', 'crystal_map/2fo-fc_map_sigma1.0.jvxl', 'jvxl',
+			{
+			    applet: applet,
+			    color: 'yellow',
+			    style: 'mesh nofill nodots',
+			    within: '2 {protein}'
+			}
+		    );
+		    Provi.Data.Io.import_example(
+			'showcase', 'crystal_map/2fo-fc_map_sigma1.5.jvxl', 'jvxl',
+			{
+			    applet: applet,
+			    color: 'orange',
+			    style: 'mesh nofill nodots',
+			    within: '2 {protein}'
+			}
+		    );
+		    Provi.Data.Io.import_example(
+			'showcase', 'crystal_map/2fo-fc_map_sigma2.0.jvxl', 'jvxl',
+			{
+			    applet: applet,
+			    color: 'red',
+			    style: 'mesh nofill nodots',
+			    within: '2 {protein}'
+			}
+		    );
 		})
 	    );
 	    $('#showcase_examples').append(

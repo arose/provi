@@ -386,6 +386,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 		++count;
                 var applet = self.applet;
 		//console.log(typeof(applet.script), $.isFunction(applet.script), typeof(applet.isActive), applet.isActive());
+		console.log(count);
                 if(applet &&
 		   //typeof(applet.isActive) == 'function' && applet.isActive() &&
 		   ($.isFunction(applet.script) || typeof(applet.script) == 'function' ) &&
@@ -737,6 +738,7 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         });
         elm.val( value );
 	elm.triggerHandler('change');
+	$(this).triggerHandler('change', [ this.get_value(true) ]);
     },
     _init: function(){
         this._update();
@@ -744,6 +746,7 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         $(Provi.Jmol).bind('applet_list_change', function(){ self._update() });
 	$('#' + this.selector_id).change( function(){
 	    $(self).triggerHandler('change_selected');
+	    $(self).triggerHandler('change', [ self.get_value(true) ]);
 	});
 	$(Provi.Jmol).bind('default_applet_change', function(){ self._update() });
     },
@@ -787,6 +790,7 @@ Provi.Jmol.JmolLoadAsSelectorWidget = function(params){
 	    '<option value="new">new</option>' +
 	    '<option value="append">append</option>' +
 	    '<option value="trajectory">new trajectory</option>' +
+	    '<option value="trajectory+append">append trajectory</option>' +
 	'</select>' +
     '</div>';
     $(this.dom).append( content );

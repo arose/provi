@@ -39,7 +39,8 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
             jw.applet.script( 'cartoon ONLY; wireframe 0.015;' );
             $.each( $.query.get('galaxy'), function(i, data){
                 var load_as = (data.load_as || 'new');
-                Provi.Data.Io.Galaxy.import_galaxy( data.id, data.name, data.filename, data.type, { applet: jw.applet, load_as: load_as } );
+		var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
+                Provi.Data.Io.Galaxy.import_galaxy( data.id, data.name, data.filename, data.type, params );
             });
         }
         
@@ -52,7 +53,8 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
 		    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
 		    jw_dict[i] = jw;
 		}
-                Provi.Data.Io.import_example( data.dir, data.filename, data.type, { applet: jw.applet, load_as: (data.load_as || 'new') } );
+		var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
+                Provi.Data.Io.import_example( data.dir, data.filename, data.type, params );
 		
             });
         }
