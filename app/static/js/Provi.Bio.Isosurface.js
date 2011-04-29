@@ -34,16 +34,18 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     this.dataset = params.dataset;
     this.applet = params.applet;
     this.resolution = parseFloat(params.resolution) || 1.0;
+    this.display_within = params.display_within || 10.0;
     this.within = params.within || '';
     this.color = params.color || '';
     this.style = params.style || '';
+    this.sele = params.sele || 'atomno=1';
     
     Widget.call( this, params );
-    this._build_element_ids([ 'show', 'color', 'display_within', 'translucent', 'colorscheme', 'color_range', 'style' ]);
+    this._build_element_ids([ 'show', 'color', 'focus', 'display_within', 'translucent', 'colorscheme', 'color_range', 'style' ]);
     
     this.isosurface_name = 'isosurface_' + this.id;
-    this.display_within = 5.0;
     this.translucent = 0.0;
+    this.focus = params.focus || false;
     this.colorscheme = "rwb";
     this.color_range = "-20 20";
     
@@ -66,9 +68,14 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
 		'<option value="0.8">0.8</option>' +
             '</select>' +
         '</div>' +
+	'<div class="control_row">' +
+            '<input id="' + this.focus_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.focus_id + '" style="display:block;">focus</label>' +
+        '</div>' +
         '<div class="control_row">' +
             '<label for="' + this.display_within_id + '">display within</label>' +
             '<select id="' + this.display_within_id + '" class="ui-state-default">' +
+		'<option value="0"></option>' +
                 '<option value="5.0">5.0</option>' +
                 '<option value="7.0">7.0</option>' +
                 '<option value="10.0">10.0</option>' +
@@ -144,7 +151,13 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         // init display within
         $("#" + this.display_within_id).bind('change', function() {
             self.display_within = $("#" + self.display_within_id + " option:selected").val();
-            self.show_isosurface();
+            self.set_focus();
+        });
+	
+	// init focus
+        $("#" + this.focus_id).bind('change', function() {
+            self.focus = $("#" + self.focus_id).is(':checked');
+            self.set_focus();
         });
         
 	// init translucent
@@ -173,17 +186,38 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         });
 	
 	this.init_isosurface();
+	
+	if( true ){
+	    $(this.applet).bind('pick', function(event, info, applet_id){
+		var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
+		var chain = parsedInfo[2];
+		var res = parsedInfo[1];
+		var atom = parsedInfo[3];
+		self.sele = 'resNo=' + res + (chain ? ' and chain=' + chain : '') + ' and atomName="' + atom + '"';
+		console.log( self.sele );
+		self.set_focus();
+	    });
+	    this.set_focus();
+	}
+	
 	//Widget.prototype.init.call(this);
     },
     set_show: function(){
         var s = $("#" + this.show_id).is(':checked') ? 'display' : 'hide';
         this.applet.script( s + ' $' + this.isosurface_name + ';' );
     },
-    show_isosurface: function(){
-        this.set_show();
-        var s = 'isosurface id "' + this.isosurface_name + '" display within ' + parseFloat(this.display_within) + ' ({' + this.sele + '}); ' +
-            'center {' + this.sele + '}; slab on; set slabRange 10.0;';
-        //this.applet.script(s);
+    set_focus: function(){
+	var s = '';
+	if( this.focus ){
+	    s = 'isosurface id "' + this.isosurface_name + '" ' +
+		    'display within ' + this.display_within + ' {' + this.sele + '}; ' +
+		'center {' + this.sele + '}; ' +
+		'slab on; set slabRange 25.0;';
+	}else{
+	    s = 'isosurface id "' + this.isosurface_name + '" display all; ' +
+		'center {all}; slab off;';
+	}
+	this.applet.script(s);
     },
     init_isosurface: function(){
 	var file_url = '../../data/get/?id=' + this.dataset.server_id;
@@ -197,17 +231,6 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	    '"' + file_url + '" ' +
 	    ( this.style ? this.style : '' ) + 
 	    ';', true);
-	
-        //$(this.applet).bind('pick', function(event, info, applet_id){
-        //    var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
-        //    var chain = parsedInfo[2];
-        //    var res = parsedInfo[1];
-        //    var atom = parsedInfo[3];
-        //    self.sele = 'resNo=' + res + (chain ? ' and chain=' + chain : '') + ' and atomName="' + atom + '"';
-        //    self.show_isosurface();
-        //})
-        //this.sele = 'atomIndex=1';
-        this.show_isosurface();
     }
 });
 
@@ -244,6 +267,9 @@ Provi.Bio.Isosurface.VolumeWidget = function(params){
     if( this.dataset && $.inArray( this.dataset.type, ['ccp4', 'mrc']) >= 0 ){
 	this.style = 'MESH NOFILL';
 	this.downsample = null;
+	this.focus = true;
+	this.sele = params.sele || 'atomno=1';
+	this.sigma = params.sigma || 1;
     }
     
     //$(this.dom).append( content );

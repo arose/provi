@@ -295,34 +295,43 @@
 	    $('#showcase_examples').append(
 		$('<li class="load_example"><a>A crystallographic map</a></li>').click( function(){
 		    var applet = Provi.Jmol.get_default_applet( true );
-		    Provi.Data.Io.import_example( 'showcase', 'crystal_map/Test.pdb', 'pdb', { applet: applet, load_as: 'new' } );
+		    Provi.Data.Io.import_example(
+			'showcase', 'crystal_map/Test.pdb', 'pdb',
+			{
+			    applet: applet,
+			    load_as: 'new',
+			    style: 'wireframe only; wireframe 0.2;'
+			}
+		    );
 		    Provi.Data.Io.import_example(
 			'showcase', 'crystal_map/2fo-fc_map_sigma1.0.jvxl', 'jvxl',
 			{
 			    applet: applet,
-			    color: 'yellow',
-			    style: 'mesh nofill nodots',
-			    within: '2 {protein}'
-			}
-		    );
-		    Provi.Data.Io.import_example(
-			'showcase', 'crystal_map/2fo-fc_map_sigma1.5.jvxl', 'jvxl',
-			{
-			    applet: applet,
 			    color: 'orange',
 			    style: 'mesh nofill nodots',
-			    within: '2 {protein}'
+			    within: '2 {protein}',
+			    focus: true,
+			    sele: 'atomNo=1'
 			}
 		    );
-		    Provi.Data.Io.import_example(
-			'showcase', 'crystal_map/2fo-fc_map_sigma2.0.jvxl', 'jvxl',
-			{
-			    applet: applet,
-			    color: 'red',
-			    style: 'mesh nofill nodots',
-			    within: '2 {protein}'
-			}
-		    );
+		//    Provi.Data.Io.import_example(
+		//	'showcase', 'crystal_map/2fo-fc_map_sigma1.5.jvxl', 'jvxl',
+		//	{
+		//	    applet: applet,
+		//	    color: 'orange',
+		//	    style: 'mesh nofill nodots',
+		//	    within: '2 {protein}'
+		//	}
+		//    );
+		//    Provi.Data.Io.import_example(
+		//	'showcase', 'crystal_map/2fo-fc_map_sigma2.0.jvxl', 'jvxl',
+		//	{
+		//	    applet: applet,
+		//	    color: 'red',
+		//	    style: 'mesh nofill nodots',
+		//	    within: '2 {protein}'
+		//	}
+		//    );
 		})
 	    );
 	    $('#showcase_examples').append(
