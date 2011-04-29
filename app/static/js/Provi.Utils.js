@@ -286,6 +286,26 @@ Provi.Utils.in_array = function(array, item, testFn) {
     return false;
 }
 
+/**
+ * http://james.padolsey.com/javascript/wordwrap-for-javascript/
+ *
+ * The string to be wrapped.
+ * The column width (a number, default: 75)
+ * The character(s) to be inserted at every break. (default: ‘\n’)
+ * The cut: a Boolean value (false by default), if true, the string is always wrapped at or before the specified width.
+ *
+ */
+Provi.Utils.wordwrap = function( str, width, brk, cut ) {
+    brk = brk || '\n';
+    width = width || 75;
+    cut = cut || false;
+    if( !str ){
+        return str;
+    }
+    var regex = '.{1,' +width+ '}(\\s|$)' + (cut ? '|.{' +width+ '}|.+$' : '|\\S+?(\\s|$)');
+    return str.match( RegExp(regex, 'g') ).join( brk );
+}
+
 
 /**
  * http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric/1830844#1830844
