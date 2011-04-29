@@ -30,7 +30,9 @@ Provi.Data.Controller.IsosurfaceMixin = {
                 applet: params.applet,
                 within: params.within,
                 color: params.color,
-                style: params.style
+                style: params.style,
+                focus: params.focus,
+                sele: params.sele
             });
         }
     }
@@ -89,7 +91,9 @@ Provi.Data.Controller.VolumeMixin = {
                 ignore: params.ignore,
                 type: params.type,
                 color: params.color,
-                style: params.style
+                style: params.style,
+                focus: params.focus,
+                sele: params.sele
             });
         }
     }
