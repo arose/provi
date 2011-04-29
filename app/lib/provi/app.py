@@ -10,6 +10,7 @@ from provi.framework import base
 import simplejson as json
 import beaker.middleware
 
+from provi.utils import boolean
 from provi.framework import expose
 from provi.data import Dataset
 
@@ -201,11 +202,14 @@ class SaveController( BaseController ):
         # Actually do the request, and get the response
         opener.open(request).read()
     @expose
-    def local( self, trans, name, data, directory_name, type=None, encoding=None ):
+    def local( self, trans, name, data, directory_name, type=None, encoding=None, append=False ):
         data = self.decode( data, encoding )
         filepath = trans.app.config.example_directories[ directory_name ]
-        fh = open( os.path.join( filepath, name ), 'w' )
+        mode = 'a' if boolean(append) else 'w'
+        LOG.debug( append + ' ' + mode )
+        fh = open( os.path.join( filepath, name ), mode )
         fh.write( data )
+        fh.close()
 
 
 class PluploadController( BaseController ):

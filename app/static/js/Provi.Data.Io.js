@@ -644,7 +644,10 @@ Provi.Data.Io.SaveDataWidget = function(params){
     params.heading = params.heading || 'Download data';
     params.collapsed = false;
     Widget.call( this, params );
-    this._build_element_ids(['save_structure', 'save_structure_selected', 'save_image', 'save_state', 'save_isosurface', 'applet_selector_widget', 'form', 'iframe']);
+    this._build_element_ids([
+	'save_structure', 'save_structure_selected', 'save_image', 'save_state', 'save_isosurface', 'save_ndx',
+	'ndx_group', 'applet_selector_widget', 'form', 'iframe'
+    ]);
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
@@ -660,6 +663,11 @@ Provi.Data.Io.SaveDataWidget = function(params){
         '</div>' +
 	'<div class="control_row">' +
             '<button id="' + this.save_isosurface_id + '">save isosurface</button>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<button id="' + this.save_ndx_id + '">save ndx</button>&nbsp;' +
+            'Group name: ' +
+            '<input id="' + this.ndx_group_id + '" type="text"/>' +
         '</div>' +
         '<form id="' + this.form_id + '" style="display:hidden;" method="post" action="../../save/' + this.backend_type + '/" target="' + this.iframe_id + '">' +
             '<input type="hidden" name="name" value=""></input>' +
@@ -713,6 +721,13 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
             }, 3000);
             self.save_isosurface();
         });
+	$("#" + this.save_ndx_id).button().click(function() {
+            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
+            setTimeout(function(){
+                $("#" + self.save_ndx_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save ndx" );
+            }, 3000);
+            self.save_ndx();
+        });
         Widget.prototype.init.call(this);
     },
     save_data: function( data, name, encoding, type ){
@@ -748,6 +763,15 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
         var data = this.applet_selector.get_value().evaluate("script('show isosurface')");
 	console.log(data);
         this.save_data( data, 'isosurface.jvxl' );
+    },
+    save_ndx: function(){
+	var name = $('#' + this.ndx_group_id).val() || 'IndexGroup';
+	var atomno = this.applet_selector.get_value().evaluate('{selected}.format("%[atomno]").join(" ")');
+        var data = '[ ' + name + ' ]\n' +
+	    Provi.Utils.wordwrap( atomno, 80, '\n', false ) +
+	    '\n\n';
+	console.log(data);
+        this.save_data( data, 'index.ndx' );
     }
 });
 
@@ -761,19 +785,23 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
 Provi.Data.Io.SaveExampleWidget = function(params){
     params.heading = 'Save in example/local dir';
     Provi.Data.Io.SaveDataWidget.call( this, params );
-    this.directory_selector_widget_id = this.id + '_directory_selector';
-    this.filename_id = this.id + '_filename';
+    this._build_element_ids([ 'directory_selector_widget', 'filename', 'append' ]);
     $('#' + this.applet_selector_widget_id).after(
         '<div id="' + this.directory_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
             'Filename: ' +
             '<input id="' + this.filename_id + '" type="text"/>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<input id="' + this.append_id + '" type="checkbox"/>' +
+            '<label for="' + this.append_id + '">append (carefull!)</label>' +
         '</div>'
     );
     this.directory_selector = new Provi.Data.Io.ExampleDirectorySelectorWidget({
         parent_id: this.directory_selector_widget_id
     })
     $('#' + this.form_id).append(
+	'<input type="hidden" name="append" value=""></input>' +
         '<input type="hidden" name="directory_name" value=""></input>'
     );
 }
@@ -784,7 +812,9 @@ Provi.Data.Io.SaveExampleWidget.prototype = Utils.extend(Provi.Data.Io.SaveDataW
     backend_type: 'local',
     save_data: function( data, name, encoding, type ){
         name = $('#' + this.filename_id).val() || name;
+	append = $("#" + this.append_id).is(':checked');
         var form = $('#' + this.form_id);
+	form.children('input[name=append]').val( append );
         form.children('input[name=directory_name]').val( this.get_directory_name() );
         Provi.Data.Io.SaveDataWidget.prototype.save_data.call( this, data, name, encoding, type );
     },

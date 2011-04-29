@@ -227,9 +227,9 @@ class Ndx( Text ):
         index_group = ''
         for line in ndx.split('\n'):
             if line.startswith('['):
-                index_group = line.strip(' []')
+                index_group = line.strip(' []\n\r')
                 ndx_dict[ index_group ] = []
-            else:
+            elif line.strip():
                 ndx_dict[ index_group ] += line.split()
         return ndx_dict
     @expose
