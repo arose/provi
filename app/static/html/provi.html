@@ -267,14 +267,35 @@
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
 		
-		Provi.Data.Io.import_example( 'showcase', 'gromacs/pr01_moved.part0001.gro', 'gro', { applet: applet, load_as: 'new' } );
-		Provi.Data.Io.import_example( 'showcase', 'gromacs/dowser_water.ndx', 'ndx', { applet: applet } );
-		new Provi.Selection.Selection({
-		    persist: true,
-		    applet: applet,
-		    name: 'Lys296 ',
-		    selection: '296'
-		});
+		//Provi.Data.Io.import_example( 'showcase', 'gromacs/pr01_moved.part0001.gro', 'gro', { applet: applet, load_as: 'new' } );
+		//Provi.Data.Io.import_example( 'showcase', 'gromacs/dowser_water.ndx', 'ndx', { applet: applet } );
+		//new Provi.Selection.Selection({
+		//    persist: true,
+		//    applet: applet,
+		//    name: 'Lys296 ',
+		//    selection: '296'
+		//});
+                
+                Provi.Data.Io.import_example(
+                    'isosurfaces', 'eds_3cap/3cap.pdb.zip', 'pdb',
+                    {
+                        applet: applet,
+                        load_as: 'new',
+                        style: 'wireframe only; wireframe 0.10; set ambientPercent 100; set diffusePercent 0; set specular OFF;'
+                        //style: 'wireframe only; wireframe 0.2;'
+                    }
+                );
+		Provi.Data.Io.import_example(
+                    'isosurfaces', 'eds_3cap/3cap.ccp4.gz', 'ccp4',
+                    {
+                        applet: applet,
+                        color: 'orange',
+                        style: 'mesh nofill nodots',
+                        within: '2 {protein}',
+                        focus: true,
+                        sele: 'atomNo=1'
+                    }
+                );
 	    }
 	    
 	    // add some showcase examples
@@ -300,7 +321,8 @@
 			{
 			    applet: applet,
 			    load_as: 'new',
-			    style: 'wireframe only; wireframe 0.2;'
+                            style: 'wireframe only; wireframe 0.10; set ambientPercent 100; set diffusePercent 0; set specular OFF;'
+			    //style: 'wireframe only; wireframe 0.2;'
 			}
 		    );
 		    Provi.Data.Io.import_example(

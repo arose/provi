@@ -341,7 +341,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             loadInline: '',
 	    //script: 'load ../data/3dqb.pdb;cartoon on;color cartoon structure',
 	    //script: 'javascript "Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ',
-            script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; unbind "_slideZoom"; set debug on;',
+            //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; unbind "_slideZoom"; set debug on;',
+	    script:
+		'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ' +
+		(Provi.Debug.get_status() ? 'set debug on;' : ''),
 	    //script: 'unbind "_slideZoom"; set debug on;',
             boxbgcolor: "white",
             boxfgcolor: "black",
