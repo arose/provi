@@ -16,11 +16,11 @@ Provi.Data.Controller.StructureMixin = {
     }],
     init: function(params){
         if( typeof(params) == 'object' && params.applet && params.load_as ){
-            this.load( params.applet, params.load_as );
+            this.load( params.applet, params.load_as, params.style );
         }
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
-    load: function( applet, load_as ){
+    load: function( applet, load_as, style ){
 	var self = this;
         var params = '?id=' + this.server_id;
         var type = this.type;
@@ -36,16 +36,19 @@ Provi.Data.Controller.StructureMixin = {
         type = jmol_types[type];
 	type = type ? (type + '::') : '';
 	type = '';
-	
-        var style = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
-	    //'select protein; color cartoon structure; color structure; ' +
-	    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
-            'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
-            'select water; wireframe 0.01;' +
-	    'select group=hoh; cpk 20%;' +
-	    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
-	    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
-	    'select none;';
+	if( !style ){
+	    style = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
+		//'select protein; color cartoon structure; color structure; ' +
+		'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
+		'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
+		'select water; wireframe 0.01;' +
+		'select group=hoh; cpk 20%;' +
+		'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
+		'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
+		'select none;';
+	}else{
+	    'select all; ' + style;
+	}
         
         if( load_as != 'append' ) applet._delete();
 	
@@ -55,15 +58,19 @@ Provi.Data.Controller.StructureMixin = {
 	}else if(load_as == 'trajectory+append'){
 	    applet.script('load APPEND TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style);
 	}else if(load_as == 'append'){
-	    var style2 = 'select file = _currentFileNumber; spacefill off; wireframe off; backbone off; cartoon on; ' +
-		//'select protein; color cartoon structure; color structure; ' +
-		'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
-		'select (file = _currentFileNumber and (ligand or ypl or lrt)); wireframe 0.16; spacefill 0.5; color cpk; ' +
-		'select (file = _currentFileNumber and water); wireframe 0.01;' +
-		'select (file = _currentFileNumber and group=hoh); cpk 20%;' +
-		'select (file = _currentFileNumber and (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt))); wireframe 0.1;' + 
-		'select (file = _currentFileNumber and (dmpc or dmp or popc or pop)); wireframe 0.1;' +
-		'select none;';
+	    if( !style ){
+		var style2 = 'select file = _currentFileNumber; spacefill off; wireframe off; backbone off; cartoon on; ' +
+		    //'select protein; color cartoon structure; color structure; ' +
+		    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
+		    'select (file = _currentFileNumber and (ligand or ypl or lrt)); wireframe 0.16; spacefill 0.5; color cpk; ' +
+		    'select (file = _currentFileNumber and water); wireframe 0.01;' +
+		    'select (file = _currentFileNumber and group=hoh); cpk 20%;' +
+		    'select (file = _currentFileNumber and (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt))); wireframe 0.1;' + 
+		    'select (file = _currentFileNumber and (dmpc or dmp or popc or pop)); wireframe 0.1;' +
+		    'select none;';
+	    }else{
+		var style2 = 'select file = _currentFileNumber; ' + style;
+	    }
 	    applet.script('load APPEND "' + type + '../../data/get/' + params + '"; ' + style2 + ' frame all; ');
 	//}else if(load_as == 'new'){
 	}else{
