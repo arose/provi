@@ -211,8 +211,11 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	if( this.focus ){
 	    s = 'isosurface id "' + this.isosurface_name + '" ' +
 		    'display within ' + this.display_within + ' {' + this.sele + '}; ' +
-		'center {' + this.sele + '}; ' +
-		'slab on; set slabRange 25.0;';
+		'set rotationRadius 15; zoom {' + this.sele + '} 100; ' +
+		'select *; star off; select ' + this.sele + '; color star green; star 1.0;' +
+		'slab on; set slabRange 28.0; set zShade on; set zSlab 50; set zDepth 37; ' +
+		//'slab on; set slabRange 25.0;' +
+		'';
 	}else{
 	    s = 'isosurface id "' + this.isosurface_name + '" display all; ' +
 		'center {all}; slab off;';
@@ -287,18 +290,20 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
 	    }
 	    this.applet.script(
 		'isosurface id "' + this.isosurface_name + '" ' +
+		( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
 		( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
 		(this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
 		(this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
 		(this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
 		'color density ' +
-		'"../../data/get/?id=' + this.dataset.server_id + '"' +
+		'"../../data/get/?id=' + this.dataset.server_id + '" ' +
 		';' +
 		'color $' + this.isosurface_name + ' "rwb" range -20 20;' +
 		'', true);
 	}else{
 	    this.applet.script(
 		'isosurface id "' + this.isosurface_name + '" ' +
+		( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
 		( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
 		(this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
 		(this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
@@ -309,7 +314,7 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
 		'colorscheme "rwb" color absolute -20 20 ' +
 		(this.type ? this.type + ' ' : '') +
 		(this.type ? 'MAP ' : '') +
-		'"../../data/get/?id=' + this.dataset.server_id + '"' +
+		'"../../data/get/?id=' + this.dataset.server_id + '" ' +
 		(this.style ? this.style + ' ' : '') +
 		';', true);
 	}
