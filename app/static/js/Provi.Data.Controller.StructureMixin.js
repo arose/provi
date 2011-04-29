@@ -47,7 +47,8 @@ Provi.Data.Controller.StructureMixin = {
 		'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
 		'select none;';
 	}else{
-	    'select all; ' + style;
+	    style = 'select all; ' + style +
+		'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ';
 	}
         
         if( load_as != 'append' ) applet._delete();
@@ -69,7 +70,8 @@ Provi.Data.Controller.StructureMixin = {
 		    'select (file = _currentFileNumber and (dmpc or dmp or popc or pop)); wireframe 0.1;' +
 		    'select none;';
 	    }else{
-		var style2 = 'select file = _currentFileNumber; ' + style;
+		var style2 = 'select file = _currentFileNumber; ' + style +
+		    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ';
 	    }
 	    applet.script('load APPEND "' + type + '../../data/get/' + params + '"; ' + style2 + ' frame all; ');
 	//}else if(load_as == 'new'){
