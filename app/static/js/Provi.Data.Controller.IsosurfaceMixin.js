@@ -29,6 +29,8 @@ Provi.Data.Controller.IsosurfaceMixin = {
                 dataset: self,
                 applet: params.applet,
                 within: params.within,
+                select: params.select,
+                ignore: params.ignore,
                 color: params.color,
                 style: params.style,
                 focus: params.focus,
