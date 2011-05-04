@@ -352,7 +352,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             progressbar: "true",
 	    syncId: this.default_params.sync_id,
 	    boxmessage: "Downloading JmolApplet ...",
-	    java_arguments: "-Xmx512m"
+	    java_arguments: "-Xmx512m -Ddisplay.speed=fps"
         };
         var t = "";
         for (var i in params)
@@ -741,7 +741,7 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         });
         elm.val( value );
 	elm.triggerHandler('change');
-	$(this).triggerHandler('change', [ this.get_value(true) ]);
+	//$(this).triggerHandler('change', [ this.get_value(true) ]);
     },
     _init: function(){
         this._update();
@@ -749,7 +749,7 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         $(Provi.Jmol).bind('applet_list_change', function(){ self._update() });
 	$('#' + this.selector_id).change( function(){
 	    $(self).triggerHandler('change_selected');
-	    $(self).triggerHandler('change', [ self.get_value(true) ]);
+	    //$(self).triggerHandler('change', [ self.get_value(true) ]);
 	});
 	$(Provi.Jmol).bind('default_applet_change', function(){ self._update() });
     },
