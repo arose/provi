@@ -312,6 +312,17 @@ class DataController( BaseController ):
         })
 
 
+class JmolController( BaseController ):
+    def __init__( self, app, jmol_dir ):
+        """Initialize an interface for the jmol applet serving 'app'"""
+        self.app = app
+        self.jmol_dir = jmol_dir
+    @expose
+    def index( self, trans, version='current', flag=None, filename='' ):
+        file_path = os.path.join( self.jmol_dir, version, filename )
+        return open( file_path ).read()
+
+
 class ProteinViewerApplication( object ):
     def __init__( self, **kwargs ):
         self.config = Configuration( **kwargs )
@@ -356,6 +367,9 @@ class ProteinViewerWebTransaction( base.DefaultWebTransaction ):
 
 
 def app_factory( global_conf, **kwargs ):
+    conf = global_conf.copy()
+    conf.update(kwargs)
+    
     provi_app = ProteinViewerApplication( **kwargs )
     webapp = WebApplication( provi_app )
     
@@ -376,6 +390,9 @@ def app_factory( global_conf, **kwargs ):
     
     webapp.add_controller( 'Save', SaveController(webapp) )
     webapp.add_route('/save/:action/', controller='Save', action='index')
+    
+    webapp.add_controller( 'Jmol', JmolController(webapp, conf.get('jmol_dir') ) )
+    webapp.add_route('/jmol/:version/:flag/:filename', controller='Jmol', action='index', version='current', flag=None, filename='')
     
     webapp = wrap_in_middleware( webapp, global_conf, **kwargs )
     webapp = wrap_in_static( webapp, global_conf, **kwargs )

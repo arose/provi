@@ -17,7 +17,7 @@ doc/sphinx/_build
 provi_wsgi.ini
 
 
-app/static/applet/jmol/*
+app/static/applet/jmol/versions
 
 
 paster.log
