@@ -253,7 +253,8 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
             self.update();
         });
 	$(Provi.Data.DatasetManager).bind('change', function(){
-	    self.update();
+	    // TO BE FIXED: also called on deleted applet triggering an exception
+	    //self.update();
 	});
 	$(this.property_map_vis_builder).bind('built', function( e, property_map ){
 	    //console.log( 'built map', property_map );
