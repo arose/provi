@@ -249,8 +249,8 @@
 	    $('#tabs_panel a[title]').tipsy({ gravity: 'n' });
 	    
 	    
-	    // when in debug mode, load some data for development purposes
-	    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && Provi.Debug.get_status() ){
+	    // when in test mode, load some data for development purposes
+	    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
 		var applet = Provi.Jmol.get_default_applet( true );
 		//setTimeout( function(){ Data.import_example( 'voronoia', '2xc2.vol', 'vol', { applet: jw.applet, load_as: 'new' } ); }, 1000 );
 		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
