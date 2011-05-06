@@ -35,6 +35,8 @@ static_cache_time = 360
 static_dir =  %(here)s/app/static/
 static_favicon_dir =  %(here)s/app/static/favicon.ico
 
+# serving jmol applet
+jmol_dir =  %(here)s/app/static/applet/jmol/
 
 galaxy_url = http://127.0.0.1:9090
 provi_url = http://127.0.0.1:7070
