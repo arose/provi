@@ -543,13 +543,13 @@ Provi.Bio.Isosurface.SurfaceParamsWidget.prototype = Utils.extend(Widget, /** @l
 	//return $("#" + this.select_id).val();
     },
     get_ignore: function(){
-	if( $("#" + this.negate_select_as_ignore_id).val() ){
+	if( $("#" + this.negate_select_as_ignore_id).is(':checked') ){
 	    var ignore = this.select_selector.get().selection;
 	    var negate = true;
 	}else{
 	    var ignore = this.ignore_selector.get().selection;
 	    //var ignore = $("#" + this.ignore_id).val();
-	    var negate = $("#" + this.negate_ignore_id).val();
+	    var negate = $("#" + this.negate_ignore_id).is(':checked');
 	}
 	return ( negate && ignore ) ? ('not (' + ignore + ')' ) : ignore;
     },
