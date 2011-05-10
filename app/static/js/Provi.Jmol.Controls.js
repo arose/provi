@@ -253,7 +253,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
         '<div class="control_row">' +
             '<label for="' + this.clipping_state_id + '" style="display:block;">clipping</label>' +
 	    '<select id="' + this.clipping_state_id + '" class="ui-state-default" style="">' +
-                '<option value="0">off</option>' +
+                '<option value="">off</option>' +
                 '<option value="1">on</option>' +
                 '<option value="range">slab range</option>' +
             '</select>' +
