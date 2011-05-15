@@ -48,12 +48,7 @@ Provi.Bio.Rotamers.RotamersWidget = function(params){
     this.drag_selected = false;
     this.selection_halos = false;
     Widget.call( this, params );
-    this.residue_expression_id = this.id + '_residue_expression';
-    this.get_rotamers_id = this.id + '_get_rotamers';
-    this.rotamers_id = this.id + '_rotamers';
-    this.applet_selector_widget_id = this.id + '_applet';
-    this.next_id = this.id + '_next';
-    this.previous_id = this.id + '_previous';
+    this._build_element_ids([ 'residue_expression', 'get_rotamers', 'rotamers', 'applet_selector_widget', 'next', 'previous', 'custom_rotamer', 'set_custom_rotamer' ]);
     var content = '<div class="control_group">' +
         '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
 	'<div class="control_row">' +
@@ -68,6 +63,11 @@ Provi.Bio.Rotamers.RotamersWidget = function(params){
         '<div class="control_row">' +
             '<label for="' + this.rotamers_id + '">rotamers</label>' +
             '<select id="' + this.rotamers_id + '" class="ui-state-default"><option></option></select>' +
+	'</div>' +
+	'<div class="control_row">' +
+	    '<input size="12" id="' + this.custom_rotamer_id + '" type="text" value="" class="ui-state-default"/>' +
+	    '<label for="' + this.custom_rotamer_id + '" >custom rotamer</label> ' +
+	    '<button id="' + this.set_custom_rotamer_id + '">set</button>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
@@ -110,6 +110,22 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
             }
         }).click(function(){
             $("#" + self.rotamers_id + ' option:selected').next().attr('selected', true).trigger('change');
+        });
+	
+	// init set custom rotamer
+        $('#' + this.set_custom_rotamer_id).button().click(function(){
+            var applet = self.applet_selector.get_value();
+            if(applet){
+		rot_str = $('#' + self.custom_rotamer_id).val();
+		console.log( rot_str );
+		var rot = $.map( rot_str.split(','), function(elm, i){
+		    return parseFloat(elm);
+		});
+		self.custom_rotamer = [0.00].concat( rot );
+		$("#" + self.rotamers_id + '>option[value="custom"]').remove();
+		$("#" + self.rotamers_id).append("<option value='custom'>custom (" + self.custom_rotamer.slice(1).join('\u00B0, ') + "\u00B0)</option>").val('custom');
+                self.set_dihedral( self.custom_rotamer );
+            }
         });
 	
 	Widget.prototype.init.call(this);
@@ -155,17 +171,21 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
             $("#" + self.rotamers_id).append("<option value='rot" + i + "'>" + this[0] + "% (" + this.slice(1).join('\u00B0, ') + "\u00B0)</option>");
         });
     },
-    set_dihedral: function(){
+    set_dihedral: function( rot ){
         var self = this;
 	var applet = this.applet_selector.get_value();
         
-        var rot_id = $("#" + this.rotamers_id).val();
-        if( rot_id == 'original' ){
-            var rot = self.original_rotamer;
-        }else{
-            rot_id = parseInt( rot_id.substring(3) );
-            var rot = Provi.Bio.Rotamers.db[ this.res_name ][ rot_id ];
-        }
+	if( !rot ){
+	    var rot_id = $("#" + this.rotamers_id).val();
+	    if( rot_id == 'original' ){
+		rot = self.original_rotamer;
+	    }else if( rot_id == 'custom' ){
+		rot = self.custom_rotamer;
+	    }else{
+		rot_id = parseInt( rot_id.substring(3) );
+		rot = Provi.Bio.Rotamers.db[ this.res_name ][ rot_id ];
+	    }
+	}
         //console.log( rot );
         
         $.each(Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ], function(i){
