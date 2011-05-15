@@ -246,6 +246,9 @@ class Ccp4( Binary ):
 class JmolVoxel( Text ):
     file_ext = 'jvxl'
 
+class Map( Binary ):
+    file_ext = 'map'
+
 class MrcDensityMap( Text ):
     file_ext = 'mrc'
 
@@ -338,6 +341,7 @@ extension_to_datatype_dict = {
     'gro': Gromacs(),
     'jspt': JmolScript(),
     'jvxl': JmolVoxel(),
+    'map': Map(),
     'mbn': Mbn(),
     'mmcif': MmCif(),
     'mol': Mol(),
