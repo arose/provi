@@ -3,12 +3,9 @@
     <head>
         <title>JmolRemote</title>
         <script type="text/javascript" src="../js/lib/LAB.min.js"></script>
-        <!--<script src="http://192.168.1.124:8124/socket.io/socket.io.js"></script>-->
-        <script type="text/javascript" src="../js/lib/queue.js"></script>
         <script type="text/javascript" src="../js/lib/jquery.js"></script>
         <script type="text/javascript" src="../js/lib/jquery.json.js"></script>
         <script type="text/javascript" src="../applet/jmol/12.1.25/Jmol.js"></script>
-        <script type="text/javascript" src="../js/lib/sylvester.js"></script>
         <meta name="viewport" content="width=device-width,user-scalable=no" />
         
         <meta charset="UTF-8" />
@@ -84,10 +81,11 @@
             }
     
             $(function(){
-                console.log('foo');
+                if (!IOS) {
+                    $('#main,#gyroscope,#touchpad').hide();
+                }
+                
                 if(IOS){
-                    
-                    console.log('bar');
                     if( window.navigator.standalone ){
                         console.log('standalone');
                         $('#gyroscope,#touchpad').bind( 'touchmove', function(event){
@@ -105,16 +103,9 @@
                         $( '#rotateArea' ).removeClass('activeRotateArea');
                     });
                     
-                    var VELOCITY = {};
-                    var VELOCITY_QUEUE = {};
                     var TOUCHING_TRANSLATE = false;
                     $( '#translateArea' ).bind( 'touchstart', function(event){
                         TOUCHING_TRANSLATE = true;
-                        $.each(['x', 'y', 'z'], function(i, e){
-                            VELOCITY[e] = 0;
-                            VELOCITY_QUEUE[e] = new Queue();
-                        });
-                        VELOCITY.t = new Date();
                         $( '#translateArea' ).addClass('activeTranslateArea');
                     });
                     $( '#translateArea' ).bind( 'touchend', function(event){
@@ -122,98 +113,45 @@
                         $( '#translateArea' ).removeClass('activeTranslateArea');
                     });
                     
-                    MOTION_FILTERING_FACTOR = 0.1;
                     window.addEventListener( 'devicemotion', function(event) {
-                        //console.log('foo');
-                        if( TOUCHING_ROTATE ) SOCKET.send( $.toJSON( {motion: {rotationRate: event.rotationRate} } ) );
-                        if( TOUCHING_TRANSLATE ) SOCKET.send( $.toJSON( {motion: {rotationRateX: event.rotationRate} } ) );
-                        if( false && TOUCHING_TRANSLATE ){
-                            if( new Date() - VELOCITY.t > 3000 ){
-                                //VELOCITY.z = 0;
-                            }
-                            $.each(['x', 'y', 'z'], function(i, e){
-                                //VELOCITY[e] = Math.abs(event.acceleration[e]+0) > 0.1 ? event.acceleration[e] - ( (event.acceleration[e] * MOTION_FILTERING_FACTOR) + (VELOCITY[e] * (1.0 - MOTION_FILTERING_FACTOR)) ) : 0;
-                                //VELOCITY[e] += Math.abs(event.acceleration[e]+0) > 0.2 ? event.acceleration[e] : 0;// * event.interval;
-                                //if( VELOCITY[e] > 5 ) VELOCITY[e] = 5;
-                                //if( VELOCITY[e] < -5 ) VELOCITY[e] = -5;
-                                //VELOCITY[e] = Math.abs(event.acceleration[e]+0.29) > 0.01 ? VELOCITY[e]+0.29 : 0;
-                                //VELOCITY[e] = Math.abs(event.acceleration[e]) > 0.2 ? event.acceleration[e] : 0;
-                                
-                                var a = Math.abs(event.acceleration[e]) > 0.2 ? event.acceleration[e] : 0;
-                                VELOCITY_QUEUE[e].enqueue( a );
-                                if( VELOCITY_QUEUE[e].getSize() > 20 ){
-                                    VELOCITY[e] -= VELOCITY_QUEUE[e].dequeue();
-                                }
-                                VELOCITY[e] += a/40;
-                                if( isNaN(VELOCITY[e]) ) VELOCITY[e] = 0;
-                                console.log(VELOCITY[e]);
-                            });
-                            SOCKET.send( $.toJSON( {motion: {velocity: VELOCITY} } ) );
-                        }
+                        if( TOUCHING_ROTATE ) SOCKET.send( $.toJSON( {motion: {rotate: event.rotationRate} } ) );
+                        if( TOUCHING_TRANSLATE ) SOCKET.send( $.toJSON( {motion: {translate: event.rotationRate} } ) );
                         event.preventDefault();
                     });
-                    window.addEventListener( 'deviceorientation', function(event) {
-                        if( TOUCHING_ROTATE ) SOCKET.send( $.toJSON( {orientation: {alpha: event.alpha, beta: event.beta, gamma: event.gamma} } ) );
-                        event.preventDefault();
-                    });
-                    
                     
                     document.addEventListener( 'gesturechange', function(event){
-                        if(event.target.id == 'touchAvatar' || event.target.id == 'touchArea'){
-                            //var element = document.getElementById('touchAvatar');
-                            //var theTransform = window.getComputedStyle(element).webkitTransform;
-                            //var matrix = new WebKitCSSMatrix(theTransform);
-                            //console.log(event.scale);
-                            
-                            var scale = Math.abs(event.scale-1) < .01 ? event.scale : (event.scale >= 1 ? 1.01 : 0.99);
-                            if( isNaN(scale) ) scale = 1;
-                            var rotation = isNaN(event.rotation) ? 0 : -(event.rotation % 360)/50;
-                            
-                            //element.style.webkitTransform = matrix.scale( scale, scale ).rotate( rotation );
+                        if(event.target.id == 'touchArea'){
                             SOCKET.send( $.toJSON( {touchpad: {scale: scale, rotation: {x: 0, y: 0, z: rotation}} } ) );
                             event.preventDefault();
                         }
                     });
                     
-                    var TOUCH_X = 0;
-                    var TOUCH_Y = 0;
+                    var TOUCH = {};
                     document.addEventListener( 'touchend', function(event){
-                        if(event.target.id == 'touchAvatar' || event.target.id == 'touchArea'){
-                            TOUCH_X = 0;
-                            TOUCH_Y = 0;
+                        if(event.target.id == 'touchArea'){
+                            $.each(['X', 'Y'], function(i,e){
+                                TOUCH[e] = 0;
+                            });
                             event.preventDefault();
                         }
                     });
                     document.addEventListener( 'touchmove', function(event){
-                        if(event.target.id == 'touchAvatar' || event.target.id == 'touchArea'){
+                        if(event.target.id == 'touchArea'){
                             if( event.touches && event.touches.length == 1 ){
-                                
-                                var delta_x = 0;
-                                var delta_y = 0;
-                                
-                                //var element = document.getElementById('touchAvatar');
-                                //var theTransform = window.getComputedStyle(element).webkitTransform;
-                            
-                                //var matrix = new WebKitCSSMatrix(theTransform);
-                                
+                                var delta = {};
                                 var touch = event.touches[0];
-                                if(TOUCH_X) delta_x = TOUCH_X - touch.screenX;
-                                TOUCH_X = touch.screenX;
-                                if(TOUCH_Y) delta_y = TOUCH_Y - touch.screenY;
-                                TOUCH_Y = touch.screenY;
-                                
-                                var x = isNaN(delta_x) ? 0 : delta_x % 360;
-                                var y = isNaN(delta_y) ? 0 : delta_y % 360;
-                                
-                                //element.style.webkitTransform = matrix.rotate( y, x, 0 );
-                                console.log(x,y);
-                                SOCKET.send( $.toJSON( {touchpad: {scale: 1, rotation: {x: -y, y: -x, z: 0}} } ) );
+                                $.each(['X', 'Y'], function(i,e){
+                                    delta[e] = 0;
+                                    if(TOUCH[e]) delta[e] = TOUCH[e] - touch['screen' + e];
+                                    TOUCH[e] = touch['screen' + e];
+                                    delta[e] = isNaN(delta[e]) ? 0 : delta[e] % 360;
+                                });
+                                SOCKET.send( $.toJSON( {touchpad: {scale: 1, rotation: {x: -delta.Y, y: -delta.X, z: 0}} } ) );
                                 event.preventDefault();
                             }
                         }
                     });
                 }
-                
             });
         </script>
         
@@ -226,10 +164,10 @@
                         var s = '';
                         
                         if( 'motion' in m ){
-                            if( 'rotationRate' in m.motion ){
-                                var alpha = Math.round( m.motion.rotationRate.alpha/7 );
-                                var beta = Math.round( m.motion.rotationRate.beta/7 );
-                                var gamma = Math.round( m.motion.rotationRate.gamma/7 );
+                            if( 'rotate' in m.motion ){
+                                var alpha = Math.round( m.motion.rotate.alpha/7 );
+                                var beta = Math.round( m.motion.rotate.beta/7 );
+                                var gamma = Math.round( m.motion.rotate.gamma/7 );
                                 s = ( Math.abs(alpha) > 1 ? 'rotate X ' + alpha + ';' : '' ) +
                                     ( Math.abs(beta) > 1 ? 'rotate Y ' + beta + ';' : '' ) +
                                     ( Math.abs(gamma) > 1 ? 'rotate Z ' + gamma + ';' : '' ) +
@@ -237,28 +175,16 @@
                                 //console.log(s);
                                 jmolScript(s);
                             }
-                            if( 'rotationRateX' in m.motion ){
-                                var y = m.motion.rotationRateX.alpha/100;
-                                var x = m.motion.rotationRateX.beta/100;
-                                var z = m.motion.rotationRateX.gamma/100;
+                            if( 'translate' in m.motion ){
+                                var y = m.motion.translate.alpha/100;
+                                var x = m.motion.translate.beta/100;
+                                var z = m.motion.translate.gamma/100;
                                 s = '' +
                                     ( Math.abs(x) > 0.05 ? 'translate x ' + x + ' NM;' : '' ) +
                                     ( Math.abs(y) > 0.05 ? 'translate y ' + y + ' NM;' : '' ) +
                                     ( Math.abs(z) > 0.05 ? 'translate z ' + z + ' NM;' : '' ) +
                                     '';
                                 //console.log(s);
-                                jmolScript(s);
-                            }
-                            if( 'velocity' in m.motion ){
-                                var x = m.motion.velocity.x;
-                                var y = m.motion.velocity.y/50;
-                                var z = m.motion.velocity.z;
-                                s = '' +
-                                    //( Math.abs(x) > 0.001 ? 'translate x ' + x + ' NM;' : '' ) +
-                                    ( Math.abs(y) > 0.001 ? 'translate y ' + y + ' NM;' : '' ) +
-                                    //( Math.abs(z) > 0.001 ? 'translate z ' + z + ' NM;' : '' ) +
-                                    '';
-                                console.log(s);
                                 jmolScript(s);
                             }
                         }
@@ -275,20 +201,6 @@
                                 '';
                             //console.log(s);
                             jmolScript(s);
-                        }
-                        
-                        if( 'orientation' in m ){
-                            s = 'moveto 0 {1 0 0} ' + m.orientation.alpha + ';' +
-                                'moveto 0 {0 1 0} ' + m.orientation.beta + ';' +
-                                'moveto 0 {0 0 1} ' + m.orientation.gamma + ';' +
-                                '';
-                            s = 'reset; ' +
-                                'rotate z ' + Math.round( m.orientation.alpha ) + ';' +
-                                'rotate x ' + Math.round( m.orientation.beta ) + ';' +
-                                'rotate y ' + Math.round( m.orientation.gamma )+ ';' +
-                                '';
-                            //console.log(s);
-                            //jmolScript(s);
                         }
                     }catch(e){
                         
@@ -338,20 +250,12 @@
             <div class="info">
                 Pinch to zoom, touch to rotate or tap'n'touch to translate.
             </div>
-            <div id="touchArea" style="position:relative;">
-                <!--
-                    <h2 style="padding: 10px; text-shadow: rgba(0, 0, 0, .8) 0 1px 0; color: lightgrey;">touch</h2>
-                    <div id="touchAvatar" style="background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#3dffee), to(#dd5e65)); height:200px; width:200px; position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;"></div>
-                -->
-            </div>
+            <div id="touchArea" style="position:relative;"></div>
         </div>
         
         <div id="applet">
             <script>
                 if (!IOS) {
-                    //document.getElementById("no").style.display="block";
-                    //document.getElementById("yes").style.display="none";
-                    console.log('foo');
                     jmolInitialize("../applet/jmol/12.1.25/","JmolApplet0.jar");
                     s = 'load "../data/showcase/rhodopsin/3cap_aligned.pdb";';
                     jmolApplet(["600","600"], s);
