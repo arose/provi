@@ -47,8 +47,9 @@ Provi.Bio.Rotamers.RotamersWidget = function(params){
     this.picking_select = 'ATOM';
     this.drag_selected = false;
     this.selection_halos = false;
+    this.show_vdw_id = false;
     Widget.call( this, params );
-    this._build_element_ids([ 'residue_expression', 'get_rotamers', 'rotamers', 'applet_selector_widget', 'next', 'previous', 'custom_rotamer', 'set_custom_rotamer' ]);
+    this._build_element_ids([ 'residue_expression', 'get_rotamers', 'rotamers', 'applet_selector_widget', 'next', 'previous', 'custom_rotamer', 'set_custom_rotamer', 'show_vdw' ]);
     var content = '<div class="control_group">' +
         '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
 	'<div class="control_row">' +
@@ -68,6 +69,10 @@ Provi.Bio.Rotamers.RotamersWidget = function(params){
 	    '<input size="12" id="' + this.custom_rotamer_id + '" type="text" value="" class="ui-state-default"/>' +
 	    '<label for="' + this.custom_rotamer_id + '" >custom rotamer</label> ' +
 	    '<button id="' + this.set_custom_rotamer_id + '">set</button>' +
+        '</div>' +
+	'<div class="control_row">' +
+            '<input id="' + this.show_vdw_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.show_vdw_id + '" style="display:inline-block;">show vdw radii</label>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
@@ -128,13 +133,56 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
             }
         });
 	
+	// init show vdw
+        this.show_vdw = $("#" + this.show_vdw_id).is(':checked');
+        $('#' + this.show_vdw_id).click(function(){
+	    self.show_vdw = $("#" + self.show_vdw_id).is(':checked');
+	    var applet = self.applet_selector.get_value();
+	    applet.script_wait('' +
+		'function show_clashes( an1, an2 ){' + '\n' +
+		    'print "foobar";' + '\n' +
+		    'var a1 = {atomno=an1};' + '\n' +
+		    'var a2 = {atomno=an2};' + '\n' +
+		    'var p1 = a1.XYZ;' + '\n' +
+		    'var p2 = a2.XYZ;' + '\n' +
+		    'var r1 = a1.vanderwaals;' + '\n' +
+		    'var r2 = a2.vanderwaals;' + '\n' +
+		    'var r = r1+r2;' + '\n' +
+		    'var d = p1.distance(p2);' + '\n' +
+		    'var x = r-d;' + '\n' +
+		    'if( x>0 ){' + '\n' +
+			(self.show_vdw ? ('select @a1 or @a2;' + '\n' +
+			    'cpk 100%;' + '\n' +
+			    'color translucent;' + '\n') : '') +
+			'var e = 3;' + '\n' +
+			'var re = r1**e + r2**e' + '\n' +
+			'var r1p = r1**e/re;' + '\n' +
+			'var r2p = r2**e/re;' + '\n' +
+			'var v12 = p2-p1;' + '\n' +
+			'var v21 = p1-p2;' + '\n' +
+			'var h = x*r2p;' + '\n' +
+			'var m = p1+((v12/v12)*(r1-h));' + '\n' +
+			'var m1 = m+v12/v12/20;' + '\n' +
+			'var m2 = m+v21/v21/20;' + '\n' +
+			'var dia = 2*sqrt( h*(2*r1-h) );' + '\n' +
+			'var isoname = "' + self.id + '_clash_" + an1 + "_" + an2;' + '\n' +
+			'draw ID @isoname CYLINDER @m1 @m2 DIAMETER @dia;' + '\n' +
+		    '}' + '\n' +
+		'};' +
+		'',
+		true
+	    );
+	    self.set_dihedral();
+        });
+	
 	Widget.prototype.init.call(this);
     },
     get_rotamers: function(){
         var self = this;
 	var applet = this.applet_selector.get_value();
         
-        applet.script_wait('' +
+        var s = '' +
+	    'select ' + this.residue_expression + '; center selected; wireframe 0.2;' + '\n' +
             'function set_dihedral( a, b, c, d, angle ){' + '\n' +
                 'var current_angle = angle( a, b, c, d );' + '\n' +
                 'var angle_change = @angle - @current_angle;' + '\n' +
@@ -144,9 +192,40 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
                 'select within(BRANCH, @b, @c) and within(GROUP, @b) and not backbone;' + '\n' +
                 'rotateSelected @b @c @angle_change;' + '\n' +
                 'print angle( @a, @b, @c, @d );' + '\n' +
-            '}',
-            true
-        );
+            '};' +
+	    'function show_clashes( an1, an2 ){' + '\n' +
+		'print "foobar";' + '\n' +
+		'var a1 = {atomno=an1};' + '\n' +
+		'var a2 = {atomno=an2};' + '\n' +
+		'var p1 = a1.XYZ;' + '\n' +
+		'var p2 = a2.XYZ;' + '\n' +
+		'var r1 = a1.vanderwaals;' + '\n' +
+		'var r2 = a2.vanderwaals;' + '\n' +
+		'var r = r1+r2;' + '\n' +
+		'var d = p1.distance(p2);' + '\n' +
+		'var x = r-d;' + '\n' +
+		'if( x>0 ){' + '\n' +
+		    (this.show_vdw ? ('select @a1 or @a2;' + '\n' +
+			'cpk 100%;' + '\n' +
+			'color translucent;' + '\n') : '') +
+		    'var e = 3;' + '\n' +
+		    'var re = r1**e + r2**e' + '\n' +
+		    'var r1p = r1**e/re;' + '\n' +
+		    'var r2p = r2**e/re;' + '\n' +
+		    'var v12 = p2-p1;' + '\n' +
+		    'var v21 = p1-p2;' + '\n' +
+		    'var h = x*r2p;' + '\n' +
+		    'var m = p1+((v12/v12)*(r1-h));' + '\n' +
+		    'var m1 = m+v12/v12/20;' + '\n' +
+		    'var m2 = m+v21/v21/20;' + '\n' +
+		    'var dia = 2*sqrt( h*(2*r1-h) );' + '\n' +
+		    'var isoname = "' + this.id + '_clash_" + an1 + "_" + an2;' + '\n' +
+		    'draw ID @isoname CYLINDER @m1 @m2 DIAMETER @dia;' + '\n' +
+		'}' + '\n' +
+	    '};' +
+	    '';
+	console.log(s);
+	applet.script_wait( s, true );
         
 	this.res_name = eval( applet.evaluate('"[" + {' + this.residue_expression + '}.label("[\'%[group]\']").join(",") + "]"') )[0][0];
         
@@ -187,7 +266,7 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	    }
 	}
         //console.log( rot );
-        
+        var s = ''
         $.each(Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ], function(i){
             var atoms = this;
             var atoms_expr = [];
@@ -195,10 +274,22 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
                 atoms_expr.push('{' + self.residue_expression + ' and atomName="' + this + '"}');
             });
             console.log( atoms_expr.join(', ') );
-            var s = 'set_dihedral( ' + atoms_expr.join(', ') + ', ' + rot[i+1] + ' );';
-            //console.log(s);
-            applet.script_wait(s, true);
+            s += 'set_dihedral( ' + atoms_expr.join(', ') + ', ' + rot[i+1] + ' );\n';
         });
+	s += 'draw "' + self.id + '_clash*" DELETE;' + '\n' +
+	    'set defaultVDW babel;' + '\n' +
+	    'var ma = measure( {' + this.residue_expression + ' and sidechain}, {not ' + this.residue_expression + '}, 0, 4).split("\\n");' + '\n' +
+	    'print ma;' + '\n' +
+	    'select *; cpk off;' + '\n' +
+	    'select ' + this.residue_expression + '; color wireframe opaque;' + '\n' +
+	    'for (var a IN ma) {' + '\n' +
+	    '    var pair = a.split(" ").find("(#[0-9]+)", "").replace("#", "");' + '\n' +
+	    '    print pair;' + '\n' +
+	    '    show_clashes( pair[0], pair[1] );' + '\n' +
+	    '}' + '\n' +
+	    '';
+	console.log(s);
+        applet.script_wait(s, true);
     }
 });
 
