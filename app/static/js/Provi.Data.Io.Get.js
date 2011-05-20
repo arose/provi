@@ -58,6 +58,20 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
 		
             });
         }
+	
+	if( $.query.get('url') ){
+	    var jw_dict = {};
+            $.each( $.query.get('url'), function(i, data){
+		if(jw_dict[data.applet]){
+		    var jw = jw_dict[data.applet];
+		}else{
+		    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
+		    jw_dict[i] = jw;
+		}
+		var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
+                Provi.Data.Io.import_url( data.url, data.name, data.type, params );
+            });
+        }
         
         if( $.query.get('pdb') ){
             $.each( $.query.get('pdb').split(','), function(i, id){

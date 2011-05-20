@@ -509,7 +509,7 @@ Provi.Data.Io.import_url = function(url, name, type, params, success, no_init){
             dataset.server_id = response.id;
             dataset.set_type( response.type );
             dataset.set_status( 'server', response.status );
-            if( !no_init ) dataset.init( params );
+            if( dataset && !no_init ) dataset.init( params );
             if( $.isFunction(success) ){
                 success( dataset );
             }
