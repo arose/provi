@@ -263,7 +263,7 @@ class MmCif( Text ):
     file_ext = 'mmcif'
 
 class Cube( Text ):
-    file_ext = 'cub'
+    file_ext = 'cube'
 
 class Msms( Text ):
     file_ext = 'vert'
