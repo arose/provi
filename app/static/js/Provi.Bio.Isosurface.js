@@ -267,7 +267,7 @@ Provi.Bio.Isosurface.VolumeWidget = function(params){
 		'' +
     '</div>';
     
-    if( this.dataset && $.inArray( this.dataset.type, ['ccp4', 'mrc', 'map']) >= 0 ){
+    if( this.dataset && $.inArray( this.dataset.type, ['cube', 'ccp4', 'mrc', 'map']) >= 0 ){
 	this.style = 'MESH NOFILL';
 	this.downsample = null;
 	this.focus = true;
@@ -426,7 +426,7 @@ Provi.Bio.Isosurface.VolumeParamsWidget = function(params){
     '</div>';
     $(this.dom).append( content );
     
-    if( this.dataset && $.inArray( this.dataset.type, ['ccp4', 'mrc', 'map']) == -1 ){
+    if( this.dataset && $.inArray( this.dataset.type, ['cube', 'ccp4', 'mrc', 'map']) == -1 ){
 	$('#' + this.sigma_id).parent().hide();
     }else{
 	$('#' + this.sigma_id).val('1');
@@ -531,7 +531,7 @@ Provi.Bio.Isosurface.SurfaceParamsWidget = function(params){
     if( this.dataset ){
 	$('#' + this.map_id).parent().hide();
     }
-    if( this.dataset && $.inArray( this.dataset.type, ['ccp4', 'mrc', 'map']) >= 0 ){
+    if( this.dataset && $.inArray( this.dataset.type, ['cube', 'ccp4', 'mrc', 'map']) >= 0 ){
 	$('#' + this.select_selector_id).parent().hide();
 	$('#' + this.ignore_selector_id).parent().hide();
 	$('#' + this.resolution_id).parent().hide();

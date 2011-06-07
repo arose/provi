@@ -334,7 +334,7 @@ extension_to_datatype_dict = {
     'bin': Binary(),
     'ccp4': Ccp4(),
     'cif': Cif(),
-    'cub': Cube(),
+    'cube': Cube(),
     'dat': Data(),
     'dx': Dx(),
     'ent': Ent(),
