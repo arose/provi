@@ -15,6 +15,7 @@ Provi.Data.Controller.IsosurfaceMixin = {
         {
             params: [
                 { name: 'within', getter: 'get_within' },
+                { name: 'insideout', getter: 'get_insideout' }
             ],
             obj: Provi.Bio.Isosurface.LoadParamsWidget
         }
@@ -29,6 +30,7 @@ Provi.Data.Controller.IsosurfaceMixin = {
                 dataset: self,
                 applet: params.applet,
                 within: params.within,
+                insideout: params.insideout,
                 select: params.select,
                 ignore: params.ignore,
                 color: params.color,
@@ -52,6 +54,7 @@ Provi.Data.Controller.VolumeMixin = {
         {
             params: [
                 { name: 'within', getter: 'get_within' },
+                { name: 'insideout', getter: 'get_insideout' }
             ],
             obj: Provi.Bio.Isosurface.LoadParamsWidget
         },
@@ -84,6 +87,7 @@ Provi.Data.Controller.VolumeMixin = {
                 dataset: self,
                 applet: params.applet,
                 within: params.within,
+                insideout: params.insideout,
                 sigma: params.sigma,
                 cutoff: params.cutoff,
                 color_density: params.color_density,
