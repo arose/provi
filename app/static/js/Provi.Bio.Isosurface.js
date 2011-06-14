@@ -36,6 +36,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     this.resolution = parseFloat(params.resolution) || 1.0;
     this.display_within = params.display_within || 10.0;
     this.within = params.within || '';
+    this.insideout = params.insideout || '';
     this.color = params.color || '';
     this.style = params.style || '';
     this.sele = params.sele || 'atomno=1';
@@ -230,7 +231,8 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	this.applet.script(
 	    'isosurface ID "' + this.isosurface_name + '" ' +
 	    ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
-	    ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
+	    ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) +
+	    ( this.insideout ? 'INSIDEOUT ' : '' ) + 
 	    '"' + file_url + '" ' +
 	    ( this.style ? this.style : '' ) + 
 	    ';', true);
@@ -314,6 +316,7 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
 		'colorscheme "rwb" color absolute -20 20 ' +
 		(this.type ? this.type + ' ' : '') +
 		(this.type ? 'MAP ' : '') +
+		( (!this.type && this.insideout) ? 'INSIDEOUT ' : '' ) + 
 		'"../../data/get/?id=' + this.dataset.server_id + '" ' +
 		(this.style ? this.style + ' ' : '') +
 		';', true);
@@ -377,12 +380,15 @@ Provi.Bio.Isosurface.SurfaceWidget.prototype = Utils.extend(Provi.Bio.Isosurface
 Provi.Bio.Isosurface.LoadParamsWidget = function(params){
     this.dataset = params.dataset;
     Widget.call( this, params );
-    this._build_element_ids([ 'within' ]);
+    this._build_element_ids([ 'within', 'insideout' ]);
     var content = '<div>' +
 	'<div class="control_row">' +
 	    '<label for="' + this.within_id + '">Within:</label>' +
 	    '<input id="' + this.within_id + '" type="text" size="10" value=""/>' +
 	'</div>' +
+	'<div class="control_row">' +
+	    '<input id="' + this.insideout_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.insideout_id + '" style="display:block;">insideout (lighting)</label>' +
     '</div>';
     $(this.dom).append( content );
     
@@ -393,6 +399,9 @@ Provi.Bio.Isosurface.LoadParamsWidget = function(params){
 Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Isosurface.LoadParamsWidget.prototype */ {
     get_within: function(){
         return $("#" + this.within_id).val();
+    },
+    get_insideout: function(){
+        return $("#" + this.insideout_id).is(':checked');
     }
 });
 
