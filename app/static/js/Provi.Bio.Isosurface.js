@@ -35,14 +35,15 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     this.applet = params.applet;
     this.resolution = parseFloat(params.resolution) || 1.0;
     this.display_within = params.display_within || 10.0;
-    this.within = params.within || '';
-    this.insideout = params.insideout || '';
+    
     this.color = params.color || '';
     this.style = params.style || '';
     this.sele = params.sele || 'atomno=1';
     
+    this.init_load_params( params );
+    
     Widget.call( this, params );
-    this._build_element_ids([ 'show', 'color', 'focus', 'display_within', 'translucent', 'colorscheme', 'color_range', 'style' ]);
+    this._build_element_ids([ 'show', 'color', 'focus', 'display_within', 'translucent', 'colorscheme', 'color_range', 'style', 'load_params' ]);
     
     this.isosurface_name = 'isosurface_' + this.id;
     this.translucent = 0.0;
@@ -126,6 +127,9 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
                 '<option value="dots nomesh nofill">dots</option>' +
             '</select>' +
 	'</div>' +
+	'<div style="padding-left:0px;">' +
+	    '<button id="' + this.load_params_id + '">load params</button>' +
+	"</div>" +
     '</div>';
     $(this.dom).append( content );
     if( !params.no_init ){
@@ -186,6 +190,35 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
             self.applet.script('isosurface ID ' + self.isosurface_name + ' ' + self.style + ';');
         });
 	
+	// init popup widget
+	this._popup = new Provi.Widget.PopupWidget({
+	    parent_id: self.parent_id,
+	    position_my: 'left top',
+	    position_at: 'left bottom',
+	    template: '<div>{{html content}}</div>'
+	});
+	
+	// init load params button
+	$('#' + this.load_params_id).button({
+	    text: false,
+	    icons: {
+		primary: 'ui-icon-script'
+	    }
+	}).click(function(){
+	    self._popup.hide();
+	    //$(this).attr("disabled", true).addClass('ui-state-disabled');
+	    //var ds = self.import_dataset( id, self.directory_name, name, undefined, true );
+	    var dsw = new Provi.Data.DatasetWidget({
+		parent_id: self._popup.data_id,
+		dataset: self.dataset,
+		load_params_values: self.load_params
+	    });
+	    $(dsw).bind('loaded', function(){ 
+		self._popup.hide();
+	    });
+	    self._popup.show( $("#" + self.load_params_id) );
+	});
+	
 	this.init_isosurface();
 	
 	if( true ){
@@ -223,6 +256,15 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	}
 	this.applet.script(s);
     },
+    init_load_params: function( params ){
+	this.within = params.within || '';
+	this.insideout = params.insideout || '';
+	this.load_params = {
+	    within: this.within,
+	    insideout: this.insideout,
+	    reload_widget: this
+	};
+    },
     init_isosurface: function(){
 	var file_url = '../../data/get/?id=' + this.dataset.server_id;
 	if( this.dataset.type=='vert' ){
@@ -236,6 +278,10 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	    '"' + file_url + '" ' +
 	    ( this.style ? this.style : '' ) + 
 	    ';', true);
+    },
+    reload: function(params){
+	this.init_load_params( params );
+	this.init_isosurface();
     }
 });
 
@@ -379,6 +425,8 @@ Provi.Bio.Isosurface.SurfaceWidget.prototype = Utils.extend(Provi.Bio.Isosurface
  */
 Provi.Bio.Isosurface.LoadParamsWidget = function(params){
     this.dataset = params.dataset;
+    this.load_params_values = params.load_params_values || {};
+    console.log( this.load_params_values );
     Widget.call( this, params );
     this._build_element_ids([ 'within', 'insideout' ]);
     var content = '<div>' +
@@ -395,6 +443,16 @@ Provi.Bio.Isosurface.LoadParamsWidget = function(params){
     if( this.dataset && $.inArray( this.dataset.type, ['ccp4', 'mrc', 'map']) >= 0 ){
 	$("#" + this.within_id).val('2 {protein}');
     }
+    
+    if( this.load_params_values.hasOwnProperty('within') ){
+	$("#" + this.within_id).val( this.load_params_values.within );
+    }
+    if( this.load_params_values.hasOwnProperty('insideout') ){
+	$("#" + this.insideout_id).attr('checked', this.load_params_values.insideout);
+    }
+    if( this.load_params_values.hasOwnProperty('reload_widget') ){
+	this.reload_widget = this.load_params_values.reload_widget;
+    }
 }
 Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Isosurface.LoadParamsWidget.prototype */ {
     get_within: function(){
@@ -402,6 +460,9 @@ Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Widget, /** @lend
     },
     get_insideout: function(){
         return $("#" + this.insideout_id).is(':checked');
+    },
+    get_reload_widget: function(){
+        return this.reload_widget;
     }
 });
 

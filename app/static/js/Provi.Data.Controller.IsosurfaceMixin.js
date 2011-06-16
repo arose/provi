@@ -15,7 +15,8 @@ Provi.Data.Controller.IsosurfaceMixin = {
         {
             params: [
                 { name: 'within', getter: 'get_within' },
-                { name: 'insideout', getter: 'get_insideout' }
+                { name: 'insideout', getter: 'get_insideout' },
+                { name: 'reload_widget', getter: 'get_reload_widget' }
             ],
             obj: Provi.Bio.Isosurface.LoadParamsWidget
         }
@@ -24,7 +25,9 @@ Provi.Data.Controller.IsosurfaceMixin = {
         var self = this;
         Provi.Data.Dataset.prototype.init.call(this, params);
         console.log( this, params );
-        if( params.applet ){
+        if( params.reload_widget ){
+            params.reload_widget.reload(params);
+        }else if( params.applet ){
             new Provi.Bio.Isosurface.IsosurfaceWidget({
                 parent_id: 'tab_widgets',
                 dataset: self,
@@ -54,7 +57,8 @@ Provi.Data.Controller.VolumeMixin = {
         {
             params: [
                 { name: 'within', getter: 'get_within' },
-                { name: 'insideout', getter: 'get_insideout' }
+                { name: 'insideout', getter: 'get_insideout' },
+                { name: 'reload_widget', getter: 'get_reload_widget' }
             ],
             obj: Provi.Bio.Isosurface.LoadParamsWidget
         },
@@ -81,7 +85,9 @@ Provi.Data.Controller.VolumeMixin = {
         var self = this;
         Provi.Data.Dataset.prototype.init.call(this, params);
         console.log( this, params );
-        if( params.applet ){
+        if( params.reload_widget ){
+            params.reload_widget.reload(params);
+        }else if( params.applet ){
             new Provi.Bio.Isosurface.VolumeWidget({
                 parent_id: 'tab_widgets',
                 dataset: self,

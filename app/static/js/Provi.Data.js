@@ -194,6 +194,8 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
 Provi.Data.DatasetWidget = function(params){
     this.load_params_widget = [];
     this.dataset = params.dataset;
+    this.load_params_values = params.load_params_values || {};
+    console.log( this.load_params_values );
     Widget.call( this, params );
     this.load_widget_id = this.id + '_load_widget';
     this.load_id = this.id + '_load';
@@ -235,7 +237,7 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
             if(this.dataset.load_params_widget && !this.load_params_widget.length){
 		$.each(this.dataset.load_params_widget, function(i, lpw){
 		    self.load_params_widget.push(
-			new lpw.obj({ parent_id: self.load_widget_id, dataset: self.dataset })
+			new lpw.obj({ parent_id: self.load_widget_id, dataset: self.dataset, load_params_values: self.load_params_values })
 		    );
 		});
             }
