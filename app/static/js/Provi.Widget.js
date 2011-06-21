@@ -79,6 +79,10 @@ Provi.Widget.Widget = function(params){
     this.parent_id = params.parent_id;
     Provi.Widget.WidgetManager.add_widget(this.id, this);
     
+    if( $('#' + this.parent_id).length == 0 ){
+	throw "Widget is missing a parent object to add to.";
+    }
+    
     if( params.heading ){
         content = '<h3 class="collapsable ui-accordion-header"><span class="ui-icon ui-icon-triangle-1-s"></span><a>' + params.heading + '</a></h3>' + content;
     }
@@ -86,7 +90,7 @@ Provi.Widget.Widget = function(params){
     var e = document.createElement( tag_name );
     e.innerHTML = content;
     e.id = this.id;
-    $('#' + params.parent_id).append( e );
+    $('#' + this.parent_id).append( e );
     /** The dom object */
     this.dom = e;
     
