@@ -10,3 +10,17 @@
  * Provi module
  */
 var Provi = {};
+
+
+(function() {
+    
+    Provi.defaults = {};
+    
+    Provi.defaults.dom_parent_ids = {
+        DATASET_WIDGET: '',
+        CANVAS_WIDGET: '',
+        SELECTION_WIDGET: '',
+        BUILDER_WIDGET: ''
+    };
+
+})();

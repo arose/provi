@@ -83,7 +83,7 @@ Provi.Data.Controller.VolumeMixin = {
         console.log( this, params );
         if( params.applet ){
             new Provi.Bio.Isosurface.VolumeWidget({
-                parent_id: 'tab_widgets',
+                parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                 dataset: self,
                 applet: params.applet,
                 within: params.within,

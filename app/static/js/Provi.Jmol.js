@@ -683,13 +683,13 @@ Provi.Jmol.JmolWidget = function(params){
     });
     
     this.selection_manager = new Provi.Selection.SelectionManagerWidget({
-	parent_id: 'tab_tree',
+	parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
 	selection_manager: this.applet.selection_manager,
 	applet: this.applet
     });
     
     this.tree_widget = new Provi.Bio.Sequence.TreeViewWidget({
-	parent_id: 'tab_tree',
+	parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
 	applet: this.applet
     });
     

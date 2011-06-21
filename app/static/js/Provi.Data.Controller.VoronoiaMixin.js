@@ -26,7 +26,7 @@ Provi.Data.Controller.VoronoiaMixin = $.extend(true, {}, Provi.Data.Controller.S
 	    console.log( cavities_model_number, self.data );
 	    if( params.applet ){
                 new Provi.Bio.Voronoia.VoronoiaWidget({
-                    parent_id: 'tab_widgets',
+                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                     dataset: self,
                     applet: params.applet,
 		    cavities_model_number: cavities_model_number
