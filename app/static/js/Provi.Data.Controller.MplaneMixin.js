@@ -17,7 +17,7 @@ Provi.Data.Controller.MplaneMixin = {
             self.set_data( new Provi.Bio.MembranePlanes.Mplane( d[0], d[1], d[2] ) );
             if( params.applet ){
                 new Provi.Bio.MembranePlanes.MplaneWidget({
-                    parent_id: 'tab_widgets',
+                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                     dataset: self,
                     applet: params.applet
                 });

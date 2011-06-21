@@ -17,7 +17,7 @@ Provi.Data.Controller.NdxMixin = {
             self.set_data( new Provi.Bio.Indices.Ndx( d ) );
             if( params.applet ){
                 new Provi.Bio.Indices.NdxWidget({
-                    parent_id: 'tab_widgets',
+                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                     dataset: self,
                     applet: params.applet
                 });
