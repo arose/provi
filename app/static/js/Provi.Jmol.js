@@ -626,8 +626,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
  * @constructor
  */
 Provi.Jmol.JmolWidget = function(params){
-    var default_params = Provi.Jmol.JmolWidget.prototype.default_params;
-    params.parent_id = typeof(params.parent_id) != 'undefined' ? params.parent_id : default_params.parent_id;
+    params = $.extend( Provi.Jmol.JmolWidget.prototype.default_params, params );
     Widget.call( this, params );
     this.applet = new Provi.Jmol.Applet(params);
     this.applet.widget = this;
@@ -664,40 +663,53 @@ Provi.Jmol.JmolWidget = function(params){
 	//layout_main();
     });
     
-    $('#' + this.sequence_view_id).hide();
+    //$('#' + this.sequence_view_id).hide();
     $('#' + this.more_id).tipsy({ gravity: 'w' }).click(function(){
-	$(this).toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-n');
-	if( $('#' + self.sequence_view_id).is(':visible') ){
-	    $('#' + self.applet_parent_id).css('bottom', '30px');
-	}else{
-	    $('#' + self.applet_parent_id).css('bottom', '110px');
-	}
-	$('#' + self.sequence_view_id).toggle();
-	
+	self.toggle_sequence_view();
     });
     
+    if( !params.no_sequence_view_widget ){
+	this.sequence_view = new Provi.Bio.Sequence.SequenceViewWidget({
+	    parent_id: this.sequence_view_id,
+	    applet: this.applet
+	});
+    }else{
+	self.toggle_sequence_view();
+	$('#' + this.more_id).remove();
+    }
     
-    this.sequence_view = new Provi.Bio.Sequence.SequenceViewWidget({
-	parent_id: this.sequence_view_id,
-	applet: this.applet
-    });
+    if( !params.no_selection_manager_widget ){
+	this.selection_manager = new Provi.Selection.SelectionManagerWidget({
+	    parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+	    selection_manager: this.applet.selection_manager,
+	    applet: this.applet
+	});
+    }
     
-    this.selection_manager = new Provi.Selection.SelectionManagerWidget({
-	parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-	selection_manager: this.applet.selection_manager,
-	applet: this.applet
-    });
-    
-    this.tree_widget = new Provi.Bio.Sequence.TreeViewWidget({
-	parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-	applet: this.applet
-    });
+    if( !params.no_tree_view_widget ){
+	this.tree_widget = new Provi.Bio.Sequence.TreeViewWidget({
+	    parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+	    applet: this.applet
+	});
+    }
     
     $('#' + this.more_id).trigger('click');
 };
 Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.JmolWidget.prototype */ {
     default_params: {
-        parent_id: null
+        parent_id: null,
+	no_sequence_view_widget: false,
+	no_selection_manager_widget: false,
+	no_tree_view_widget: false
+    },
+    toggle_sequence_view: function(){
+	$('#' + this.more_id).toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-n');
+	if( $('#' + this.sequence_view_id).is(':visible') ){
+	    $('#' + this.applet_parent_id).css('bottom', '30px');
+	}else{
+	    $('#' + this.applet_parent_id).css('bottom', '110px');
+	}
+	$('#' + this.sequence_view_id).toggle();
     }
 });
 
@@ -748,8 +760,9 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
 	var self = this;
         $(Provi.Jmol).bind('applet_list_change', function(){ self._update() });
 	$('#' + this.selector_id).change( function(){
-	    $(self).triggerHandler('change_selected');
-	    //$(self).triggerHandler('change', [ self.get_value(true) ]);
+	    //console.log( 'CHANGE_SELECTED' );
+	    //$(self).triggerHandler('change_selected');
+	    $(self).triggerHandler('change_selected', [ self.get_value(true) ]);
 	});
 	$(Provi.Jmol).bind('default_applet_change', function(){ self._update() });
     },
