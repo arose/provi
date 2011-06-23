@@ -341,6 +341,7 @@ Provi.Bio.Isosurface.SurfaceWidget = function(params){
     this.resolution = params.resolution;
     this.select = params.select || '*';
     this.ignore = params.ignore;
+    this.slab = params.slab;
     this.map = params.map;
     params.no_init = true;
     Provi.Bio.Isosurface.IsosurfaceWidget.call( this, params );
@@ -364,6 +365,7 @@ Provi.Bio.Isosurface.SurfaceWidget.prototype = Utils.extend(Provi.Bio.Isosurface
 	    (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
 	    (this.select ? 'select {' + this.select + '} ' : '') +
 	    (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
+	    (this.slab ? 'SLAB ' + this.slab + ' ' : '') +
 	    (this.type ? this.type + ' ' : '') +
 	    (this.map ? 'MAP ' + this.map + ' ' : '') +
 	    ';', true);
@@ -468,7 +470,7 @@ Provi.Bio.Isosurface.VolumeParamsWidget.prototype = Utils.extend(Widget, /** @le
 Provi.Bio.Isosurface.SurfaceParamsWidget = function(params){
     this.dataset = params.dataset;
     Widget.call( this, params );
-    this._build_element_ids([ 'select', 'ignore', 'negate_ignore', 'resolution', 'type', 'map', 'select_selector', 'ignore_selector', 'negate_select_as_ignore' ]);
+    this._build_element_ids([ 'select', 'ignore', 'negate_ignore', 'resolution', 'type', 'map', 'slab', 'opposite_slab', 'select_selector', 'ignore_selector', 'negate_select_as_ignore' ]);
     var content = '<div>' +
 	//'<div class="control_row">' +
 	//    '<label for="' + this.select_id + '">Select:</label>' +
@@ -522,15 +524,27 @@ Provi.Bio.Isosurface.SurfaceParamsWidget = function(params){
 		'<option value="MEP 3">[e^(-d)] Hydrophobicity potential</option>' +
             '</select>' +
         '</div>' +
+	'<div class="control_row">' +
+            '<label for="' + this.slab_id + '">Slab:</label>' +
+            '<select id="' + this.slab_id + '" class="ui-state-default">' +
+		'<option value=""></option>' +
+            '</select>' +
+	    '<div class="control_row">' +
+	    '<input id="' + this.opposite_slab_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.opposite_slab_id + '" style="display:block;">opposite facing plane</label>' +
+	'</div>' +
+        '</div>' +
     '</div>';
     $(this.dom).append( content );
     
     this.select_selector = new Provi.Selection.SelectorWidget({
         parent_id: this.select_selector_id,
+	applet: params.applet,
 	tag_name: 'span'
     });
     this.ignore_selector = new Provi.Selection.SelectorWidget({
         parent_id: this.ignore_selector_id,
+	applet: params.applet,
 	tag_name: 'span'
     });
     
@@ -545,8 +559,28 @@ Provi.Bio.Isosurface.SurfaceParamsWidget = function(params){
 	$('#' + this.ignore_selector_id).parent().hide();
 	$('#' + this.resolution_id).parent().hide();
     }
+    
+    var self = this;
+    $(Provi.Data.DatasetManager).bind('change', function(){ self._init_plane_selector() });
+    this._init_plane_selector();
 }
 Provi.Bio.Isosurface.SurfaceParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Isosurface.SurfaceParamsWidget.prototype */ {
+    _init_plane_selector: function(){
+        var self = this;
+	var elm = $('#' + this.slab_id);
+	elm.empty();
+	elm.append("<option value=''></option>");
+        $.each( Provi.Data.DatasetManager.get_list(), function(i, dataset){
+            if( dataset.type == 'mplane' && dataset.data && Utils.in_array(dataset.applet_list, self.applet) ){
+		elm.append("<option value='" + this.id + ",0'>" + this.name + ' PLANE 1 (' + this.id + ')' + "</option>");
+		elm.append("<option value='" + this.id + ",1'>" + this.name + ' PLANE 2 (' + this.id + ')' + "</option>");
+                self.mplane_list = dataset.data.tmh_list;
+                return false;
+            }else{
+                return true;
+            }
+        });
+    },
     get_select: function(){
         return this.select_selector.get().selection;
 	//return $("#" + this.select_id).val();
@@ -570,6 +604,18 @@ Provi.Bio.Isosurface.SurfaceParamsWidget.prototype = Utils.extend(Widget, /** @l
     },
     get_map: function(){
         return $("#" + this.map_id + " option:selected").val();
+    },
+    get_slab: function(){
+	var plane = $("#" + this.slab_id + " option:selected").val().split(',');
+	var ds_id = plane[0];
+	var plane_id = plane[1]
+	if(ds_id){
+	    var ds = Provi.Data.DatasetManager.get( ds_id );
+	    var sign = $("#" + this.opposite_slab_id).is(':checked') ? '- ' : '';
+	    return sign + ds.data.format_as_jmol_planes()[ plane_id ];
+	}else{
+	    return '';
+	}
     },
     set_applet: function( applet ){
 	this.applet = applet;
