@@ -140,10 +140,10 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         this.draw();
     },
     draw: function(){
+        var base_name = 'plane_' + this.id;
         if(this.visibility){
             var mp = this.dataset.data;
             var mp_f = mp.format_as_jmol_planes();
-            var base_name = 'plane_' + this.id;
             var color = 'color TRANSLUCENT ' + this.translucency + ' ' + this.color;
             var base_plane = (this.size==-1) ?
                 ('intersection boundbox plane ') :
@@ -157,7 +157,7 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
                 
             this.applet.script(s);
         }else{
-            this.applet.script('draw plane' + this.id + '_* off;');
+            this.applet.script('draw ' + base_name + '_* off;');
         }
     }
 });
