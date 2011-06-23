@@ -8,7 +8,7 @@ body {
 
 h3 {
     margin-top: 0.1em;
-    margin-bottom: 0.1em;
+    margin-bottom: 0.0em;
     padding-top: 0.3em;
     padding-bottom: 0.3em;
     background-color: #66CCCC;
@@ -80,9 +80,18 @@ div.control_group {
     padding-top: 0.5em;
     padding: 0.5em;
     background-color: lightyellow;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
 }
+
+.widget {
+    margin-top: 0.0em;
+    margin-bottom: 1.0em;
+}
+
+div.control_info {
+    padding: 0.5em;
+    background-color: #EEE;
+}
+
 
 .save_state_ok {
     background-color: lightgreen !important;
