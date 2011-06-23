@@ -52,10 +52,6 @@ Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
 
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
-            '<span>Dataset: ' + this.dataset.name + '</span>&nbsp;|&nbsp;' +
-            '<span>Applet: ' + this.applet.name_suffix + '</span>' +
-        '</div>' +
-        '<div class="control_row">' +
             '<label for="' + this.show_hbonds_check_id + '">show hydrogen bonds</label>&nbsp;' +
             '<input id="' + this.show_hbonds_check_id + '" type="checkbox" />' +
             '<select id="' + this.show_hbonds_select_id + '" class="ui-state-default">' +
@@ -101,6 +97,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
             self.update();
         });
         this._init_control();
+	Widget.prototype.init.call(this);
     },
     /** initialize the controls */
     _init_control: function(){

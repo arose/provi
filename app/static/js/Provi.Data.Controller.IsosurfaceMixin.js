@@ -86,27 +86,10 @@ Provi.Data.Controller.VolumeMixin = {
         Provi.Data.Dataset.prototype.init.call(this, params);
         console.log( this, params );
         if( params.reload_widget ){
-            params.reload_widget.reload(params);
-        }else if( params.applet ){
-            new Provi.Bio.Isosurface.VolumeWidget({
-                parent_id: 'tab_widgets',
-                dataset: self,
-                applet: params.applet,
-                within: params.within,
-                insideout: params.insideout,
-                sigma: params.sigma,
-                cutoff: params.cutoff,
-                color_density: params.color_density,
-                downsample: params.downsample,
-                resolution: params.resolution,
-                select: params.select,
-                ignore: params.ignore,
-                type: params.type,
-                color: params.color,
-                style: params.style,
-                focus: params.focus,
-                sele: params.sele
-            });
+            new Provi.Bio.Isosurface.VolumeWidget( $.extend( params, {
+                parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                dataset: self
+            }));
         }
     }
 }

@@ -48,6 +48,9 @@ Provi.Bio.InterfaceContacts.Contacts.prototype = /** @lends Provi.Bio.InterfaceC
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
+    params = $.extend( {
+        
+    }, params);
     this.color = 'orange';
     this.cutoff = 1.5;
     this.show_only_interface_atoms = false;
@@ -63,11 +66,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     Widget.call( this, params );
     this._build_element_ids([ 'interface_name', 'cutoff', 'show_only_interface_atoms', 'color_interface_residue', 'tmh_filter_check' ]);
     
+    
     var content = '<div class="control_group">' +
-        '<div class="control_row">' +
-            '<span>Dataset: ' + this.dataset.name + '</span>&nbsp;|&nbsp;' +
-            '<span>Applet: ' + this.applet.name_suffix + '</span>' +
-        '</div>' +
         '<div class="control_row">' +
             '<label for="' + this.interface_name_id + '">interface contacts for</label>' +
             '<select id="' + this.interface_name_id + '" class="ui-state-default">' +
@@ -102,7 +102,6 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
         '</div>' +
         '<i>interface atoms are shown in orange</i>' +
     '</div>';
-    console.log(content);
     $(this.dom).append( content );
     this._init();
 }
@@ -145,6 +144,15 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             self.tmh_filter = $("#" + self.tmh_filter_check_id).is(':checked');
             self.draw();
         });
+        
+        this.selection = new Provi.Selection.Selection({
+            persist: true,
+            applet: this.applet,
+            name: 'Current Interface Contacts',
+            selection: ''
+        });
+        
+        Widget.prototype.init.call(this);
     },
     _init_control: function(){
         var self = this;
@@ -223,6 +231,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             }else{
                 var cmd = 'display all; select all; color grey; select (' + atoms + '); save selection MINTERF; color ' + this.color + ';';
             }
+            
+            this.selection.selection = '(' + atoms + ')';
             
             if(this.show_only_interface_atoms){
                 //cmd = cmd + ' restore selection MINTERF; display selected;';

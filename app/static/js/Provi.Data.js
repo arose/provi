@@ -199,9 +199,9 @@ Provi.Data.DatasetWidget = function(params){
     Widget.call( this, params );
     this.load_widget_id = this.id + '_load_widget';
     this.load_id = this.id + '_load';
-    this.info_id = this.id + '_info';
+    this.ds_info_id = this.id + '_ds_info';
     var content = '<div  class="control_group">' +
-        '<div class="control_row" id="' + this.info_id + '"></div>' +
+        '<div class="control_row" id="' + this.ds_info_id + '"></div>' +
         '<div class="control_row" id="' + this.load_widget_id + '"></div>' +
     '</div>'
     $(this.dom).append( content );
@@ -217,7 +217,7 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
     },
     update: function(){
         var self = this;
-        var elm = $('#' + this.info_id);
+        var elm = $('#' + this.ds_info_id);
         elm.empty();
         var status = this.dataset.get_status();
         elm.append(

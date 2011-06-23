@@ -16,11 +16,10 @@ Provi.Data.Controller.HbondsMixin = {
         this.retrieve_data( function(d){
             self.set_data( new Provi.Bio.HydrogenBonds.Hbonds( d ) );
             if( params.applet ){
-                new Provi.Bio.HydrogenBonds.HbondsWidget({
-                    parent_id: 'tab_widgets',
-                    dataset: self,
-                    applet: params.applet
-                });
+                new Provi.Bio.HydrogenBonds.HbondsWidget( $.extend( params, {
+                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                    dataset: self
+                }));
             }
         });
         Provi.Data.Dataset.prototype.init.call(this, params);

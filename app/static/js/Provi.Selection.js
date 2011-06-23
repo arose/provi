@@ -167,7 +167,7 @@ Provi.Selection.SelectionManager.prototype = /** @lends Provi.Selection.Selectio
 Provi.Selection.SelectionWidget = function(params){
     this.selection = params.selection;
     Widget.call( this, params );
-    this._build_element_ids([ 'info', 'select', 'show', 'hide']);
+    this._build_element_ids([ 'select', 'show', 'hide']);
     var content = '<div  class="control_group" style="margin:0;">' +
         '<div>' +
 	    this.selection.id + ': ' + this.selection.name + '&nbsp;' +
@@ -279,7 +279,11 @@ Provi.Selection.SelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi
     init: function(){
         $("#" + this.list_id).empty();
         var self = this;
-	this._update();
+	if( this.applet ){
+	    this.set_applet( this.applet );
+	}else{
+	    this._update();
+	}
     },
     _update: function(){
 	var elm = $("#" + this.selector_id);
@@ -309,7 +313,7 @@ Provi.Selection.SelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi
 	this.applet = applet;
 	if( applet ){
 	    this.selection_manager = applet.selection_manager;
-	    $( this.selection_manager ).bind('change', function(){
+	    $( this.selection_manager ).bind('change change_selected', function(){
 		self._update();
 	    });
 	}
