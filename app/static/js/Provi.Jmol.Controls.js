@@ -132,7 +132,7 @@ Provi.Jmol.Controls.JmolConsoleWidget.prototype = Utils.extend(Widget, /** @lend
 Provi.Jmol.Controls.JmolGlobalControlWidget = function(params){
     this.sync_mouse = false;
     Widget.call( this, params );
-    this._build_element_ids([ 'sync_mouse', 'sync_orientation', 'applet_sync_orientation', 'change_default_applet' ]);
+    this._build_element_ids([ 'sync_mouse', 'sync_orientation', 'applet_selector_sync_orientation', 'change_default_applet' ]);
     
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
