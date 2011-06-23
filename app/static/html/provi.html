@@ -88,6 +88,13 @@
 	
 	Provi.Debug.auto();
 	
+	Provi.defaults.dom_parent_ids = $.extend( Provi.defaults.dom_parent_ids, {
+	    DATASET_WIDGET: 'tab_widgets',
+	    CANVAS_WIDGET: 'main',
+	    SELECTION_WIDGET: 'tab_tree',
+	    BUILDER_WIDGET: 'tab_tree'
+	});
+	
 	function layout_main() {
             var n = Provi.Jmol.get_applet_list().length;
             var i = Math.round( Math.sqrt(n) );
@@ -252,51 +259,29 @@
 	    // when in test mode, load some data for development purposes
 	    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
 		var applet = Provi.Jmol.get_default_applet( true );
-		//setTimeout( function(){ Data.import_example( 'voronoia', '2xc2.vol', 'vol', { applet: jw.applet, load_as: 'new' } ); }, 1000 );
-		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.pdb', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
-		//Data.import_url( 'http://127.0.0.1:7070/static/data/3dqb.sco', '3dqb.sco', 'sco', { applet: jw.applet, load_as: 'new' }, false, false );
-		//Provi.Data.Io.import_example( 'web_data', '3dqb.pdb', 'pdb', { applet: jw.applet, load_as: 'new' } );
-		//Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.pdb', 'pdb', { applet: applet, load_as: 'new' } );
-		//Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.pdb', 'pdb', { applet: applet, load_as: 'new' } );
-		//Data.import_example( 'web-data', '3dqb.mbn', 'mbn', { applet: jw.applet, load_as: 'new' }, false, false );
-		//Data.import_example( 'web-data', '3dqb.mplane', 'mplane', { applet: jw.applet } );
-		//Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', { applet: applet } );
-		//Data.import_example( 'web_data', '3dqb.anal', 'anal', { applet: jw.applet } );
-		//Data.import_url( 'http://127.0.0.1:7070/static/data/npt.gro', 'npt.gro', 'gro', { applet: false, load_as: 'new' } );
-		//Data.import_example( 'web-data', 'mem_prot.jspt', 'jspt', { applet: jw.applet } );
-		//Data.import_url( 'http://127.0.0.1:7070/static/data/intra_water.jspt', 'intra_water.jspt', 'jspt', { applet: false }, false, true );
-		//Data.import_url( 'http://127.0.0.1:7070/static/data/lipid_water.jspt', 'lipid_water.jspt', 'jspt', { applet: false }, false, true );
-		//Data.import_url( 'http://127.0.0.1:7070/static/data/Ret_in_memb_1.pdb', 'Ret_in_memb_1.pdb', 'pdb', { applet: false }, false, true );
-		
-		//Provi.Data.Io.import_example( 'showcase', 'gromacs/pr01_moved.part0001.gro', 'gro', { applet: applet, load_as: 'new' } );
-		//Provi.Data.Io.import_example( 'showcase', 'gromacs/dowser_water.ndx', 'ndx', { applet: applet } );
-		//new Provi.Selection.Selection({
-		//    persist: true,
-		//    applet: applet,
-		//    name: 'Lys296 ',
-		//    selection: '296'
-		//});
-                
-                Provi.Data.Io.import_example(
-                    'isosurfaces', 'eds_3cap/3cap.pdb.zip', 'pdb',
-                    {
-                        applet: applet,
-                        load_as: 'new',
-                        style: 'wireframe only; wireframe 0.10; set ambientPercent 100; set diffusePercent 0; set specular OFF;'
-                        //style: 'wireframe only; wireframe 0.2;'
-                    }
-                );
-		Provi.Data.Io.import_example(
-                    'isosurfaces', 'eds_3cap/3cap.ccp4.gz', 'ccp4',
-                    {
-                        applet: applet,
-                        color: 'orange',
-                        style: 'mesh nofill nodots',
-                        within: '2 {protein}',
-                        focus: true,
-                        sele: 'atomNo=1'
-                    }
-                );
+		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
+		    sort_key: 1,
+		    heading: 'Interface Contacts',
+		    info: 'Infotext',
+		    description: 'Description',
+		    applet: applet,
+		    load_as: 'new'
+		});
+		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
+		    sort_key: 2,
+		    heading: 'Membrane Planes',
+		    applet: applet
+		});
+		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
+		    sort_key: 3,
+		    heading: 'Transmembrane Helices',
+		    applet: applet
+		});
+		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
+		    sort_key: 4,
+		    heading: 'Hydrogen Bonds',
+		    applet: applet
+		});
 	    }
 	    
 	    // add some showcase examples
