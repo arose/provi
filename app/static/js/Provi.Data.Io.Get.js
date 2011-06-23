@@ -65,6 +65,7 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
 	    $.ajax({
 		url: $.query.get('example_json_url'),
 		data: {},
+		dataType: "json",
 		success: function(response){
 		    var jw_dict = {};
 		    $.each( response, function(i, data){
