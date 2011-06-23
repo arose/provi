@@ -365,7 +365,8 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.
         var self = this;
 	
 	this.surface_params.set_applet( this.applet_selector.get_value(true) );
-	$(this.applet_selector).bind('change', function(event, applet){
+	$(this.applet_selector).bind('change change_selected', function(event, applet){
+	    //console.log('CHANGE');
 	    self.surface_params.set_applet( applet );
 	});
 	
@@ -373,7 +374,7 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.
 	    var applet = self.applet_selector.get_value();
 	    if( applet ){
 		new Provi.Bio.Isosurface.SurfaceWidget({
-		    parent_id: 'tab_widgets',
+		    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
 		    dataset: self,
 		    applet: applet,
 		    within: self.isosurface_params.get_within(),
@@ -381,6 +382,7 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.
 		    resolution: self.surface_params.get_resolution(),
 		    select: self.surface_params.get_select(),
 		    ignore: self.surface_params.get_ignore(),
+		    slab: self.surface_params.get_slab(),
 		    map: self.surface_params.get_map()
 		});
 	    }

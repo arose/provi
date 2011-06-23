@@ -16,11 +16,10 @@ Provi.Data.Controller.TmHelicesMixin = {
         this.retrieve_data( function(d){
             self.set_data( new Provi.Bio.TransmembraneHelices.TmHelices( d ) );
             if( params.applet ){
-                new Provi.Bio.TransmembraneHelices.TmHelicesWidget({
-                    parent_id: 'tab_widgets',
-                    dataset: self,
-                    applet: params.applet
-                });
+                new Provi.Bio.TransmembraneHelices.TmHelicesWidget( $.extend( params, {
+                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                    dataset: self
+                }));
             }
         });
         Provi.Data.Dataset.prototype.init.call(this, params);

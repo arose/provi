@@ -129,7 +129,7 @@ Provi.Data.Controller.StructureMixin = {
         //console.log(m);
         self.set_data( s );
         new Provi.Bio.Sequence.TreeViewWidget({
-            parent_id: 'tab_tree',
+            parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
             dataset: self
         });
     }
