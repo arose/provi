@@ -53,10 +53,39 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
 		    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
 		    jw_dict[i] = jw;
 		}
-		var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
+		var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: (data.load_as || 'new') } );
                 Provi.Data.Io.import_example( data.dir, data.filename, data.type, params );
 		
             });
+        }
+	
+	//example json url (eju)
+	if( $.query.get('example_json_url') ){
+	    console.log( $.query.get('example_json_url') );
+	    $.ajax({
+		url: $.query.get('example_json_url'),
+		data: {},
+		success: function(response){
+		    var jw_dict = {};
+		    $.each( response, function(i, data){
+			if(jw_dict[data.applet]){
+			    var jw = jw_dict[data.applet];
+			}else{
+			    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
+			    jw_dict[i] = jw;
+			}
+			var params = $.extend( (data.params || {}), {
+			    applet: jw.applet,
+			    load_as: (data.load_as || 'new')
+			});
+			Provi.Data.Io.import_example( data.dir, data.filename, data.type, params );
+			
+		    });
+		},
+		error: function( jqXHR, textStatus, errorThrown ){
+		    console.log( jqXHR, textStatus, errorThrown );
+		}
+	    });
         }
 	
 	if( $.query.get('url') ){
