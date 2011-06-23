@@ -45,10 +45,6 @@ Provi.Bio.TransmembraneHelices.TmHelicesWidget = function(params){
     this.canvas_id = this.id + '_canvas';
 
     var content = '<div class="control_group">' +
-        '<div class="control_row">' +
-            '<span>Dataset: ' + this.dataset.name + '</span>&nbsp;|&nbsp;' +
-            '<span>Applet: ' + this.applet.name_suffix + '</span>' +
-        '</div>' +
 	'<div class="control_row">' +
             '<div id="' + this.canvas_id + '" style="width:300px; overflow:auto;"></div>' +
         '</div>' +
@@ -60,6 +56,7 @@ Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype = Utils.extend(Widget, 
     _init: function(){
         var self = this;
         this.tree_view();
+	Widget.prototype.init.call(this);
     },
     tree_view: function(){
         var self = this;

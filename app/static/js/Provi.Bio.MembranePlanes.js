@@ -61,10 +61,6 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
     this.visibility_id = this.id + '_visibility';
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
-            '<span>Dataset: ' + this.dataset.name + '</span>&nbsp;|&nbsp;' +
-            '<span>Applet: ' + this.applet.name_suffix + '</span>' +
-        '</div>' +
-        '<div class="control_row">' +
             '<label for="' + this.size_id + '">membrane plane size</label>' +
             '<select id="' + this.size_id + '" class="ui-state-default">' +
                 '<option value="1">hide</option>' +
@@ -123,6 +119,7 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
             self.update_size_slider();
         });
         $("#" + this.size_slider_id).slider('option', 'value', this.size);
+        Widget.prototype.init.call(this);
     },
     update_size_slider: function(){
         if($("#" + this.size_id + " option:contains(" + this.size + ")").size()){
