@@ -198,7 +198,6 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
             dataset.server_id = response.id;
             dataset.set_type( response.type );
             dataset.set_status( 'server', response.status );
-	    console.log(response);
 	    if( dataset && !no_init ){
 		dataset.init( params );
 	    }
