@@ -25,12 +25,11 @@ Provi.Data.Controller.VoronoiaMixin = $.extend(true, {}, Provi.Data.Controller.S
 	    self.add_data( 'residue_map', new Provi.Bio.Voronoia.VolResidueMap( self.data ) );
 	    console.log( cavities_model_number, self.data );
 	    if( params.applet ){
-                new Provi.Bio.Voronoia.VoronoiaWidget({
+                new Provi.Bio.Voronoia.VoronoiaWidget( $.extend( params, {
                     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                     dataset: self,
-                    applet: params.applet,
 		    cavities_model_number: cavities_model_number
-                });
+                }));
             }
             
             //params.applet.script_wait('set refreshing true;');

@@ -16,11 +16,10 @@ Provi.Data.Controller.MplaneMixin = {
         this.retrieve_data( function(d){
             self.set_data( new Provi.Bio.MembranePlanes.Mplane( d[0], d[1], d[2] ) );
             if( params.applet ){
-                new Provi.Bio.MembranePlanes.MplaneWidget({
+                new Provi.Bio.MembranePlanes.MplaneWidget( $.extend( params, {
                     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
-                    dataset: self,
-                    applet: params.applet
-                });
+                    dataset: self
+                }));
             }
         });
         Provi.Data.Dataset.prototype.init.call(this, params);
