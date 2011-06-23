@@ -19,11 +19,10 @@ Provi.Data.Controller.InterfaceContactsMixin = $.extend(true, {}, Provi.Data.Con
             
             self.data.names = d;
             if( params.applet ){
-                new Provi.Bio.InterfaceContacts.InterfaceContactsWidget({
-                    parent_id: 'tab_widgets',
-                    dataset: self,
-                    applet: params.applet
-                });
+                new Provi.Bio.InterfaceContacts.InterfaceContactsWidget( $.extend( params, {
+                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                    dataset: self
+                }));
             }
         });
         
