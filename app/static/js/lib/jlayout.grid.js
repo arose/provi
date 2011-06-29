@@ -42,8 +42,6 @@
 				y = insets.top,
 				width = (container.bounds().width - (insets.left + insets.right) - (my.columns - 1) * my.hgap) / my.columns,
 				height = (container.bounds().height - (insets.top + insets.bottom) - (my.rows - 1) * my.vgap) / my.rows;
-				if(width==0) width=1;
-				if(height==0) height=1;
 
 			for (i = 0, j = 1; i < my.items.length; i += 1, j += 1) {
 				my.items[i].bounds({'x': x, 'y': y, 'width': width, 'height': height});
@@ -74,8 +72,8 @@
 		function typeLayout(type) {
 			return function (container) {
 				var i = 0, 
-					width = 1, 
-					height = 1, 
+					width = 0, 
+					height = 0, 
 					type_size,
 					insets = container.insets();
 
