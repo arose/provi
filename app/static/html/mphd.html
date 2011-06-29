@@ -45,6 +45,7 @@
     
     <script type="text/javascript" src="../js/Provi.Bio.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Smcra.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Structure.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Voronoia.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Rotamers.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.MembranePlanes.js"></script>
@@ -78,7 +79,7 @@
     <link rel="stylesheet" media="screen" type="text/css" href="../js/lib/jquery-colorPicker/colorPicker.css" />
     <script type="text/javascript" src="../js/lib/jquery-colorPicker/jquery.colorPicker.js"></script>
     
-    <link type="text/css" href="../js/lib/jquery-ui/css/smoothness/jquery-ui.css" rel="stylesheet" />
+    <link type="text/css" href="../js/lib/jquery-ui/css/custom-theme/jquery-ui.css" rel="stylesheet" />
     <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
     <link rel='stylesheet' type='text/css' href='../css/view.css'>
     <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
@@ -94,6 +95,61 @@
 	    SELECTION_WIDGET: 'tab_widgets',
 	    BUILDER_WIDGET: 'tab_widgets'
 	});
+	
+	Provi.Bio.Structure.StructureWidget.prototype.default_params = $.extend(
+	    Provi.Bio.Structure.StructureWidget.prototype.default_params,
+	    {
+		style: 'cartoon only; wireframe 0.15;' +
+		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
+		    'select water; wireframe 0.01;' +
+		    'select group=hoh; cpk 20%;' +
+		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
+		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
+		    'select none;',
+		hidden: true
+	    }
+	);
+	
+	Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params = $.extend(
+	    Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params,
+	    {
+		sort_key: 1,
+		heading: 'Interface Contacts',
+		info: 'Infotext XYZ',
+		description: 'Description',
+		show_dataset_info: false,
+		load_as: 'new'
+	    }
+	);
+	
+	Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params = $.extend(
+	    Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params,
+	    {
+		sort_key: 2,
+		heading: 'Membrane Planes',
+		show_dataset_info: false,
+	    }
+	);
+	
+	Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params = $.extend(
+	    Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params,
+	    {
+		sort_key: 3,
+		heading: 'Transmembrane Helices',
+		show_dataset_info: false,
+	    }
+	);
+	
+	Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params = $.extend(
+	    Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params,
+	    {
+		sort_key: 4,
+		heading: 'Hydrogen Bonds',
+		show_dataset_info: false,
+	    }
+	);
+	
+	
 	
 	function layout_main() {
             var n = Provi.Jmol.get_applet_list().length;
@@ -123,7 +179,7 @@
             
             
             Provi.Jmol.Applet.prototype.default_params.height = "99%";
-            Provi.Jmol.Applet.prototype.default_params.width = "100%";
+            Provi.Jmol.Applet.prototype.default_params.width = "99%";
             Provi.Jmol.JmolWidget.prototype.default_params = $.extend(
 		Provi.Jmol.JmolWidget.prototype.default_params,
 		{
@@ -182,30 +238,15 @@
 	    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
 		var applet = Provi.Jmol.get_default_applet( true );
 		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
-		    sort_key: 1,
-		    heading: 'Interface Contacts',
-		    info: 'Infotext',
-		    description: 'Description',
-		    show_dataset_info: false,
 		    applet: applet,
-		    load_as: 'new'
 		});
 		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
-		    sort_key: 2,
-		    heading: 'Membrane Planes',
-		    show_dataset_info: false,
 		    applet: applet
 		});
 		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
-		    sort_key: 3,
-		    heading: 'Transmembrane Helices',
-		    show_dataset_info: false,
 		    applet: applet
 		});
 		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
-		    sort_key: 4,
-		    heading: 'Hydrogen Bonds',
-		    show_dataset_info: false,
 		    applet: applet
 		});
 	    }
@@ -214,10 +255,10 @@
         
     </script>
     
-    <div id="container" style="height:100%; width:100%;">
+<div id="container" style="height:100%; width:100%;">
         
-        <div id="jmolWindow" class="" style="overflow:auto; height:100%">
-            <div id="main" style="height:100%; width:100%;"></div>
+        <div id="jmolWindow" class="" style="overflow:hidden; height:100% ">
+            <div id="main" style="height:100%; width:100%; overflow:hidden;"></div>
         </div>
         
         <div id="jmolControls" class="" style="height:100%; width:400px;">

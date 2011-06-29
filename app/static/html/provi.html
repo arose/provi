@@ -45,6 +45,7 @@
     
     <script type="text/javascript" src="../js/Provi.Bio.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Smcra.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Structure.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Voronoia.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Rotamers.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.MembranePlanes.js"></script>
@@ -78,7 +79,7 @@
     <link rel="stylesheet" media="screen" type="text/css" href="../js/lib/jquery-colorPicker/colorPicker.css" />
     <script type="text/javascript" src="../js/lib/jquery-colorPicker/jquery.colorPicker.js"></script>
     
-    <link type="text/css" href="../js/lib/jquery-ui/css/smoothness/jquery-ui.css" rel="stylesheet" />
+    <link type="text/css" href="../js/lib/jquery-ui/css/custom-theme/jquery-ui.css" rel="stylesheet" />
     <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
     <link rel='stylesheet' type='text/css' href='../css/view.css'>
     <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
@@ -98,7 +99,8 @@
 	function layout_main() {
             var n = Provi.Jmol.get_applet_list().length;
             var i = Math.round( Math.sqrt(n) );
-            $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
+            //$('#main').layout({resize: false, type: 'flexGrid', columns: i, rows: i, vgap: 8, hgap: 8 });
+	    $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 	
 	//Provi.Jmol.init("../applet/jmol/11.8.25/");
@@ -135,7 +137,7 @@
             $('#jmolWindow').resize(layout_main);
             
             
-            Provi.Jmol.Applet.prototype.default_params.height = "99%";
+            Provi.Jmol.Applet.prototype.default_params.height = "100%";
             Provi.Jmol.Applet.prototype.default_params.width = "100%";
             Provi.Jmol.JmolWidget.prototype.default_params.parent_id = "main";
             $(Provi.Jmol).bind('applet_list_change', layout_main);
@@ -360,8 +362,8 @@
     
     <div id="container" style="height:100%; width:100%;">
         
-        <div id="jmolWindow" class="" style="overflow:auto; height:100%">
-            <div id="main" style="height:100%; width:100%;"></div>
+        <div id="jmolWindow" class="" style="overflow:hidden; height:100% ">
+            <div id="main" style="height:100%; width:100%; overflow:hidden;"></div>
         </div>
         
         <div id="jmolControls" class="" style="height:100%; width:400px;">
@@ -378,14 +380,15 @@
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
 			<div id="tab_about">
+			    
 			    <h4><i>Provi</i> integrates the display of protein structures and related data into a convenient graphical user interface (GUI).</h4>
 			    <div class="accordion">
-				<h3><a href="#">For users</a></h3>
+				<h3 class="ui-widget-header">For users</h3>
 				<div>
 				    <p>Click on the following examples to see for yourself. The <i>Widgets</i> tab provides GUI controls tailored to the displayed data. More general controls are found in the <i>Controls</i> and the <i>Tree</i> tab.</p>
 				    <ul id="showcase_examples"></ul>
 				</div>
-				<h3><a href="#">For developers</a></h3>
+				<h3 class="ui-widget-header">For developers</h3>
 				<div>
 				    <p>Some documentation is available</p>
 				    <ul>
