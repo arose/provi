@@ -48,6 +48,10 @@ Provi.Bio.MembranePlanes.Mplane.prototype = /** @lends Provi.Bio.MembranePlanes.
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.MembranePlanes.MplaneWidget = function(params){
+    params = $.extend(
+        Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params,
+        params
+    );
     this.dataset = params.dataset;
     this.applet = params.applet;
     this.color = "blue";

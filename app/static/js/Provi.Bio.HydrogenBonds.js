@@ -38,6 +38,10 @@ Provi.Bio.HydrogenBonds.Hbonds.prototype = /** @lends Provi.Bio.HydrogenBonds.Hb
  * @param {Provi.Data.Dataset} params.dataset The dataset the widget will be bond to
  */
 Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
+    params = $.extend(
+        Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params,
+        params
+    );
     /** Color in which the hydrogen bonds are drawn */
     this.color = 'blue';
     this.show_hbonds = '';

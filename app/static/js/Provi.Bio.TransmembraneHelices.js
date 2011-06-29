@@ -39,6 +39,10 @@ Provi.Bio.TransmembraneHelices.TmHelices.prototype = /** @lends Provi.Bio.Transm
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.TransmembraneHelices.TmHelicesWidget = function(params){
+    params = $.extend(
+        Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params,
+        params
+    );
     this.applet = params.applet;
     this.dataset = params.dataset;
     Widget.call( this, params );

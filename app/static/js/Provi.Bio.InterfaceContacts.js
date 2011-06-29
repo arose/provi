@@ -48,21 +48,23 @@ Provi.Bio.InterfaceContacts.Contacts.prototype = /** @lends Provi.Bio.InterfaceC
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
-    params = $.extend( {
-        
-    }, params);
-    this.color = 'orange';
-    this.cutoff = 1.5;
-    this.show_only_interface_atoms = false;
-    this.color_interface_residue = false;
+    this.applet = params.applet;
+    this.dataset = params.dataset;
+    params = $.extend(
+        Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params,
+        params
+    );
+    this.color = params.color;
+    this.cutoff = params.cutoff;
+    this.show_only_interface_atoms = params.show_only_interface_atoms;
+    this.color_interface_residue = params.color_interface_residue;
     this.interface_ids = '';
     this.interface_names = '';
     this.tmh_filter = false;
     this.tmh_list = false;
     this.atoms = [];
     this.structure_atoms = [];
-    this.applet = params.applet;
-    this.dataset = params.dataset;
+    
     Widget.call( this, params );
     this._build_element_ids([ 'interface_name', 'cutoff', 'show_only_interface_atoms', 'color_interface_residue', 'tmh_filter_check' ]);
     
@@ -71,8 +73,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
         '<div class="control_row">' +
             '<label for="' + this.interface_name_id + '">interface contacts for</label>' +
             '<select id="' + this.interface_name_id + '" class="ui-state-default">' +
-                '<option value="">none</option>' +
-                '<option value="helix">all helices</option>' +
+                '<option title="group" value="">none</option>' +
             '</select>' +
         '</div>' +
         '<div class="control_row">' +
@@ -106,15 +107,20 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     this._init();
 }
 Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype */ {
+    default_params: {
+        color: 'orange',
+        cutoff: 1.5,
+        show_only_interface_atoms: false,
+        color_interface_residue: false
+    },
     _init: function(){
         var self = this;
         $(Provi.Data.DatasetManager).bind('change', function(){ self._init_tmh_filter() });
         
         if(this.dataset.type == 'mbn'){
-            $("#" + this.interface_name_id + ' option[value=]').after("<option value='membrane' selected='selected'>membrane</option>");
-            this.interface_names = 'membrane';
+            this.interface_names = 'Membrane';
         }else{
-            this.interface_names = 'helix';
+            this.interface_names = 'Helices';
         }
         $("#" + this.interface_name_id).val( this.interface_names );
         
@@ -145,10 +151,17 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             self.draw();
         });
         
-        this.selection = new Provi.Selection.Selection({
+        this.interface_contacts_selection = new Provi.Selection.Selection({
             persist: true,
             applet: this.applet,
-            name: 'Current Interface Contacts',
+            name: 'Current Interface Contacts [' + this.dataset.id + ']',
+            selection: ''
+        });
+        
+        this.structure_selection = new Provi.Selection.Selection({
+            persist: true,
+            applet: this.applet,
+            name: 'Current Interface Structure [' + this.dataset.id + ']',
             selection: ''
         });
         
@@ -168,14 +181,23 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 'O': 'Hetero'
             }
             $.each(data, function(i){
+                console.log( this, parseInt(this[1]) );
                 type_count[ this[0] ] = type_count[ this[0] ] ? type_count[ this[0] ] + 1 : 1;
                 var label = this;
-                if( type_names[ this[0] ] ){
-                    label = type_names[ this[0] ] + ' ' + type_count[ this[0] ] + ' (' + this + ')';
+                var selected = "";
+                if( self.interface_names == this ){
+                    selected = ' selected="selected" ';
                 }
-                $("#" + self.interface_name_id).append(
-                    "<option value='" + this + "'>" + label + "</option>"
-                );
+                if( type_names[ this[0] ] && !isNaN(parseInt(this[1])) ){
+                    label = type_names[ this[0] ] + ' ' + type_count[ this[0] ] + ' (' + this + ')';
+                    $("#" + self.interface_name_id).append(
+                        "<option " + selected + " value='" + this + "'>" + label + "</option>"
+                    );
+                }else{
+                    $("#" + self.interface_name_id).children('[title=group]').last().after(
+                        "<option " + selected + " title='group' value='" + this + "'>" + label + "</option>"
+                    );
+                }
             });
         }
     },
@@ -232,23 +254,48 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 var cmd = 'display all; select all; color grey; select (' + atoms + '); save selection MINTERF; color ' + this.color + ';';
             }
             
-            this.selection.selection = '(' + atoms + ')';
+            this.interface_contacts_selection.selection = '(' + atoms + ')';
+            
+            var structure_atoms = [];
+            if(this.structure_atoms && this.structure_atoms.length){
+                structure_atoms = $.map(this.structure_atoms, function(atom){
+                    return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
+                });
+            }
+            structure_atoms = structure_atoms.join(',');
+            this.structure_selection.selection = '(' + structure_atoms + ')';
             
             if(this.show_only_interface_atoms){
                 //cmd = cmd + ' restore selection MINTERF; display selected;';
-                cmd = cmd + ' display selected; zoom(selected) 100;';
-            }else if(this.structure_atoms && this.structure_atoms.length){
-                var structure_atoms = $.map(this.structure_atoms, function(atom){
-                    return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
-                });
-                structure_atoms = structure_atoms.join(',');
-                cmd = cmd + ' select (' + structure_atoms + '); save selection MSTRUC; color pink; zoom(selected) 100;';
+                cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
+                cmd = cmd + ' display selected; ';
             }
+            if(this.structure_atoms && this.structure_atoms.length){
+                cmd = cmd + ' select (' + structure_atoms + '); save selection MSTRUC; color pink; ';
+            }
+            cmd = cmd + 'slab on; set slabRange 28.0; set zShade on; set zSlab 50; set zDepth 37; ';
+            
+            cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
+            this.applet.script_wait(cmd + 'center selected; zoom (selected) 100; boundbox {selected}; select none;');
+            var boundbox = $.parseJSON( this.applet.get_property_as_json('boundboxInfo') );
+            //console.log( boundbox['boundboxInfo'] );
+            boundbox = boundbox['boundboxInfo'];
+            var v0 = $V( boundbox['corner0'] );
+            var v1 = $V( boundbox['corner1'] );
+            var corner_dist = v0.distanceFrom( v1 );
+            //console.log( corner_dist );
+            this.applet.script(
+                'set rotationRadius ' + Math.round(corner_dist/2) + ';' +
+                'slab on; set slabRange ' + Math.round(corner_dist/1.5) + ';' +
+                'set zShade on; set zSlab ' + Math.round(corner_dist*0.75) + ';' +
+                'set zDepth ' + Math.round(corner_dist*0.33) + '; '
+            );
         }else{
-            var cmd = 'display all; select all; color grey;';
+            var cmd = 'display all; select all; center {all}; color grey; slab off;';
+            this.applet.script( cmd );
         }
         
-        this.applet.script(cmd + ' select none;');
+        
     }
 });
 
