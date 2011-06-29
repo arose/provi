@@ -67,15 +67,19 @@ Provi.Widget.WidgetManager._widget_dict.size = Utils.object_size_fn;
  * @param {boolean} [params.persist_on_applet_delete=false] When bound to a Jmol applet, the widget gets automatically destroyed when the applet is destroyed. This flag switches that behavior off.
  */
 Provi.Widget.Widget = function(params){
+    this.eid_dict = {};
     var tag_name = params.tag_name || 'div';
     var content = typeof(params.content) != 'undefined' ? params.content : '';
     this.sort_key = typeof(params.sort_key) != 'undefined' ? params.sort_key : 1000000;
+    params.show_dataset_info = typeof(params.show_dataset_info) != 'undefined' ? params.show_dataset_info : true;
     /** The text of the widget's heading */
     this.heading = params.heading;
     /** Weather the widget is collapsed or not */
     this.collapsed = params.collapsed;
     this.info = params.info;
     this.description = params.description;
+    this.applet = params.applet;
+    this.persist_on_applet_delete = params.persist_on_applet_delete;
     /** Dom id of the widget itself */
     this.id = Provi.Widget.WidgetManager.get_widget_id(params.id);
     
@@ -90,29 +94,28 @@ Provi.Widget.Widget = function(params){
     }
     
     var template = '' +
-	
-	'<h3 class="collapsable ui-accordion-header" id="${eids.heading}" ' +
+	'<div class="ui-widget-header ui-state-active" id="${eids.heading}" ' +
 		'style="{{if !params.heading}}display:none;{{/if}}">' +
 	    '<span title="show/hide" class="ui-icon ui-icon-triangle-1-s"></span>' +
-	    '<a>${params.heading}</a>' +
+	    '<span>${params.heading}</span>' +
 	    '<span style="float:right; padding:0.1em; {{if !params.info}}display:none;{{/if}}">' +
 		'<span title="${params.info}" id="${eids.info}" class="ui-icon ui-icon-info">' +
 		    '${params.info}' +
 		'</span>' +
 	    '</span>' +
-	'</h3>' +
-	'<div>' +
-	    '<div class="control_info" id="${eids.description}" ' +
+	'</div>' +
+	'<div class="my-content">' +
+	    '<div class="" id="${eids.description}" ' +
 		    'style="{{if !params.info}}display:none;{{/if}}">' +
 		'${params.description}' +
 	    '</div>' +
 	    '{{if params.show_dataset_info && params.dataset && params.applet}}' +
-		'<div class="control_group" >' +
+		'<div class="" >' +
 		    '<span>Dataset: ${params.dataset.name}</span>&nbsp;|&nbsp;' +
 		    '<span>Applet: ${params.applet.name_suffix}</span>' +
 		'</div>' +
 	    '{{/if}}' +
-	    '<div class="control_content" id="${eids.content}">${params.content}</div>' +
+	    '<div class="" id="${eids.content}">${params.content}</div>' +
 	'</div>';
     
     var e = document.createElement( tag_name );
@@ -121,16 +124,11 @@ Provi.Widget.Widget = function(params){
     $('#' + this.parent_id).append( e );
     /** The dom object */
     this.dom = e;
-    $(this.dom).addClass( 'widget' );
-    $('#' + this.parent_id).trigger('Provi.widget_added');
-    
-    if(params.applet && !params.persist_on_applet_delete){
-        var self = this;
-        $(params.applet).bind('delete', function(){
-            $(self.dom).hide();
-            $(self.dom).appendTo('#trash');
-        });
+    if( params.hidden ){
+	$(this.dom).hide();
     }
+    $(this.dom).addClass( 'ui-container ui-widget' );
+    $('#' + this.parent_id).trigger('Provi.widget_added');
     
     // should be called the subclasses of Widget
     //this.init();
@@ -143,12 +141,16 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	this.elm('info').tipsy({ gravity: 'ne' });
 	
 	var heading = this.elm( 'heading' );
+	heading.hover(function(){
+	    $(this).toggleClass('ui-state-hover');
+	});
 	heading.children('[title]').tipsy({ gravity: 'nw' });
 	heading.click(function() {
 	    $(this).siblings().toggle();
 	    //self.elm( 'content' ).toggle();
 	    //self.elm( 'content' ).next().toggle();
 	    $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-s');
+	    $(this).toggleClass('ui-state-active ui-state-default');
 	    return false;
 	});
 	if( this.heading && this.collapsed ) heading.triggerHandler('click');
@@ -156,6 +158,14 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	if( !this.heading ) this.elm( 'heading' ).hide();
 	if( !this.info ) this.elm( 'info' ).hide();
 	if( !this.description ) this.elm( 'description' ).hide();
+	
+	if(this.applet && !this.persist_on_applet_delete){
+	    var self = this;
+	    $(this.applet).bind('delete', function(){
+		$(self.dom).hide();
+		$(self.dom).appendTo('#trash');
+	    });
+	}
     },
     set_heading: function( heading ){
 	this.elm( 'heading' ).text( heading ).show();
@@ -169,8 +179,9 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     set_content: function( content ){
 	this.elm( 'content' ).innerHTML( content );
     },
-    add_content: function( content ){
-	this.elm( 'content' ).append( content );
+    add_content: function( template, params ){
+	var e = this.elm( 'content' );
+	$.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo(e);
     },
     /**
     * Helper function to create unique ids for dom elements that belong to the widget.
@@ -189,7 +200,6 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	return this.id + '_' + name;
     },
     _init_eid_manager: function( eid_list ){
-	this.eid_dict = {};
 	this.add_eids( eid_list );
     },
     add_eids: function( eid_list ){
