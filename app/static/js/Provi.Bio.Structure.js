@@ -1,38 +1,75 @@
 /**
- * @fileOverview This file contains the {@link Provi.Data.Controller.StructureMixin} controller.
+ * @fileOverview This file contains the {@link Provi.Bio.Structure} Module.
  * @author <a href="mailto:alexander.rose@charite.de">Alexander Rose</a>
  * @version 0.0.1
  */
 
+
 /**
- * @class
+ * @namespace
+ * Structure module
  */
-Provi.Data.Controller.StructureMixin = {
-    available_widgets: {
-	'StructureWidget': Provi.Bio.Structure.StructureWidget
+Provi.Bio.Structure = {};
+
+
+(function() {
+
+/** @exports Utils as Provi.Utils */
+var Utils = Provi.Utils;
+/** @exports Widget as Provi.Widget.Widget */
+var Widget = Provi.Widget.Widget;
+
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Bio.Structure.StructureWidget = function(params){
+    params = $.extend(
+        Provi.Bio.Structure.StructureWidget.prototype.default_params,
+        params
+    );
+    console.log('STRUCTURE', params);
+    params.persist_on_applet_delete = false;
+    params.heading = 'FOOBAR';
+    //params.collapsed = false;
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager( ['current_file_number'] );
+    
+    this.dataset = params.dataset;
+    this.applet = params.applet;
+    this.load_as = params.load_as;
+    this.style = params.style;
+    
+    var template = '' +
+	'<div class="" id="${eids.current_file_number}" >' +
+            'Jmol file number: <span>???${params.current_file_number}</span>' +
+	'</div>' +
+	'';
+    
+    this.add_content( template, params );
+    this._init();
+}
+Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Structure.StructureWidget.prototype */ {
+    default_params: {
+        style: ''
     },
-    load_params_widget: [{
-        name: 'load_as',
-        obj: Provi.Jmol.JmolLoadAsSelectorWidget,
-        getter: 'get_value'
-    }],
-    init: function(params){
-	if( params.applet ){
-	    new Provi.Bio.Structure.StructureWidget( $.extend( params, {
-		parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
-		dataset: this
-	    }));
-	}
-        if( typeof(params) == 'object' && params.applet && params.load_as ){
-            //this.load( params.applet, params.load_as, params.style );
-        }
-        Provi.Data.Dataset.prototype.init.call(this, params);
+    _init: function(){
+        var self = this;
+        
+        this.load( this.applet, this.load_as, this.style );
+        
+	Provi.Widget.Widget.prototype.init.call(this);
     },
     load: function( applet, load_as, style ){
 	var self = this;
-        var params = '?id=' + this.server_id;
-        var type = this.type;
-        if( $.inArray(this.type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol']) >= 0 ){
+        console.log( this, this.dataset );
+        var params = '?id=' + this.dataset.server_id;
+        var type = this.dataset.type;
+        if( $.inArray(type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol']) >= 0 ){
             params += '&data_action=get_pdb';
             type = 'pdb';
         }
@@ -87,58 +124,9 @@ Provi.Data.Controller.StructureMixin = {
 	    console.log('../../data/get/' + params);
 	    applet.script('load "' + type + '../../data/get/' + params + '"; ' + style);
 	}
-    },
-    jmol_load: function(){
-        var selection = 'protein and {*}';
-        var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[atomName]\',%[atomNo],\'%[model]\'';
-        var protein_data = applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
-        //console.log( protein_data );
-        protein_data = protein_data.replace(/\'\'/g,"'");
-        //console.log( protein_data );
-        protein_data = eval( protein_data );
-        
-        var s = new Bio.Pdb.Structure('1');
-        var m = new Bio.Pdb.Model('1');
-        s.add( m );
-        
-        $.each(protein_data, function() {
-            //console.log(this);
-            var atom = this;
-            //console.log(atom);
-            var group = atom[0],
-                sequence = atom[1],
-                resno = atom[2],
-                chain = atom[3],
-                atomName = atom[4],
-                atomNo = atom[5];
-            
-            var c = m.get( chain );
-            //console.log('chain', chain, c);
-            if( !c ){
-                c = new Bio.Pdb.Chain( chain );
-                m.add( c );
-            }
-            
-            var r = c.get( resno );
-            //console.log('residue', resno, r);
-            if( !r ){
-                r = new Bio.Pdb.Residue( resno, group );
-                c.add( r );
-            }
-            
-            var a = new Bio.Pdb.Atom( atomName, [], 0, 0, "", atomName, atomNo, "" );
-            try{
-                r.add( a );
-            }catch(err){
-                //console.log(err);
-            }
-        });
-        
-        console.log(m);
-        self.set_data( s );
-        new Provi.Bio.Sequence.TreeViewWidget({
-            parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-            dataset: self
-        });
     }
-}
+});
+
+
+
+})();
