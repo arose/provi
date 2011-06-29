@@ -364,12 +364,8 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     _create_dom: function(){
         var e = document.createElement("span");
 	e.innerHTML = this.html;
-	$(e).css('min-width', '10px');
-	$(e).css('min-height', '10px');
         this.dom = e;
 	this.applet = e.firstChild;
-	$(this.applet).css('min-width', '10px');
-	$(this.applet).css('min-height', '10px');
     },
     dom: function(){
 	return this.dom;
@@ -635,18 +631,20 @@ Provi.Jmol.JmolWidget = function(params){
     this.data_id = this.id + '_data';
     this.delete_id = this.id + '_delete';
     this.sequence_view_id = this.id + '_sequence_view';
-    var content = 
-	'<div id="' + this.applet_parent_id + '" style="overflow:none; position:inherit; top:0px; bottom:30px; width:100%;"></div>' +
-	'<div id="' + this.sequence_view_id + '" class="" style="overflow:auto; background:lightblue; position:inherit; height:65px; margin-bottom:15px; padding:6px; bottom:20px; left:0px; right:0px;">' +
+    var content =
+	'<div id="' + this.applet_parent_id + '" style="overflow:hidden; position:absolute; top:0px; bottom:32px; width:100%;"></div>' +
+	'<div id="' + this.sequence_view_id + '" class="" style="overflow:auto; background:lightblue; position:absolute; height:62px; margin-bottom:0px; padding:6px; bottom:32px; left:0px; right:0px;">' +
 	    //'<span>Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;</span>' +
 	'</div>' +
-	'<div class="" style="background:lightyellow; position:inherit; height:20px; padding:6px; bottom:0px; left:0px; right:0px;">' +
+	'<div class="" style="overflow:hidden; background:lightyellow; position:absolute; height:20px; padding:6px; bottom:0px; left:0px; right:0px;">' +
 	    '<span title="more views" class="ui-icon ui-icon-triangle-1-e" id="' + this.more_id + '"></span>&nbsp;' +
 	    '<span>Applet: ' + this.applet.name_suffix + '</span>' +
 	    '<span style="margin-left:20px; margin-right:10px; overflow:hidden;">Data: <span id="' + this.data_id + '" ></span></span>' +
-            '<span title="delete" class="ui-icon ui-icon-trash" style="cursor:pointer; float:right;" id="' + this.delete_id + '">delete</span>' +
+	    '<span title="delete" class="ui-icon ui-icon-trash" style="cursor:pointer; position:absolute; right:6px; top:6px;" id="' + this.delete_id + '">delete</span>' +
 	'</div>';
     $(this.dom).append( content );
+    $(this.dom).addClass('ui-jmol')
+    $(this.dom).removeClass( 'ui-container ui-widget' );
     
     //$(this.dom).height( typeof(params.height) != 'undefined' ? params.height : '100%' );
     //$(this.dom).width( typeof(params.width) != 'undefined' ? params.width : '100%' );
@@ -694,6 +692,10 @@ Provi.Jmol.JmolWidget = function(params){
     }
     
     $('#' + this.more_id).trigger('click');
+//    $(this.dom).resizable({
+//	stop: layout_main
+//    });
+    layout_main();
 };
 Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.JmolWidget.prototype */ {
     default_params: {
@@ -705,9 +707,9 @@ Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Jmo
     toggle_sequence_view: function(){
 	$('#' + this.more_id).toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-n');
 	if( $('#' + this.sequence_view_id).is(':visible') ){
-	    $('#' + this.applet_parent_id).css('bottom', '30px');
+	    $('#' + this.applet_parent_id).css('bottom', '32px');
 	}else{
-	    $('#' + this.applet_parent_id).css('bottom', '110px');
+	    $('#' + this.applet_parent_id).css('bottom', '106px');
 	}
 	$('#' + this.sequence_view_id).toggle();
     }
@@ -760,7 +762,7 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
 	var self = this;
         $(Provi.Jmol).bind('applet_list_change', function(){ self._update() });
 	$('#' + this.selector_id).change( function(){
-	    //console.log( 'CHANGE_SELECTED' );
+	    console.log( 'CHANGE_SELECTED' );
 	    //$(self).triggerHandler('change_selected');
 	    $(self).triggerHandler('change_selected', [ self.get_value(true) ]);
 	});
@@ -770,7 +772,8 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         var applet_name = $("#" + this.selector_id + " option:selected").val();
         if(applet_name == 'default'){
 	    return Provi.Jmol.get_default_applet( !do_not_force_new );
-        }else if(applet_name == 'new' || applet_name == 'new once'){
+        }else if( !do_not_force_new &&
+		  (applet_name == 'new' || applet_name == 'new once') ){
             var jw = new Provi.Jmol.JmolWidget({
                 parent_id: this.new_jmol_applet_parent_id
             });
