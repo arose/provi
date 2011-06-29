@@ -232,6 +232,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
         '<div class="control_row">' +
             '<label for="' + this.style_id + '">style</label>' +
             '<select id="' + this.style_id + '" class="ui-state-default">' +
+		'<option value=""></option>' +
 		'<option value="default">default</option>' +
 		'<option value="default+wireframe">default & wireframe</option>' +
                 '<option value="backbone">backbone</option>' +
@@ -424,6 +425,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                 this.style_cmd = 'cartoon ONLY;';
                 break;
         }
+	$("#" + this.style_id).val('');
         var applet = this.applet_selector.get_value(true);
         if(applet){
             applet.script('select all; ' + this.style_cmd + ' select none;');
