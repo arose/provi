@@ -248,12 +248,6 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
             }
             
-            if(this.color_interface_residue){
-                var cmd = 'display all; select all; color grey; select within(GROUP, (' + atoms + ') ); save selection MINTERF; color ' + this.color + ';';
-            }else{
-                var cmd = 'display all; select all; color grey; select (' + atoms + '); save selection MINTERF; color ' + this.color + ';';
-            }
-            
             this.interface_contacts_selection.selection = '(' + atoms + ')';
             
             var structure_atoms = [];
@@ -263,33 +257,60 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 });
             }
             structure_atoms = structure_atoms.join(',');
+            structure_atoms = structure_atoms ? structure_atoms : 'none';
             this.structure_selection.selection = '(' + structure_atoms + ')';
+            
+            var cmdX = 'var IATOMS = {(' + atoms + ')}; ' +
+                'var SATOMS = {(' + structure_atoms + ')};';
+            this.applet.script_wait(cmdX + ' boundbox { @IATOMS or @SATOMS }; boundbox ON; select @IATOMS; save selection IATOMS; select @SATOMS; save selection SATOMS;');
+            var boundbox = $.parseJSON( this.applet.get_property_as_json('boundboxInfo') );
+            console.log( boundbox );
+            
+            var cmd = 'restore selection IATOMS; var IATOMS = {selected};' +
+                'restore selection SATOMS; var SATOMS = {selected};';
+            
+            if(this.color_interface_residue){
+                //cmd += 'display all; select all; color grey; select within(GROUP, (' + atoms + ') ); save selection MINTERF; color ' + this.color + ';';
+                cmd += 'display all; select all; color grey; select within(GROUP, @IATOMS ); color ' + this.color + ';';
+            }else{
+                //cmd += 'display all; select all; color grey; select (' + atoms + '); save selection MINTERF; color ' + this.color + ';';
+                cmd += 'display all; select all; color grey; select @IATOMS; color ' + this.color + ';';
+                //cmd += 'display all; select all; color grey; restore selection IATOMS; color ' + this.color + ';';
+            }
             
             if(this.show_only_interface_atoms){
                 //cmd = cmd + ' restore selection MINTERF; display selected;';
-                cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
+                //cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
+                cmd = cmd + ' select @IATOMS or @SATOMS;';
                 cmd = cmd + ' display selected; ';
             }
             if(this.structure_atoms && this.structure_atoms.length){
-                cmd = cmd + ' select (' + structure_atoms + '); save selection MSTRUC; color pink; ';
+                //cmd = cmd + ' select (' + structure_atoms + '); save selection MSTRUC; color pink; ';
+                cmd = cmd + ' select @SATOMS; color pink; ';
             }
             cmd = cmd + 'slab on; set slabRange 28.0; set zShade on; set zSlab 50; set zDepth 37; ';
             
-            cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
-            this.applet.script_wait(cmd + 'center selected; zoom (selected) 100; boundbox {selected}; select none;');
-            var boundbox = $.parseJSON( this.applet.get_property_as_json('boundboxInfo') );
-            //console.log( boundbox['boundboxInfo'] );
-            boundbox = boundbox['boundboxInfo'];
-            var v0 = $V( boundbox['corner0'] );
-            var v1 = $V( boundbox['corner1'] );
-            var corner_dist = v0.distanceFrom( v1 );
-            //console.log( corner_dist );
-            this.applet.script(
-                'set rotationRadius ' + Math.round(corner_dist/2) + ';' +
-                'slab on; set slabRange ' + Math.round(corner_dist/1.5) + ';' +
-                'set zShade on; set zSlab ' + Math.round(corner_dist*0.75) + ';' +
-                'set zDepth ' + Math.round(corner_dist*0.33) + '; '
-            );
+            //cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
+            cmd = cmd + ' select {@IATOMS or @SATOMS};';
+            //this.applet.script_wait(cmd + 'center selected; zoom (selected) 100; boundbox {selected}; select none;');
+            
+            //var boundbox = $.parseJSON( this.applet.get_property_as_json('boundboxInfo') );
+            
+            if( boundbox ){//&& boundbox.hasOwnProperty('boundboxInfo') ){
+                boundbox = boundbox['boundboxInfo'];
+                var v0 = $V( boundbox['corner0'] );
+                var v1 = $V( boundbox['corner1'] );
+                var corner_dist = v0.distanceFrom( v1 );
+                //console.log( corner_dist );
+                cmd += '' +
+                    'set rotationRadius ' + Math.round(corner_dist/2) + ';' +
+                    'slab on; set slabRange ' + Math.round(corner_dist/1.5) + ';' +
+                    'set zShade on; set zSlab ' + Math.round(corner_dist*0.75) + ';' +
+                    'set zDepth ' + Math.round(corner_dist*0.33) + '; ';
+                //this.applet.script(  );
+            }
+            
+            this.applet.script(cmd + 'center selected; zoom (selected) 100; select none;');
         }else{
             var cmd = 'display all; select all; center {all}; color grey; slab off;';
             this.applet.script( cmd );

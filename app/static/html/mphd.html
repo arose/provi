@@ -1,10 +1,8 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-    "http://www.w3.org/TR/html4/strict.dtd"
-    >
+<!doctype html> 
 <html lang="en">
 <head>
     <link rel="shortcut icon" href="../favicon.ico">
-    
+    <meta http-equiv="X-UA-Compatible" content="IE=8" />
     <title>Provi</title>
     
     <!--<script type="text/javascript" src="../js/lib/ba-debug.min.js"></script>-->
@@ -17,6 +15,7 @@
     <script type="text/javascript" src="../js/lib/jquery.cookie.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-ui/js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../js/lib/jstree/jquery.jstree.js"></script>
     
     <script type="text/javascript" src="../js/lib/tipsy/src/javascripts/jquery.tipsy.js"></script>
     
@@ -28,8 +27,8 @@
     
     <script type="text/javascript" src="../js/lib/sylvester.js"></script>
     
-    <script type="text/javascript" src="../js/lib/protovis-r.js"></script>
-    <script type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>
+    <!--<script type="text/javascript" src="../js/lib/protovis-r.js"></script>
+    <script type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>-->
     
     <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.min.js"></script>
     
@@ -38,7 +37,7 @@
     <script type="text/javascript" src="../js/Provi.js"></script>
     <script type="text/javascript" src="../js/Provi.Debug.js"></script>
     <script type="text/javascript" src="../js/Provi.Utils.js"></script>
-    <script type="text/javascript" src="../js/Provi.Utils.Protovis.js"></script>
+    <!--<script type="text/javascript" src="../js/Provi.Utils.Protovis.js"></script>-->
     <script type="text/javascript" src="../js/Provi.Widget.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Selection.js"></script>
@@ -127,7 +126,7 @@
 	    {
 		sort_key: 2,
 		heading: 'Membrane Planes',
-		show_dataset_info: false,
+		show_dataset_info: false
 	    }
 	);
 	
@@ -136,7 +135,7 @@
 	    {
 		sort_key: 3,
 		heading: 'Transmembrane Helices',
-		show_dataset_info: false,
+		show_dataset_info: false
 	    }
 	);
 	
@@ -145,7 +144,7 @@
 	    {
 		sort_key: 4,
 		heading: 'Hydrogen Bonds',
-		show_dataset_info: false,
+		show_dataset_info: false
 	    }
 	);
 	
@@ -157,9 +156,19 @@
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 	
-	Provi.Jmol.init("../../jmol/current/1/", true);
+	Provi.Jmol.init("../../jmol/current/3/", true);
 	
         $(document).ready(function(){
+	    
+	    $.ajax({
+		url: '../../data/index/',
+		async: false,
+		dataType: 'text',
+		cache: false,
+		success: function(response){
+		    console.log( response );
+		}
+	    });
 	    
 	    Provi.Utils.event.init();
 	    
@@ -238,7 +247,7 @@
 	    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
 		var applet = Provi.Jmol.get_default_applet( true );
 		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
-		    applet: applet,
+		    applet: applet
 		});
 		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
 		    applet: applet

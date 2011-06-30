@@ -106,6 +106,10 @@ Provi.Debug.on = function(){
     });
     //window.console = Provi.Debug._console_bak;
     Provi.Debug._status = true;
+    
+    console.log( 'Browser: ', $.browser );
+    console.log( 'navigator.userAgent: ', navigator.userAgent );
+    console.log( 'Provi session: ', $.cookie('provisessionX') );
 }
 
 

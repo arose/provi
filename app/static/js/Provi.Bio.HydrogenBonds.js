@@ -53,6 +53,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
     this.draw_tree_id = this.id + '_draw_tree';
     this.show_hbonds_check_id = this.id + '_show_hbonds_check';
     this.show_hbonds_select_id = this.id + '_show_hbonds_select';
+    this.jstree_id = this.id + '_jstree';
 
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
@@ -71,6 +72,9 @@ Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
         //    '<button id="' + this.draw_id + '">draw</button>' +
         //    '<button id="' + this.draw_tree_id + '">draw tree</button>' +
         //'</div>' +
+	'<div class="control_row">' +
+            '<div id="' + this.jstree_id + '"></div>' +
+        '</div>' +
 	'<div class="control_row">' +
             '<div id="' + this.canvas_id + '" style="width:300px; overflow:auto;"></div>' +
         '</div>' +
@@ -153,86 +157,108 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
         var self = this;
         
         var raw_data = this.get_hbonds();
-        //if( !raw_data ) return;
+        if( !raw_data ) return;
         if( !raw_data ) raw_data = [];
         
-        var hbonds = {};
+	var jstree_data = [];
         $.each( raw_data, function(){
-            var hb = this;
-            var chain = hbonds[ hb[0][2] ];
-            if( !chain ){
-                chain = hbonds[ hb[0][2] ] = {};
-            }
-            chain[ hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) ] = 'Type: ' + hb[2] + '';
-        })
+	    var hb = this;
+	    jstree_data.push({
+		data: '[' + hb[0][2] + ']' + hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ' (Type: ' + hb[2] + ')'
+	    });
+        });
         
-        var root = pv.dom( hbonds )
-            .root( 'Protein' );
-        
-        /* Recursively compute the package sizes. */
-        root.visitAfter(function(node, depth) {
-            if (node.firstChild) {
-                if( depth == 1){
-                    node.nodeValue = node.childNodes.length + " Hbonds";
-                }if( depth == 0){
-                    node.nodeValue = node.childNodes.length + " Chains";
+	console.log( jstree_data );
+	$( '#' + this.jstree_id ).jstree({
+	    json_data: {
+		data: {
+                    "data" : "Protein",
+                    "children" : jstree_data
                 }
-            }
-        });
-        
-        var vis = new pv.Panel()
-            .canvas( this.canvas_id )
-            .width(260)
-            .height(function(){ return (root.nodes().length + 1) * 12 })
-            .margin(5);
-        
-        var layout = vis.add(pv.Layout.Indent)
-            .nodes(function(){ return root.nodes() })
-            .depth(12)
-            .breadth(12);
-        
-        layout.link.add(pv.Line);
-        
-        var node = layout.node.add(pv.Panel)
-            .top(function(n){ return n.y - 6 })
-            .height(12)
-            .right(6)
-            .strokeStyle(null)
-            .fillStyle(null)
-            .events("all")
-            .event("mousedown", toggle_node)
-            .event("mouseup", select_hbond);
-        
-        node.anchor("left").add(pv.Dot)
-            .strokeStyle("#1f77b4")
-            .fillStyle(function(n){ return n.toggled ? "#1f77b4" : n.firstChild ? "#aec7e8" : "#ff7f0e" })
-            .title(function t(d){ return d.parentNode ? (t(d.parentNode) + "." + d.nodeName) : d.nodeName })
-          .anchor("right").add(pv.Label)
-            .text(function(n){ return n.nodeName });
-        
-        node.anchor("right").add(pv.Label)
-            .textStyle(function(n){ return n.firstChild || n.toggled ? "#aaa" : "#000" })
-            .text(function(n){ return n.nodeValue || ''; });
-        
-        root.visitAfter(function(node, depth){
-            if(depth > 0){
-                node.toggle();
-            }
-        });
-        
-        vis.render();
-        
-        function toggle_node(n){
-            n.toggle(pv.event.altKey);
-            return layout.reset().root;
-        }
-        
-        function select_hbond(n) {
-            if( self.applet && n.childNodes.length == 0 && n.parentNode ){
-                var hb_res = n.nodeName.split(' <> ');
-                self.applet.selection_manager.select(hb_res[0] + ' or ' + hb_res[1]);
-            }
-        }
+	    },
+	    core: {
+		
+	    },
+	    plugins: [ "json_data", "themeroller" ]
+	});
+	
+        //var hbonds = {};
+        //$.each( raw_data, function(){
+        //    var hb = this;
+        //    var chain = hbonds[ hb[0][2] ];
+        //    if( !chain ){
+        //        chain = hbonds[ hb[0][2] ] = {};
+        //    }
+        //    chain[ hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) ] = 'Type: ' + hb[2] + '';
+        //})
+        //
+        //var root = pv.dom( hbonds )
+        //    .root( 'Protein' );
+        //
+        ///* Recursively compute the package sizes. */
+        //root.visitAfter(function(node, depth) {
+        //    if (node.firstChild) {
+        //        if( depth == 1){
+        //            node.nodeValue = node.childNodes.length + " Hbonds";
+        //        }if( depth == 0){
+        //            node.nodeValue = node.childNodes.length + " Chains";
+        //        }
+        //    }
+        //});
+        //
+        //var vis = new pv.Panel()
+        //    .canvas( this.canvas_id )
+        //    .width(260)
+        //    .height(function(){ return (root.nodes().length + 1) * 12 })
+        //    .margin(5);
+        //
+        //var layout = vis.add(pv.Layout.Indent)
+        //    .nodes(function(){ return root.nodes() })
+        //    .depth(12)
+        //    .breadth(12);
+        //
+        //layout.link.add(pv.Line);
+        //
+        //var node = layout.node.add(pv.Panel)
+        //    .top(function(n){ return n.y - 6 })
+        //    .height(12)
+        //    .right(6)
+        //    .strokeStyle(null)
+        //    .fillStyle(null)
+        //    .events("all")
+        //    .event("mousedown", toggle_node)
+        //    .event("mouseup", select_hbond);
+        //
+        //node.anchor("left").add(pv.Dot)
+        //    .strokeStyle("#1f77b4")
+        //    .fillStyle(function(n){ return n.toggled ? "#1f77b4" : n.firstChild ? "#aec7e8" : "#ff7f0e" })
+        //    .title(function t(d){ return d.parentNode ? (t(d.parentNode) + "." + d.nodeName) : d.nodeName })
+        //  .anchor("right").add(pv.Label)
+        //    .text(function(n){ return n.nodeName });
+        //
+        //node.anchor("right").add(pv.Label)
+        //    .textStyle(function(n){ return n.firstChild || n.toggled ? "#aaa" : "#000" })
+        //    .text(function(n){ return n.nodeValue || ''; });
+        //
+        //root.visitAfter(function(node, depth){
+        //    if(depth > 0){
+        //        node.toggle();
+        //    }
+        //});
+        //
+        //vis.render();
+        //
+        //function toggle_node(n){
+        //    n.toggle(pv.event.altKey);
+        //    return layout.reset().root;
+        //}
+        //
+        //function select_hbond(n) {
+        //    if( self.applet && n.childNodes.length == 0 && n.parentNode ){
+        //        var hb_res = n.nodeName.split(' <> ');
+        //        self.applet.selection_manager.select(hb_res[0] + ' or ' + hb_res[1]);
+        //    }
+        //}
     },
     /**
      * @private
