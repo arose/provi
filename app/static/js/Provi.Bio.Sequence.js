@@ -24,7 +24,7 @@ var Utils = Provi.Utils;
 /** @exports Widget as Provi.Widget.Widget */
 var Widget = Provi.Widget.Widget;
 
-var toggle_type = Provi.Utils.Protovis.toggle_type;
+var toggle_type = {};//Provi.Utils.Protovis.toggle_type;
 
 var Sequence = {};
 

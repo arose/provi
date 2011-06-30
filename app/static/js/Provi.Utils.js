@@ -323,8 +323,7 @@ Provi.Utils.wait = function(timeout, checkFn, onEndFn) {
 
 Provi.Utils.pause = function(ms){
     var start_date = new Date();
-    var current_date = new Date();
-    do{ current_date = new Date() }
+    do{ var current_date = new Date() }
     while( current_date - start_date < ms );
 }
 

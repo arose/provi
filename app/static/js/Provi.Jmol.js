@@ -78,6 +78,18 @@ function jmol_pick_callback (applet_name, info, id){
 };
 
 
+/**
+ * Function to delegate a jmol applet ready callback to the corresponding applet wrapper.
+ * Also available as a global function because Jmol would not accept it otherwise.
+ * @memberOf Provi.Jmol
+ */
+function jmol_applet_ready_callback (applet_name, id, status){
+    console.log('foo');
+    console.log( applet_name+'', id+'', status+'' );
+    Provi.Jmol.get_applet_by_id( applet_name+'' )._applet_ready_callback( status+'' );
+};
+
+
 
 (function() {
 
@@ -342,10 +354,16 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	    //script: 'load ../data/3dqb.pdb;cartoon on;color cartoon structure',
 	    //script: 'javascript "Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ',
             //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; unbind "_slideZoom"; set debug on;',
-	    script:
-		'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ' +
-		(Provi.Debug.get_status() ? 'set debug on;' : ''),
+	    //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ' + (Provi.Debug.get_status() ? 'set debug on;' : ''),
 	    //script: 'unbind "_slideZoom"; set debug on;',
+	    //script: 'set appletReadyCallback "jmol_applet_ready_callback";',
+	    script: '',
+	    appletReadyCallback: "jmol_applet_ready_callback",
+	    animFrameCallback: "jmol_anim_frame_callback",
+	    loadStructCallback: "jmol_load_struct_callback",
+	    messageCallback: "jmol_message_callback",
+	    scriptCallback: "jmol_script_callback",
+	    pickCallback: "jmol_pick_callback",
             boxbgcolor: "white",
             boxfgcolor: "black",
             progresscolor: "lightgreen",
@@ -371,30 +389,42 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	return this.dom;
     },
     set_loaded: function(){
+	console.log('TRYING TO SET LOADED');
 	if( this.loaded || this._determining_load_status  ) return;
+	console.log('TRYING TO SET LOADED');
 	this._determining_load_status = true;
+	console.log('done loading');
+	this._load();
+	return;
+    
+    
 	var self = this;
 	var count = 0;
 	//console.log('pause start');
 	//Utils.pause(5000);
 	//console.log('pause end');
-	Utils.wait(100,
+	Utils.wait(500,
             function(){
 		console.log(count, ' count');
-		if(count > 200) return true;
+		if(count > 20) return true;
 		++count;
                 var applet = self.applet;
 		//console.log(typeof(applet.script), $.isFunction(applet.script), typeof(applet.isActive), applet.isActive());
 		console.log(count);
-                if(applet &&
-		   //typeof(applet.isActive) == 'function' && applet.isActive() &&
-		   ($.isFunction(applet.script) || typeof(applet.script) == 'function' ) &&
-		   ($.isFunction(applet.scriptWait) || typeof(applet.scriptWait) == 'function' ) &&
-		   ($.isFunction(applet.getPropertyAsJSON) || typeof(applet.getPropertyAsJSON) == 'function' ) ){
-		    return true;
-                }else{
-                    return false;
-                }
+		try {
+		    if(applet &&
+		       //typeof(applet.isActive) == 'function' && applet.isActive() &&
+		       ($.isFunction(applet.script) || typeof(applet.script) == 'function' ) &&
+		       ($.isFunction(applet.scriptWait) || typeof(applet.scriptWait) == 'function' ) &&
+		       ($.isFunction(applet.getPropertyAsJSON) || typeof(applet.getPropertyAsJSON) == 'function' ) ){
+			return true;
+		    }else{
+			return false;
+		    }
+		} catch(e){
+		    console.log('error loading, trying some more');
+		    return false;
+		}
             },
             function(){
 		console.log('done loading');
@@ -428,7 +458,13 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     _script: function(script, maintain_selection){
 	if(maintain_selection) script = 'save selection tmp; ' + script + ' restore selection tmp;';
 	try{
-	    this.applet.script( script );
+	    if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
+		console.log( 'SAFARI' );
+		this.applet.script( script );
+	    }else{
+		console.log( 'NOT SAFARI' );
+		var tmp = this.applet.scriptWait( script );
+	    }
 	}catch(e){
 	    console.log(e, script);
 	}
@@ -441,17 +477,20 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	if(this.loaded){
 	    return this._script(script, maintain_selection);
 	}else{
-	    //console.log('defered');
+	    console.log('script DEFERED');
 	    var self = this;
-	    $(this).bind('load', function(){ self.script(script, maintain_selection) });
+	    $(this).bind('load', function(){
+		console.log('exec defered script: "' + script + '"');
+		self.script(script, maintain_selection);
+	    });
 	    return -1;
 	}
     },
     _script_wait: function(script, maintain_selection){
 	if(maintain_selection) script = 'save selection tmp; ' + script + ' restore selection tmp;';
-	
+	var ret = '';
 	try{
-	    var ret = this.applet.scriptWait(script);
+	    ret = this.applet.scriptWait(script);
 	}catch(e){
 	    console.log('scriptWait ERROR', e, script);
 	}
@@ -474,9 +513,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	if(this.loaded){
 	    return this._script_wait(script, maintain_selection);
 	}else{
-	    console.log('defered');
+	    console.log('script_wait DEFERED');
 	    var self = this;
-	    $(this).bind('load', function(){ self.script_wait(script, maintain_selection) });
+	    //$(this).bind('load', function(){ self.script_wait(script, maintain_selection) });
+	    $(this).bind('load', function(){ self.script(script, maintain_selection) });
 	    return -1;
 	}
     },
@@ -501,7 +541,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	    //return this._script_wait_output(script, maintain_selection);
 	    return this._script_wait_output(script, maintain_selection);
 	}else{
-	    console.log('defered');
+	    console.log('script_wait_output defered');
 	    var self = this;
 	    $(this).bind('load', function(){ self.script_wait_output(script, maintain_selection) });
 	    return -1;
@@ -519,18 +559,13 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	if(this.loaded){
 	    return this._load_inline(model, script, maintain_selection);
 	}else{
-	    //console.log('defered');
+	    console.log('load_inline defered');
 	    var self = this;
 	    $(this).bind('load', function(){ self.load_inline(model, script, maintain_selection) });
 	    return -1;
 	}
     },
     _load: function(){
-	this.applet.script('set AnimFrameCallback "jmol_anim_frame_callback";');
-	this.applet.script('set LoadStructCallback "jmol_load_struct_callback";');
-	this.applet.script('set MessageCallback "jmol_message_callback";');
-	this.applet.script('set ScriptCallback "jmol_script_callback";');
-	this.applet.script('set PickCallback "jmol_pick_callback";');
 	this.loaded = true;
 	$(this).triggerHandler('load');
     },
@@ -610,6 +645,11 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	//sele.select();
 	//this.script_wait('show SELECTED;');
 	$(this).triggerHandler('pick', [info, id]);
+    },
+    _applet_ready_callback: function( status ){
+	console.log(status);
+	if( status ) this.set_loaded();
+	$(this).triggerHandler('ready', [ status ]);
     },
     get_smcra: function(selection){
 	return Provi.Bio.Sequence.jmol_to_smcra( this, selection );

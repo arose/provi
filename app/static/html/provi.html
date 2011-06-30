@@ -1,8 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-    "http://www.w3.org/TR/html4/strict.dtd"
-    >
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
     <link rel="shortcut icon" href="../favicon.ico">
     
     <title>Provi</title>
@@ -17,6 +20,7 @@
     <script type="text/javascript" src="../js/lib/jquery.cookie.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-ui/js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../js/lib/jstree/jquery.jstree.js"></script>
     
     <script type="text/javascript" src="../js/lib/tipsy/src/javascripts/jquery.tipsy.js"></script>
     
@@ -28,7 +32,9 @@
     
     <script type="text/javascript" src="../js/lib/sylvester.js"></script>
     
-    <script type="text/javascript" src="../js/lib/protovis-r.js"></script>
+    <!--[if IE]><script type="text/javascript" src="../js/lib/svg.js" data-path="../js/lib/"></script><![endif]-->
+    <script type="text/javascript" src="../js/lib/protovis-r3.3.js"></script>
+    <!--<script type="text/javascript" src="../js/lib/protovis.min.js"></script>-->
     <script type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>
     
     <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.min.js"></script>
@@ -116,9 +122,19 @@
 	//Provi.Jmol.init("../applet/jmol/12.1.41/", true);
 	//Provi.Jmol.init("../applet/jmol/12.1.42/", true);
 	//Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
-	Provi.Jmol.init("../../jmol/current/1/", true);
+	Provi.Jmol.init("../../jmol/current/3/", true);
 	
         $(document).ready(function(){
+	    
+	    $.ajax({
+		url: '../../data/index/',
+		async: false,
+		dataType: 'text',
+		cache: false,
+		success: function(response){
+		    console.log( response );
+		}
+	    });
 	    
 	    Provi.Utils.event.init();
 	    
@@ -158,9 +174,9 @@
                 parent_id: 'tab_controls'
             });
 	    
-	    new Provi.Jmol.Analysis.RamachandranPlotWidget({
-                parent_id: 'tab_widgets'
-            });
+//	    new Provi.Jmol.Analysis.RamachandranPlotWidget({
+//                parent_id: 'tab_widgets'
+//            });
 	    
 	    new Provi.Jmol.Analysis.HbondsWidget({
                 parent_id: 'tab_widgets'
@@ -186,30 +202,30 @@
             // load
             
             var plupload = new Provi.Data.Io.PluploadLoadWidget({
-                parent_id: 'tab_load',
+                parent_id: 'tab_load'
             });
 	    
 	    new Provi.Data.Io.UrlLoadWidget({
-                parent_id: 'tab_load',
+                parent_id: 'tab_load'
             });
 	    
 	    new Provi.Data.Io.PdbLoadWidget({
-                parent_id: 'tab_load',
+                parent_id: 'tab_load'
             });
 	    
             new Provi.Data.Io.ExampleLoadWidget({
-                parent_id: 'tab_load',
+                parent_id: 'tab_load'
             });
             
 	    new Provi.Data.Io.Galaxy.GalaxyLoadWidget({
-                parent_id: 'tab_load',
+                parent_id: 'tab_load'
             });
 	    
             
             // save
             
             new Provi.Data.Io.SaveDataWidget({
-                parent_id: 'tab_save',
+                parent_id: 'tab_save'
             });
             
             new Provi.Data.Io.Galaxy.SaveGalaxyWidget({
@@ -262,6 +278,7 @@
 	    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
 		var applet = Provi.Jmol.get_default_applet( true );
 		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
+		//Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.pdb', 'pdb', {
 		    sort_key: 1,
 		    heading: 'Interface Contacts',
 		    info: 'Infotext',

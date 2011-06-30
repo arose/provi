@@ -23,11 +23,12 @@ LOG.setLevel( logging.DEBUG )
 
 class DataStorage(object):
     def __init__( self ):
-        self.count = 0
+        self.count = 2
         self.data_dict = {}
         
     def add( self, data ):
         self.data_dict[ self.count ] = data
+        LOG.debug('DATA ID %s' % self.count)
         self.count += 1
         return self.count - 1
     
@@ -303,6 +304,11 @@ class DataController( BaseController ):
     @expose
     def add( self, trans, datatype, provider, **kwargs ):
         data_provider = self.valid_providers[provider]( trans, datatype, **kwargs )
+        #LOG.debug( trans.environ )
+        if 'beaker.session' in trans.environ:
+            LOG.debug( trans.environ['beaker.session'] )
+        else:
+            LOG.debug( 'NO BEAKER.SESSION' )
         id = trans.storage.add( data_provider )
         dataset = data_provider.dataset
         return json.dumps({
@@ -351,14 +357,16 @@ class ProteinViewerWebTransaction( base.DefaultWebTransaction ):
         self.__init_cookiejar()
         
     def __init_storage(self):
-        if 'storage' in self.environ['beaker.session']:
+        #if 'storage' in self.environ['beaker.session']:
+        if 'storage' in self.session:
             pass
         else:
             self.session['storage'] = DataStorage()
         self.storage = self.session['storage']
     
     def __init_cookiejar(self):
-        if 'cookiejar' in self.environ['beaker.session']:
+        #if 'cookiejar' in self.environ['beaker.session']:
+        if 'cookiejar' in self.session:
             pass
         else:
             self.session['cookiejar'] = cookielib.CookieJar()

@@ -192,7 +192,13 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
     }
     $.ajax({
         url: '../../example/import_example/',
-        data: { directory_name: directory_name, filename: filename, datatype: type, extra_files: extra_files },
+        data: {
+	    directory_name: directory_name,
+	    filename: filename,
+	    datatype: type,
+	    extra_files: extra_files,
+	},
+	cache: false,
         success: function(response){
             response = $.parseJSON( response );
             dataset.server_id = response.id;
