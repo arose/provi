@@ -790,12 +790,18 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
             (this.show_default_applet ? '<option value="default">default' + default_applet_name + '</option>' : '' ) +
             (this.allow_new_applets ? '<option value="new">new</option><option value="new once">new once</option>' : '')
         );
-        $.each(Provi.Jmol.get_applet_list(), function(){
+	var applet_list = Provi.Jmol.get_applet_list();
+        $.each(applet_list, function(){
             elm.append("<option value='" + this.name_suffix + "'>" + this.name_suffix + "</option>");
         });
         elm.val( value );
 	elm.triggerHandler('change');
 	//$(this).triggerHandler('change', [ this.get_value(true) ]);
+	
+	// hide applet selector, if only one option is available
+	if( !this.allow_new_applets && applet_list.length <= 1 ){
+	    this.hide();
+	}
     },
     _init: function(){
         this._update();
