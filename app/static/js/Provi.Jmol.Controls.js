@@ -421,9 +421,10 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                 this.style_cmd = 'cartoon ONLY; wireframe 0.015;';
                 break;
             case 'cartoon':
+                this.style_cmd = 'cartoon ONLY;';
+                break;
             default:
 		this.style_cmd = '';
-                //this.style_cmd = 'cartoon ONLY;';
                 break;
         }
 	$("#" + this.style_id).val('');
