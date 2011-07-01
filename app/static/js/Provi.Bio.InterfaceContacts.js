@@ -181,15 +181,15 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 'O': 'Hetero'
             }
             $.each(data, function(i){
-                console.log( this, parseInt(this[1]) );
-                type_count[ this[0] ] = type_count[ this[0] ] ? type_count[ this[0] ] + 1 : 1;
+                //console.log( this, parseInt(this[1]+''), /[0-9]/.test(this[1]), this[1], this.charAt(1) );
+                type_count[ this.charAt(0) ] = type_count[ this.charAt(0) ] ? type_count[ this.charAt(0) ] + 1 : 1;
                 var label = this;
                 var selected = "";
                 if( self.interface_names == this ){
                     selected = ' selected="selected" ';
                 }
-                if( type_names[ this[0] ] && !isNaN(parseInt(this[1])) ){
-                    label = type_names[ this[0] ] + ' ' + type_count[ this[0] ] + ' (' + this + ')';
+                if( type_names[ this.charAt(0) ] && /[0-9]/.test(this.charAt(1)) ){
+                    label = type_names[ this.charAt(0) ] + ' ' + type_count[ this.charAt(0) ] + ' (' + this + ')';
                     $("#" + self.interface_name_id).append(
                         "<option " + selected + " value='" + this + "'>" + label + "</option>"
                     );
@@ -288,7 +288,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 //cmd = cmd + ' select (' + structure_atoms + '); save selection MSTRUC; color pink; ';
                 cmd = cmd + ' select @SATOMS; color pink; ';
             }
-            cmd = cmd + 'slab on; set slabRange 28.0; set zShade on; set zSlab 50; set zDepth 37; ';
+            cmd = cmd + 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
             
             //cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
             cmd = cmd + ' select {@IATOMS or @SATOMS};';
@@ -301,16 +301,18 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 var v0 = $V( boundbox['corner0'] );
                 var v1 = $V( boundbox['corner1'] );
                 var corner_dist = v0.distanceFrom( v1 );
-                //console.log( corner_dist );
+                console.log( corner_dist );
                 cmd += '' +
                     'set rotationRadius ' + Math.round(corner_dist/2) + ';' +
-                    'slab on; set slabRange ' + Math.round(corner_dist/1.5) + ';' +
-                    'set zShade on; set zSlab ' + Math.round(corner_dist*0.75) + ';' +
-                    'set zDepth ' + Math.round(corner_dist*0.33) + '; ';
+                    'slab on; set slabRange ' + Math.round(corner_dist/1) + ';' +
+                    'set zShade on; set zSlab ' + Math.round(corner_dist*0.6) + ';' +
+                    'set zDepth ' + Math.round(corner_dist*0.1) + '; ' +
+                    '';
                 //this.applet.script(  );
             }
-            
-            this.applet.script(cmd + 'center selected; zoom (selected) 100; select none;');
+            console.log( cmd );
+            //this.applet.script(cmd + 'center selected; zoom (selected) 100; select none;');
+            this.applet.script(cmd + ' zoom (selected) 100; select none;');
         }else{
             var cmd = 'display all; select all; center {all}; color grey; slab off;';
             this.applet.script( cmd );
