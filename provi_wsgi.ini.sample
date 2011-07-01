@@ -51,5 +51,6 @@ galaxy_import_dir = %(here)s/app/tmp/
 log_level = DEBUG
 #log_level = WARNING
 
+debug = False
 # Interactive debugging - NEVER enable this on a public site
 use_interactive = True

@@ -3,6 +3,7 @@
 import sys, re, logging, os
 import cookielib, urllib2
 from paste import httpserver
+from paste.deploy.converters import asbool
 from webob import Request, Response
 from webob import exc
 import threading
@@ -415,6 +416,8 @@ def wrap_in_middleware( app, global_conf, **local_conf  ):
     conf = global_conf.copy()
     conf.update(local_conf)
     
+    debug = asbool( conf.get( 'debug', False ) )
+    
     app = beaker.middleware.SessionMiddleware( app, conf )
         
     #from paste.translogger import TransLogger
@@ -423,11 +426,22 @@ def wrap_in_middleware( app, global_conf, **local_conf  ):
     from paste import httpexceptions
     app = httpexceptions.make_middleware( app, conf )
     
-    from paste.debug import prints
-    app = prints.PrintDebugMiddleware( app, conf )
+    if debug:
+        from paste.debug import prints
+        app = prints.PrintDebugMiddleware( app, conf )
     
-    from weberror import evalexception
-    app = evalexception.EvalException( app, conf )
+    if debug and asbool( conf.get( 'use_interactive', False ) ):
+        # Interactive exception debugging, scary dangerous if publicly
+        # accessible, if not enabled we'll use the regular error printing
+        # middleware.
+        from weberror import evalexception
+        app = evalexception.EvalException( app, conf )
+        LOG.debug( "Enabling 'eval exceptions' middleware" )
+    else:
+        # Not in interactive debug mode, just use the regular error middleware
+        from paste.exceptions import errormiddleware
+        app = errormiddleware.ErrorMiddleware( app, conf )
+        LOG.debug( "Enabling 'error' middleware" )
     
     return app
 
