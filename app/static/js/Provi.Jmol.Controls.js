@@ -389,7 +389,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 	    case 'default':
                 this.style_cmd = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
 		    //'select protein; color cartoon structure; color structure; ' +
-		    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
+		    //'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
 		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; ' +
 		    'select water; wireframe 0.01;' +
 		    'select group=hoh; cpk 20%;' +
@@ -400,7 +400,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 	    case 'default+wireframe':
                 this.style_cmd = 'select all; spacefill off; wireframe off; backbone off; cartoon on; wireframe 0.01;' +
 		    //'select protein; color cartoon structure; color structure; ' +
-		    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
+		    //'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
 		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; ' +
 		    'select water; wireframe 0.01;' +
 		    'select group=hoh; cpk 20%;' +
@@ -422,12 +422,13 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                 break;
             case 'cartoon':
             default:
-                this.style_cmd = 'cartoon ONLY;';
+		this.style_cmd = '';
+                //this.style_cmd = 'cartoon ONLY;';
                 break;
         }
 	$("#" + this.style_id).val('');
         var applet = this.applet_selector.get_value(true);
-        if(applet){
+        if(applet && this.style_cmd){
             applet.script('select all; ' + this.style_cmd + ' select none;');
         }
     },
