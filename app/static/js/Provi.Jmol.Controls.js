@@ -218,8 +218,8 @@ Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /**
  */
 Provi.Jmol.Controls.JmolDisplayWidget = function(params){
     this.style_cmd = 'cartoon ONLY; wireframe 0.015;';
-    this.zshade_depth = 5;
-    this.zshade_slab = 95;
+    this.zshade_depth = 10;
+    this.zshade_slab = 45;
     this.zshade_state = true;
     this.clipping_depth = 0;
     this.clipping_slab = 100;

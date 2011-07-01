@@ -125,7 +125,7 @@ Provi.Widget.Widget = function(params){
     /** The dom object */
     this.dom = e;
     if( params.hidden ){
-	$(this.dom).hide();
+	this.hide();
     }
     $(this.dom).addClass( 'ui-container ui-widget' );
     $('#' + this.parent_id).trigger('Provi.widget_added');
@@ -216,6 +216,9 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     },
     elm: function( name ){
 	return $( '#' + this.eid(name) );
+    },
+    hide: function(){
+	$(this.dom).hide();
     }
 };
 

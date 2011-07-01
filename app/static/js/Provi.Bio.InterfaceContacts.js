@@ -262,56 +262,43 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             
             var cmdX = 'var IATOMS = {(' + atoms + ')}; ' +
                 'var SATOMS = {(' + structure_atoms + ')};';
-            this.applet.script_wait(cmdX + ' boundbox { @IATOMS or @SATOMS }; boundbox ON; select @IATOMS; save selection IATOMS; select @SATOMS; save selection SATOMS;');
+            this.applet.script_wait(cmdX + ' boundbox { @IATOMS or @SATOMS }; select @IATOMS; save selection IATOMS; select @SATOMS; save selection SATOMS;');
             var boundbox = $.parseJSON( this.applet.get_property_as_json('boundboxInfo') );
-            console.log( boundbox );
+            //console.log( boundbox );
             
             var cmd = 'restore selection IATOMS; var IATOMS = {selected};' +
                 'restore selection SATOMS; var SATOMS = {selected};';
             
             if(this.color_interface_residue){
-                //cmd += 'display all; select all; color grey; select within(GROUP, (' + atoms + ') ); save selection MINTERF; color ' + this.color + ';';
                 cmd += 'display all; select all; color grey; select within(GROUP, @IATOMS ); color ' + this.color + ';';
             }else{
-                //cmd += 'display all; select all; color grey; select (' + atoms + '); save selection MINTERF; color ' + this.color + ';';
                 cmd += 'display all; select all; color grey; select @IATOMS; color ' + this.color + ';';
-                //cmd += 'display all; select all; color grey; restore selection IATOMS; color ' + this.color + ';';
             }
             
             if(this.show_only_interface_atoms){
-                //cmd = cmd + ' restore selection MINTERF; display selected;';
-                //cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
-                cmd = cmd + ' select @IATOMS or @SATOMS;';
-                cmd = cmd + ' display selected; ';
+                cmd += ' select @IATOMS or @SATOMS; display selected; ';
             }
             if(this.structure_atoms && this.structure_atoms.length){
                 //cmd = cmd + ' select (' + structure_atoms + '); save selection MSTRUC; color pink; ';
-                cmd = cmd + ' select @SATOMS; color pink; ';
+                cmd += ' select @SATOMS; color pink; ';
             }
-            cmd = cmd + 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
+            cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
+            cmd += ' select {@IATOMS or @SATOMS};';
             
-            //cmd = cmd + ' select ' + (structure_atoms ? ('(' + structure_atoms + ') or ') : '' ) + '(' + atoms + ');';
-            cmd = cmd + ' select {@IATOMS or @SATOMS};';
-            //this.applet.script_wait(cmd + 'center selected; zoom (selected) 100; boundbox {selected}; select none;');
-            
-            //var boundbox = $.parseJSON( this.applet.get_property_as_json('boundboxInfo') );
-            
-            if( boundbox ){//&& boundbox.hasOwnProperty('boundboxInfo') ){
+            if( boundbox ){
                 boundbox = boundbox['boundboxInfo'];
                 var v0 = $V( boundbox['corner0'] );
                 var v1 = $V( boundbox['corner1'] );
                 var corner_dist = v0.distanceFrom( v1 );
-                console.log( corner_dist );
+                //console.log( corner_dist );
                 cmd += '' +
                     'set rotationRadius ' + Math.round(corner_dist/2) + ';' +
                     'slab on; set slabRange ' + Math.round(corner_dist/1) + ';' +
                     'set zShade on; set zSlab ' + Math.round(corner_dist*0.6) + ';' +
                     'set zDepth ' + Math.round(corner_dist*0.1) + '; ' +
                     '';
-                //this.applet.script(  );
             }
-            console.log( cmd );
-            //this.applet.script(cmd + 'center selected; zoom (selected) 100; select none;');
+            //console.log( cmd );
             this.applet.script(cmd + ' zoom (selected) 100; select none;');
         }else{
             var cmd = 'display all; select all; center {all}; color grey; slab off;';
