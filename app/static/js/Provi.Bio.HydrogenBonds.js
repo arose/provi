@@ -177,7 +177,10 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
                 }
 	    },
 	    core: {
-		
+		html_titles: true
+	    },
+	    themeroller: {
+		item: ""
 	    },
 	    plugins: [ "json_data", "themeroller" ]
 	});
