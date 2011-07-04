@@ -260,14 +260,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             structure_atoms = structure_atoms ? structure_atoms : 'none';
             this.structure_selection.selection = '(' + structure_atoms + ')';
             
-            var cmdX = 'var IATOMS = {(' + atoms + ')}; ' +
+            var cmd = 'var IATOMS = {(' + atoms + ')}; ' +
                 'var SATOMS = {(' + structure_atoms + ')};';
-            this.applet.script_wait(cmdX + ' boundbox { @IATOMS or @SATOMS }; select @IATOMS; save selection IATOMS; select @SATOMS; save selection SATOMS;');
-            var boundbox = $.parseJSON( this.applet.get_property_as_json('boundboxInfo') );
-            //console.log( boundbox );
-            
-            var cmd = 'restore selection IATOMS; var IATOMS = {selected};' +
-                'restore selection SATOMS; var SATOMS = {selected};';
             
             if(this.color_interface_residue){
                 cmd += 'display all; select all; color grey; select within(GROUP, @IATOMS ); color ' + this.color + ';';
@@ -279,25 +273,20 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 cmd += ' select @IATOMS or @SATOMS; display selected; ';
             }
             if(this.structure_atoms && this.structure_atoms.length){
-                //cmd = cmd + ' select (' + structure_atoms + '); save selection MSTRUC; color pink; ';
                 cmd += ' select @SATOMS; color pink; ';
             }
             cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
             cmd += ' select {@IATOMS or @SATOMS};';
             
-            if( boundbox ){
-                boundbox = boundbox['boundboxInfo'];
-                var v0 = $V( boundbox['corner0'] );
-                var v1 = $V( boundbox['corner1'] );
-                var corner_dist = v0.distanceFrom( v1 );
-                //console.log( corner_dist );
-                cmd += '' +
-                    'set rotationRadius ' + Math.round(corner_dist/2) + ';' +
-                    'slab on; set slabRange ' + Math.round(corner_dist/1) + ';' +
-                    'set zShade on; set zSlab ' + Math.round(corner_dist*0.6) + ';' +
-                    'set zDepth ' + Math.round(corner_dist*0.1) + '; ' +
-                    '';
-            }
+            cmd += '' +
+                'var dist = {selected}.distance({selected});' +
+                'print @dist;' +
+                'set rotationRadius @{dist*2};' +
+                'slab on; set slabRange @{dist/1};' +
+                'set zShade on; set zSlab @{dist*0.6};' +
+                'set zDepth @{dist*0.1}; ' +
+                '';
+                
             //console.log( cmd );
             this.applet.script(cmd + ' zoom (selected) 100; select none;');
         }else{
