@@ -22,5 +22,11 @@ var Provi = {};
         SELECTION_WIDGET: '',
         BUILDER_WIDGET: ''
     };
-
+    
+    Provi.defaults.base_url = ''
+    
+    Provi.url_for = function( url ){
+        return Provi.defaults.base_url + url;
+    }
+    
 })();
