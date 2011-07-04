@@ -20,18 +20,22 @@ logging.basicConfig( level=logging.DEBUG )
 LOG = logging.getLogger('provi')
 LOG.setLevel( logging.DEBUG )
 
-
+import threading
 
 class DataStorage(object):
     def __init__( self ):
+        self.lock = threading.Lock()
         self.count = 2
         self.data_dict = {}
         
     def add( self, data ):
-        self.data_dict[ self.count ] = data
-        LOG.debug('DATA ID %s' % self.count)
+        self.lock.acquire()
+        count = self.count
         self.count += 1
-        return self.count - 1
+        self.lock.release()
+        self.data_dict[ count ] = data
+        LOG.debug('DATA ID %s' % count)
+        return count
     
     def get( self, id ):
         return self.data_dict[id]
@@ -128,6 +132,38 @@ class ExampleController( BaseController ):
                     file_list.append( os.path.join( path[l:], file ) )
         file_list.sort()
         return json.dumps( {'file_list': file_list, 'directory_name': directory_name} )
+    @expose
+    def dataset_list2( self, trans, directory_name=None, path='' ):
+        if not directory_name:
+            directory_name = trans.app.config.example_directories.iterkeys().next()
+        dirpath = trans.app.config.example_directories[ directory_name ] + path
+        l = len(dirpath)
+        jstree = []
+        for file in os.listdir( dirpath ):
+            if not file.startswith('.') and not (file.startswith('#') and file.endswith('#')):
+                if os.path.isfile(os.path.join(dirpath, file)):
+                    jstree.append({
+                        'data': {
+                            'title': '<span>' + file + '</span>'
+                        },
+                        'metadata': {
+                            'file': file,
+                            'path': path + '/' + file,
+                        }
+                    })
+                else:
+                    jstree.append({
+                        'data': {
+                            'title': '<span>' + file + '</span>'
+                        },
+                        'metadata': {
+                            'path': path + '/' + file,
+                            'dir': True
+                        },
+                        'state': 'closed'
+                    })
+        #jstree.sort()
+        return json.dumps( jstree )
     @expose
     def directory_list( self, trans ):
         dirs = trans.app.config.example_directories.keys()
@@ -330,6 +366,17 @@ class JmolController( BaseController ):
         return open( file_path ).read()
 
 
+class AppController( BaseController ):
+    def __init__( self, app, app_dir ):
+        """Initialize an interface for the app serving 'app'"""
+        self.app = app
+        self.app_dir = app_dir
+    @expose
+    def index( self, trans, app='', **kwd ):
+        file_path = os.path.join( self.app_dir, app )
+        return open( file_path ).read()
+
+
 class ProteinViewerApplication( object ):
     def __init__( self, **kwargs ):
         self.config = Configuration( **kwargs )
@@ -459,6 +506,12 @@ def wrap_in_static( app, global_conf, **local_conf ):
         cache_time = int( cache_time )
     # Send to dynamic app by default
     urlmap["/"] = app
+    # Hack to serve some static html files via dynamic app to get a session
+    html_app = WebApplication( ProteinViewerApplication( **local_conf ) )
+    html_app.add_controller( 'App', AppController(html_app, conf.get('app_dir')) )
+    html_app.add_route('/:app', controller='App', action='index', app='provi.html')
+    html_app = beaker.middleware.SessionMiddleware( html_app, conf )
+    urlmap["/static/html"] = html_app
     # Define static mappings from config
     urlmap["/static"] = Static( conf.get( "static_dir" ), cache_time )
     print conf.get( "static_favicon_dir" )

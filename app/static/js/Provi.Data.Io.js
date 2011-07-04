@@ -196,7 +196,7 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
 	    directory_name: directory_name,
 	    filename: filename,
 	    datatype: type,
-	    extra_files: extra_files,
+	    extra_files: extra_files
 	},
 	cache: false,
         success: function(response){
@@ -204,6 +204,8 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
             dataset.server_id = response.id;
             dataset.set_type( response.type );
             dataset.set_status( 'server', response.status );
+	    // TODO document, move to Dataset code
+	    $( dataset ).triggerHandler( 'loaded' );
 	    if( dataset && !no_init ){
 		dataset.init( params );
 	    }
@@ -286,11 +288,14 @@ Provi.Data.Io.ExampleLoadWidget = function(params){
     params.heading = 'Example/Local Data';
     this.directory_name = '';
     Widget.call( this, params );
-    this._build_element_ids([ 'directory_selector_widget', 'load_as_selector_widget', 'applet_selector_widget', 'dataset_list', 'dataset_list_collapse_all', 'dataset_list_collapse_none' ]);
+    this._build_element_ids([ 'directory_selector_widget', 'load_as_selector_widget', 'applet_selector_widget', 'dataset_list', 'dataset_list_collapse_all', 'dataset_list_collapse_none', 'js_tree' ]);
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div id="' + this.load_as_selector_widget_id + '"></div>' +
         '<div id="' + this.directory_selector_widget_id + '"></div>' +
+	'<div class="control_row">' +
+            '<div id="' + this.jstree_id + '"></div>' +
+        '</div>' +
 	'<div>' +
 	    '<div>' +
 		'<span>Collapse directories: </span>' +
@@ -354,7 +359,8 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
     },
     update: function() {
 	this._popup.hide();
-        this.dataset_list();
+        //this.dataset_list();
+	this.dataset_list2();
     },
     import_dataset: function(id, directory_name, filename, type, no_init){
         var self = this;
@@ -365,6 +371,72 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
         return Provi.Data.Io.import_example( directory_name, filename, type, params, function(dataset){
             $('#' + self.dataset_list_id + '_' + id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
         }, no_init);
+    },
+    import_dataset2: function(directory_name, filename, type, no_init){
+        var self = this;
+        var params = {
+            applet: this.applet_selector.get_value(),
+            load_as: this.load_as_selector.get_value()
+        }
+        return Provi.Data.Io.import_example( directory_name, filename, type, params, function(dataset){
+            
+        }, no_init);
+    },
+    dataset_list2: function(){
+        var self = this;
+	
+	var get_url = function(node){
+	    //console.log('JSTREE', node, $(node).data() );
+	    var url = "../../example/dataset_list2/";
+	    if(node!=-1){
+		url += '?path=' + $(node).data('path');
+	    }
+	    return url;
+	}
+	
+	var jstree = $( '#' + this.jstree_id ).jstree({
+	    json_data: {
+		ajax: {
+                    url: get_url,
+		    data: { directory_name: self.directory_name }
+                }
+	    },
+	    core: {
+		html_titles: true
+	    },
+	    themeroller: {
+		item: ""
+	    },
+	    plugins: [ "json_data", 'themeroller' ]
+	});
+	
+	$( jstree ).bind( 'load_node.jstree', function(e, data){
+	    var nodes = data.inst._get_children(data.rslt.obj);
+	    $.each( nodes, function(i,n){
+		var $n = $(n);
+		if( !$n.data('dir') ){
+		    $n.children('a').children('span').before(
+			'<button title="import">import</button>' +
+			//'<button title="params">params</button>' +
+			''
+		    );
+		    $n.children('a').children('button').button();
+		}
+	    });
+	    //console.log( 'JSTREE LOAD NODE', nodes );
+	});
+	
+	$( '#' + this.jstree_id + ' button[title="import"]' ).live( 'click', function(e, data){
+	    $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
+	    var ds = self.import_dataset2( self.directory_name, $(this).parent().parent().data('file') );
+	    var button = this;
+	    $(ds).bind( 'loaded', function(){
+		$(button).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
+	    });
+	});
+	$( '#' + this.jstree_id + ' button[title="params"]' ).live( 'click', function(e, data){
+	    //console.log('PARAMS', e, data);
+	});
     },
     dataset_list: function(){
         var self = this;
