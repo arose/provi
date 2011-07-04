@@ -98,6 +98,7 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         $("#" + this.size_slider_option_id).hide();
         $("#" + this.size_id).val(this.size);
         this.draw();
+        this.orient();
         var self = this;
         
         $("#" + this.visibility_id).bind('change click', function() {
@@ -143,6 +144,16 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         $("#" + this.size_id).val(this.size);
         this.draw();
     },
+    orient: function(){        
+        var mp = this.dataset.data;
+        // first try to rotate the model so the planes are aligned with the point of view
+        var s = 'M = {' + mp.plane1[1].join(',') + '};' +
+            'A =  {' + mp.plane1[0].join(',') + '};' +
+            'B={' + mp.plane2[0].join(',') + '};' +
+            'x=180; ' +
+            'spin @{quaternion({1 0 0}, x) * (!quaternion(M, A, B)) * (!quaternion())} -0.1';
+        this.applet.script(s);
+    },
     draw: function(){
         var base_name = 'plane_' + this.id;
         if(this.visibility){
@@ -156,7 +167,7 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
             var s = 'boundbox {*} OFF;';
             s += 'draw ' + base_name + '_1 ' + color + ' ' + base_plane + mp_f[0] + ';';
             s += 'draw ' + base_name + '_2 ' + color + ' ' + base_plane + mp_f[1] + ';';
-                
+            
             //s += 'draw dist arrow {' + mp.plane1[2].join(',') + '} {' + mp.plane2[2].join(',') + '} "' + mp.distance.toFixed(2) + ' A";';
                 
             this.applet.script(s);
