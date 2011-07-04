@@ -355,6 +355,26 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
 		dir_col[id] = dir_col[id] ? false : true;
 	    });
 	});
+	
+	$( '#' + this.jstree_id + ' button[title="import"]' ).live( 'click', function(e, data){
+	    $(this).attr("disabled", true)
+		.addClass('ui-state-disabled')
+		.button( "option", "label", "importing..." );
+	    var ds = self.import_dataset2(
+		self.directory_name,
+		$(this).parent().parent().data('path')
+	    );
+	    var button = this;
+	    $(ds).bind( 'loaded', function(){
+		$(button).attr("disabled", false)
+		    .removeClass('ui-state-disabled')
+		    .button( "option", "label", "import" );
+	    });
+	});
+	$( '#' + this.jstree_id + ' button[title="params"]' ).live( 'click', function(e, data){
+	    //console.log('PARAMS', e, data);
+	});
+	
         Widget.prototype.init.call(this);
     },
     update: function() {
@@ -426,17 +446,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
 	    //console.log( 'JSTREE LOAD NODE', nodes );
 	});
 	
-	$( '#' + this.jstree_id + ' button[title="import"]' ).live( 'click', function(e, data){
-	    $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
-	    var ds = self.import_dataset2( self.directory_name, $(this).parent().parent().data('path') );
-	    var button = this;
-	    $(ds).bind( 'loaded', function(){
-		$(button).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
-	    });
-	});
-	$( '#' + this.jstree_id + ' button[title="params"]' ).live( 'click', function(e, data){
-	    //console.log('PARAMS', e, data);
-	});
+	
     },
     dataset_list: function(){
         var self = this;
