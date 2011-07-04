@@ -90,7 +90,10 @@ Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype = Utils.extend(Widget, 
                 }
 	    },
 	    core: {
-		
+		html_titles: true
+	    },
+	    themeroller: {
+		item: ""
 	    },
 	    plugins: [ "json_data", "themeroller" ]
 	});
