@@ -160,15 +160,16 @@
 	
         $(document).ready(function(){
 	    
-	    $.ajax({
-		url: '../../data/index/',
-		async: false,
-		dataType: 'text',
-		cache: false,
-		success: function(response){
-		    console.log( response );
-		}
-	    });
+	//    // hack to get session cookie
+	//    $.ajax({
+	//	url: '../../data/index/',
+	//	async: false,
+	//	dataType: 'text',
+	//	cache: false,
+	//	success: function(response){
+	//	    console.log( response );
+	//	}
+	//    });
 	    
 	    Provi.Utils.event.init();
 	    
@@ -270,7 +271,7 @@
             <div id="main" style="height:100%; width:100%; overflow:hidden;"></div>
         </div>
         
-        <div id="jmolControls" class="" style="height:100%; width:400px;">
+        <div id="jmolControls" class="" style="height:100%; width:400px; min-width:300px;">
             <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
                 <div id="tabs_panel" style="height:100%; width:100%;">
                     <ul>
