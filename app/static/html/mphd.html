@@ -156,7 +156,7 @@
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 	
-	Provi.Jmol.init("../../jmol/current/3/", true);
+	Provi.Jmol.init("../../jmol/current/3/", !$.query.get('unsigned'));
 	
         $(document).ready(function(){
 	    
