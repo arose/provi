@@ -148,7 +148,7 @@ class ExampleController( BaseController ):
                         },
                         'metadata': {
                             'file': file,
-                            'path': path + '/' + file,
+                            'path': path + file,
                         }
                     })
                 else:
@@ -157,7 +157,7 @@ class ExampleController( BaseController ):
                             'title': '<span>' + file + '</span>'
                         },
                         'metadata': {
-                            'path': path + '/' + file,
+                            'path': path + file + '/',
                             'dir': True
                         },
                         'state': 'closed'
