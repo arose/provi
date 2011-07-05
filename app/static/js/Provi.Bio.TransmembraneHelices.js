@@ -97,10 +97,10 @@ Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype = Utils.extend(Widget, 
 	$( '#' + this.jstree_id ).jstree({
 	    json_data: {
 		data: {
-                    "data" : "Protein",
-                    "children" : jstree_data,
-		    "progressive_render": true
-                }
+                    data : "Protein",
+                    children : jstree_data
+                },
+		progressive_render: true
 	    },
 	    core: {
 		html_titles: true
