@@ -134,4 +134,29 @@ Provi.Debug.get_status = function(){
 }
 
 
+Provi.Debug.timer_count = 0;
+Provi.Debug.timer = function( params ){
+    this.id = Provi.Debug.timer_count;
+    Provi.Debug.timer_count += 1;
+    this.name = params.name || 'anon';
+    this.name += ' [' + this.id + ']';
+    this.start_time = 0;
+    this.stop_time = 0;
+}
+Provi.Debug.timer.prototype = /** @lends Provi.Debug.timer.prototype */ {
+    start: function(){
+        this.start_time = new Date();
+        console.log( 'Timer "' + this.name + '" started' );
+    },
+    stop: function(){
+        this.stop_time = new Date();
+        this.duration = this.stop_time - this.start_time;
+        console.log(
+            'Timer "' + this.name + '" stoped. ' +
+            'Duration: ' + this.duration + ' ms.'
+        );
+    }
+}
+
+
 })();
