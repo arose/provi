@@ -455,8 +455,30 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	}
 	return A;
     },
-    _script: function(script, maintain_selection){
-	if(maintain_selection) script = 'save selection tmp; ' + script + ' restore selection tmp;';
+    echo: function( message ){
+	if(message){
+	    this.script(
+		'set echo TOP LEFT; font echo 20 sansserif; color echo red; ' +
+		'set echo "' + message + '";'
+	    );
+	}else{
+	    this.script( 'set echo off;' );
+	}
+    },
+    _prepare_script: function( script, maintain_selection, message ){
+	if(maintain_selection){
+	    script = 'save selection tmp; ' + script + ' restore selection tmp;';
+	}
+	if(false && message){
+	    console.log(message);
+	    script = 'set echo top left; font echo 20 sansserif;color echo red; ' +
+		'echo "' + message + '";' + script + ' set echo off;';
+	}
+	return script;
+    },
+    _script: function(script, maintain_selection, message){
+	script = this._prepare_script( script, maintain_selection, message );
+	console.log(script);
 	try{
 	    if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
 		console.log( 'SAFARI' );
@@ -473,21 +495,22 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     /**
      * executes a jmol asynchronously
      */
-    script: function(script, maintain_selection){
+    script: function(script, maintain_selection, message){
 	if(this.loaded){
-	    return this._script(script, maintain_selection);
+	    return this._script(script, maintain_selection, message);
 	}else{
 	    console.log('script DEFERED');
 	    var self = this;
 	    $(this).bind('load', function(){
 		console.log('exec defered script: "' + script + '"');
-		self.script(script, maintain_selection);
+		self.script(script, maintain_selection, message);
 	    });
 	    return -1;
 	}
     },
-    _script_wait: function(script, maintain_selection){
-	if(maintain_selection) script = 'save selection tmp; ' + script + ' restore selection tmp;';
+    _script_wait: function(script, maintain_selection, message){
+	script = this._prepare_script( script, maintain_selection, message );
+	console.log(script);
 	var ret = '';
 	try{
 	    ret = this.applet.scriptWait(script);
@@ -508,21 +531,20 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     /**
      * executes a jmol script synchronously
      */
-    script_wait: function(script, maintain_selection){
+    script_wait: function(script, maintain_selection, message){
 	//console.log( 'SCRIPT: ' + script );
 	if(this.loaded){
-	    return this._script_wait(script, maintain_selection);
+	    return this._script_wait(script, maintain_selection, message);
 	}else{
 	    console.log('script_wait DEFERED');
 	    var self = this;
 	    //$(this).bind('load', function(){ self.script_wait(script, maintain_selection) });
-	    $(this).bind('load', function(){ self.script(script, maintain_selection) });
+	    $(this).bind('load', function(){ self.script(script, maintain_selection, message) });
 	    return -1;
 	}
     },
-    _script_wait_output: function(script, maintain_selection){
-	if(maintain_selection) script = 'save selection tmp; ' + script + ' restore selection tmp;';
-	
+    _script_wait_output: function(script, maintain_selection, message){
+	script = this._prepare_script( script, maintain_selection, message );
 	try{
 	    var ret = this.applet.scriptWaitOutput(script);
 	}catch(e){
@@ -535,33 +557,33 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     /**
      * executes a jmol script synchronously and returns the output
      */
-    script_wait_output: function(script, maintain_selection){
+    script_wait_output: function(script, maintain_selection, message){
 	//console.log( 'SCRIPT: ' + script );
 	if(this.loaded){
 	    //return this._script_wait_output(script, maintain_selection);
-	    return this._script_wait_output(script, maintain_selection);
+	    return this._script_wait_output(script, maintain_selection, message);
 	}else{
 	    console.log('script_wait_output defered');
 	    var self = this;
-	    $(this).bind('load', function(){ self.script_wait_output(script, maintain_selection) });
+	    $(this).bind('load', function(){ self.script_wait_output(script, maintain_selection, message) });
 	    return -1;
 	}
     },
-    _load_inline: function(model, script, maintain_selection){
+    _load_inline: function(model, script, maintain_selection, message){
 	script = typeof(script) != 'undefined' ? script : '';
-	if(maintain_selection) script = 'save selection tmp; ' + script + ' restore selection tmp;';
+	script = this._prepare_script( script, maintain_selection, message );
 	return this.applet.loadInlineString(model, script, false);
     },
     /**
      * loads a model given as a string, can execute a script afterwards
      */
-    load_inline: function(model, script, maintain_selection){
+    load_inline: function(model, script, maintain_selection, message){
 	if(this.loaded){
-	    return this._load_inline(model, script, maintain_selection);
+	    return this._load_inline(model, script, maintain_selection, message);
 	}else{
 	    console.log('load_inline defered');
 	    var self = this;
-	    $(this).bind('load', function(){ self.load_inline(model, script, maintain_selection) });
+	    $(this).bind('load', function(){ self.load_inline(model, script, maintain_selection, message) });
 	    return -1;
 	}
     },
