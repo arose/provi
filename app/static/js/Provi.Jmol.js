@@ -801,6 +801,8 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
 	// hide applet selector, if only one option is available
 	if( !this.allow_new_applets && applet_list.length <= 1 ){
 	    this.hide();
+	}else{
+	    this.show();
 	}
     },
     _init: function(){

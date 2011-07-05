@@ -217,6 +217,9 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     elm: function( name ){
 	return $( '#' + this.eid(name) );
     },
+    show: function(){
+	$(this.dom).show();
+    },
     hide: function(){
 	$(this.dom).hide();
     }
