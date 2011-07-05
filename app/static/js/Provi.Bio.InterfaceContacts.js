@@ -226,7 +226,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 self.structure_atoms = structure_data;
                 self.draw();
                 self.unblock();
-                this.applet.echo();
+                self.applet.echo();
             });
         }else{
             this.atoms = [];
