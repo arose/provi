@@ -231,11 +231,34 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
         }
     },
     draw: function(){
+        //this._draw1();
+        //this._draw2();
+        //this._draw3();
+        this._draw4();
+    },
+    _draw1: function(){
         if(this.atoms && this.atoms.length){
-            var atoms = $.map(this.atoms, function(atom){
-                return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
+            var timer = new Provi.Debug.timer({name:'draw1 by_chain'});
+            
+            timer.start();
+            var atoms_by_chains = {}
+            $.each(this.atoms, function(i,atom){
+                if( !atoms_by_chains[atom.chainId] ){
+                    atoms_by_chains[atom.chainId] = [];
+                }
+                atoms_by_chains[atom.chainId].push(
+                    atom.asNr + "." + atom.atomName
+                );
             });
-            atoms = atoms.join(',');
+            var atoms2 = [];
+            $.each(atoms_by_chains, function(chain, atoms){
+                atoms2.push(
+                    '( chain="' + chain + '" and (' + atoms.join(',') + ') )'
+                );
+            });
+            atoms2 = atoms2.join(' or ');
+            timer.stop();
+            atoms = atoms2;
             
             if( this.tmh_filter && this.tmh_list ){
                 console.log( this.tmh_list );
@@ -275,8 +298,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             if(this.structure_atoms && this.structure_atoms.length){
                 cmd += ' select @SATOMS; color pink; ';
             }
-            cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
-            cmd += ' select {@IATOMS or @SATOMS};';
+            //cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
+            cmd += ' select {@IATOMS or @SATOMS}; echo @{ {selected}.length };';
             
             cmd += '' +
                 'var dist = {selected}.distance({selected});' +
@@ -288,13 +311,245 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 '';
                 
             //console.log( cmd );
-            this.applet.script(cmd + ' zoom (selected) 100; select none;');
+            timer.start();
+            this.applet.script_wait(cmd + ' zoom (selected) 100; select none;');
+            timer.stop();
         }else{
             var cmd = 'display all; select all; center {all}; color grey; slab off;';
             this.applet.script( cmd );
         }
-        
-        
+    },
+    _draw2: function(){
+        if(this.atoms && this.atoms.length){
+            var timer = new Provi.Debug.timer({name:'draw2 res:chain:atom'});
+            timer.start();
+            var atoms = $.map(this.atoms, function(atom){
+                return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
+            });
+            atoms = atoms.join(',');
+            timer.stop();
+            
+            if( this.tmh_filter && this.tmh_list ){
+                console.log( this.tmh_list );
+                var tmh_filter = []
+                $.each( this.tmh_list, function( i, tmh ){
+                    tmh_filter.push(
+                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
+                    );
+                });
+                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+            }
+            
+            this.interface_contacts_selection.selection = '(' + atoms + ')';
+            
+            var structure_atoms = [];
+            if(this.structure_atoms && this.structure_atoms.length){
+                structure_atoms = $.map(this.structure_atoms, function(atom){
+                    return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
+                });
+            }
+            structure_atoms = structure_atoms.join(',');
+            structure_atoms = structure_atoms ? structure_atoms : 'none';
+            this.structure_selection.selection = '(' + structure_atoms + ')';
+            
+            var cmd = 'var IATOMS = {(' + atoms + ')}; ' +
+                'var SATOMS = {(' + structure_atoms + ')};';
+            
+            if(this.color_interface_residue){
+                cmd += 'display all; select all; color grey; select within(GROUP, @IATOMS ); color ' + this.color + ';';
+            }else{
+                cmd += 'display all; select all; color grey; select @IATOMS; color ' + this.color + ';';
+            }
+            
+            if(this.show_only_interface_atoms){
+                cmd += ' select @IATOMS or @SATOMS; display selected; ';
+            }
+            if(this.structure_atoms && this.structure_atoms.length){
+                cmd += ' select @SATOMS; color pink; ';
+            }
+            //cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
+            cmd += ' select {@IATOMS or @SATOMS}; echo @{ {selected}.length };';
+            
+            cmd += '' +
+                'var dist = {selected}.distance({selected});' +
+                'print @dist;' +
+                'set rotationRadius @{dist*2};' +
+                'slab on; set slabRange @{dist/1};' +
+                'set zShade on; set zSlab @{dist*0.6};' +
+                'set zDepth @{dist*0.1}; ' +
+                '';
+                
+            //console.log( cmd );
+            timer.start();
+            this.applet.script_wait(cmd + ' zoom (selected) 100; select none;');
+            timer.stop();
+        }else{
+            var cmd = 'display all; select all; center {all}; color grey; slab off;';
+            this.applet.script( cmd );
+        }
+    },
+    _draw3: function(){
+        if(this.atoms && this.atoms.length){
+            var timer = new Provi.Debug.timer({name:'draw3 atomNr'});
+            timer.start();
+            var atoms = $.map(this.atoms, function(atom){
+                return 'atomno='+ atom.atomNr;
+            });
+            atoms = '(' + atoms.join(',') + ')';
+            timer.stop();
+            
+            //console.log( atoms );
+            
+            if( this.tmh_filter && this.tmh_list ){
+                console.log( this.tmh_list );
+                var tmh_filter = []
+                $.each( this.tmh_list, function( i, tmh ){
+                    tmh_filter.push(
+                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
+                    );
+                });
+                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+            }
+            
+            this.interface_contacts_selection.selection = '(' + atoms + ')';
+            
+            var structure_atoms = [];
+            if(this.structure_atoms && this.structure_atoms.length){
+                structure_atoms = $.map(this.structure_atoms, function(atom){
+                    return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
+                });
+            }
+            structure_atoms = structure_atoms.join(',');
+            structure_atoms = structure_atoms ? structure_atoms : 'none';
+            this.structure_selection.selection = '(' + structure_atoms + ')';
+            
+            var cmd = 'var IATOMS = {(' + atoms + ')}; ' +
+                'var SATOMS = {(' + structure_atoms + ')};';
+            
+            if(this.color_interface_residue){
+                cmd += 'display all; select all; color grey; select within(GROUP, @IATOMS ); color ' + this.color + ';';
+            }else{
+                cmd += 'display all; select all; color grey; select @IATOMS; color ' + this.color + ';';
+            }
+            
+            if(this.show_only_interface_atoms){
+                cmd += ' select @IATOMS or @SATOMS; display selected; ';
+            }
+            if(this.structure_atoms && this.structure_atoms.length){
+                cmd += ' select @SATOMS; color pink; ';
+            }
+            //cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
+            cmd += ' select {@IATOMS or @SATOMS}; echo @{ {selected}.length };';
+            
+            cmd += '' +
+                'var dist = {selected}.distance({selected});' +
+                'print @dist;' +
+                'set rotationRadius @{dist*2};' +
+                'slab on; set slabRange @{dist/1};' +
+                'set zShade on; set zSlab @{dist*0.6};' +
+                'set zDepth @{dist*0.1}; ' +
+                '';
+                
+            //console.log( cmd );
+            timer.start();
+            this.applet.script_wait(cmd + ' zoom (selected) 100; select none;');
+            timer.stop();
+        }else{
+            var cmd = 'display all; select all; center {all}; color grey; slab off;';
+            this.applet.script( cmd );
+        }
+    },
+    _draw4: function(){
+        if(this.atoms && this.atoms.length){
+            var timer = new Provi.Debug.timer({name:'draw4 atomNr range'});
+            timer.start();
+            var atoms = [];
+            var a_start = -10;
+            var a_prev = -10;
+            $.each(this.atoms, function(i, atom){
+                var a = parseInt( atom.atomNr );
+                //console.log(a_prev, a, a-1);
+                if(a-1 > a_prev){
+                    //console.log( 'run break' );
+                    if(a_start > 0){
+                        atoms.push([a_start,a_prev]);
+                    }
+                    a_start = a;
+                }
+                a_prev = atom.atomNr;
+            });
+            atoms.push([a_start,a_prev]);
+            //console.log( atoms );
+            var atoms = $.map(atoms, function(atom){
+                if( atom[0] == atom[1] ){
+                    return 'atomno=' + atom[0] + '';
+                }else{
+                    return 'atomno>=' + atom[0] + '&atomno<=' + atom[1] + '';
+                }
+            });
+            atoms = '(' + atoms.join(',') + ')';
+            timer.stop();
+            
+            //console.log( atoms );
+            
+            if( this.tmh_filter && this.tmh_list ){
+                console.log( this.tmh_list );
+                var tmh_filter = []
+                $.each( this.tmh_list, function( i, tmh ){
+                    tmh_filter.push(
+                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
+                    );
+                });
+                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+            }
+            
+            this.interface_contacts_selection.selection = '(' + atoms + ')';
+            
+            var structure_atoms = [];
+            if(this.structure_atoms && this.structure_atoms.length){
+                structure_atoms = $.map(this.structure_atoms, function(atom){
+                    return atom.asNr + ":" + atom.chainId + "." + atom.atomName;
+                });
+            }
+            structure_atoms = structure_atoms.join(',');
+            structure_atoms = structure_atoms ? structure_atoms : 'none';
+            this.structure_selection.selection = '(' + structure_atoms + ')';
+            
+            var cmd = 'var IATOMS = {(' + atoms + ')}; ' +
+                'var SATOMS = {(' + structure_atoms + ')};';
+            
+            if(this.color_interface_residue){
+                cmd += 'display all; select all; color grey; select within(GROUP, @IATOMS ); color ' + this.color + ';';
+            }else{
+                cmd += 'display all; select all; color grey; select @IATOMS; color ' + this.color + ';';
+            }
+            
+            if(this.show_only_interface_atoms){
+                cmd += ' select @IATOMS or @SATOMS; display selected; ';
+            }
+            if(this.structure_atoms && this.structure_atoms.length){
+                cmd += ' select @SATOMS; color pink; ';
+            }
+            //cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
+            cmd += ' select {@IATOMS or @SATOMS}; echo @{ {selected}.length };';
+            
+            cmd += '' +
+                'var dist = {selected}.distance({selected});' +
+                'print @dist;' +
+                'set rotationRadius @{dist*2};' +
+                'slab on; set slabRange @{dist/1};' +
+                'set zShade on; set zSlab @{dist*0.6};' +
+                'set zDepth @{dist*0.1}; ' +
+                '';
+                
+            //console.log( cmd );
+            timer.start();
+            this.applet.script_wait(cmd + ' zoom (selected) 100; select none;');
+            timer.stop();
+        }else{
+            var cmd = 'display all; select all; center {all}; color grey; slab off;';
+            this.applet.script( cmd );
+        }
     }
 });
 
