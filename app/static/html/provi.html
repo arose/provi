@@ -18,6 +18,7 @@
     <script type="text/javascript" src="../js/lib/jquery.query.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.mousewheel.min.js"></script>
     <script type="text/javascript" src="../js/lib/jquery.cookie.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.blockUI.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-ui/js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="../js/lib/jstree/jquery.jstree.js"></script>
@@ -125,6 +126,11 @@
 	Provi.Jmol.init("../../jmol/current/3/", true);
 	
         $(document).ready(function(){
+	    
+	//    $.blockUI({
+	//	message: 'loading...',
+	//	forceIframe: true
+	//    });
 	    
 	//    // hack to get session cookie
 	//    $.ajax({
@@ -278,30 +284,68 @@
 	    // when in test mode, load some data for development purposes
 	    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
 		var applet = Provi.Jmol.get_default_applet( true );
-		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
-		//Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.pdb', 'pdb', {
-		    sort_key: 1,
-		    heading: 'Interface Contacts',
-		    info: 'Infotext',
-		    description: 'Description',
-		    applet: applet,
-		    load_as: 'new'
+		
+		if( $.query.get('test') == '2rdd' ){
+		    
+		    Provi.Data.Io.import_example( 'showcase', 'test/2rdd.mbn', 'mbn', {
+			sort_key: 1,
+			heading: 'Interface Contacts',
+			info: 'Infotext',
+			description: 'Description',
+			applet: applet,
+			load_as: 'new'
+		    });
+		    
+		}else if( $.query.get('test') == '1ar1' ){
+		    
+		    Provi.Data.Io.import_example( 'showcase', 'test/1ar1.mbn', 'mbn', {
+			sort_key: 1,
+			heading: 'Interface Contacts',
+			info: 'Infotext',
+			description: 'Description',
+			applet: applet,
+			load_as: 'new'
+		    });
+		
+		}else if( $.query.get('test') == '1xio' ){
+		    
+		    Provi.Data.Io.import_example( 'showcase', 'test/1xio.mbn', 'mbn', {
+			sort_key: 1,
+			heading: 'Interface Contacts',
+			info: 'Infotext',
+			description: 'Description',
+			applet: applet,
+			load_as: 'new'
 		});
-		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
-		    sort_key: 2,
-		    heading: 'Membrane Planes',
-		    applet: applet
-		});
-		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
-		    sort_key: 3,
-		    heading: 'Transmembrane Helices',
-		    applet: applet
-		});
-		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
-		    sort_key: 4,
-		    heading: 'Hydrogen Bonds',
-		    applet: applet
-		});
+		    
+		}else{
+		
+		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
+		    //Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.pdb', 'pdb', {
+			sort_key: 1,
+			heading: 'Interface Contacts',
+			info: 'Infotext',
+			description: 'Description',
+			applet: applet,
+			load_as: 'new'
+		    });
+		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
+			sort_key: 2,
+			heading: 'Membrane Planes',
+			applet: applet
+		    });
+		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
+			sort_key: 3,
+			heading: 'Transmembrane Helices',
+			applet: applet
+		    });
+		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
+			sort_key: 4,
+			heading: 'Hydrogen Bonds',
+			applet: applet
+		    });
+		    
+		}
 	    }
 	    
 	    // add some showcase examples
@@ -371,6 +415,9 @@
 		    Provi.Jmol.get_default_applet().script( 'sync * on; sync * "set syncMouse on";' );
 		})
 	    );
+	    
+	    
+	    //$.unblockUI();
 	    
 	    // accordion for about section
 	    //$('#tab_about .accordion').accordion();

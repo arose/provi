@@ -222,6 +222,18 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     },
     hide: function(){
 	$(this.dom).hide();
+    },
+    block: function( params ){
+	if(this._blocked) return;
+	this._blocked = true;
+	params = $.extend({
+	    message: 'loading...'
+	}, params);
+	$(this.dom).block( params );
+    },
+    unblock: function(){
+	this._blocked = false;
+	$(this.dom).unblock();
     }
 };
 

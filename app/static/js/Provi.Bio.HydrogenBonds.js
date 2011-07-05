@@ -130,8 +130,12 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
     },
     /** update all widget components */
     update: function(){
+	this.block();
+        this.applet.echo( 'loading...' );
         this.draw();
         this.draw_tree();
+	this.unblock();
+        this.applet.echo();
     },
     /** draw the hbond in the applet */
     draw: function(){

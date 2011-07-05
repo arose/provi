@@ -217,24 +217,34 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
         });
     },
     retrieve_atoms: function (){
+        this.block();
+        this.applet.echo( 'loading...' );
         if(this.interface_names){
             var self = this;
             this.dataset.get_atoms( this.interface_ids, this.interface_names, this.cutoff, function( interface_data, structure_data ){
                 self.atoms = interface_data;
                 self.structure_atoms = structure_data;
                 self.draw();
+                self.unblock();
+                this.applet.echo();
             });
         }else{
             this.atoms = [];
             this.structure_atoms = [];
             this.draw();
+            this.unblock();
+            this.applet.echo();
         }
     },
     draw: function(){
+        this.block();
+        this.applet.echo( 'loading...' );
         //this._draw1();
         //this._draw2();
         //this._draw3();
         this._draw4();
+        this.unblock();
+        this.applet.echo();
     },
     _draw1: function(){
         if(this.atoms && this.atoms.length){
@@ -531,11 +541,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 cmd += ' select @SATOMS; color pink; ';
             }
             //cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
-            cmd += ' select {@IATOMS or @SATOMS}; echo @{ {selected}.length };';
+            cmd += ' select {@IATOMS or @SATOMS};';
             
             cmd += '' +
                 'var dist = {selected}.distance({selected});' +
-                'print @dist;' +
                 'set rotationRadius @{dist*2};' +
                 'slab on; set slabRange @{dist/1};' +
                 'set zShade on; set zSlab @{dist*0.6};' +
@@ -544,7 +553,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 
             //console.log( cmd );
             timer.start();
-            this.applet.script_wait(cmd + ' zoom (selected) 100; select none;');
+            this.applet.script(cmd + ' zoom (selected) 100; select none;', true);
             timer.stop();
         }else{
             var cmd = 'display all; select all; center {all}; color grey; slab off;';
