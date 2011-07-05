@@ -52,7 +52,7 @@ var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, mo
  * @memberOf Provi.Jmol
  */
 var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
-    //console.log( applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
+    console.log( applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
     Provi.Jmol.get_applet_by_id( applet_name+'' )._message_callback( msg1+'', msg2+'', msg3+'', msg4+'' );
 };
 
