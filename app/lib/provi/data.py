@@ -170,7 +170,8 @@ class ScoBase( Text ):
     @expose
     def get_pdb( self, dataset, **kwargs ):
         tmp_file = named_tmp_file( dataset.data )
-        return self.data_class(tmp_file.name).getPdb()
+        return self.data_class(tmp_file.name).get_pdb()
+        #return self.data_class(tmp_file.name).getPdb()
     @expose
     def get_helix_interface_names( self, dataset, **kwargs ):
         tmp_file = named_tmp_file( dataset.data )
