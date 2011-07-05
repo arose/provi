@@ -74,19 +74,32 @@ Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype = Utils.extend(Widget, 
         if( !raw_data ) return;
 	
 	var jstree_data = [];
+	var jstree_data_by_chain = {};
         $.each( raw_data, function(){
 	    var tmh = this;
-	    jstree_data.push({
-		data: '[' + tmh[0][0] + ']\t' + tmh[0][1] + ' - ' + tmh[1][1] + '\t(' + (tmh[1][1] - tmh[0][1]) + ' Residues)'
-	    });
+	    var tmh_node = {
+		data: tmh[0][1] + ' - ' + tmh[1][1] + '\t(' + (tmh[1][1] - tmh[0][1]) + ' Residues)'
+	    };
+	    var chain = tmh[0][0];
+	    if( !jstree_data_by_chain[chain] ){
+		jstree_data_by_chain[chain] = {
+		    "data" : "Chain " + chain,
+		    "children" : []
+		}
+	    }
+	    jstree_data_by_chain[chain]['children'].push( tmh_node );
         });
+        $.each( jstree_data_by_chain, function(){
+	    jstree_data.push( this );
+	});
         
 	console.log( jstree_data );
 	$( '#' + this.jstree_id ).jstree({
 	    json_data: {
 		data: {
                     "data" : "Protein",
-                    "children" : jstree_data
+                    "children" : jstree_data,
+		    "progressive_render": true
                 }
 	    },
 	    core: {

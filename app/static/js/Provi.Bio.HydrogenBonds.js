@@ -120,7 +120,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
                 self.update();
                 $("#" + self.show_hbonds_select_id).show();
                 $("#" + self.show_hbonds_check_id).hide();
-                return false;
+                return false; // break
             }else{
                 $("#" + self.show_hbonds_select_id).hide();
                 $("#" + self.show_hbonds_check_id).show();
@@ -165,19 +165,37 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
         if( !raw_data ) raw_data = [];
         
 	var jstree_data = [];
+	var jstree_data_by_chain = {};
         $.each( raw_data, function(){
 	    var hb = this;
-	    jstree_data.push({
-		data: '[' + hb[0][2] + ']' + hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ' (Type: ' + hb[2] + ')'
+	    var hb_node = {
+		data: hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ' (Type: ' + hb[2] + ')'
+	    };
+	    var chain_a = hb[0][2];
+	    var chain_b = hb[1][2];
+	    var chain_list = (chain_a==chain_b) ? [chain_a] : [chain_a, chain_b];
+	    $.each(chain_list, function(i,chain){
+		if( !jstree_data_by_chain[chain] ){
+		    jstree_data_by_chain[chain] = {
+			"data" : "Chain " + chain,
+			"children" : []
+		    }
+		}
+		jstree_data_by_chain[chain]['children'].push( hb_node );
 	    });
         });
-        
+        $.each( jstree_data_by_chain, function(){
+	    jstree_data.push( this );
+	});
+	
+	
 	console.log( jstree_data );
 	$( '#' + this.jstree_id ).jstree({
 	    json_data: {
 		data: {
                     "data" : "Protein",
-                    "children" : jstree_data
+                    "children" : jstree_data,
+		    "progressive_render": true
                 }
 	    },
 	    core: {
