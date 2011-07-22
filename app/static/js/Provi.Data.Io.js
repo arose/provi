@@ -403,10 +403,10 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
         }, no_init);
     },
     dataset_list2: function(){
-        var self = this;
+        if( !this.directory_name ) return;
+	var self = this;
 	
 	var get_url = function(node){
-	    //console.log('JSTREE', node, $(node).data() );
 	    var url = "../../example/dataset_list2/";
 	    if(node!=-1){
 		url += '?path=' + $(node).data('path');
