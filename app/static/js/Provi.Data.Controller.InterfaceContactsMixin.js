@@ -16,13 +16,13 @@ Provi.Data.Controller.InterfaceContactsMixin = $.extend(true, {}, Provi.Data.Con
         self.set_data( new Provi.Bio.InterfaceContacts.Contacts( {}, [] ) );
         Provi.Data.Controller.StructureMixin.init.call( this, params );
         this.retrieve_data( function(d){
-            
             self.data.names = d;
             if( params.applet ){
-                new Provi.Bio.InterfaceContacts.InterfaceContactsWidget( $.extend( params, {
+                var ic_widget = new Provi.Bio.InterfaceContacts.InterfaceContactsWidget( $.extend( params, {
                     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                     dataset: self
                 }));
+                $(self).triggerHandler( 'widget_created', ic_widget );
             }
         });
         

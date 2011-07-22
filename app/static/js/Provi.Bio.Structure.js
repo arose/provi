@@ -46,7 +46,7 @@ Provi.Bio.Structure.StructureWidget = function(params){
     
     var template = '' +
 	'<div class="" id="${eids.current_file_number}" >' +
-            'Jmol file number: <span>???${params.current_file_number}</span>' +
+            'Jmol file number: <span></span>' +
 	'</div>' +
 	'';
     
@@ -84,45 +84,40 @@ Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget
 	if( !style ){
 	    style = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
 		//'select protein; color cartoon structure; color structure; ' +
-		'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
 		'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
 		'select water; wireframe 0.01;' +
-		'select group=hoh; cpk 20%;' +
+		//'select group=HOH; cpk 20%;' +
+		'select HOH; cpk 20%;' +
 		'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
 		'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
 		'select none;';
 	}else{
-	    style = 'select all; ' + style +
-		'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ';
+	    style = 'select all; ' + style;
 	}
         
-        if( load_as != 'append' ) applet._delete();
+        if( load_as != 'append' && load_as != 'trajectory+append' ){
+	    applet._delete();
+	}
 	
 	// load structural data into the jmol applet
+	var s = '';
 	if(load_as == 'trajectory'){
-	    applet.script('load TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style);
+	    s = 'load TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style;
 	}else if(load_as == 'trajectory+append'){
-	    applet.script('load APPEND TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style);
+	    s = 'load APPEND TRAJECTORY "' + type + '../../data/get/' + params + '"; ' +
+		'subset file = _currentFileNumber; ' + style + ' subset none;';
 	}else if(load_as == 'append'){
-	    if( !style ){
-		var style2 = 'select file = _currentFileNumber; spacefill off; wireframe off; backbone off; cartoon on; ' +
-		    //'select protein; color cartoon structure; color structure; ' +
-		    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
-		    'select (file = _currentFileNumber and (ligand or ypl or lrt)); wireframe 0.16; spacefill 0.5; color cpk; ' +
-		    'select (file = _currentFileNumber and water); wireframe 0.01;' +
-		    'select (file = _currentFileNumber and group=hoh); cpk 20%;' +
-		    'select (file = _currentFileNumber and (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt))); wireframe 0.1;' + 
-		    'select (file = _currentFileNumber and (dmpc or dmp or popc or pop)); wireframe 0.1;' +
-		    'select none;';
-	    }else{
-		var style2 = 'select file = _currentFileNumber; ' + style +
-		    'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ';
-	    }
-	    applet.script('load APPEND "' + type + '../../data/get/' + params + '"; ' + style2 + ' frame all; ');
+	    s = 'load APPEND "' + type + '../../data/get/' + params + '"; ' +
+		'subset file = _currentFileNumber; ' + style + ' subset none; frame all;';
 	//}else if(load_as == 'new'){
 	}else{
 	    console.log('../../data/get/' + params);
-	    applet.script('load "' + type + '../../data/get/' + params + '"; ' + style);
+	    s = 'load "' + type + '../../data/get/' + params + '"; ' + style;
+	}
+	
+	applet.script( s + 'slab on; set slabRange 10.0;', true );
+	if( load_as != 'append' && load_as != 'trajectory+append' ){
+	    applet.lighting_manager.defaults();
 	}
     }
 });
