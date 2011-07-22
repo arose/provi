@@ -23,10 +23,42 @@ var Widget = Provi.Widget.Widget;
  */
 Provi.Bio.HydrogenBonds.Hbonds = function(hbonds_list){
     this.hbonds_list = hbonds_list;
+    this.init();
 };
-Provi.Bio.HydrogenBonds.Hbonds.prototype = /** @lends Provi.Bio.HydrogenBonds.Hbonds.prototype */ {
-    
-};
+Provi.Bio.HydrogenBonds.Hbonds.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAtomPropertyMap, /** @lends Provi.Bio.HydrogenBonds.Hbonds.prototype */ {
+    key_length: 2,
+    init: function(){
+	console.log( 'HBX', this );
+	var self = this;
+	this.property_dict = {};
+	this.property_list = [];
+	this._keys = [];
+	$.each( this.hbonds_list, function(i, hb){
+	    var property = {
+		atom1: { resno: hb[0][3], chain: hb[0][2], atom_name: $.trim(hb[0][0]) },
+		atom2: { resno: hb[1][3], chain: hb[1][2], atom_name: $.trim(hb[1][0]) },
+		type: hb[2],
+		sele: '(' + hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' OR ' +
+		    hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ')'
+	    }
+	    var key1 = [ hb[0][2], hb[0][3], $.trim(hb[0][0]) ];
+	    var key2 = [ hb[1][2], hb[1][3], $.trim(hb[1][0]) ];
+	    var key = [ key1, key2 ];
+	    self._keys.push( key );
+	    self.property_dict[ key ] = property;
+	    self.property_list.push( property );
+	});
+    },
+    _get: function(id){
+	//console.log('ID', id );
+	return this.property_dict[ id ];
+    },
+    _cmp_id: function(id, own_id){
+	var len = id.length;
+	return Provi.Utils.array_cmp( id, own_id[0].slice(0, len) ) ||
+	    Provi.Utils.array_cmp( id, own_id[1].slice(0, len) );
+    }
+});
 
 
 /**
@@ -105,6 +137,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
             self.update();
         });
         this._init_control();
+	$(this.applet.selection_manager).bind('select', $.proxy(this.select, this));
 	Widget.prototype.init.call(this);
     },
     /** initialize the controls */
@@ -120,6 +153,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
                 self.update();
                 $("#" + self.show_hbonds_select_id).show();
                 $("#" + self.show_hbonds_check_id).hide();
+		$("#" + self.show_hbonds_check_id).siblings('label').attr('for', self.show_hbonds_select_id);
                 return false; // break
             }else{
                 $("#" + self.show_hbonds_select_id).hide();
@@ -130,12 +164,14 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
     },
     /** update all widget components */
     update: function(){
-	this.block();
-        this.applet.echo( 'loading...' );
-        this.draw();
-        this.draw_tree();
-	this.unblock();
-        this.applet.echo();
+	if( this.show_hbonds ){
+	    this.block();
+	    this.applet.echo( 'loading...' );
+	    this.draw();
+	    this.draw_tree();
+	    this.unblock();
+	    this.applet.echo();
+	}
     },
     /** draw the hbond in the applet */
     draw: function(){
@@ -147,7 +183,12 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
             var draw_hbonds = '';
             var i = 0;
             $.each(hbonds, function(){
-                draw_hbonds += 'draw hbond_' + self.id + '_all' + i + ' color ' + self.color + ' (' + this[0][3] + (this[0][2] ? ':' + this[0][2] : '') + '.' + $.trim(this[0][0]) + ') (' + this[1][3] + (this[1][2]? ':' + this[1][2] : '') + '.' + $.trim(this[1][0]) + ');';
+                draw_hbonds += 'draw hbond_' + self.id + '_all' + i + ' ' +
+		    'color ' + self.color + ' ' +
+		    '(' + this[0][3] + (this[0][2] ? ':' + this[0][2] : '') + '.' + $.trim(this[0][0]) + ') ' +
+		    '(' + this[1][3] + (this[1][2]? ':' + this[1][2] : '') + '.' + $.trim(this[1][0]) + ') ' +
+		    'DIAMETER 0.2' +
+		    ';';
                 //draw_hbonds += 'select ' + this[0][3] + ':' + this[0][2] + ',' + this[1][3] + ':' + this[1][2] + '; color lightgreen; cartoon ONLY; wireframe 0.1;';
                 i = i+1;
             });
@@ -168,8 +209,16 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 	var jstree_data_by_chain = {};
         $.each( raw_data, function(){
 	    var hb = this;
+	    var key1 = [ hb[0][2], hb[0][3], $.trim(hb[0][0]) ];
+	    var key2 = [ hb[1][2], hb[1][3], $.trim(hb[1][0]) ];
+	    var key = [ key1, key2 ];
 	    var hb_node = {
-		data: hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ' (Type: ' + hb[2] + ')'
+		data: hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ' (Type: ' + hb[2] + ')',
+		metadata: {
+		    hb: hb,
+		    type: 'hb',
+		    hb_id: key
+		}
 	    };
 	    var chain_a = hb[0][2];
 	    var chain_b = hb[1][2];
@@ -178,7 +227,11 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 		if( !jstree_data_by_chain[chain] ){
 		    jstree_data_by_chain[chain] = {
 			"data" : "Chain " + chain,
-			"children" : []
+			"children" : [],
+			metadata: {
+			    type: 'chain',
+			    hb_id: [chain]
+			}
 		    }
 		}
 		jstree_data_by_chain[chain]['children'].push( hb_node );
@@ -194,96 +247,87 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 	    json_data: {
 		data: {
                     data : "Protein",
-                    children : jstree_data
+                    children : jstree_data,
+		    metadata: {
+			type: "protein"
+		    }
                 },
 		progressive_render: true
 	    },
 	    core: {
 		html_titles: true
 	    },
-	    themeroller: {
-		item: ""
+	    themes: {
+		icons: false
 	    },
-	    plugins: [ "json_data", "themeroller" ]
+	    checkbox_grid: {
+		columns: 1
+	    },
+	    plugins: [ "json_data", "checkbox_grid", "themes" ]
 	});
+	this.jstree = $.jstree._reference( '#' + this.jstree_id );
 	
-        //var hbonds = {};
-        //$.each( raw_data, function(){
-        //    var hb = this;
-        //    var chain = hbonds[ hb[0][2] ];
-        //    if( !chain ){
-        //        chain = hbonds[ hb[0][2] ] = {};
-        //    }
-        //    chain[ hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) ] = 'Type: ' + hb[2] + '';
-        //})
-        //
-        //var root = pv.dom( hbonds )
-        //    .root( 'Protein' );
-        //
-        ///* Recursively compute the package sizes. */
-        //root.visitAfter(function(node, depth) {
-        //    if (node.firstChild) {
-        //        if( depth == 1){
-        //            node.nodeValue = node.childNodes.length + " Hbonds";
-        //        }if( depth == 0){
-        //            node.nodeValue = node.childNodes.length + " Chains";
-        //        }
-        //    }
-        //});
-        //
-        //var vis = new pv.Panel()
-        //    .canvas( this.canvas_id )
-        //    .width(260)
-        //    .height(function(){ return (root.nodes().length + 1) * 12 })
-        //    .margin(5);
-        //
-        //var layout = vis.add(pv.Layout.Indent)
-        //    .nodes(function(){ return root.nodes() })
-        //    .depth(12)
-        //    .breadth(12);
-        //
-        //layout.link.add(pv.Line);
-        //
-        //var node = layout.node.add(pv.Panel)
-        //    .top(function(n){ return n.y - 6 })
-        //    .height(12)
-        //    .right(6)
-        //    .strokeStyle(null)
-        //    .fillStyle(null)
-        //    .events("all")
-        //    .event("mousedown", toggle_node)
-        //    .event("mouseup", select_hbond);
-        //
-        //node.anchor("left").add(pv.Dot)
-        //    .strokeStyle("#1f77b4")
-        //    .fillStyle(function(n){ return n.toggled ? "#1f77b4" : n.firstChild ? "#aec7e8" : "#ff7f0e" })
-        //    .title(function t(d){ return d.parentNode ? (t(d.parentNode) + "." + d.nodeName) : d.nodeName })
-        //  .anchor("right").add(pv.Label)
-        //    .text(function(n){ return n.nodeName });
-        //
-        //node.anchor("right").add(pv.Label)
-        //    .textStyle(function(n){ return n.firstChild || n.toggled ? "#aaa" : "#000" })
-        //    .text(function(n){ return n.nodeValue || ''; });
-        //
-        //root.visitAfter(function(node, depth){
-        //    if(depth > 0){
-        //        node.toggle();
-        //    }
-        //});
-        //
-        //vis.render();
-        //
-        //function toggle_node(n){
-        //    n.toggle(pv.event.altKey);
-        //    return layout.reset().root;
-        //}
-        //
-        //function select_hbond(n) {
-        //    if( self.applet && n.childNodes.length == 0 && n.parentNode ){
-        //        var hb_res = n.nodeName.split(' <> ');
-        //        self.applet.selection_manager.select(hb_res[0] + ' or ' + hb_res[1]);
-        //    }
-        //}
+	$( '#' + this.jstree_id ).bind("check_node.jstree uncheck_node.jstree", function(event, data){
+	    self.__tree_trigger_selection_update(event, data);
+	});
+    },
+    __tree_trigger_selection_update: function(event, data){
+	var self = this;
+	var selected = data.inst.get_checked( -1, data.args[1] );
+	var selection_list = [];
+	selected.each( function(i, elm){
+	    var $elm = $(elm)
+	    console.log( $elm.data() );
+	    if( $elm.data('type')=='hb' ){
+		//selection_list.push( $elm.data('selection') );
+		selection_list.push( self.dataset.data.get( $elm.data('hb_id') ).sele );
+	    }else if( $elm.data('type')=='chain' ){
+		$.each( self.dataset.data.get( $elm.data('hb_id') ), function(i, hb){
+		    if(self._hb_interhelical(hb)) selection_list.push( hb.sele );
+		});
+	    }else if( $elm.data('type')=='protein' ){
+		$.each( self.dataset.data.get_dict(), function(i, hb){
+		    if(self._hb_interhelical(hb)) selection_list.push( hb.sele );
+		});
+	    }
+	});
+	var sele = selection_list.length ? selection_list.join(' OR ') : 'none';
+	this._not_listen_select = true;
+	this.applet.selection_manager.select( sele );
+	this._not_listen_select = false;
+    },
+    _hb_interhelical: function(hb){
+	if( this.show_hbonds == 'interhelical' ){
+	    var tmh_a = this.in_which_helix2( hb.atom1 );
+	    var tmh_b = this.in_which_helix2( hb.atom2 );
+	    if(tmh_a && tmh_b && tmh_a != tmh_b){
+		return true;
+	    }else{
+		return false;
+	    }
+	}
+	return true;
+    },
+    /**
+     * @ private
+     * return the helix in which the amino acid is is
+     */
+    in_which_helix2: function (aa){
+        var tmh_list = this.get_helices();
+        if( tmh_list ){
+            var chain = aa.chain;
+            var number = aa.resno;
+            var ret = false;
+            $.each(tmh_list, function(){
+                if(this[0][0] == chain && this[1][0] == chain && this[0][1] <= number && this[1][1] >= number){
+                    ret = this;
+                    return false; // break
+                }
+                return true; // continue
+            });
+            return ret;
+        }
+        return undefined;
     },
     /**
      * @private
@@ -351,6 +395,11 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 	return Utils.in_array(this.selection, d, function(a,b){
 	    return a[2]==b[2] && (a[3]==b[3] || !b[3]);
 	});
+    },
+    select: function( selection, applet ){
+	console.log('#' + this.jstree_id, this._not_listen_select);
+	if( this._not_listen_select || !this.jstree ) return;
+	this.jstree.uncheck_all( 1 );
     }
 });
 
