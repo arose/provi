@@ -52,7 +52,7 @@ var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, mo
  * @memberOf Provi.Jmol
  */
 var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
-    console.log( applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
+    //console.log( 'MESSAGE CALLBACK', applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
     Provi.Jmol.get_applet_by_id( applet_name+'' )._message_callback( msg1+'', msg2+'', msg3+'', msg4+'' );
 };
 
@@ -295,6 +295,8 @@ Provi.Jmol.Applet = function(params){
     
     this._determining_load_status = false;
     this.selection_manager = new Provi.Selection.SelectionManager({ applet: this });
+    this.lighting_manager = new Provi.Jmol.Controls.LightingManager({ applet: this });
+    this.clipping_manager = new Provi.Jmol.Controls.ClippingManager({ applet: this });
     
     this._init();
     if( typeof(Provi.Jmol._default_applet) == 'undefined' ){
@@ -317,10 +319,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     _init: function(){
 	this._create_html();
 	this._create_dom();
-	$(this.selection_manager).bind('select', this.select);
+	$(this.selection_manager).bind('select', $.proxy(this.select, this));
     },
     select: function( e, selection, applet, selection_string ){
-	applet.script_wait( 'selectionHalos On; select {' + selection_string + '};' );
+	applet.script_wait( 'selectionHalos On; color selectionHalos green; select {' + selection_string + '};' );
     },
     _delete: function(){
 	$('#' + this.widget.data_id).empty();
@@ -389,9 +391,9 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	return this.dom;
     },
     set_loaded: function(){
-	console.log('TRYING TO SET LOADED');
+	//console.log('TRYING TO SET LOADED');
 	if( this.loaded || this._determining_load_status  ) return;
-	console.log('TRYING TO SET LOADED');
+	//console.log('TRYING TO SET LOADED');
 	this._determining_load_status = true;
 	console.log('done loading');
 	this._load();
@@ -478,13 +480,13 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     _script: function(script, maintain_selection, message){
 	script = this._prepare_script( script, maintain_selection, message );
-	console.log(script);
+	//console.log(script);
 	try{
 	    if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
-		console.log( 'SAFARI' );
+		//console.log( 'SAFARI' );
 		this.applet.script( script );
 	    }else{
-		console.log( 'NOT SAFARI' );
+		//console.log( 'NOT SAFARI' );
 		var tmp = this.applet.scriptWait( script );
 	    }
 	}catch(e){
@@ -499,10 +501,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	if(this.loaded){
 	    return this._script(script, maintain_selection, message);
 	}else{
-	    console.log('script DEFERED');
+	    //console.log('script DEFERED');
 	    var self = this;
 	    $(this).bind('load', function(){
-		console.log('exec defered script: "' + script + '"');
+		//console.log('exec defered script: "' + script + '"');
 		self.script(script, maintain_selection, message);
 	    });
 	    return -1;
@@ -614,6 +616,8 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	if( result == 'ERROR' ){
 	    console.log('evaluate: ', molecular_math, result);
 	}
+	if( result == "true" ) return true;
+	if( result == "false" ) return false;
 	var s = result.replace(/\-*\d+/,"")
 	if (s == "" && !isNaN(parseInt(result))) return parseInt(result);
 	var s = result.replace(/\-*\d*\.\d*/,"")

@@ -65,6 +65,7 @@
     <script type="text/javascript" src="../js/Provi.Data.Io.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Io.Galaxy.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Io.Get.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Io.Jmol.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.StructureMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.InterfaceContactsMixin.js"></script>
@@ -102,7 +103,8 @@
 		style: 'cartoon only; wireframe 0.15;' +
 		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
 		    'select water; wireframe 0.01;' +
-		    'select group=hoh; cpk 20%;' +
+		    //'select group=hoh; cpk 20%;' +
+		    'select HOH; cpk 20%;' +
 		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
 		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
 		    'select none;',
@@ -115,8 +117,6 @@
 	    {
 		sort_key: 1,
 		heading: 'Interface Contacts',
-		info: 'Infotext XYZ',
-		description: 'Description',
 		show_dataset_info: false,
 		load_as: 'new'
 	    }
@@ -157,7 +157,7 @@
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 	
-	Provi.Jmol.init("../../jmol/current/3/", !$.query.get('unsigned'));
+	Provi.Jmol.init("../../jmol/current/5/", !$.query.get('unsigned'));
 	
         $(document).ready(function(){
 	    
@@ -205,12 +205,10 @@
 	    
 	    
             new Provi.Jmol.Controls.JmolDisplayWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_widgets',
+		sort_key: 0
             });
 	    
-	    new Provi.Jmol.Controls.JmolConsoleWidget({
-                parent_id: 'tab_controls'
-            });
             
             $('#tab_scrollbox').scroll(function (event, ui) {
                 $(this).data('scrollTop-tab-' + tabs_panel.tabs('option', 'selected'), $(this).scrollTop());
@@ -276,11 +274,24 @@
             <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
                 <div id="tabs_panel" style="height:100%; width:100%;">
                     <ul>
-                        <li><a title="General controls" href="#tab_controls">Controls</a></li>
-			<li><a title="A collection of control elements" href="#tab_widgets">Widgets</a></li>
+                        <li><a title="About/Help" href="#tab_about">About</a></li>
+			<li><a title="A collection of control elements" href="#tab_widgets">Controls</a></li>
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
-                        <div id="tab_controls"></div>
+                        <div id="tab_about">
+			    <h4><i>Provi</i> integrates the display of protein structures and related data into a convenient graphical user interface (GUI).</h4>
+			    <h3 class="ui-widget-header">For users</h3>
+			    <div>
+				<p>If you experience problems with the Jmol Java Applet, there are several helpful resources available.</p>
+				<ul>
+				    <li><a href="http://www.java.com/en/download/testjava.jsp">Java Applets</a></li>
+				    <li><a href="http://jmol.sourceforge.net/browsercheck/">Jmol browser check</a></li>
+				    <li><a href="http://support.microsoft.com/kb/2506617">IE9 and Java 6 Update 22/23</a></li>
+				    <li><a href="http://www.mydigitallife.info/ie9-java-applet-not-loading-nor-working-blank-fix/">IE9, Java & ActiveX</a></li>
+				</ul>
+			    </div>
+			</div>
+			
 			<div id="tab_widgets"></div>
                     </div>
                 </div>

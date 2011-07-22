@@ -72,6 +72,7 @@
     <script type="text/javascript" src="../js/Provi.Data.Io.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Io.Galaxy.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Io.Get.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Io.Jmol.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.StructureMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.InterfaceContactsMixin.js"></script>
@@ -123,7 +124,7 @@
 	//Provi.Jmol.init("../applet/jmol/12.1.41/", true);
 	//Provi.Jmol.init("../applet/jmol/12.1.42/", true);
 	//Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
-	Provi.Jmol.init("../../jmol/current/3/", true);
+	Provi.Jmol.init("../../jmol/current/5/", true);
 	
         $(document).ready(function(){
 	    
@@ -162,7 +163,15 @@
             
             Provi.Jmol.Applet.prototype.default_params.height = "100%";
             Provi.Jmol.Applet.prototype.default_params.width = "100%";
-            Provi.Jmol.JmolWidget.prototype.default_params.parent_id = "main";
+            Provi.Jmol.JmolWidget.prototype.default_params = $.extend(
+		Provi.Jmol.JmolWidget.prototype.default_params,
+		{
+		    parent_id: "main",
+		    no_sequence_view_widget: true,
+		    no_selection_manager_widget: true,
+		    no_tree_view_widget: true
+		}
+	    );
             $(Provi.Jmol).bind('applet_list_change', layout_main);
             
 	    new Provi.Jmol.Controls.JmolGlobalControlWidget({
@@ -170,6 +179,14 @@
             });
 	    
             new Provi.Jmol.Controls.JmolDisplayWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+	    new Provi.Jmol.Controls.LightingManagerWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+	    new Provi.Jmol.Controls.ClippingManagerWidget({
                 parent_id: 'tab_controls'
             });
 	    
@@ -193,9 +210,9 @@
 		parent_id: 'tab_tree'
 	    });
 	    
-	    new Provi.Bio.Sequence.TreeViewWidget({
-		parent_id: 'tab_tree'
-	    });
+	//    new Provi.Bio.Sequence.TreeViewWidget({
+	//	parent_id: 'tab_tree'
+	//    });
 	    
 	    new Provi.Jmol.Controls.JmolAnimationWidget({
                 parent_id: 'tab_controls'
@@ -228,7 +245,14 @@
                 parent_id: 'tab_load'
             });
 	    
+	    
+	    // calculate
+	    
+	    new Provi.Data.Io.Jmol.CalculateWidget({
+                parent_id: 'tab_save'
+            });
             
+	    
             // save
             
             new Provi.Data.Io.SaveDataWidget({
@@ -320,7 +344,7 @@
 		    
 		}else{
 		
-		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
+		    var ic_ds = Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
 		    //Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.pdb', 'pdb', {
 			sort_key: 1,
 			heading: 'Interface Contacts',
@@ -329,20 +353,36 @@
 			applet: applet,
 			load_as: 'new'
 		    });
-		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
-			sort_key: 2,
-			heading: 'Membrane Planes',
-			applet: applet
-		    });
-		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
-			sort_key: 3,
-			heading: 'Transmembrane Helices',
-			applet: applet
-		    });
-		    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
-			sort_key: 4,
-			heading: 'Hydrogen Bonds',
-			applet: applet
+		    
+		    $(ic_ds).bind('widget_created', function(event, widget){
+			if( widget instanceof Provi.Bio.InterfaceContacts.InterfaceContactsWidget ){
+			    $(ic_ds).unbind('widget_created', event);
+			    var load_ds = function(){
+				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
+				    sort_key: 2,
+				    heading: 'Membrane Planes',
+				    applet: applet
+				});
+				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
+				    sort_key: 3,
+				    heading: 'Transmembrane Helices',
+				    applet: applet
+				});
+				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
+				    sort_key: 4,
+				    heading: 'Hydrogen Bonds',
+				    applet: applet
+				});
+			    }
+			    if( widget.initialized ){
+				load_ds();
+			    }else{
+				$(widget).bind('init', function(event){
+				    $(widget).unbind('init');
+				    load_ds();
+				});
+			    }
+			}
 		    });
 		    
 		}
@@ -452,6 +492,15 @@
 				<div>
 				    <p>Click on the following examples to see for yourself. The <i>Widgets</i> tab provides GUI controls tailored to the displayed data. More general controls are found in the <i>Controls</i> and the <i>Tree</i> tab.</p>
 				    <ul id="showcase_examples"></ul>
+				</div>
+				<div>
+				    <p>If you experience problems with the Jmol Java Applet, there are several helpful resources available.</p>
+				    <ul>
+					<li><a href="http://www.java.com/en/download/testjava.jsp">Java Applets</a></li>
+					<li><a href="http://jmol.sourceforge.net/browsercheck/">Jmol browser check</a></li>
+					<li><a href="http://support.microsoft.com/kb/2506617">IE9 and Java 6 Update 22/23</a></li>
+					<li><a href="http://www.mydigitallife.info/ie9-java-applet-not-loading-nor-working-blank-fix/">IE9, Java & ActiveX</a></li>
+				    </ul>
 				</div>
 				<h3 class="ui-widget-header">For developers</h3>
 				<div>

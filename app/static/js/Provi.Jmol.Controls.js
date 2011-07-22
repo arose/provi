@@ -113,12 +113,146 @@ Provi.Jmol.Controls.JmolConsoleWidget = function(params){
 Provi.Jmol.Controls.JmolConsoleWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Controls.JmolConsoleWidget.prototype */ {
     _init: function(){
 	var self = this;
-	this.applet_selector.change(function(event){
-	    self.console.applet = self.applet_selector.get_value();
+	$(this.applet_selector).bind("change", function(event, applet){
+	    //console.log('JMOL CONSOLE APPLET CHANGE',applet, self.applet_selector.get_value(true));
+	    self.console.applet = self.applet_selector.get_value(true);
 	});
+	self.console.applet = self.applet_selector.get_value(true);
 	$("#" + this.maintain_selection_id).bind('change', function() {
 	    self.console.maintain_selection = $("#" + self.maintain_selection_id).is(':checked');
 	});
+    }
+});
+
+
+
+/**
+ * A base class to create classes to provide a central instance for changing settings
+ * @constructor
+ */
+Provi.Jmol.Controls.SettingsManager = function(params) {
+    this.names = Object.keys( this.default_params );
+    console.log(this.names, typeof(this), this.default_params);
+    params = $.extend( this.default_params, params );
+    console.log(this.names, typeof(this), this.default_params);
+    this.applet = params.applet;
+    this._set( params );
+}
+Provi.Jmol.Controls.SettingsManager.prototype = /** @lends Provi.Jmol.Controls.SettingsManager.prototype */ {
+    default_params: {},
+    jmol_param_names: {},
+    _command: function( names ){
+	names = names || this.names;
+	return $.map( names, $.proxy( function( name ){
+	    return "set " + this.jmol_param_names[name] + " " + this[name] + ';';
+	}, this )).join(" ");
+    },
+    _set: function( params ){
+        for( var p in params || {} ){
+	    this[ p ] = params[ p ];
+	}
+	console.log( 'SETTINGS MANAGER CHANGE', typeof(this), this.get() );
+	$(this).triggerHandler( 'change', this.get() );
+    },
+    set: function( params ){
+        this._set( params );
+	this.applet.script_wait( this._command() );
+    },
+    get: function(){
+	var params = {};
+	$.each( this.names, $.proxy( function( i, name ){
+	    params[ name ] = this[name];
+	}, this ));
+	return params;
+    },
+    promise: function( params ){
+	this._set( params );
+	return this._command();
+    },
+    repair: function(){
+	this.set( this.get() );
+    },
+    sync: function(){
+	var params = {};
+	$.each( this.jmol_param_names, $.proxy( function( name, jmol_name ){
+	    params[ name ] = this.applet.evaluate( jmol_name );
+	}, this ));
+	console.log( 'SYNC SETTINGS', typeof(this), this._command(), params );
+	this._set( params );
+    },
+    defaults: function(){
+	this.set( this.default_params );
+    }
+};
+
+
+/**
+ * A class to provide a central instance for setting lighting parameters
+ * @constructor
+ * @extends Provi.Jmol.Controls.SettingsManager
+ */
+Provi.Jmol.Controls.LightingManager = function(params) {
+    Provi.Jmol.Controls.SettingsManager.call( this, params );
+}
+Provi.Jmol.Controls.LightingManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.LightingManager.prototype */ {
+    default_params: {
+	ambient_percent: 45,
+	diffuse_percent: 84,
+	specular: true,
+	specular_percent: 22,
+	specular_power: 40,
+	specular_exponent: 6,
+	phong_exponent: 64,
+	z_shade: true,
+	z_shade_power: 3,
+	z_slab: 10,
+	z_depth: 0
+    },
+    jmol_param_names: {
+	ambient_percent: "ambientPercent",
+	diffuse_percent: "diffusePercent",
+	specular: "specular",
+	specular_percent: "specularPercent",
+	specular_power: "specularPower",
+	specular_exponent: "specularExponent",
+	phong_exponent: "phongExponent",
+	z_shade: "zShade",
+	z_shade_power: "zShadePower",
+	z_slab: "zSlab",
+	z_depth: "zDepth"
+    }
+});
+
+
+/**
+ * A class to provide a central instance for setting lighting parameters
+ * @constructor
+ * @extends Provi.Jmol.Controls.SettingsManager
+ */
+Provi.Jmol.Controls.ClippingManager = function(params) {
+    Provi.Jmol.Controls.SettingsManager.call( this, params );
+}
+Provi.Jmol.Controls.ClippingManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.ClippingManager.prototype */ {
+    default_params: {
+	clipping: true,
+	slab_range: 0,
+	slab: 100,
+	depth: 0,
+	slab_by_atom: false,
+	slab_by_molecule: false
+    },
+    jmol_param_names: {
+	clipping: "slabEnabled",
+	slab_range: "slabRange",
+	slab: "slab",
+	depth: "depth",
+	slab_by_atom: "slabByAtom",
+	slab_by_molecule: "slabByMolecule"
+    },
+    _command: function( names ){
+	names = names || this.names.slice();
+	if( this.slab_range ) names.removeItems( "slab" );
+	return Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
     }
 });
 
@@ -218,15 +352,9 @@ Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /**
  */
 Provi.Jmol.Controls.JmolDisplayWidget = function(params){
     this.style_cmd = 'cartoon ONLY; wireframe 0.015;';
-    this.zshade_depth = 10;
-    this.zshade_slab = 45;
-    this.zshade_state = true;
-    this.clipping_depth = 0;
-    this.clipping_slab = 100;
-    this.clipping_state = false;
-    this.clipping_slab_range = 10.0;
+    params.heading = 'General Controls';
     Widget.call( this, params );
-    this._build_element_ids([ 'zshade_slider', 'zshade_state',  'style', 'quality', 'clipping_slider', 'clipping_state', 'clipping_slab_range', 'center', 'applet_selector_widget' ]);
+    this._build_element_ids([ 'style', 'quality', 'center', 'applet_selector_widget' ]);
     var content = '<div class="control_group">' +
         '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
@@ -245,21 +373,6 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
         '<div class="control_row">' +
             '<input id="' + this.quality_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
             '<label for="' + this.quality_id + '" style="display:block;">high quality</label>' +
-        '</div>' +
-	'<div class="control_row">' +
-            '<label for="' + this.zshade_state_id + '" style="display:block;">zshade</label>' +
-            '<input id="' + this.zshade_state_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-            '<div id="' + this.zshade_slider_id + '"></div>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.clipping_state_id + '" style="display:block;">clipping</label>' +
-	    '<select id="' + this.clipping_state_id + '" class="ui-state-default" style="">' +
-                '<option value="">off</option>' +
-                '<option value="1">on</option>' +
-                '<option value="range">slab range</option>' +
-            '</select>' +
-            '<div id="' + this.clipping_slider_id + '"></div>' +
-	    '<input id="' + this.clipping_slab_range_id + '" type="text" size="4" value="10.0"/>' +
         '</div>' +
         '<div class="control_row">' +
             '<button id="' + this.center_id + '">center protein</button>' +
@@ -281,26 +394,6 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             self.quality = $("#" + self.quality_id).is(':checked');
             self.update_quality();
         });
-        
-        // init zshade
-	$("#" + this.zshade_slider_id).slider('option', 'values', [this.zshade_depth, this.zshade_slab]);
-        this.zshade_state = $("#" + this.zshade_state_id).is(':checked');
-        //this.update_zshade();
-        $('#' + this.zshade_state_id).click(function(){
-            self.zshade_state = $("#" + self.zshade_state_id).is(':checked');
-            self.update_zshade();
-        });
-	$("#" + this.zshade_slider_id).slider({
-            values: [this.zshade_depth, this.zshade_slab],
-            range: true,
-            min: 0, max: 100,
-            slide: function(event, ui){
-                //console.log(ui, ui.values);
-                self.zshade_depth  = ui.values[0];
-                self.zshade_slab= ui.values[1];
-                self.update_zshade();
-            }
-        });
 	
         // init style
         $("#" + this.style_id).bind('click change', function() {
@@ -312,56 +405,9 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         $('#' + this.center_id).button().click(function(){
             var applet = self.applet_selector.get_value();
             if(applet){
-                applet.script('center *; zoom(all) 100;');
+                applet.script_wait('center *; zoom(*) 100;');
+		applet.clipping_manager.sync();
             }
-        });
-        
-        // init clipping
-        $("#" + this.clipping_slider_id).slider('option', 'values', [this.clipping_depth, this.clipping_slab]);
-        this.clipping_state = $("#" + this.clipping_state_id).is(':checked');
-        //this.update_clipping();
-	$("#" + this.clipping_slab_range_id).hide();
-	$("#" + this.clipping_slider_id).hide();
-        $("#" + this.clipping_state_id).bind('change click', function(){
-            self.clipping_state = $("#" + self.clipping_state_id).val();
-	    if( self.clipping_state == '1' ){
-		$("#" + self.clipping_slab_range_id).hide();
-		$("#" + self.clipping_slider_id).show();
-	    }else if( self.clipping_state == 'range' ){
-		$("#" + self.clipping_slab_range_id).show();
-		$("#" + self.clipping_slider_id).hide();
-	    }else{
-		$("#" + self.clipping_slab_range_id).hide();
-		$("#" + self.clipping_slider_id).hide();
-	    }
-            self.update_clipping();
-        });
-        $("#" + this.clipping_slider_id).slider({
-            values: [this.clipping_depth, this.clipping_slab],
-            range: true,
-            min: 0, max: 100,
-            slide: function(event, ui){
-                //console.log(ui, ui.values);
-                self.clipping_depth  = ui.values[0];
-                self.clipping_slab= ui.values[1];
-                self.update_clipping();
-            }
-        });
-        $("#" + this.clipping_slider_id).mousewheel( function(event, delta){
-            //console.log(event, delta);
-            self.clipping_slab = Math.round(self.clipping_slab + 2*delta);
-            self.clipping_depth = Math.round(self.clipping_depth + 2*delta);
-            if(self.clipping_slab > 100) self.clipping_slab = 100;
-            if(self.clipping_slab < 0) self.clipping_slab = 0;
-            if(self.clipping_depth > 100) self.clipping_depth = 100;
-            if(self.clipping_depth < 0) self.clipping_depth = 0;
-            $("#" + this.clipping_slider_id).slider('values', 0, self.clipping_depth);
-            $("#" + this.clipping_slider_id).slider('values', 1, self.clipping_slab);
-            self.update_clipping();
-        });
-	$("#" + this.clipping_slab_range_id).change(function() {
-	    self.clipping_slab_range = parseFloat( $("#" + self.clipping_slab_range_id).val() );
-	    self.update_clipping();
         });
     },
     update_quality: function(){
@@ -369,19 +415,11 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         if(applet){
             var s = '';
             if( this.quality ){
-                s = 'set highresolution ON; set hermitelevel 5; set antialiasDisplay On; set antialiasTranslucent ON;';
+                s = 'set highresolution ON; set hermitelevel 4; set antialiasDisplay On; set antialiasTranslucent ON;';
             }else{
                 s = 'set highresolution OFF; set hermitelevel 0; set antialiasDisplay OFF; set antialiasTranslucent OFF;';
             }
             applet.script( s );
-        }
-    },
-    update_zshade: function(){
-	var applet = this.applet_selector.get_value();
-        if(applet){
-	    var s = this.zshade_state ? 'set zShade ON;' : 'set zShade OFF;';
-            s += 'set zDepth ' + this.zshade_depth + '; set zSlab ' + this.zshade_slab + ';';
-            applet.script(s);
         }
     },
     set_style: function (){
@@ -392,7 +430,8 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 		    //'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
 		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; ' +
 		    'select water; wireframe 0.01;' +
-		    'select group=hoh; cpk 20%;' +
+		    //'select group=HOH; cpk 20%;' +
+		    'select HOH; cpk 20%;' +
 		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
 		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
 		    'select none;';
@@ -403,7 +442,8 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 		    //'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
 		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; ' +
 		    'select water; wireframe 0.01;' +
-		    'select group=hoh; cpk 20%;' +
+		    //'select group=HOH; cpk 20%;' +
+		    'select HOH; cpk 20%;' +
 		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
 		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
 		    'select none;';
@@ -430,22 +470,373 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 	$("#" + this.style_id).val('');
         var applet = this.applet_selector.get_value(true);
         if(applet && this.style_cmd){
-            applet.script('select all; ' + this.style_cmd + ' select none;');
-        }
-    },
-    update_clipping: function(){
-        var applet = this.applet_selector.get_value();
-        if(applet){
-            var s = this.clipping_state ? 'slab on;' : 'slab off;';
-	    if( this.clipping_state == 'range' ){
-		s += 'set slabRange ' + this.clipping_slab_range + ';';
-	    }else{
-		s += 'depth ' + this.clipping_depth + '; slab ' + this.clipping_slab + ';';
-	    }
-            applet.script(s);
+            applet.script('select all; ' + this.style_cmd + ' select none;', true);
         }
     }
 });
+
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Controls.SettingsManagerWidget = function(params){
+    params = $.extend(
+        Provi.Jmol.Controls.SettingsManagerWidget.prototype.default_params,
+        params
+    );
+    params.collapsed = true;
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+	'defaults', 'applet_selector'
+    ]);
+    
+    var template = '' +
+	'<div class="control_group">' +
+	    '<div class="control_row" id="${eids.applet_selector}"></div>' +
+	    '<div class="control_row">' +
+		'<button id="${eids.defaults}">defaults</button>' +
+	    '</div>' +
+        '</div>' +
+	'';
+    
+    this.add_content( template, params );
+    
+    this.manager_name = params.manager_name;
+    this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
+        parent_id: this.eid('applet_selector')
+    });
+    
+    // to be called by child classes
+    //this._init();
+}
+Provi.Jmol.Controls.SettingsManagerWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Controls.SettingsManagerWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+        var self = this;
+	
+	
+	this.elm('defaults').button().click(function(){
+            var applet = self.applet_selector.get_value();
+            if(applet){
+		applet[ self.manager_name ].defaults();
+            }
+        });
+	
+        // init clipping manager
+	this._init_manager();
+	$( this.applet_selector ).bind('change_selected', function(event, applet){
+	    $.each( Provi.Jmol.get_applet_list(), function(i, applet){
+		$(applet[ self.manager_name ]).unbind('.'+self.id);
+	    });
+	    self._init_manager();
+	});
+        
+	Provi.Widget.Widget.prototype.init.call(this);
+    },
+    _init_manager: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    var self = this;
+	    $( applet[ this.manager_name ] ).bind('change', function(){
+		self._sync();
+	    });
+	    this._sync();
+	}
+    },
+    _sync: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    var params = applet[ this.manager_name ].get();
+	}
+    },
+    set: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet[ this.manager_name ].set({
+		
+	    });
+        }
+    }
+});
+
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Controls.ClippingManagerWidget = function(params){
+    params = $.extend(
+        Provi.Jmol.Controls.ClippingManagerWidget.prototype.default_params,
+        params
+    );
+    params.heading = 'Clipping Settings';
+    params.manager_name = 'clipping_manager';
+    
+    Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
+    
+    this._init_eid_manager([
+	'clipping_state', 'clipping_slider', 'clipping_range',
+	'slab_by_atom', 'slab_by_molecule'
+    ]);
+    
+    var template = '' +
+	'<div class="control_group">' +
+	    '<div class="control_row">' +
+		'<label for="${eids.clipping_range}" style="display:block;">clipping</label>' +
+		'<input id="${eids.clipping_state}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+		'<div id="${eids.clipping_slider}"></div>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.clipping_range}" style="display:block;">range to viewpoint clipping</label>' +
+		'<div id="${eids.clipping_range}"></div>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.slab_by_atom}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.slab_by_atom}" style="display:block;">clip by atom</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.slab_by_molecule}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.slab_by_molecule}" style="display:block;">clip by molecule</label>' +
+	    '</div>' +
+        '</div>' +
+	'';
+    
+    this.add_content( template, params );
+    
+    this._init();
+}
+Provi.Jmol.Controls.ClippingManagerWidget.prototype = Utils.extend(Provi.Jmol.Controls.SettingsManagerWidget, /** @lends Provi.Jmol.Controls.ClippingManagerWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+        var self = this;
+	
+        this.elm('clipping_state').bind('click', $.proxy( this.set, this ));
+	
+        this.elm('clipping_slider').slider({
+            values: [0, 100], range: true,
+            min: 0, max: 100
+	}).bind( 'slidestop slide', function(event, ui){
+	    console.log( event.orginalEvent );
+	    // deactivate slabRange/clipping_range
+	    if(ui.values[1] < 100){
+		self.elm('clipping_range').slider('value', 0);
+	    }
+	    self.set();
+	});
+	this.elm('clipping_range').slider({
+	    min: 0, max: 100
+	}).bind( 'slidestop slide', function(event, ui){
+	    // deactivate clipping slab
+	    if( ui.value > 0 ){
+		self.elm('clipping_slider').slider('values', 1, 100);
+	    }
+            self.set();
+        });
+	
+	this.elm('slab_by_atom').bind('click', $.proxy( this.set, this ));
+	this.elm('slab_by_molecule').bind('click', $.proxy( this.set, this ));
+        
+	Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+    },
+    _sync: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    var params = applet.clipping_manager.get();
+	    
+	    this.elm('clipping_state').attr('checked', params.clipping);
+	    this.elm('clipping_slider').slider("values", 0, params.depth);
+	    this.elm('clipping_slider').slider("values", 1, params.slab);
+	    this.elm('clipping_range').slider("value", params.slab_range);
+	    this.elm('slab_by_atom').attr('checked', params.slab_by_atom);
+	    this.elm('slab_by_molecule').attr('checked', params.slab_by_molecule);
+	}
+    },
+    set: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.clipping_manager.set({
+		clipping: this.elm('clipping_state').is(':checked'),
+		depth: this.elm('clipping_slider').slider("values", 0),
+		slab: this.elm('clipping_slider').slider("values", 1),
+		slab_range: this.elm('clipping_range').slider("value"),
+		slab_by_atom: this.elm('slab_by_atom').is(':checked'),
+		slab_by_molecule: this.elm('slab_by_molecule').is(':checked')
+	    });
+        }
+    }
+});
+
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Controls.LightingManagerWidget = function(params){
+    params = $.extend(
+        Provi.Jmol.Controls.LightingManagerWidget.prototype.default_params,
+        params
+    );
+    params.heading = 'Lighting Settings';
+    params.manager_name = 'lighting_manager';
+    
+    Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
+    
+    this._init_eid_manager([
+	'ambient_percent', 'diffuse_percent',
+	'specular_state', 'specular_percent', 'specular_exponent',
+	'specular_power', 'phong_exponent',
+	'z_shade_state', 'z_shade_slider', 'z_shade_power'
+    ]);
+    
+    var template = '' +
+	'<div class="control_group">' +
+	    '<div class="control_row">' +
+		'<label for="${eids.ambient_percent}" style="display:block;">ambient percent</label>' +
+		'<div id="${eids.ambient_percent}"></div>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.diffuse_percent}" style="display:block;">diffuse percent</label>' +
+		'<div id="${eids.diffuse_percent}"></div>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.specular_percent}" style="display:block;">specular percent</label>' +
+		'<input id="${eids.specular_state}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+		'<div id="${eids.specular_percent}"></div>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.specular_power}" style="display:block;">specular power</label>' +
+		'<div id="${eids.specular_power}"></div>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.specular_exponent}">specular exponent</label>' +
+		'<select id="${eids.specular_exponent}" class="ui-state-default">' +
+		    '<option value="1">1</option><option value="2">2</option>' +
+		    '<option value="3">3</option><option value="4">4</option>' +
+		    '<option value="5">5</option><option value="6">6</option>' +
+		    '<option value="7">7</option><option value="8">8</option>' +
+		    '<option value="9">9</option><option value="10">10</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.phong_exponent}" style="display:block;">phong exponent (specular)</label>' +
+		'<div id="${eids.phong_exponent}"></div>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.z_shade_state}" style="display:block;">z-shade</label>' +
+		'<input id="${eids.z_shade_state}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+		'<div id="${eids.z_shade_slider}"></div>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.z_shade_power}">z-shade power</label>' +
+		'<select id="${eids.z_shade_power}" class="ui-state-default">' +
+		    '<option value="1">1</option><option value="2">2</option>' +
+		    '<option value="3">3</option><option value="4">4</option>' +
+		'</select>' +
+	    '</div>' +
+        '</div>' +
+	'';
+    
+    this.add_content( template, params );
+    
+    this._init();
+}
+Provi.Jmol.Controls.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Controls.SettingsManagerWidget, /** @lends Provi.Jmol.Controls.LightingManagerWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+        var self = this;
+	
+	this.elm('ambient_percent')
+	    .slider({min: 0, max: 100})
+	    .bind( 'slidestop slide', $.proxy( this.set, this ));
+	
+	this.elm('diffuse_percent')
+	    .slider({min: 0, max: 100})
+	    .bind( 'slidestop slide', $.proxy( this.set, this ));
+	
+	this.elm('specular_state').click( $.proxy( this.set, this ) );
+	
+	this.elm('specular_percent')
+	    .slider({min: 0, max: 100})
+	    .bind( 'slidestop slide', $.proxy( this.set, this ));
+	
+	this.elm('specular_exponent').bind('click change', $.proxy( this.set, this ));
+	
+	this.elm('specular_power')
+	    .slider({min: 0, max: 100})
+	    .bind( 'slidestop slide', $.proxy( this.set, this ));
+	
+	this.elm('phong_exponent')
+	    .slider({min: 0, max: 100})
+	    .bind( 'slidestop slide', $.proxy( this.set, this ));
+	
+        this.elm('z_shade_state').click( $.proxy( this.set, this ) );
+	
+	this.elm('z_shade_slider')
+	    .slider({ values: [0, 100], range: true, min: 0, max: 100 })
+	    .bind( 'slidestop slide', $.proxy( this.set, this ));
+	
+	this.elm('z_shade_power').bind('click change', $.proxy( this.set, this ));
+	
+	Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+    },
+    _sync: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    var params = applet.lighting_manager.get();
+	    this.elm('ambient_percent').slider("value", params.ambient_percent);
+	    this.elm('diffuse_percent').slider("value", params.diffuse_percent);
+	    this.elm('specular_state').attr('checked', params.specular);
+	    this.elm('specular_percent').slider("value", params.specular_percent);
+	    this.elm('specular_exponent')
+		.children("option[value=" + params.specular_exponent + "]")
+		.attr('selected', true);
+	    this.elm('specular_power').slider("value", params.specular_power);
+	    this.elm('phong_exponent').slider("value", params.phong_exponent);
+	    this.elm('z_shade_state').attr('checked', params.z_shade);
+	    this.elm('z_shade_slider').slider("values", 0, params.z_depth);
+	    this.elm('z_shade_slider').slider("values", 1, params.z_slab);
+	    this.elm('z_shade_power')
+		.children("option[value=" + params.z_shade_power + "]")
+		.attr('selected', true);
+	}
+    },
+    set: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.lighting_manager.set({
+		ambient_percent: this.elm('ambient_percent').slider("value"),
+		diffuse_percent: this.elm('diffuse_percent').slider("value"),
+		specular: this.elm('specular_state').is(':checked'),
+		specular_percent: this.elm('specular_percent').slider("value"),
+		specular_power: this.elm('specular_power').slider("value"),
+		specular_exponent: this.elm('specular_exponent').children("option:selected").val(),
+		phong_exponent: this.elm('phong_exponent').slider("value"),
+		z_shade: this.elm('z_shade_state').is(':checked'),
+		z_shade_power: this.elm('z_shade_power').children("option:selected").val(),
+		z_depth: this.elm('z_shade_slider').slider("values", 0),
+		z_slab: this.elm('z_shade_slider').slider("values", 1)
+	    });
+        }
+    }
+});
+
+
 
 
 /**
