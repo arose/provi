@@ -67,6 +67,7 @@ Provi.Widget.WidgetManager._widget_dict.size = Utils.object_size_fn;
  * @param {boolean} [params.persist_on_applet_delete=false] When bound to a Jmol applet, the widget gets automatically destroyed when the applet is destroyed. This flag switches that behavior off.
  */
 Provi.Widget.Widget = function(params){
+    this.initialized = false;
     this.eid_dict = {};
     var tag_name = params.tag_name || 'div';
     var content = typeof(params.content) != 'undefined' ? params.content : '';
@@ -128,9 +129,9 @@ Provi.Widget.Widget = function(params){
 	this.hide();
     }
     $(this.dom).addClass( 'ui-container ui-widget' );
-    $('#' + this.parent_id).trigger('Provi.widget_added');
+    $('#' + this.parent_id).triggerHandler('Provi.widget_added');
     
-    // should be called the subclasses of Widget
+    // must be called in the subclasses of Widget
     //this.init();
 };
 Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
@@ -166,6 +167,9 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 		$(self.dom).appendTo('#trash');
 	    });
 	}
+	//console.log('WIDGET INIT', this.heading);
+	this.initialized = true;
+	$(this).triggerHandler('init');
     },
     set_heading: function( heading ){
 	this.elm( 'heading' ).text( heading ).show();
@@ -211,7 +215,7 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	this.eid_dict = $.extend( this.eid_dict, eid_dict );
     },
     eid: function( name ){
-	if( !this.eid_dict[ name ] ) throw "Eid name not found.";
+	if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";
 	return this.eid_dict[ name ];
     },
     elm: function( name ){
