@@ -144,16 +144,16 @@ Provi.Debug.timer = function( params ){
     this.stop_time = 0;
 }
 Provi.Debug.timer.prototype = /** @lends Provi.Debug.timer.prototype */ {
-    start: function(){
+    start: function(msg){
         this.start_time = new Date();
-        console.log( 'Timer "' + this.name + '" started' );
+        console.log( 'Timer "' + this.name + '" started. [' + msg + ']' );
     },
-    stop: function(){
+    stop: function(msg){
         this.stop_time = new Date();
         this.duration = this.stop_time - this.start_time;
         console.log(
             'Timer "' + this.name + '" stoped. ' +
-            'Duration: ' + this.duration + ' ms.'
+            'Duration: ' + this.duration + ' ms. [' + msg + ']'
         );
     }
 }
