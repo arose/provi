@@ -213,3 +213,17 @@ div.control_info {
 .jstree .ui-button-text {
     padding: 0.0em 0.3em;
 }
+
+.jstree .ui-state-active {
+    background: #ffe59b;
+}
+
+.jstree-default .jstree-no-icons.jstree-checkbox { display:inline-block; }
+.jstree-default .jstree-no-checkboxes.jstree-checkbox { display:none !important; }
+.jstree-default .jstree-checked.jstree-checkbox { background-position:-38px -19px; }
+.jstree-default .jstree-unchecked.jstree-checkbox { background-position:-2px -19px; }
+.jstree-default .jstree-undetermined.jstree-checkbox { background-position:-20px -19px; }
+.jstree-default .jstree-checked.jstree-checkbox:hover { background-position:-38px -37px; }
+.jstree-default .jstree-unchecked.jstree-checkbox:hover { background-position:-2px -37px; }
+.jstree-default .jstree-undetermined.jstree-checkbox:hover { background-position:-20px -37px; }
+
