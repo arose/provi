@@ -56,20 +56,17 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
     this.applet = params.applet;
     this.color = "blue";
     this.translucency = 0.6;
-    this.size = -1;
+    this.size = -2;
     this.visibility = true;
     Widget.call( this, params );
-    this.size_id = this.id + '_size';
-    this.size_slider_id = this.id + '_size_slider';
-    this.size_slider_option_id = this.id + '_size_slider_option';
-    this.visibility_id = this.id + '_visibility';
+    this._build_element_ids([ 'size', 'size_slider', 'size_slider_option', 'visibility', 'orient' ]);
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
             '<label for="' + this.size_id + '">membrane plane size</label>' +
             '<select id="' + this.size_id + '" class="ui-state-default">' +
-                '<option value="1">hide</option>' +
-                '<option value="-1" selected="selected">boundbox</option>' +
-                '<option id="' + this.size_slider_option_id + '" value="1">slider</option>' +
+                '<option value="0">hide</option>' +
+                '<option value="-2" selected="selected">boundbox</option>' +
+                '<option id="' + this.size_slider_option_id + '" value="-1">slider</option>' +
                 '<option value="100">100</option>' +
                 '<option value="200">200</option>' + 
                 '<option value="300">300</option>' +
@@ -88,6 +85,9 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
             '<div id="' + this.size_slider_id + '"></div>' +
         '</div>' +
         '<i>the membrane planes are shown in blue and are semi transparent</i>' +
+        '<div class="control_row">' +
+            '<button id="' + this.orient_id + '">orient along membrane axis</button>' +
+        '</div>' +
     '</div>'
     $(this.dom).append( content );
     this._init();
@@ -111,29 +111,39 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
             $("#" + self.size_slider_option_id).hide();
             self.draw();
         });
-        $("#" + this.size_slider_id).slider({min: 1, max: 1400, slide: function(event, ui){
-            self.size = ui.value;
-            self.update_size_slider();
-        }});
+        $("#" + this.size_slider_id)
+            .slider({min: 1, max: 1400})
+            .bind( 'slidestop slide', function(event, ui){
+                self.size = ui.value;
+                self.update_size_slider();
+            });
         $("#" + this.size_slider_id).mousewheel( function(event, delta){
             event.preventDefault();
+            self.size = parseInt( self.size );
+            var old_size = self.size;
             self.size = Math.round(self.size + 20*delta);
+            console.log( old_size, self.size, delta );
+            if( isNaN( self.size ) ) self.size = old_size;
             if(self.size > 1400) self.size = 1400;
-            if(self.size < 1) self.size = 1;
+            if(self.size < 0) self.size = 0;
+            console.log( old_size, self.size, delta );
             $("#" + self.size_slider_id).slider('option', 'value', self.size);
             self.update_size_slider();
         });
         $("#" + this.size_slider_id).slider('option', 'value', this.size);
+        // init orient
+        $('#' + this.orient_id).button().click( $.proxy( this.orient, this ) );
         Widget.prototype.init.call(this);
     },
     update_size_slider: function(){
-        if($("#" + this.size_id + " option:contains(" + this.size + ")").size()){
-            $("#" + this.size_slider_option_id).hide();
+        if( $("#" + this.size_id + " option[value=" + this.size + "]").size() ){
+            if( !$("#" + this.size_slider_option_id).is(':selected') ){
+                $("#" + this.size_slider_option_id).hide();
+            }
         }else{
             $("#" + this.size_slider_option_id).show();
             $("#" + this.size_slider_option_id).val(this.size);
             $("#" + this.size_slider_option_id).text(this.size);
-            
             Array.prototype.sort.call(
                 $("#" + this.size_id + " option"),
                 function(a,b) {
@@ -160,15 +170,13 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
             var mp = this.dataset.data;
             var mp_f = mp.format_as_jmol_planes();
             var color = 'color TRANSLUCENT ' + this.translucency + ' ' + this.color;
-            var base_plane = (this.size==-1) ?
+            var base_plane = (this.size==-2) ?
                 ('intersection boundbox plane ') :
                 ('plane ' + this.size + ' ')
             
             var s = 'boundbox {*} OFF;';
             s += 'draw ' + base_name + '_1 ' + color + ' ' + base_plane + mp_f[0] + ';';
             s += 'draw ' + base_name + '_2 ' + color + ' ' + base_plane + mp_f[1] + ';';
-            
-            //s += 'draw dist arrow {' + mp.plane1[2].join(',') + '} {' + mp.plane2[2].join(',') + '} "' + mp.distance.toFixed(2) + ' A";';
                 
             this.applet.script(s);
         }else{
