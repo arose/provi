@@ -29,7 +29,7 @@ var MembranePlanes = {};
 Provi.Bio.MembranePlanes.Mplane = function(plane1, plane2, distance){
     this.plane1 = plane1;
     this.plane2 = plane2;
-    this.distance = distance;
+    this.distance = parseFloat(distance);
 };
 Provi.Bio.MembranePlanes.Mplane.prototype = /** @lends Provi.Bio.MembranePlanes.Mplane.prototype */ {
     __jmol_format: function( p ){
@@ -59,8 +59,12 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
     this.size = -2;
     this.visibility = true;
     Widget.call( this, params );
-    this._build_element_ids([ 'size', 'size_slider', 'size_slider_option', 'visibility', 'orient' ]);
+    this._build_element_ids([ 'size', 'size_slider', 'size_slider_option', 'visibility', 'orient', 'distance' ]);
     var content = '<div class="control_group">' +
+        '<div class="control_row">' +
+            'The distance between the membrane planes is: ' +
+            '<span id="' + this.distance_id + '"></span>&nbsp;&#8491;' +
+        '</div>' +
         '<div class="control_row">' +
             '<label for="' + this.size_id + '">membrane plane size</label>' +
             '<select id="' + this.size_id + '" class="ui-state-default">' +
@@ -100,6 +104,8 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         this.draw();
         this.orient();
         var self = this;
+        
+        $("#" + this.distance_id).html( this.dataset.data.distance.toFixed(2) );
         
         $("#" + this.visibility_id).bind('change click', function() {
             self.visibility = $("#" + self.visibility_id).is(':checked');
