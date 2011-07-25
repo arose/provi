@@ -351,7 +351,7 @@ Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /**
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Controls.JmolDisplayWidget = function(params){
-    this.style_cmd = 'cartoon ONLY; wireframe 0.015;';
+    this.style_cmd = Provi.defaults.jmol.style;
     params.heading = 'General Controls';
     Widget.call( this, params );
     this._build_element_ids([ 'style', 'quality', 'center', 'applet_selector_widget' ]);
@@ -362,7 +362,6 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
             '<select id="' + this.style_id + '" class="ui-state-default">' +
 		'<option value=""></option>' +
 		'<option value="default">default</option>' +
-		'<option value="default+wireframe">default & wireframe</option>' +
                 '<option value="backbone">backbone</option>' +
                 '<option value="wireframe">wireframe</option>' +
                 '<option value="cartoon">cartoon</option>' +
@@ -425,43 +424,27 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
     set_style: function (){
         switch($("#" + this.style_id + " option:selected").val()){
 	    case 'default':
-                this.style_cmd = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
-		    //'select protein; color cartoon structure; color structure; ' +
-		    //'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
-		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; ' +
-		    'select water; wireframe 0.01;' +
-		    //'select group=HOH; cpk 20%;' +
-		    'select HOH; cpk 20%;' +
-		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
-		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
-		    'select none;';
-                break;
-	    case 'default+wireframe':
-                this.style_cmd = 'select all; spacefill off; wireframe off; backbone off; cartoon on; wireframe 0.01;' +
-		    //'select protein; color cartoon structure; color structure; ' +
-		    //'slab on; set slabRange 10.0; set zShade on; set zSlab 95; set zDepth 5; ' +
-		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; ' +
-		    'select water; wireframe 0.01;' +
-		    //'select group=HOH; cpk 20%;' +
-		    'select HOH; cpk 20%;' +
-		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
-		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
-		    'select none;';
+                this.style_cmd = Provi.defaults.jmol.style
                 break;
             case 'backbone':
-                this.style_cmd = 'backbone ONLY; backbone 0.3;';
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; backbone ONLY; backbone 0.3;';
                 break;
             case 'wireframe':
-                this.style_cmd = 'wireframe ONLY; wireframe 0.2;';
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; wireframe ONLY; wireframe 0.2;';
                 break;
             case 'wireframe+backbone':
-                this.style_cmd = 'wireframe ONLY; backbone 0.3; wireframe 0.01;';
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; wireframe ONLY; backbone 0.3; wireframe 0.01;';
                 break;
             case 'cartoon+wireframe':
-                this.style_cmd = 'cartoon ONLY; wireframe 0.015;';
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; cartoon ONLY; wireframe 0.015;';
                 break;
             case 'cartoon':
-                this.style_cmd = 'cartoon ONLY;';
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; cartoon ONLY;';
                 break;
             default:
 		this.style_cmd = '';
