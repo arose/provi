@@ -213,7 +213,8 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 	    var key2 = [ hb[1][2], hb[1][3], $.trim(hb[1][0]) ];
 	    var key = [ key1, key2 ];
 	    var hb_node = {
-		data: hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ' (Type: ' + hb[2] + ')',
+		//data: hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ' (Type: ' + hb[2] + ')',
+		data: hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' <> ' + hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]),
 		metadata: {
 		    hb: hb,
 		    type: 'hb',
@@ -255,7 +256,8 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 		progressive_render: true
 	    },
 	    core: {
-		html_titles: true
+		html_titles: false,
+		animation: 0
 	    },
 	    themes: {
 		icons: false

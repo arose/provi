@@ -140,7 +140,8 @@ Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype = Utils.extend(Widget, 
 		progressive_render: true
 	    },
 	    core: {
-		html_titles: true
+		html_titles: false,
+		animation: 0
 	    },
 	    themes: {
 		icons: false
