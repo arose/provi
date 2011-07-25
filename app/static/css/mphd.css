@@ -228,3 +228,7 @@ div.control_info {
 .jstree-default .jstree-unchecked.jstree-checkbox:hover { background-position:-2px -37px; }
 .jstree-default .jstree-undetermined.jstree-checkbox:hover { background-position:-20px -37px; }
 
+
+div.chzn-container {
+    display: inline-block;
+}

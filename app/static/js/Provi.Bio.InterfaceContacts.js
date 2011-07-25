@@ -71,13 +71,13 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
-            '<label for="' + this.interface_name_id + '">interface contacts for</label>' +
+            '<label for="' + this.interface_name_id + '">interface contacts for</label>&nbsp;' +
             '<select id="' + this.interface_name_id + '" class="ui-state-default">' +
                 '<option title="group" value="">none</option>' +
             '</select>' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="' + this.cutoff_id + '">interface contact cutoff</label>' +
+            '<label for="' + this.cutoff_id + '">interface contact cutoff</label>&nbsp;' +
             '<select id="' + this.cutoff_id + '" class="ui-state-default">' +
                 '<option value="2.8">2.8</option>' +
                 '<option value="2.5">2.5</option>' +
@@ -216,6 +216,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                     );
                 }
             });
+            $("#" + this.interface_name_id).chosen();
         }
     },
     /** initialize the tmh filter controls */

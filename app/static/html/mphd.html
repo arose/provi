@@ -17,6 +17,7 @@
     <script type="text/javascript" src="../js/lib/jquery-splitter/splitter.js"></script>
     <script type="text/javascript" src="../js/lib/jquery-ui/js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="../js/lib/jstree/jquery.jstree.js"></script>
+    <script type="text/javascript" src="../js/lib/chosen/chosen.jquery.js"></script>
     
     <script type="text/javascript" src="../js/lib/tipsy/src/javascripts/jquery.tipsy.js"></script>
     
@@ -82,6 +83,7 @@
     
     <link type="text/css" href="../js/lib/jquery-ui/css/mphd/jquery-ui.css" rel="stylesheet" />
     <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
+    <link type="text/css" href="../js/lib/chosen/chosen.css" rel="stylesheet" />
     <link rel='stylesheet' type='text/css' href='../css/mphd.css'>
     <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
 </head>
@@ -97,17 +99,11 @@
 	    BUILDER_WIDGET: 'tab_widgets'
 	});
 	
+	Provi.defaults.jmol.style += 'select protein; wireframe 0.15;';
+	
 	Provi.Bio.Structure.StructureWidget.prototype.default_params = $.extend(
 	    Provi.Bio.Structure.StructureWidget.prototype.default_params,
 	    {
-		style: 'cartoon only; wireframe 0.15;' +
-		    'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
-		    'select water; wireframe 0.01;' +
-		    //'select group=hoh; cpk 20%;' +
-		    'select HOH; cpk 20%;' +
-		    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
-		    'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
-		    'select none;',
 		hidden: true
 	    }
 	);
@@ -157,7 +153,7 @@
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 	
-	Provi.Jmol.init("../../jmol/current/5/", !$.query.get('unsigned'));
+	Provi.Jmol.init("../../jmol/current/9/", !$.query.get('unsigned'));
 	
         $(document).ready(function(){
 	    
@@ -274,24 +270,9 @@
             <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
                 <div id="tabs_panel" style="height:100%; width:100%;">
                     <ul>
-                        <li><a title="About/Help" href="#tab_about">About</a></li>
 			<li><a title="A collection of control elements" href="#tab_widgets">Controls</a></li>
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
-                        <div id="tab_about">
-			    <h4><i>Provi</i> integrates the display of protein structures and related data into a convenient graphical user interface (GUI).</h4>
-			    <h3 class="ui-widget-header">For users</h3>
-			    <div>
-				<p>If you experience problems with the Jmol Java Applet, there are several helpful resources available.</p>
-				<ul>
-				    <li><a href="http://www.java.com/en/download/testjava.jsp">Java Applets</a></li>
-				    <li><a href="http://jmol.sourceforge.net/browsercheck/">Jmol browser check</a></li>
-				    <li><a href="http://support.microsoft.com/kb/2506617">IE9 and Java 6 Update 22/23</a></li>
-				    <li><a href="http://www.mydigitallife.info/ie9-java-applet-not-loading-nor-working-blank-fix/">IE9, Java & ActiveX</a></li>
-				</ul>
-			    </div>
-			</div>
-			
 			<div id="tab_widgets"></div>
                     </div>
                 </div>
