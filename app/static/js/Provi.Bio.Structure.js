@@ -82,15 +82,7 @@ Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget
 	type = type ? (type + '::') : '';
 	type = '';
 	if( !style ){
-	    style = 'select all; spacefill off; wireframe off; backbone off; cartoon on; ' +
-		//'select protein; color cartoon structure; color structure; ' +
-		'select (ligand or ypl or lrt); wireframe 0.16; spacefill 0.5; color cpk; ' +
-		'select water; wireframe 0.01;' +
-		//'select group=HOH; cpk 20%;' +
-		'select HOH; cpk 20%;' +
-		'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe 0.1;' + 
-		'select (dmpc or dmp or popc or pop); wireframe 0.1;' +
-		'select none;';
+	    style = Provi.defaults.jmol.style;
 	}else{
 	    style = 'select all; ' + style;
 	}
@@ -105,19 +97,20 @@ Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget
 	    s = 'load TRAJECTORY "' + type + '../../data/get/' + params + '"; ' + style;
 	}else if(load_as == 'trajectory+append'){
 	    s = 'load APPEND TRAJECTORY "' + type + '../../data/get/' + params + '"; ' +
-		'subset file = _currentFileNumber; ' + style + ' subset none;';
+		'subset file = _currentFileNumber; ' + style + ' subset;';
 	}else if(load_as == 'append'){
 	    s = 'load APPEND "' + type + '../../data/get/' + params + '"; ' +
-		'subset file = _currentFileNumber; ' + style + ' subset none; frame all;';
+		'subset file = _currentFileNumber; ' + style + ' frame all; subset; ';
 	//}else if(load_as == 'new'){
 	}else{
 	    console.log('../../data/get/' + params);
 	    s = 'load "' + type + '../../data/get/' + params + '"; ' + style;
 	}
 	
-	applet.script( s + 'slab on; set slabRange 10.0;', true );
+	applet.script( s , true );
 	if( load_as != 'append' && load_as != 'trajectory+append' ){
 	    applet.lighting_manager.defaults();
+	    applet.clipping_manager.defaults();
 	}
     }
 });
