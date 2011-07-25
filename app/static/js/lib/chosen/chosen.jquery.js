@@ -44,7 +44,7 @@
     Chosen.prototype.set_up_html = function() {
       var container_div, dd_top, dd_width, sf_width;
       this.container_id = this.form_field.id + "_chzn";
-      this.f_width = this.form_field_jq.width();
+      this.f_width = '100px';//this.form_field_jq.width();
       this.default_text = this.form_field_jq.attr('title') ? this.form_field_jq.attr('title') : this.default_text_default;
       container_div = $("<div />", {
         id: this.container_id,
