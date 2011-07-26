@@ -791,17 +791,13 @@ Provi.Jmol.Controls.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Co
 	    this.elm('diffuse_percent').slider("value", params.diffuse_percent);
 	    this.elm('specular_state').attr('checked', params.specular);
 	    this.elm('specular_percent').slider("value", params.specular_percent);
-	    this.elm('specular_exponent')
-		.children("option[value=" + params.specular_exponent + "]")
-		.attr('selected', true);
+	    this.elm('specular_exponent').val( params.specular_exponent );
 	    this.elm('specular_power').slider("value", params.specular_power);
 	    this.elm('phong_exponent').slider("value", params.phong_exponent);
 	    this.elm('z_shade_state').attr('checked', params.z_shade);
 	    this.elm('z_shade_slider').slider("values", 0, params.z_depth);
 	    this.elm('z_shade_slider').slider("values", 1, params.z_slab);
-	    this.elm('z_shade_power')
-		.children("option[value=" + params.z_shade_power + "]")
-		.attr('selected', true);
+	    this.elm('z_shade_power').val( params.z_shade_power );
 	}
     },
     set: function(){
