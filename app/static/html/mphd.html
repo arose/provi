@@ -151,7 +151,8 @@
 	    {
 		sort_key: -1,
 		heading: 'Data info',
-		show_dataset_info: false
+		show_dataset_info: false,
+		template: 'mphd'
 	    }
 	);
 	Provi.Widget.StoryWidget.prototype.templates[ 'mphd' ] = '' +
@@ -272,9 +273,6 @@
 		    applet: applet
 		});
 		( new Provi.Data.Dataset({type:'story'}) ).init({
-		    heading: "Data info",
-		    template: "mphd",
-		    sort_key: -1,
 		    data: {
 			pdb_id: "3dqb",
 			probe_radius: 1.4,
