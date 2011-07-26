@@ -73,6 +73,7 @@
     <script type="text/javascript" src="../js/Provi.Data.Controller.MplaneMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.IsosurfaceMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.ScriptMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.StoryMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.TmHelicesMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.NdxMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.HbondsMixin.js"></script>
@@ -145,6 +146,14 @@
 	    }
 	);
 	
+	Provi.Widget.StoryWidget.prototype.templates[ 'mphd' ] = '' +
+	    '<ul>' +
+		'<li>PDB ID: ${params.pdb_id}</li>' +
+		'<li>Probe radius: ${params.probe_radius}</li>' +
+		'<li>Family: ${params.family}</li>' +
+		'<li><a href="${params.mphd_url}">MPHD entry</a></li>' +
+	    '</ul>' +
+	    '';
 	
 	
 	function layout_main() {
@@ -253,6 +262,17 @@
 		});
 		Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
 		    applet: applet
+		});
+		( new Provi.Data.Dataset({type:'story'}) ).init({
+		    heading: "Data info",
+		    template: "mphd",
+		    sort_key: -1,
+		    data: {
+			pdb_id: "3dqb",
+			probe_radius: 1.4,
+			family: "GPCR",
+			mphd_url: "http://proteinformatics.charite.de/mphd/"
+		    }
 		});
 	    }
 	    
