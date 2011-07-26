@@ -247,6 +247,49 @@ var Widget = Provi.Widget.Widget;
 
 
 
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Widget.StoryWidget = function(params){
+    params = $.extend(
+        Provi.Widget.StoryWidget.prototype.default_params,
+        params
+    );
+    params.collapsed = false;
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+	
+    ]);
+    
+    if( this.templates.hasOwnProperty( params.template ) ){
+	params.template = this.templates[ params.template ];
+    }
+    
+    this.add_content( params.template, params.data );
+    
+    this._init();
+}
+Provi.Widget.StoryWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Widget.StoryWidget.prototype */ {
+    default_params: {
+        
+    },
+    templates: {
+	
+    },
+    _init: function(){
+        var self = this;
+        
+	Provi.Widget.Widget.prototype.init.call(this);
+    },
+});
+
+
+
+
 /**
  * A popup widget
  * @constructor
