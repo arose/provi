@@ -77,15 +77,15 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
             '</select>' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="' + this.cutoff_id + '">interface contact cutoff</label>&nbsp;' +
+            '<label for="' + this.cutoff_id + '">interface contact cut-off</label>&nbsp;' +
             '<select id="' + this.cutoff_id + '" class="ui-state-default">' +
                 '<option value="2.8">2.8</option>' +
                 '<option value="2.5">2.5</option>' +
-                '<option value="2.0">2.0</option>' +
-                '<option value="1.5" selected="selected">1.5</option>' +
-                '<option value="1.0">1.0</option>' +
+                '<option value="2">2.0</option>' +
+                '<option value="1.5">1.5</option>' +
+                '<option value="1">1.0</option>' +
                 '<option value="0.5">0.5</option>' +
-                '<option value="0.0">0.0</option>' +
+                '<option value="0">0.0</option>' +
                 '<option value="-0.5">-0.5</option>' +
             '</select>&nbsp;&#8491;' +
         '</div>' +
@@ -133,6 +133,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
         this._init_control();
         this.retrieve_atoms();
         
+        $("#" + this.cutoff_id).val( this.cutoff );
         $("#" + this.cutoff_id).change( function() {
             self.cutoff = $("#" + self.cutoff_id + " option:selected").val();
             //console.log( self.cutoff );
