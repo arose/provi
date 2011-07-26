@@ -258,6 +258,35 @@ Provi.Jmol.Controls.ClippingManager.prototype = Utils.extend( Provi.Jmol.Control
 
 
 /**
+ * A class to provide a central instance for setting quality parameters
+ * @constructor
+ * @extends Provi.Jmol.Controls.SettingsManager
+ */
+Provi.Jmol.Controls.QualityManager = function(params) {
+    Provi.Jmol.Controls.SettingsManager.call( this, params );
+}
+Provi.Jmol.Controls.QualityManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.QualityManager.prototype */ {
+    default_params: {
+	high_resolution: false,
+	hermite_level: 0,
+	antialias_display: false,
+	antialias_translucent: true,
+	antialias_images: true,
+	wireframe_rotation: false
+    },
+    jmol_param_names: {
+	high_resolution: "highResolution",
+	hermite_level: "hermiteLevel",
+	antialias_display: "antialiasDisplay",
+	antialias_translucent: "antialiasTranslucent",
+	antialias_images: "antialiasImages",
+	wireframe_rotation: "wireframeRotation"
+    }
+});
+
+
+
+/**
  * A widget holding a global jmol controls
  * @constructor
  * @extends Provi.Widget.Widget
@@ -821,6 +850,109 @@ Provi.Jmol.Controls.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Co
 });
 
 
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Controls.QualityManagerWidget = function(params){
+    params = $.extend(
+        Provi.Jmol.Controls.QualityManagerWidget.prototype.default_params,
+        params
+    );
+    params.heading = 'Quality Settings';
+    params.manager_name = 'quality_manager';
+    
+    Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
+    
+    this._init_eid_manager([
+	'hermite_level', 'high_resolution', 'antialias_display',
+	'antialias_translucent', 'antialias_images', 'wireframe_rotation'
+    ]);
+    
+    var template = '' +
+	'<div class="control_group">' +
+	    '<div class="control_row">' +
+		'<label for="${eids.hermite_level}">hermite level</label>' +
+		'<select id="${eids.hermite_level}" class="ui-state-default">' +
+		    '<option value="-4">-4</option><option value="-3">-3</option>' +
+		    '<option value="-2">-2</option><option value="-1">-1</option>' +
+		    '<option value="0">0</option>' +
+		    '<option value="1">1</option><option value="2">2</option>' +
+		    '<option value="3">3</option><option value="4">4</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.high_resolution}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.high_resolution}" style="display:block;">high resolution</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.antialias_display}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.antialias_display}" style="display:block;">antialias display</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.antialias_translucent}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.antialias_translucent}" style="display:block;">antialias translucent</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.antialias_images}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.antialias_images}" style="display:block;">antialias images</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.wireframe_rotation}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.wireframe_rotation}" style="display:block;">wireframe rotation</label>' +
+	    '</div>' +
+        '</div>' +
+	'';
+    
+    this.add_content( template, params );
+    
+    this._init();
+}
+Provi.Jmol.Controls.QualityManagerWidget.prototype = Utils.extend(Provi.Jmol.Controls.SettingsManagerWidget, /** @lends Provi.Jmol.Controls.QualityManagerWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+        var self = this;
+	
+	this.elm('hermite_level').bind('click change', $.proxy( this.set, this ));
+	this.elm('high_resolution').bind('click', $.proxy( this.set, this ));
+	this.elm('antialias_display').bind('click', $.proxy( this.set, this ));
+	this.elm('antialias_translucent').bind('click', $.proxy( this.set, this ));
+	this.elm('antialias_images').bind('click', $.proxy( this.set, this ));
+	this.elm('wireframe_rotation').bind('click', $.proxy( this.set, this ));
+        
+	Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+    },
+    _sync: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    var params = applet.quality_manager.get();
+	    this.elm('hermite_level').val( params.hermite_level );
+	    this.elm('high_resolution').attr('checked', params.high_resolution);
+	    this.elm('antialias_display').attr('checked', params.antialias_display);
+	    this.elm('antialias_translucent').attr('checked', params.antialias_translucent);
+	    this.elm('antialias_images').attr('checked', params.antialias_images);
+	    this.elm('wireframe_rotation').attr('checked', params.wireframe_rotation);
+	}
+    },
+    set: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.quality_manager.set({
+		hermite_level: this.elm('hermite_level').children("option:selected").val(),
+		high_resolution: this.elm('high_resolution').is(':checked'),
+		antialias_display: this.elm('antialias_display').is(':checked'),
+		antialias_translucent: this.elm('antialias_translucent').is(':checked'),
+		antialias_images: this.elm('antialias_images').is(':checked'),
+		wireframe_rotation: this.elm('wireframe_rotation').is(':checked')
+	    });
+        }
+    }
+});
 
 
 /**

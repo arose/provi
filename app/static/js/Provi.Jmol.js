@@ -297,6 +297,7 @@ Provi.Jmol.Applet = function(params){
     this.selection_manager = new Provi.Selection.SelectionManager({ applet: this });
     this.lighting_manager = new Provi.Jmol.Controls.LightingManager({ applet: this });
     this.clipping_manager = new Provi.Jmol.Controls.ClippingManager({ applet: this });
+    this.quality_manager = new Provi.Jmol.Controls.QualityManager({ applet: this });
     
     this._init();
     if( typeof(Provi.Jmol._default_applet) == 'undefined' ){
