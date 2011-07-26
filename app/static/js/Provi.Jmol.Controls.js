@@ -366,7 +366,8 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
                 '<option value="wireframe">wireframe</option>' +
                 '<option value="cartoon">cartoon</option>' +
                 '<option value="wireframe+backbone">wireframe & backbone</option>' +
-                '<option value="cartoon+wireframe" selected="selected">cartoon & wireframe</option>' +
+                '<option value="cartoon+wireframe">cartoon & wireframe</option>' +
+		'<option value="cartoon+aromatic">cartoon & aromatic</option>' +
             '</select>' +
         '</div>' +
         '<div class="control_row">' +
@@ -445,6 +446,10 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             case 'cartoon':
                 this.style_cmd = Provi.defaults.jmol.style +
 		    'select protein; cartoon ONLY;';
+                break;
+	    case 'cartoon+aromatic':
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; cartoon ONLY; select aromatic; wireframe 0.2;';
                 break;
             default:
 		this.style_cmd = '';
