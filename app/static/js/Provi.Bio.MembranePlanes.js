@@ -123,19 +123,19 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
                 self.size = ui.value;
                 self.update_size_slider();
             });
-        $("#" + this.size_slider_id).mousewheel( function(event, delta){
-            event.preventDefault();
-            self.size = parseInt( self.size );
-            var old_size = self.size;
-            self.size = Math.round(self.size + 20*delta);
-            console.log( old_size, self.size, delta );
-            if( isNaN( self.size ) ) self.size = old_size;
-            if(self.size > 1400) self.size = 1400;
-            if(self.size < 0) self.size = 0;
-            console.log( old_size, self.size, delta );
-            $("#" + self.size_slider_id).slider('option', 'value', self.size);
-            self.update_size_slider();
-        });
+        //$("#" + this.size_slider_id).mousewheel( function(event, delta){
+        //    event.preventDefault();
+        //    self.size = parseInt( self.size );
+        //    var old_size = self.size;
+        //    self.size = Math.round(self.size + 20*delta);
+        //    console.log( old_size, self.size, delta );
+        //    if( isNaN( self.size ) ) self.size = old_size;
+        //    if(self.size > 1400) self.size = 1400;
+        //    if(self.size < 0) self.size = 0;
+        //    console.log( old_size, self.size, delta );
+        //    $("#" + self.size_slider_id).slider('option', 'value', self.size);
+        //    self.update_size_slider();
+        //});
         $("#" + this.size_slider_id).slider('option', 'value', this.size);
         // init orient
         $('#' + this.orient_id).button().click( $.proxy( this.orient, this ) );
