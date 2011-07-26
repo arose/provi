@@ -146,6 +146,14 @@
 	    }
 	);
 	
+	Provi.Widget.StoryWidget.prototype.default_params = $.extend(
+	    Provi.Widget.StoryWidget.prototype.default_params,
+	    {
+		sort_key: -1,
+		heading: 'Data info',
+		show_dataset_info: false
+	    }
+	);
 	Provi.Widget.StoryWidget.prototype.templates[ 'mphd' ] = '' +
 	    '<ul>' +
 		'<li>PDB ID: ${params.pdb_id}</li>' +
