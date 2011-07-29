@@ -59,6 +59,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     this.show_only_interface_atoms = params.show_only_interface_atoms;
     this.color_interface_residue = params.color_interface_residue;
     this.autofocus = params.autofocus;
+    this.color_by_min_cutoff = params.color_by_min_cutoff;
     this.interface_ids = '';
     this.interface_names = '';
     this.tmh_filter = false;
@@ -67,7 +68,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     this.structure_atoms = [];
     
     Widget.call( this, params );
-    this._build_element_ids([ 'interface_name', 'cutoff', 'show_only_interface_atoms', 'color_interface_residue', 'tmh_filter_check', 'autofocus' ]);
+    this._build_element_ids([ 'interface_name', 'cutoff', 'show_only_interface_atoms', 'color_interface_residue', 'tmh_filter_check', 'autofocus', 'color_by_min_cutoff' ]);
     
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
@@ -105,6 +106,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
             '<input id="' + this.tmh_filter_check_id + '" type="checkbox" />' +
             '<label for="' + this.tmh_filter_check_id + '">limit interface contacts to tmh atoms</label>&nbsp;' +
         '</div>' +
+        '<div class="control_row">' +
+            '<input id="' + this.color_by_min_cutoff_id + '" type="checkbox" />' +
+            '<label for="' + this.color_by_min_cutoff_id + '">color by min cutoff (from yellow [-0.5] over orange [0.0] to darkred [2.8])</label>&nbsp;' +
+        '</div>' +
         '<i>interface atoms are shown in orange</i>' +
     '</div>';
     $(this.dom).append( content );
@@ -116,7 +121,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
         cutoff: 1.5,
         show_only_interface_atoms: false,
         color_interface_residue: false,
-        autofocus: true
+        autofocus: true,
+        color_by_min_cutoff: false
     },
     _init: function(){
         var self = this;
@@ -166,6 +172,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
         this._init_tmh_filter();
         $("#" + this.tmh_filter_check_id).change( function() {
             self.tmh_filter = $("#" + self.tmh_filter_check_id).is(':checked');
+            self.draw();
+        });
+        $("#" + self.color_by_min_cutoff_id).bind('change click', function(){
+            self.color_by_min_cutoff = $("#" + self.color_by_min_cutoff_id).is(':checked');
             self.draw();
         });
         
@@ -491,12 +501,15 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
     },
     _draw4: function(){
         if(this.atoms && this.atoms.length){
+            // {296 and chain="A"}.temperature = data("1\n100\n1",1,0,1)
             var timer = new Provi.Debug.timer({name:'draw4 atomNr/atomID range'});
             timer.start();
             var atoms = [];
             var a_start = -10;
             var a_prev = -10;
+            var cutoffs = [];
             $.each(this.atoms, function(i, atom){
+                cutoffs.push( parseFloat( atom.cutoff ) );
                 var a = parseInt( atom.atomNr );
                 //console.log(a_prev, a, a-1);
                 if(a-1 > a_prev){
@@ -508,6 +521,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 }
                 a_prev = atom.atomNr;
             });
+            console.log( 'CUTOFFS LENGTH', cutoffs.length );
+            cutoffs = cutoffs.join("\n");
             atoms.push([a_start,a_prev]);
             //console.log( atoms );
             var atoms = $.map(atoms, function(atom){
@@ -521,7 +536,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             timer.stop();
             
             //console.log( atoms );
+            //console.log( cutoffs );
             
+            var atoms_filter = '';
             if( this.tmh_filter && this.tmh_list ){
                 console.log( this.tmh_list );
                 var tmh_filter = []
@@ -530,7 +547,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                         '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
                     );
                 });
-                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+                atoms_filter = '(' + tmh_filter.join( ' or ' ) + ')';
             }
             
             this.interface_contacts_selection.selection = '(' + atoms + ')';
@@ -545,7 +562,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             structure_atoms = structure_atoms ? structure_atoms : 'none';
             this.structure_selection.selection = '(' + structure_atoms + ')';
             
-            var cmd = 'var IATOMS = {(' + atoms + ')}; ' +
+            var cmd = 'var IATOMS_ALL = {(' + atoms + ')};' +
+                'var IATOMS = {@IATOMS_ALL' + (atoms_filter ? ' and (' + atoms_filter + ')' : '') + '}; ' +
                 'var SATOMS = {(' + structure_atoms + ')};';
             
             if(this.color_interface_residue){
@@ -559,6 +577,19 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             }
             if(this.structure_atoms && this.structure_atoms.length){
                 cmd += ' select @SATOMS; color pink; ';
+            }
+            if(this.color_by_min_cutoff){
+                cmd += '{*}.property_cutoff = NaN;' +
+                    '{@IATOMS_ALL}.property_cutoff = data("' + cutoffs + '",1,0,1); ' +
+                    'select @IATOMS and property_cutoff=2.8; color [x8B0000];' +
+                    'select @IATOMS and property_cutoff=2.5; color [x9E1700];' +
+                    'select @IATOMS and property_cutoff=2.0; color [xB12E00];' +
+                    'select @IATOMS and property_cutoff=1.5; color [xC54600];' +
+                    'select @IATOMS and property_cutoff=1; color [xD85D00];' +
+                    'select @IATOMS and property_cutoff=0.5; color [xEB7400];' +
+                    'select @IATOMS and property_cutoff=0; color [xFF8C00];' +
+                    'select @IATOMS and property_cutoff=-0.5; color yellow;' +
+                    '';
             }
             //cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
             //cmd += ' select {@IATOMS or @SATOMS};';
