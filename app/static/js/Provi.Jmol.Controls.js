@@ -391,11 +391,14 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
             '<select id="' + this.style_id + '" class="ui-state-default">' +
 		'<option value=""></option>' +
 		'<option value="default">default</option>' +
-                '<option value="backbone">backbone</option>' +
-                '<option value="wireframe">wireframe</option>' +
-                '<option value="cartoon">cartoon</option>' +
-                '<option value="wireframe+backbone">wireframe & backbone</option>' +
-                '<option value="cartoon+wireframe">cartoon & wireframe</option>' +
+		'<option value="lines">lines</option>' +
+                '<option value="sticks">sticks</option>' +
+		'<option value="backbone">backbone</option>' +
+                '<option value="backbone+lines">backbone & lines</option>' +
+		'<option value="backbone+sticks">backbone & sticks</option>' +
+		'<option value="cartoon">cartoon</option>' +
+                '<option value="cartoon+lines">cartoon & lines</option>' +
+		'<option value="cartoon+sticks">cartoon & sticks</option>' +
 		'<option value="cartoon+aromatic">cartoon & aromatic</option>' +
             '</select>' +
         '</div>' +
@@ -456,29 +459,41 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 	    case 'default':
                 this.style_cmd = Provi.defaults.jmol.style
                 break;
+	    case 'lines':
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; wireframe ONLY; wireframe 0.01;';
+                break;
+	    case 'sticks':
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; wireframe ONLY; wireframe 0.15;';
+                break;
             case 'backbone':
                 this.style_cmd = Provi.defaults.jmol.style +
 		    'select protein; backbone ONLY; backbone 0.3;';
                 break;
-            case 'wireframe':
+            case 'backbone+lines':
                 this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; wireframe ONLY; wireframe 0.2;';
+		    'select protein; wireframe ONLY; backbone 0.3; wireframe 0.01;';
                 break;
-            case 'wireframe+backbone':
+	    case 'backbone+sticks':
                 this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; wireframe ONLY; backbone 0.3; wireframe 0.05;';
+		    'select protein; wireframe ONLY; backbone 0.3; wireframe 0.15;';
                 break;
-            case 'cartoon+wireframe':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; cartoon ONLY; wireframe 0.05;';
-                break;
-            case 'cartoon':
+	    case 'cartoon':
                 this.style_cmd = Provi.defaults.jmol.style +
 		    'select protein; cartoon ONLY;';
                 break;
+            case 'cartoon+lines':
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; cartoon ONLY; wireframe 0.01;';
+                break;
+	    case 'cartoon+sticks':
+                this.style_cmd = Provi.defaults.jmol.style +
+		    'select protein; cartoon ONLY; wireframe 0.15;';
+                break;
 	    case 'cartoon+aromatic':
                 this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; cartoon ONLY; select aromatic; wireframe 0.2;';
+		    'select protein; cartoon ONLY; select aromatic; wireframe 0.15;';
                 break;
             default:
 		this.style_cmd = '';
