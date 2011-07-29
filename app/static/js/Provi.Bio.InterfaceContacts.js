@@ -109,7 +109,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
         '<div class="control_row checkbox">' +
             '<input id="' + this.color_by_min_cutoff_id + '" type="checkbox" />' +
             '<label for="' + this.color_by_min_cutoff_id + '">' +
-                'color by min cutoff (from yellow [-0.5] over orange [0.0] to darkred [2.8])' +
+                'color by min cut-off (from yellow [-0.5] over orange [0.0] to darkred [2.8])' +
             '</label>' +
         '</div>' +
         '<div class="control_row">' +
@@ -602,14 +602,14 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 }
                 cmd += '{*}.property_cutoff = NaN;' +
                     '{@IATOMS_ALL}.property_cutoff = data("' + cutoffs + '",1,0,1); ' +
-                    color_by_cutoff(2.8, '[x8B0000]') +
-                    color_by_cutoff(2.5, '[x9E1700]') +
-                    color_by_cutoff(2.0, '[xB12E00]') +
-                    color_by_cutoff(1.5, '[xC54600]') +
-                    color_by_cutoff(1.0, '[xD85D00]') +
-                    color_by_cutoff(0.5, '[xEB7400]') +
-                    color_by_cutoff(0.0, '[xFF8C00]') + //[xFF8C00]
-                    color_by_cutoff(-0.5, 'yellow') +
+                    color_by_cutoff(2.8, '[x8B0000]') + //darkred
+                    color_by_cutoff(2.5, '[x9E1B00]') +
+                    color_by_cutoff(2.0, '[xB13700]') +
+                    color_by_cutoff(1.5, '[xC55200]') +
+                    color_by_cutoff(1.0, '[xD86E00]') +
+                    color_by_cutoff(0.5, '[xEB8900]') +
+                    color_by_cutoff(0.0, '[xFFA500]') + //orange
+                    color_by_cutoff(-0.5, '[xFFFF00]') + //yellow
                     '';
             }
             
