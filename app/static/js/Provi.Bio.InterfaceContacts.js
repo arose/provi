@@ -567,9 +567,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 'var SATOMS = {(' + structure_atoms + ')};';
             
             if(this.color_interface_residue){
-                cmd += 'display all; select all; color grey; select within(GROUP, @IATOMS ); color ' + this.color + ';';
+                cmd += 'select all; color grey; select within(GROUP, @IATOMS ); color ' + this.color + ';';
             }else{
-                cmd += 'display all; select all; color grey; select @IATOMS; color ' + this.color + ';';
+                cmd += 'select all; color grey; select @IATOMS; color ' + this.color + ';';
             }
             
             if(this.show_only_interface_atoms){
@@ -579,16 +579,19 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 cmd += ' select @SATOMS; color pink; ';
             }
             if(this.color_by_min_cutoff){
+                var base_sele = this.color_interface_residue ?
+                    'select within(GROUP, @IATOMS ) and ' :
+                    'select @IATOMS and ';
                 cmd += '{*}.property_cutoff = NaN;' +
                     '{@IATOMS_ALL}.property_cutoff = data("' + cutoffs + '",1,0,1); ' +
-                    'select @IATOMS and property_cutoff=2.8; color [x8B0000];' +
-                    'select @IATOMS and property_cutoff=2.5; color [x9E1700];' +
-                    'select @IATOMS and property_cutoff=2.0; color [xB12E00];' +
-                    'select @IATOMS and property_cutoff=1.5; color [xC54600];' +
-                    'select @IATOMS and property_cutoff=1; color [xD85D00];' +
-                    'select @IATOMS and property_cutoff=0.5; color [xEB7400];' +
-                    'select @IATOMS and property_cutoff=0; color [xFF8C00];' +
-                    'select @IATOMS and property_cutoff=-0.5; color yellow;' +
+                    base_sele + 'property_cutoff=2.8; color [x8B0000];' +
+                    base_sele + 'property_cutoff=2.5; color [x9E1700];' +
+                    base_sele + 'property_cutoff=2.0; color [xB12E00];' +
+                    base_sele + 'property_cutoff=1.5; color [xC54600];' +
+                    base_sele + 'property_cutoff=1; color [xD85D00];' +
+                    base_sele + 'property_cutoff=0.5; color [xEB7400];' +
+                    base_sele + 'property_cutoff=0; color [xFF8C00];' +
+                    base_sele + 'property_cutoff=-0.5; color yellow;' +
                     '';
             }
             //cmd += 'slab on; set slabRange 28.0; set zShade on; set zSlab 45; set zDepth 10; ';
