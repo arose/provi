@@ -113,14 +113,28 @@ span.residue span.ui-dynatree-icon {
 }
 
 div.control_row {
-    padding-top: 0.3em;
-    padding-bottom: 0.3em;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    clear: both;
 }
 
 div.control_group {
     padding-top: 0.5em;
     padding: 0.5em;
+    clear: both;
 }
+
+.control_row.checkbox input {
+    clear: left;
+    float: left;
+}
+
+.control_row.checkbox label {
+    float: left;
+    width: 90%;
+    margin-left: 0.3em;
+}
+
 
 div.my-content {
     padding-left: 0.5em;
