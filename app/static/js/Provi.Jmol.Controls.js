@@ -466,11 +466,11 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                 break;
             case 'wireframe+backbone':
                 this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; wireframe ONLY; backbone 0.3; wireframe 0.01;';
+		    'select protein; wireframe ONLY; backbone 0.3; wireframe 0.05;';
                 break;
             case 'cartoon+wireframe':
                 this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; cartoon ONLY; wireframe 0.015;';
+		    'select protein; cartoon ONLY; wireframe 0.05;';
                 break;
             case 'cartoon':
                 this.style_cmd = Provi.defaults.jmol.style +
