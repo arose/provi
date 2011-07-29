@@ -90,27 +90,31 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
                 '<option value="-0.5">-0.5</option>' +
             '</select>&nbsp;&#8491;' +
         '</div>' +
-        '<div class="control_row">' +
+        '<div class="control_row checkbox">' +
             '<input id="' + this.autofocus_id + '" type="checkbox" />' +
             '<label for="' + this.autofocus_id + '">autofocus</label>&nbsp;' +
         '</div>' +
-        '<div class="control_row">' +
+        '<div class="control_row checkbox">' +
             '<input id="' + this.show_only_interface_atoms_id + '" type="checkbox" />' +
             '<label for="' + this.show_only_interface_atoms_id + '">show only interface atoms/residues</label>' +
         '</div>' +
-        '<div class="control_row">' +
+        '<div class="control_row checkbox">' +
             '<input id="' + this.color_interface_residue_id + '" type="checkbox" />' +
             '<label for="' + this.color_interface_residue_id + '">color the complete residue (not only the contact making atom)</label>' +
         '</div>' +
-        '<div class="control_row">' +
+        '<div class="control_row checkbox">' +
             '<input id="' + this.tmh_filter_check_id + '" type="checkbox" />' +
-            '<label for="' + this.tmh_filter_check_id + '">limit interface contacts to tmh atoms</label>&nbsp;' +
+            '<label for="' + this.tmh_filter_check_id + '">limit interface contacts to tmh atoms</label>' +
+        '</div>' +
+        '<div class="control_row checkbox">' +
+            '<input id="' + this.color_by_min_cutoff_id + '" type="checkbox" />' +
+            '<label for="' + this.color_by_min_cutoff_id + '">' +
+                'color by min cutoff (from yellow [-0.5] over orange [0.0] to darkred [2.8])' +
+            '</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<input id="' + this.color_by_min_cutoff_id + '" type="checkbox" />' +
-            '<label for="' + this.color_by_min_cutoff_id + '">color by min cutoff (from yellow [-0.5] over orange [0.0] to darkred [2.8])</label>&nbsp;' +
+            '<i>interface atoms are shown in orange</i>' +
         '</div>' +
-        '<i>interface atoms are shown in orange</i>' +
     '</div>';
     $(this.dom).append( content );
     this._init();

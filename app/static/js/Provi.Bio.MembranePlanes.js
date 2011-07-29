@@ -88,7 +88,9 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
             '<input id="' + this.visibility_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
             '<div id="' + this.size_slider_id + '"></div>' +
         '</div>' +
-        '<i>the membrane planes are shown in blue and are semi transparent</i>' +
+        '<div class="control_row">' +
+            '<i>the membrane planes are shown in blue and are semi transparent</i>' +
+        '</div>' +
         '<div class="control_row">' +
             '<button id="' + this.orient_id + '">orient along membrane axis</button>' +
         '</div>' +
