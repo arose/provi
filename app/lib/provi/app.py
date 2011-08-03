@@ -166,6 +166,9 @@ class ExampleController( BaseController ):
                             'path': path + file + '/',
                             'dir': True
                         },
+                        'attr': {
+                            'id': path + file + '/'
+                        },
                         'state': 'closed'
                     })
         #jstree.sort()
