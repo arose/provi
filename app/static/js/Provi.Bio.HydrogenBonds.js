@@ -76,6 +76,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
     );
     /** Color in which the hydrogen bonds are drawn */
     this.color = 'blue';
+    this.hb_atomno_dict = {};
     this.show_hbonds = '';
     this.applet = params.applet;
     this.dataset = params.dataset;
@@ -173,32 +174,56 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 	    this.unblock();
 	    this.applet.echo();
 	}else{
-	    this.applet.script( 'draw hbond_' + this.id + '* off' );
+	    this.applet.script( "select all; hbonds delete;", true );
 	    $( '#' + this.jstree_id ).hide();
 	}
     },
     /** draw the hbond in the applet */
     draw: function(){
         if( !this.applet ) return;
+	var timer = new Provi.Debug.timer({name:'hbonds'});
         var hbonds = this.get_hbonds();
-        this.applet.script( 'draw hbond_' + this.id + '* off' );
+	this.applet.script_wait( "select all; hbonds delete;", true );
         if(hbonds){
             var self = this;
-            var draw_hbonds = '';
-            var i = 0;
+	    var hbonds_data = [];
+	    var hb_list = [];
+	    var hb_connect = '';
+	    //timer.start();
             $.each(hbonds, function(){
-                draw_hbonds += 'draw hbond_' + self.id + '_all' + i + ' ' +
-		    'color ' + self.color + ' ' +
-		    '(' + this[0][3] + (this[0][2] ? ':' + this[0][2] : '') + '.' + $.trim(this[0][0]) + ') ' +
-		    '(' + this[1][3] + (this[1][2]? ':' + this[1][2] : '') + '.' + $.trim(this[1][0]) + ') ' +
-		    'DIAMETER 0.2' +
-		    ';';
-                //draw_hbonds += 'select ' + this[0][3] + ':' + this[0][2] + ',' + this[1][3] + ':' + this[1][2] + '; color lightgreen; cartoon ONLY; wireframe 0.1;';
-                i = i+1;
+		var hb1 = this[0][3] + (this[0][2] ? ':' + this[0][2] : '') + '.' + $.trim(this[0][0]);
+		var hb2 = this[1][3] + (this[1][2] ? ':' + this[1][2] : '') + '.' + $.trim(this[1][0]);
+		//hb_list.push( '"[" + {' + hb1 + '}.atomIndex + "," + {' + hb2 + '}.atomIndex + "]"');
+		//if(!self.hb_atomno_dict[hb1]){
+		//    self.hb_atomno_dict[hb1] = self.applet.evaluate("{" + hb1 + "}.atomIndex");
+		//}
+		//if(!self.hb_atomno_dict[hb2]){
+		//    self.hb_atomno_dict[hb2] = self.applet.evaluate("{" + hb2 + "}.atomIndex");
+		//}
+		//hb_connect += 'connect ({' + self.hb_atomno_dict[hb1] + '}) ({' + self.hb_atomno_dict[hb2] + '}) HBOND; ';
+		hbonds_data += hb1 + '\n' + hb2 + '\n';
             });
-            this.applet.script( draw_hbonds );
+	    //timer.stop();
+	    //
+	    //timer.start();
+	    //var hbl = eval( this.applet.evaluate( '"[" + ' + hb_list.join(' + "," + ') + ' + "]"' ) );
+	    //console.log( hbl );
+	    
+	    //this.applet.script_wait( hb_connect + 'select all; color HBONDS ' + this.color + '; hbonds 0.1; ', true );
+	    //timer.stop();
+	    var hb = '' +
+		'set refreshing false;' +
+		'var hb_list = "' + hbonds_data + '".split("\n"); var n = hb_list.length-1;' +
+		'for(var i=1; i<n; i+=2){' +
+		    'connect {@hb_list[i]} {@hb_list[i+1]} HBOND; ' +
+		'}' +
+		'select all; color HBONDS ' + this.color + '; hbonds 0.1; ' +
+		//'select within(GROUP, connected(HBONDS)); wireframe 0.01;' +
+		'set refreshing true;' +
+		'';
+	    this.applet.script_wait( hb, true );
         }else{
-            this.applet.script( 'draw hbond_' + this.id + '* off' );
+	    this.applet.script( "select all; hbonds delete;", true );
         }
     },
     /** draw the tree listing all hbonds */
