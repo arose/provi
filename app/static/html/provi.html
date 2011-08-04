@@ -128,7 +128,7 @@
 	//Provi.Jmol.init("../applet/jmol/12.1.42/", true);
 	//Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
 	//Provi.Jmol.init("../applet/jmol/12.1.43/", true);
-	Provi.Jmol.init("../../jmol/current/9/", true);
+	Provi.Jmol.init("../../jmol/current/10/", true);
 	
         $(document).ready(function(){
 	    
@@ -327,7 +327,24 @@
 			applet: applet,
 			load_as: 'new'
 		    });
+		
+		}else if( $.query.get('test') == '2a65' ){
 		    
+		    Provi.Data.Io.import_example( 'showcase', 'test/2a65.mbn', 'mbn', {
+			sort_key: 1,
+			heading: 'Interface Contacts',
+			info: 'Infotext',
+			description: 'Description',
+			applet: applet,
+			load_as: 'new'
+		    });
+		    
+		    Provi.Data.Io.import_example( 'showcase', 'test/2a65.anal', 'anal', {
+			sort_key: 4,
+			heading: 'Hydrogen Bonds',
+			applet: applet
+		    });
+		
 		}else if( $.query.get('test') == '1ar1' ){
 		    
 		    Provi.Data.Io.import_example( 'showcase', 'test/1ar1.mbn', 'mbn', {
