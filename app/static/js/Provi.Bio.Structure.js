@@ -34,7 +34,7 @@ Provi.Bio.Structure.StructureWidget = function(params){
     );
     console.log('STRUCTURE', params);
     params.persist_on_applet_delete = false;
-    params.heading = 'FOOBAR';
+    params.heading = 'Structure';
     //params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager( ['current_file_number'] );
