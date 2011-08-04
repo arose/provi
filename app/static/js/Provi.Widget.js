@@ -84,7 +84,7 @@ Provi.Widget.Widget = function(params){
     /** Dom id of the widget itself */
     this.id = Provi.Widget.WidgetManager.get_widget_id(params.id);
     
-    this._init_eid_manager( ['info', 'heading', 'description', 'content'] );
+    this._init_eid_manager( ['info', 'heading', 'description', 'content', 'close'] );
     
     /** Id of the parent dom object */
     this.parent_id = params.parent_id;
@@ -95,6 +95,7 @@ Provi.Widget.Widget = function(params){
     }
     
     var template = '' +
+	//'<span title="close" id="${eids.close}" class="ui-icon ui-icon-close" style="position:relative; float:right; z-index:100;"></span>' +
 	'<div class="ui-widget-header ui-state-active" id="${eids.heading}" ' +
 		'style="{{if !params.heading}}display:none;{{/if}}">' +
 	    '<span title="show/hide" class="ui-icon ui-icon-triangle-1-s"></span>' +
@@ -161,15 +162,15 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	if( !this.description ) this.elm( 'description' ).hide();
 	
 	if(this.applet && !this.persist_on_applet_delete){
-	    var self = this;
-	    $(this.applet).bind('delete', function(){
-		$(self.dom).hide();
-		$(self.dom).appendTo('#trash');
-	    });
+	    $(this.applet).bind('delete', $.proxy( this.del, this ) );
 	}
 	//console.log('WIDGET INIT', this.heading);
 	this.initialized = true;
 	$(this).triggerHandler('init');
+    },
+    del: function(){
+	$(this.dom).hide();
+	$(this.dom).appendTo('#trash');
     },
     set_heading: function( heading ){
 	this.elm( 'heading' ).text( heading ).show();
