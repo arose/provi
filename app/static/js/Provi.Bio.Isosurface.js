@@ -28,8 +28,9 @@ var Widget = Provi.Widget.Widget;
  */
 Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     //params.persist_on_applet_delete = false;
-    //params.heading = '';
+    params.heading = 'Isosurface';
     //params.collapsed = false;
+    this.isosurface_type = 'Isosurface';
     console.log(params);
     this.dataset = params.dataset;
     this.applet = params.applet;
@@ -42,7 +43,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     this.sele = params.sele || 'atomno=1';
     
     Widget.call( this, params );
-    this._build_element_ids([ 'show', 'color', 'focus', 'display_within', 'translucent', 'colorscheme', 'color_range', 'style' ]);
+    this._build_element_ids([ 'show', 'color', 'focus', 'display_within', 'translucent', 'colorscheme', 'color_range', 'style', 'delete' ]);
     
     this.isosurface_name = 'isosurface_' + this.id;
     this.translucent = 0.0;
@@ -126,6 +127,9 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
                 '<option value="dots nomesh nofill">dots</option>' +
             '</select>' +
 	'</div>' +
+	'<div class="control_row">' +
+            '<button id="' + this.delete_id + '">delete</button>' +
+        '</div>' +
     '</div>';
     $(this.dom).append( content );
     if( !params.no_init ){
@@ -186,6 +190,12 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
             self.applet.script('isosurface ID ' + self.isosurface_name + ' ' + self.style + ';');
         });
 	
+	// init delete
+	$('#' + this.delete_id).button().click( $.proxy( function(){
+	    this.delete_isosurface();
+	    this.del();
+	}, this ) );
+	
 	this.init_isosurface();
 	
 	if( true ){
@@ -202,6 +212,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	}
 	
 	//Widget.prototype.init.call(this);
+	Provi.Widget.Widget.prototype.init.call(this);
     },
     set_show: function(){
         var s = $("#" + this.show_id).is(':checked') ? 'display' : 'hide';
@@ -235,7 +246,14 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	    ( this.insideout ? 'INSIDEOUT ' : '' ) + 
 	    '"' + file_url + '" ' +
 	    ( this.style ? this.style : '' ) + 
-	    ';', true);
+	    ';'
+	, true);
+    },
+    delete_isosurface: function(){
+	this.applet.script(
+	    'isosurface id ' + this.isosurface_name + ' delete' +
+	    ';'
+	, true);
     }
 });
 
@@ -249,7 +267,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
  */
 Provi.Bio.Isosurface.VolumeWidget = function(params){
     //params.persist_on_applet_delete = false;
-    //params.heading = '';
+    params.heading = 'Volume';
     //params.collapsed = false;
     this.color_density = params.color_density;
     this.cutoff = params.cutoff;
@@ -313,7 +331,7 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
 		(this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
 		(this.select ? 'select {' + this.select + '} ' : '') +
 		(this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
-		'colorscheme "rwb" color absolute -20 20 ' +
+		//'colorscheme "rwb" color absolute -20 20 ' +
 		(this.type ? this.type + ' ' : '') +
 		(this.type ? 'MAP ' : '') +
 		( (!this.type && this.insideout) ? 'INSIDEOUT ' : '' ) + 
@@ -334,7 +352,7 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
  */
 Provi.Bio.Isosurface.SurfaceWidget = function(params){
     //params.persist_on_applet_delete = false;
-    //params.heading = '';
+    params.heading = 'Surface';
     //params.collapsed = false;
     this.within = params.within;
     this.type = params.type;
