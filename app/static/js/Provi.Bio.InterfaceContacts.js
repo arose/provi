@@ -531,7 +531,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             //console.log( atoms );
             var atoms = $.map(atoms, function(atom){
                 if( atom[0] == atom[1] ){
-                    return 'atomno=' + atom[0] + '';
+                    return '@' + atom[0] + '';
                 }else{
                     return 'atomno>=' + atom[0] + '&atomno<=' + atom[1] + '';
                 }
