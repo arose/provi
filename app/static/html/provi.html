@@ -127,7 +127,7 @@
 	//Provi.Jmol.init("../applet/jmol/12.1.41/", true);
 	//Provi.Jmol.init("../applet/jmol/12.1.42/", true);
 	//Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
-	//Provi.Jmol.init("../applet/jmol/12.1.43/", true);
+	//Provi.Jmol.init("../applet/jmol/12.1.51/", true);
 	Provi.Jmol.init("../../jmol/current/10/", true);
 	
         $(document).ready(function(){
@@ -195,6 +195,14 @@
             });
 	    
 	    new Provi.Jmol.Controls.QualityManagerWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+	    new Provi.Jmol.Controls.PickingManagerWidget({
+                parent_id: 'tab_controls'
+            });
+	    
+	    new Provi.Jmol.Controls.StyleManagerWidget({
                 parent_id: 'tab_controls'
             });
 	    

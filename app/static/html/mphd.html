@@ -100,7 +100,8 @@
 	    BUILDER_WIDGET: 'tab_widgets'
 	});
 	
-	Provi.defaults.jmol.style += 'select protein; wireframe 0.15;';
+	Provi.Jmol.Controls.StyleManager.prototype.default_params.style += '' +
+	    'select protein; wireframe ${stick};';
 	
 	Provi.Bio.Structure.StructureWidget.prototype.default_params = $.extend(
 	    Provi.Bio.Structure.StructureWidget.prototype.default_params,
