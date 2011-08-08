@@ -59,7 +59,7 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
     this.size = -2;
     this.visibility = true;
     Widget.call( this, params );
-    this._build_element_ids([ 'size', 'size_slider', 'size_slider_option', 'visibility', 'orient', 'distance' ]);
+    this._build_element_ids([ 'size', 'size_slider', 'size_slider_option', 'visibility', 'orient', 'color', 'distance' ]);
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
             'The distance between the membrane planes is: ' +
@@ -89,10 +89,11 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
             '<div id="' + this.size_slider_id + '"></div>' +
         '</div>' +
         '<div class="control_row">' +
-            '<i>the membrane planes are shown in blue and are semi transparent</i>' +
+            '<input id="' + this.color_id + '" type="text" value="' + this.color + '"/> ' +
+            '<label for="' + this.color_id + '" >color</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button id="' + this.orient_id + '">orient along membrane axis</button>' +
+            '<button id="' + this.orient_id + '">orient along membrane normal</button>' +
         '</div>' +
     '</div>'
     $(this.dom).append( content );
@@ -139,6 +140,14 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         //    self.update_size_slider();
         //});
         $("#" + this.size_slider_id).slider('option', 'value', this.size);
+        
+        // init color picker
+        $('#' + this.color_id).colorPicker();
+        $('#' + this.color_id).change(function(){
+            self.color = $('#' + self.color_id).val();
+            self.draw();
+        });
+        
         // init orient
         $('#' + this.orient_id).button().click( $.proxy( this.orient, this ) );
         Widget.prototype.init.call(this);
@@ -177,7 +186,8 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         if(this.visibility){
             var mp = this.dataset.data;
             var mp_f = mp.format_as_jmol_planes();
-            var color = 'color TRANSLUCENT ' + this.translucency + ' ' + this.color;
+            var color = 'color TRANSLUCENT ' + this.translucency + ' ' +
+                (this.color.charAt(0) == '#' ? '[x' + this.color.substring(1) + ']' : this.color);
             var base_plane = (this.size==-2) ?
                 ('intersection boundbox plane ') :
                 ('plane ' + this.size + ' ')
