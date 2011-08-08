@@ -82,7 +82,7 @@ Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget
 	type = type ? (type + '::') : '';
 	type = '';
 	if( !style ){
-	    style = Provi.defaults.jmol.style;
+	    style = applet.style_manager.get_default_style();
 	}else{
 	    style = 'select all; ' + style;
 	}
@@ -107,10 +107,11 @@ Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget
 	    s = 'load "' + type + '../../data/get/' + params + '"; ' + style;
 	}
 	
-	applet.script( s , true );
+	applet.script_wait( s , true );
 	if( load_as != 'append' && load_as != 'trajectory+append' ){
-	    applet.lighting_manager.defaults();
-	    applet.clipping_manager.defaults();
+	    applet.lighting_manager.set();
+	    applet.clipping_manager.set();
+	    applet.picking_manager.set();
 	}
     }
 });
