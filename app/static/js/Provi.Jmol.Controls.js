@@ -136,7 +136,7 @@ Provi.Jmol.Controls.SettingsManager = function(params) {
     params = $.extend( this.default_params, params );
     console.log(this.names, typeof(this), this.default_params);
     this.applet = params.applet;
-    this._set( params );
+    this.set( params );
 }
 Provi.Jmol.Controls.SettingsManager.prototype = /** @lends Provi.Jmol.Controls.SettingsManager.prototype */ {
     default_params: {},
@@ -144,7 +144,11 @@ Provi.Jmol.Controls.SettingsManager.prototype = /** @lends Provi.Jmol.Controls.S
     _command: function( names ){
 	names = names || this.names;
 	return $.map( names, $.proxy( function( name ){
-	    return "set " + this.jmol_param_names[name] + " " + this[name] + ';';
+	    if( this.jmol_param_names[name] ){
+		return "set " + this.jmol_param_names[name] + " " + this[name] + ';';
+	    }else{
+		return '';
+	    }
 	}, this )).join(" ");
     },
     _set: function( params ){
@@ -252,7 +256,12 @@ Provi.Jmol.Controls.ClippingManager.prototype = Utils.extend( Provi.Jmol.Control
     _command: function( names ){
 	names = names || this.names.slice();
 	if( this.slab_range ) names.removeItems( "slab" );
-	return Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
+	return '' +
+	    'bind "ALT-WHEEL" "slab @{slab - _DELTAY/abs(_DELTAY)}; if(slab<0){slab 0;} if(slab>100){slab 100;} depth @{depth + _DELTAY/abs(_DELTAY)}; if(depth<0){depth 0;} if(depth>100){depth 100;} javascript jmol_bind(' + this.applet.name_suffix + ') ";' +
+	    //'javascript "jmol_bind(1);";' +
+	    //'function javascript_bind(i){ javascript "xjmol_binder()"; }' +
+	    //'bind "ALT-WHEEL" "javascript_bind(1);";' +
+	    Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
     }
 });
 
@@ -268,7 +277,6 @@ Provi.Jmol.Controls.QualityManager = function(params) {
 Provi.Jmol.Controls.QualityManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.QualityManager.prototype */ {
     default_params: {
 	high_resolution: false,
-	hermite_level: 0,
 	antialias_display: false,
 	antialias_translucent: true,
 	antialias_images: true,
@@ -276,11 +284,97 @@ Provi.Jmol.Controls.QualityManager.prototype = Utils.extend( Provi.Jmol.Controls
     },
     jmol_param_names: {
 	high_resolution: "highResolution",
-	hermite_level: "hermiteLevel",
 	antialias_display: "antialiasDisplay",
 	antialias_translucent: "antialiasTranslucent",
 	antialias_images: "antialiasImages",
 	wireframe_rotation: "wireframeRotation"
+    }
+});
+
+
+/**
+ * A class to provide a central instance for setting picking parameters
+ * @constructor
+ * @extends Provi.Jmol.Controls.SettingsManager
+ */
+Provi.Jmol.Controls.PickingManager = function(params) {
+    Provi.Jmol.Controls.SettingsManager.call( this, params );
+}
+Provi.Jmol.Controls.PickingManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.PickingManager.prototype */ {
+    default_params: {
+	atom_picking: true,
+	draw_picking: false,
+	picking: 'group',
+	picking_style: 'toggle',
+	selection_halos: true,
+	selection_halos_color: 'green',
+	hover_delay: 0.1
+    },
+    jmol_param_names: {
+	atom_picking: "atomPicking",
+	draw_picking: "drawPicking",
+	picking: "picking",
+	picking_style: "pickingStyle",
+	selection_halos: "selectionHalos",
+	hover_delay: "hoverDelay"
+    },
+    _command: function( names ){
+	return '' +
+	    'color selectionHalos ' + this['selection_halos_color'] + ';' +
+	    Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
+    }
+});
+
+
+/**
+ * A class to provide a central instance for setting style parameters
+ * @constructor
+ * @extends Provi.Jmol.Controls.SettingsManager
+ */
+Provi.Jmol.Controls.StyleManager = function(params) {
+    Provi.Jmol.Controls.SettingsManager.call( this, params );
+    console.log( this.get_default_style() );
+}
+Provi.Jmol.Controls.StyleManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.StyleManager.prototype */ {
+    default_params: {
+	cartoon: '1.0',
+	line: '0.01',
+	stick: '0.15',
+	cpk: '20%',
+	spacefill: '0.5',
+	backbone: '0.3',
+	style: '' +
+	    'select protein; cartoon only; select helix or sheet; cartoon ${cartoon};' +
+	    'select (ligand or ypl or lrt); wireframe ${stick}; spacefill ${spacefill};' +
+	    'select water; wireframe ${line};' +
+	    //'select group=hoh; cpk 20%;' +
+	    'select HOH; cpk ${cpk};' +
+	    'select (hetero or ypl or lrt) and connected(protein) or within(GROUP, protein and connected(hetero or ypl or lrt)); wireframe ${stick};' + 
+	    'select (dmpc or dmp or popc or pop); wireframe ${stick};' +
+	    'select none;' +
+	    '',
+	hermite_level: 0,
+	cartoon_rockets: false,
+	ribbon_aspect_ratio: 16,
+	ribbon_border: false,
+	rocket_barrels: false,
+	sheet_smoothing: 1,
+	trace_alpha: true
+    },
+    jmol_param_names: {
+	hermite_level: "hermiteLevel",
+	cartoon_rockets: "cartoonRockets",
+	ribbon_aspect_ratio: "ribbonAspectRatio",
+	ribbon_border: "ribbonBorder",
+	rocket_barrels: "rocketBarrels",
+	sheet_smoothing: "sheetSmoothing",
+	trace_alpha: "traceAlpha"
+    },
+    get_default_style: function(){
+	return this.get_style( this.style );
+    },
+    get_style: function( style ){
+	return $.tmpl( style, this ).text();
     }
 });
 
@@ -380,7 +474,7 @@ Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /**
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Controls.JmolDisplayWidget = function(params){
-    this.style_cmd = Provi.defaults.jmol.style;
+    this.style_cmd = '';
     params.heading = 'General Controls';
     Widget.call( this, params );
     this._build_element_ids([ 'style', 'quality', 'center', 'applet_selector_widget' ]);
@@ -402,6 +496,16 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
 		'<option value="cartoon+aromatic">cartoon & aromatic</option>' +
             '</select>' +
         '</div>' +
+//	'<div class="control_row">' +
+//            '<label for="' + this.quality_id + '">style</label>' +
+//            '<select id="' + this.quality_id + '" class="ui-state-default">' +
+//		'<option value="highest">highest</option>' +
+//		'<option value="high">high</option>' +
+//                '<option value="normal">normal</option>' +
+//		'<option value="low">low</option>' +
+//                '<option value="lowest">lowest</option>' +
+//            '</select>' +
+//        '</div>' +
         '<div class="control_row">' +
             '<input id="' + this.quality_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
             '<label for="' + this.quality_id + '" style="display:block;">high quality</label>' +
@@ -445,64 +549,44 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
     update_quality: function(){
         var applet = this.applet_selector.get_value();
         if(applet){
-            var s = '';
-            if( this.quality ){
-                s = 'set highresolution ON; set hermitelevel 4; set antialiasDisplay On; set antialiasTranslucent ON;';
-            }else{
-                s = 'set highresolution OFF; set hermitelevel 0; set antialiasDisplay OFF; set antialiasTranslucent OFF;';
-            }
-            applet.script( s );
+	    if( this.quality ){
+		applet.quality_manager.set({
+		    high_resolution: true, antialias_display: true, antialias_translucent: true
+		});
+		applet.style_manager.set({ hermite_level: 4 });
+	    }else{
+		applet.quality_manager.set({
+		    high_resolution: false, antialias_display: false, antialias_translucent: true
+		});
+		applet.style_manager.set({ hermite_level: 0 });
+	    }
         }
     },
     set_style: function (){
-        switch($("#" + this.style_id + " option:selected").val()){
-	    case 'default':
-                this.style_cmd = Provi.defaults.jmol.style
-                break;
-	    case 'lines':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; wireframe ONLY; wireframe 0.01;';
-                break;
-	    case 'sticks':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; wireframe ONLY; wireframe 0.15;';
-                break;
-            case 'backbone':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; backbone ONLY; backbone 0.3;';
-                break;
-            case 'backbone+lines':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; wireframe ONLY; backbone 0.3; wireframe 0.01;';
-                break;
-	    case 'backbone+sticks':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; wireframe ONLY; backbone 0.3; wireframe 0.15;';
-                break;
-	    case 'cartoon':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; cartoon ONLY;';
-                break;
-            case 'cartoon+lines':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; cartoon ONLY; wireframe 0.01;';
-                break;
-	    case 'cartoon+sticks':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; cartoon ONLY; wireframe 0.15;';
-                break;
-	    case 'cartoon+aromatic':
-                this.style_cmd = Provi.defaults.jmol.style +
-		    'select protein; cartoon ONLY; select aromatic; wireframe 0.15;';
-                break;
-            default:
-		this.style_cmd = '';
-                break;
-        }
+	var applet = this.applet_selector.get_value(true);
+	if( !applet ) return;
+	var default_style = applet.style_manager.get_default_style();
+	
+	var selected_style = $("#" + this.style_id + " option:selected").val();
 	$("#" + this.style_id).val('');
-        var applet = this.applet_selector.get_value(true);
-        if(applet && this.style_cmd){
-            applet.script('select all; ' + this.style_cmd + ' select none;', true);
+	
+	var styles = {
+	    'default': 'select protein;',
+            'lines': 'select protein; wireframe -${line};',
+            'sticks': 'select protein; wireframe -${stick};',
+	    'backbone': 'select protein; backbone -${backbone};',
+	    'backbone+lines': 'select protein; backbone -${backbone}; wireframe ${line};',
+	    'backbone+sticks': 'select protein; backbone -${backbone}; wireframe ${stick};',
+	    'cartoon': 'select protein; cartoon only; select helix or sheet; cartoon ${cartoon};',
+	    'cartoon+lines': 'select protein; cartoon only; wireframe ${line}; select helix or sheet; cartoon ${cartoon};',
+	    'cartoon+sticks': 'select protein; cartoon only; wireframe ${stick}; select helix or sheet; cartoon ${cartoon};',
+	    'cartoon+aromatic': 'select protein; cartoon only; select helix or sheet; cartoon ${cartoon}; select aromatic; wireframe ${stick};'
+        }
+	
+	this.style_cmd = applet.style_manager.get_style( styles[ selected_style ] || '' );
+	
+        if( this.style_cmd ){
+            applet.script( default_style + this.style_cmd, true);
         }
     }
 });
@@ -883,22 +967,12 @@ Provi.Jmol.Controls.QualityManagerWidget = function(params){
     Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
     
     this._init_eid_manager([
-	'hermite_level', 'high_resolution', 'antialias_display',
-	'antialias_translucent', 'antialias_images', 'wireframe_rotation'
+	'high_resolution', 'antialias_display',
+	'antialias_translucent', 'antialias_images', 'wireframe_rotation',
     ]);
     
     var template = '' +
 	'<div class="control_group">' +
-	    '<div class="control_row">' +
-		'<label for="${eids.hermite_level}">hermite level</label>' +
-		'<select id="${eids.hermite_level}" class="ui-state-default">' +
-		    '<option value="-4">-4</option><option value="-3">-3</option>' +
-		    '<option value="-2">-2</option><option value="-1">-1</option>' +
-		    '<option value="0">0</option>' +
-		    '<option value="1">1</option><option value="2">2</option>' +
-		    '<option value="3">3</option><option value="4">4</option>' +
-		'</select>' +
-	    '</div>' +
 	    '<div class="control_row">' +
 		'<input id="${eids.high_resolution}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
 		'<label for="${eids.high_resolution}" style="display:block;">high resolution</label>' +
@@ -933,7 +1007,6 @@ Provi.Jmol.Controls.QualityManagerWidget.prototype = Utils.extend(Provi.Jmol.Con
     _init: function(){
         var self = this;
 	
-	this.elm('hermite_level').bind('click change', $.proxy( this.set, this ));
 	this.elm('high_resolution').bind('click', $.proxy( this.set, this ));
 	this.elm('antialias_display').bind('click', $.proxy( this.set, this ));
 	this.elm('antialias_translucent').bind('click', $.proxy( this.set, this ));
@@ -946,7 +1019,6 @@ Provi.Jmol.Controls.QualityManagerWidget.prototype = Utils.extend(Provi.Jmol.Con
 	var applet = this.applet_selector.get_value();
         if(applet){
 	    var params = applet.quality_manager.get();
-	    this.elm('hermite_level').val( params.hermite_level );
 	    this.elm('high_resolution').attr('checked', params.high_resolution);
 	    this.elm('antialias_display').attr('checked', params.antialias_display);
 	    this.elm('antialias_translucent').attr('checked', params.antialias_translucent);
@@ -958,7 +1030,6 @@ Provi.Jmol.Controls.QualityManagerWidget.prototype = Utils.extend(Provi.Jmol.Con
 	var applet = this.applet_selector.get_value();
         if(applet){
 	    applet.quality_manager.set({
-		hermite_level: this.elm('hermite_level').children("option:selected").val(),
 		high_resolution: this.elm('high_resolution').is(':checked'),
 		antialias_display: this.elm('antialias_display').is(':checked'),
 		antialias_translucent: this.elm('antialias_translucent').is(':checked'),
@@ -968,6 +1039,320 @@ Provi.Jmol.Controls.QualityManagerWidget.prototype = Utils.extend(Provi.Jmol.Con
         }
     }
 });
+
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Controls.PickingManagerWidget = function(params){
+    params = $.extend(
+        Provi.Jmol.Controls.PickingManagerWidget.prototype.default_params,
+        params
+    );
+    params.heading = 'Picking Settings';
+    params.manager_name = 'picking_manager';
+    
+    Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
+    
+    this._init_eid_manager([
+	'atom_picking', 'draw_picking', 'picking', 'picking_style',
+	'selection_halos', 'selection_halos_color', 'hover_delay'
+    ]);
+    
+    var template = '' +
+	'<div class="control_group">' +
+	    
+	    '<div class="control_row">' +
+		'<input id="${eids.atom_picking}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.atom_picking}" style="display:block;">atom picking</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.draw_picking}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.draw_picking}" style="display:block;">draw picking</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.picking}">picking</label>' +
+		'<select id="${eids.picking}" class="ui-state-default">' +
+		    '<option value=""></option>' +
+		    '<option value="center">center</option>' +
+		    '<option value="atom">select atom</option><option value="group">select group</option>' +
+		    '<option value="chain">select chain</option><option value="molecule">select molecule</option>' +
+		    '<option value="label">label</option>' +
+		    '<option value="spin">spin</option>' +
+		    '<option value="draw">draw</option>' +
+		    '<option value="distance">measure distance</option>' +
+		    '<option value="angle">measure angle</option>' +
+		    '<option value="torsion">measure torsion</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.picking_style}">picking style</label>' +
+		'<select id="${eids.picking_style}" class="ui-state-default">' +
+		    '<option value="toggle">select toggle</option>' +
+		    '<option value="selectOrToggle">select or toggle</option>' +
+		    '<option value="extendedSelect">extended select</option>' +
+		    '<option value="measure">measure</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.selection_halos}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.selection_halos}" style="display:block;">selection halos</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.hover_delay}">hover delay</label>' +
+		'<select id="${eids.hover_delay}" class="ui-state-default">' +
+		    '<option value="0.05">0.05</option>' +
+		    '<option value="0.1">0.1</option><option value="0.2">0.2</option>' +
+		    '<option value="0.3">0.3</option><option value="0.5">0.5</option>' +
+		    '<option value="0.7">0.7</option><option value="1.0">1.0</option>' +
+		'</select>' +
+	    '</div>' +
+        '</div>' +
+	'';
+    
+    this.add_content( template, params );
+    
+    this._init();
+}
+Provi.Jmol.Controls.PickingManagerWidget.prototype = Utils.extend(Provi.Jmol.Controls.SettingsManagerWidget, /** @lends Provi.Jmol.Controls.PickingManagerWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+        var self = this;
+	
+	this.elm('atom_picking').bind('click', $.proxy( this.set, this ));
+	this.elm('draw_picking').bind('click', $.proxy( this.set, this ));
+	this.elm('picking').bind('click change', $.proxy( function(){
+	    if( this._prevent ) return;
+	    this._prevent = true;
+	    var picking = this.elm('picking').children("option:selected").val();
+	    if( Provi.Utils.in_array( ['atom', 'group', 'chain', 'molecule'], picking ) ){
+		var style = this.elm('picking_style').children("option:selected").val();
+		if( !Provi.Utils.in_array( ['toggle', 'selectOrToggle', 'extendedSelect'], style ) ){
+		    this.elm('picking_style').val( 'toggle' );
+		}
+	    }
+	    if( Provi.Utils.in_array( ['distance', 'angle', 'torsion'], picking ) ){
+		this.elm('picking_style').val( 'measure' );
+	    }
+	    this.set();
+	    this._prevent = false;
+	}, this ));
+	this.elm('picking_style').bind('click change', $.proxy( function(){
+	    if( this._prevent ) return;
+	    this._prevent = true;
+	    var style = this.elm('picking_style').children("option:selected").val();
+	    if( style=='measure' ){
+		this.elm('picking').val( 'distance' );
+	    }
+	    if( Provi.Utils.in_array( ['toggle', 'selectOrToggle', 'extendedSelect'], style ) ){
+		var picking = this.elm('picking').children("option:selected").val();
+		if( !Provi.Utils.in_array( ['atom', 'group', 'chain', 'molecule'], picking ) ){
+		    this.elm('picking').val( 'group' );
+		}
+	    }
+	    this.set();
+	    this._prevent = false;
+	}, this ));
+	this.elm('selection_halos').bind('click', $.proxy( this.set, this ));
+	this.elm('hover_delay').bind('click change', $.proxy( this.set, this ));
+        
+	Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+    },
+    _sync: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    var params = applet.picking_manager.get();
+	    this.elm('atom_picking').attr('checked', params.atom_picking);
+	    this.elm('draw_picking').attr('checked', params.draw_picking);
+	    this.elm('picking').val( params.picking );
+	    this.elm('picking_style').val( params.picking_style );
+	    this.elm('selection_halos').attr('checked', params.selection_halos );
+	    this.elm('hover_delay').val( params.hover_delay );
+	}
+    },
+    set: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.picking_manager.set({
+		atom_picking: this.elm('atom_picking').is(':checked'),
+		draw_picking: this.elm('draw_picking').is(':checked'),
+		picking: this.elm('picking').children("option:selected").val(),
+		picking_style: this.elm('picking_style').children("option:selected").val(),
+		selection_halos: this.elm('selection_halos').is(':checked'),
+		hover_delay: this.elm('hover_delay').children("option:selected").val()
+	    });
+        }
+    }
+});
+
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Controls.StyleManagerWidget = function(params){
+    params = $.extend(
+        Provi.Jmol.Controls.StyleManagerWidget.prototype.default_params,
+        params
+    );
+    params.heading = 'Style Settings';
+    params.manager_name = 'style_manager';
+    
+    Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
+    
+    this._init_eid_manager([
+	'cartoon', 'line', 'stick', 'cpk', 'spacefill', 'backbone',
+	'hermite_level', 'cartoon_rockets', 'ribbon_aspect_ratio', 'ribbon_border',
+	'rocket_barrels', 'sheet_smoothing', 'trace_alpha'
+    ]);
+    
+    var template = '' +
+	'<div class="control_group">' +
+	    '<div class="control_row">' +
+		'<label for="${eids.cartoon}">cartoon</label>' +
+		'<select id="${eids.cartoon}" class="ui-state-default">' +
+		    '<option value="0.1">0.1</option><option value="0.2">0.2</option>' +
+		    '<option value="0.3">0.3</option><option value="0.4">0.4</option>' +
+		    '<option value="0.5">0.5</option><option value="0.6">0.6</option>' +
+		    '<option value="0.7">0.7</option><option value="0.8">0.8</option>' +
+		    '<option value="0.9">0.9</option>' +
+		    '<option value="1.0">1.0</option><option value="1.3">1.3</option>' +
+		    '<option value="1.5">1.5</option><option value="1.7">1.7</option>' +
+		    '<option value="2.0">2.0</option><option value="2.5">2.5</option>' +
+		    '<option value="3.0">3.0</option><option value="3.5">3.5</option>' +
+		'</select>' +
+	    '</div>' +
+	    
+	    '<div class="control_row">' +
+		'<label for="${eids.line}">line</label>' +
+		'<select id="${eids.line}" class="ui-state-default">' +
+		    '<option value="0.001">0.001</option><option value="0.005">0.005</option>' +
+		    '<option value="0.01">0.01</option><option value="0.02">0.02</option>' +
+		    '<option value="0.03">0.03</option><option value="0.05">0.05</option>' +
+		'</select>' +
+	    '</div>' +
+	    
+	    '<div class="control_row">' +
+		'<label for="${eids.hermite_level}">hermite level</label>' +
+		'<select id="${eids.hermite_level}" class="ui-state-default">' +
+		    '<option value="-4">-4</option><option value="-3">-3</option>' +
+		    '<option value="-2">-2</option><option value="-1">-1</option>' +
+		    '<option value="0">0</option>' +
+		    '<option value="1">1</option><option value="2">2</option>' +
+		    '<option value="3">3</option><option value="4">4</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.cartoon_rockets}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.cartoon_rockets}" style="display:block;">cartoon rockets</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.ribbon_aspect_ratio}">ribbon aspect ratio</label>' +
+		'<select id="${eids.ribbon_aspect_ratio}" class="ui-state-default">' +
+		    '<option value="2">2</option><option value="3">3</option>' +
+		    '<option value="4">4</option><option value="5">5</option>' +
+		    '<option value="6">6</option><option value="7">7</option>' +
+		    '<option value="8">8</option><option value="9">9</option>' +
+		    '<option value="10">10</option><option value="11">11</option>' +
+		    '<option value="12">12</option><option value="13">13</option>' +
+		    '<option value="14">14</option><option value="15">15</option>' +
+		    '<option value="16">16</option><option value="17">17</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.ribbon_border}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.ribbon_border}" style="display:block;">ribbon border</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.rocket_barrels}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.rocket_barrels}" style="display:block;">rocket barrels</label>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.sheet_smoothing}">sheet smoothing</label>' +
+		'<select id="${eids.sheet_smoothing}" class="ui-state-default">' +
+		    '<option value="0">0</option><option value="0.1">0.1</option>' +
+		    '<option value="0.2">0.2</option><option value="0.3">0.3</option>' +
+		    '<option value="0.4">0.4</option><option value="0.5">0.5</option>' +
+		    '<option value="0.6">0.6</option><option value="0.7">0.7</option>' +
+		    '<option value="0.8">0.8</option><option value="0.9">0.9</option>' +
+		    '<option value="1.0">1.0</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<input id="${eids.trace_alpha}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+		'<label for="${eids.trace_alpha}" style="display:block;">trace alpha</label>' +
+	    '</div>' +
+        '</div>' +
+	'';
+    
+    this.add_content( template, params );
+    
+    this._init();
+}
+Provi.Jmol.Controls.StyleManagerWidget.prototype = Utils.extend(Provi.Jmol.Controls.SettingsManagerWidget, /** @lends Provi.Jmol.Controls.StyleManagerWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+        var self = this;
+	
+	this.elm('cartoon').bind('click change', $.proxy( this.set, this ));
+	this.elm('line').bind('click change', $.proxy( this.set, this ));
+        
+	this.elm('hermite_level').bind('click change', $.proxy( this.set, this ));
+	this.elm('cartoon_rockets').bind('click', $.proxy( this.set, this ));
+	this.elm('ribbon_aspect_ratio').bind('click change', $.proxy( this.set, this ));
+	this.elm('ribbon_border').bind('click', $.proxy( this.set, this ));
+	this.elm('rocket_barrels').bind('click', $.proxy( this.set, this ));
+	this.elm('sheet_smoothing').bind('click change', $.proxy( this.set, this ));
+	this.elm('trace_alpha').bind('click', $.proxy( this.set, this ));
+	
+	Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+    },
+    _sync: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    var params = applet.style_manager.get();
+	    this.elm('cartoon').val( params.cartoon );
+	    this.elm('line').val( params.line );
+	    
+	    this.elm('hermite_level').val( params.hermite_level );
+	    this.elm('cartoon_rockets').attr('checked', params.cartoon_rockets);
+	    this.elm('ribbon_aspect_ratio').val( params.ribbon_aspect_ratio );
+	    this.elm('ribbon_border').attr('checked', params.ribbon_border);
+	    this.elm('rocket_barrels').attr('checked', params.rocket_barrels);
+	    this.elm('sheet_smoothing').val( params.sheet_smoothing );
+	    this.elm('trace_alpha').attr('checked', params.trace_alpha);
+	}
+    },
+    set: function(){
+	var applet = this.applet_selector.get_value();
+        if(applet){
+	    applet.style_manager.set({
+		cartoon: this.elm('cartoon').children("option:selected").val(),
+		line: this.elm('line').children("option:selected").val(),
+		
+		hermite_level: this.elm('hermite_level').children("option:selected").val(),
+		cartoon_rockets: this.elm('cartoon_rockets').is(':checked'),
+		ribbon_aspect_ratio: this.elm('ribbon_aspect_ratio').children("option:selected").val(),
+		ribbon_border: this.elm('ribbon_border').is(':checked'),
+		rocket_barrels: this.elm('rocket_barrels').is(':checked'),
+		sheet_smoothing: this.elm('sheet_smoothing').children("option:selected").val(),
+		trace_alpha: this.elm('trace_alpha').is(':checked')
+	    });
+        }
+    }
+});
+
 
 
 /**

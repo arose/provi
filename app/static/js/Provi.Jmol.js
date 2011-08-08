@@ -90,6 +90,17 @@ function jmol_applet_ready_callback (applet_name, id, status){
 };
 
 
+/**
+ * Function to delegate a jmol applet bind callback to the corresponding applet wrapper.
+ * Also available as a global function because Jmol would not accept it otherwise.
+ * @memberOf Provi.Jmol
+ */
+function jmol_bind (applet_name){
+    console.log('BIND');
+    console.log( applet_name+'' );
+    Provi.Jmol.get_applet( applet_name+'' ).clipping_manager.sync();
+};
+
 
 (function() {
 
@@ -298,6 +309,8 @@ Provi.Jmol.Applet = function(params){
     this.lighting_manager = new Provi.Jmol.Controls.LightingManager({ applet: this });
     this.clipping_manager = new Provi.Jmol.Controls.ClippingManager({ applet: this });
     this.quality_manager = new Provi.Jmol.Controls.QualityManager({ applet: this });
+    this.picking_manager = new Provi.Jmol.Controls.PickingManager({ applet: this });
+    this.style_manager = new Provi.Jmol.Controls.StyleManager({ applet: this });
     
     this._init();
     if( typeof(Provi.Jmol._default_applet) == 'undefined' ){
@@ -323,7 +336,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	$(this.selection_manager).bind('select', $.proxy(this.select, this));
     },
     select: function( e, selection, applet, selection_string ){
-	applet.script_wait( 'selectionHalos On; color selectionHalos green; select {' + selection_string + '};' );
+	applet.script_wait( 'select {' + selection_string + '};' );
     },
     _delete: function(){
 	$('#' + this.widget.data_id).empty();
@@ -360,6 +373,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	    //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ' + (Provi.Debug.get_status() ? 'set debug on;' : ''),
 	    //script: 'unbind "_slideZoom"; set debug on;',
 	    //script: 'set appletReadyCallback "jmol_applet_ready_callback";',
+	    //script: 'bind "ALT-WHEEL" "slab @{slab - _DELTAY}; depth @{depth + _DELTAY}";',
 	    script: '',
 	    appletReadyCallback: "jmol_applet_ready_callback",
 	    animFrameCallback: "jmol_anim_frame_callback",

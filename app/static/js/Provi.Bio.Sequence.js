@@ -277,7 +277,7 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	return this.applet ? this.applet : this.applet_selector.get_value(true);
     },
     select: function( e, selection, applet, selection_string ){
-	applet.script_wait( 'selectionHalos On; select {' + selection_string + '};' );
+	applet.script_wait( 'select {' + selection_string + '};' );
     },
     _tree_view: function(){
         var self = this;
