@@ -98,9 +98,9 @@ Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
                 '<option value="interhelical">interhelical</option>' +
             '</select>' +
         '</div>' +
-        //'<div class="control_row">' +
-        //    '<i>the hydrogen bonds are shown in blue; residues donor and acceptor atoms are light green</i>' +
-        //'</div>' +
+        '<div class="control_row">' +
+            '<i>The hydrogen bonds are shown as blue dashed lines.</i>' +
+        '</div>' +
         //'<div class="control_row">' +
         //    '<button id="' + this.draw_id + '">draw</button>' +
         //    '<button id="' + this.draw_tree_id + '">draw tree</button>' +
