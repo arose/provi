@@ -109,11 +109,17 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
         '<div class="control_row checkbox">' +
             '<input id="' + this.color_by_min_cutoff_id + '" type="checkbox" />' +
             '<label for="' + this.color_by_min_cutoff_id + '">' +
-                'color by min cut-off (from yellow [-0.5] over orange [0.0] to darkred [2.8])' +
+                'color by min cut-off ' +
+                '<span style="background-color:#FFFF00; padding: 3px;">&#8209;0.5</span>' +
+                '<span style="background-color:#FFA500; padding: 3px;">0.0</span>' +
+                '<span style="background-color:#EB8900; padding: 3px;">0.5</span>' +
+                '<span style="background-color:#D86E00; padding: 3px;">1.0</span>' +
+                '<span style="background-color:#C55200; padding: 3px;">1.5</span>' +
+                '<span style="background-color:#B13700; padding: 3px; color: white;">2.0</span>' +
+                '<span style="background-color:#9E1B00; padding: 3px; color: white;">2.5</span>' +
+                '<span style="background-color:#8B0000; padding: 3px; color: white;">2.8</span>' +
             '</label>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<i>interface atoms are shown in orange</i>' +
+            '<div>&nbsp;</div>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
