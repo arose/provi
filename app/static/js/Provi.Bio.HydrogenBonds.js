@@ -215,9 +215,11 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 		'set refreshing false;' +
 		'var hb_list = "' + hbonds_data + '".split("\n"); var n = hb_list.length-1;' +
 		'for(var i=1; i<n; i+=2){' +
-		    'connect {@hb_list[i]} {@hb_list[i+1]} HBOND; ' +
+		    'connect {@hb_list[i]} {@hb_list[i+1]} HBOND radius 0.05 color ' + this.color + ' ModifyOrCreate; ' +
 		'}' +
-		'select all; color HBONDS ' + this.color + '; hbonds 0.1; ' +
+		//'select all; color HBONDS ' + this.color + '; hbonds 0.1; ' +
+		//'select all; color HBONDS ' + this.color + '; ' +
+		//'select all; hbonds 0.1; ' +
 		//'select within(GROUP, connected(HBONDS)); wireframe 0.01;' +
 		'set refreshing true;' +
 		'';
