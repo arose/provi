@@ -159,10 +159,10 @@
 	);
 	Provi.Widget.StoryWidget.prototype.templates[ 'mphd' ] = '' +
 	    '<ul>' +
-		'<li>PDB ID: ${params.pdb_id}</li>' +
+		'<li>PDB ID: <a target="_blank" href="http://www.rcsb.org/pdb/explore/explore.do?structureId=${params.pdb_id}">${params.pdb_id}</a></li>' +
 		'<li>Probe radius: ${params.probe_radius}</li>' +
 		'<li>Family: ${params.family}</li>' +
-		'<li><a href="${params.mphd_url}">MPHD entry</a></li>' +
+		'<li><a target="_blank" href="${params.mphd_url}">MPHD entry</a></li>' +
 	    '</ul>' +
 	    '';
 	
@@ -173,7 +173,7 @@
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 	
-	Provi.Jmol.init("../../jmol/current/10/", !$.query.get('unsigned'));
+	Provi.Jmol.init("../../jmol/current/12/", !$.query.get('unsigned'));
 	
         $(document).ready(function(){
 	    
