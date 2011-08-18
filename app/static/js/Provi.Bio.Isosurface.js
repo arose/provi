@@ -111,6 +111,8 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
 		'<option value="-70 70">[-70,70]</option>' +
 		'<option value="-100 100">[-100,100]</option>' +
 		'<option value="-150 150">[-150,150]</option>' +
+		'<option value="-200 200">[-200,200]</option>' +
+		'<option value="-250 250">[-250,250]</option>' +
 		'<option value="0 10">[0,10]</option>' +
 		'<option value="0 20">[0,20]</option>' +
 		'<option value="0 50">[0,50]</option>' +
@@ -279,6 +281,7 @@ Provi.Bio.Isosurface.VolumeWidget = function(params){
     this.select = params.select || '*';
     this.ignore = params.ignore;
     this.style = params.style;
+    this.sign = params.sign;
     params.no_init = true;
     Provi.Bio.Isosurface.IsosurfaceWidget.call( this, params );
     //this._build_element_ids([  ]);
@@ -327,6 +330,7 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
 		( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
 		(this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
 		(this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
+		(this.sign ? 'SIGN blue red ' : '') +
 		(this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
 		(this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
 		(this.select ? 'select {' + this.select + '} ' : '') +
@@ -434,7 +438,7 @@ Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Widget, /** @lend
 Provi.Bio.Isosurface.VolumeParamsWidget = function(params){
     this.dataset = params.dataset;
     Widget.call( this, params );
-    this._build_element_ids([ 'sigma', 'cutoff', 'downsample', 'color_density' ]);
+    this._build_element_ids([ 'sigma', 'cutoff', 'downsample', 'color_density', 'sign' ]);
     var content = '<div>' +
 	'<div class="control_row">' +
 	    '<label for="' + this.sigma_id + '">Sigma:</label>' +
@@ -452,6 +456,10 @@ Provi.Bio.Isosurface.VolumeParamsWidget = function(params){
             '<input id="' + this.color_density_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
             '<label for="' + this.color_density_id + '" style="display:inline-block;">Color density</label>' +
         '</div>' +
+	'<div class="control_row">' +
+            '<input id="' + this.sign_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.sign_id + '" style="display:inline-block;">Sign</label>' +
+        '</div>' +
     '</div>';
     $(this.dom).append( content );
     
@@ -461,6 +469,7 @@ Provi.Bio.Isosurface.VolumeParamsWidget = function(params){
 	$('#' + this.sigma_id).val('1');
 	$('#' + this.downsample_id).parent().hide();
 	$('#' + this.cutoff_id).parent().hide();
+	$('#' + this.sign_id).parent().hide();
 	$('#' + this.as_map_id).parent().hide();
     }
 }
@@ -476,6 +485,9 @@ Provi.Bio.Isosurface.VolumeParamsWidget.prototype = Utils.extend(Widget, /** @le
     },
     get_color_density: function(){
         return $("#" + this.color_density_id).is(':checked');
+    },
+    get_sign: function(){
+        return $("#" + this.sign_id).is(':checked');
     }
 });
 
