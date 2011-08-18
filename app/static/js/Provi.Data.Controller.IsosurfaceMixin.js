@@ -62,6 +62,7 @@ Provi.Data.Controller.VolumeMixin = {
             params: [
                 { name: 'sigma', getter: 'get_sigma' },
                 { name: 'cutoff', getter: 'get_cutoff' },
+                { name: 'sign', getter: 'get_sign' },
                 { name: 'color_density', getter: 'get_color_density' },
                 { name: 'downsample', getter: 'get_downsample' }
             ],
