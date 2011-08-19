@@ -180,7 +180,6 @@ class ScoBase( Text ):
         return json.dumps( data.getInterfaceNames() )
     @expose
     def get_helix_interface_atoms( self, dataset, cutoff=1.5, interface_ids='', interface_names='', **kwargs ):
-        cutoff = float( cutoff )
         if interface_ids:
             interface_ids = [int(x) for x in interface_ids.split(',')]
         else:
@@ -188,7 +187,7 @@ class ScoBase( Text ):
         tmp_file = named_tmp_file( dataset.data )
         data = self.data_class(tmp_file.name)
         if interface_names:
-            interface_names = [ x.strip() for x in interface_names.split(',') if len(x.strip()) < 10 ]
+            interface_names = [ x.strip() for x in interface_names.split(',') if len(x.strip()) < 30 ]
             # flatten
             interface_ids.extend( itertools.chain( * [ data.getInterfaceIdByName(name) for name in interface_names ] ) )
         atoms = data.getAtoms( cutoff=cutoff,interfaceIds=interface_ids )
@@ -198,6 +197,11 @@ class ScoBase( Text ):
         tmp_file = named_tmp_file( dataset.data )
         data = self.data_class(tmp_file.name)
         return json.dumps( data.getStructureAtoms( structure_name ) )
+    @expose
+    def get_probe_radius( self, dataset, structure_name, **kwargs ):
+        tmp_file = named_tmp_file( dataset.data )
+        data = self.data_class(tmp_file.name)
+        return data.probeRadius
 
 class Sco ( ScoBase ):
     file_ext = 'sco'
