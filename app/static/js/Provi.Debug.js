@@ -106,6 +106,10 @@ Provi.Debug.on = function(){
     });
     //window.console = Provi.Debug._console_bak;
     Provi.Debug._status = true;
+    
+    console.log( 'Browser: ', $.browser );
+    console.log( 'navigator.userAgent: ', navigator.userAgent );
+    console.log( 'Provi session: ', $.cookie('provisessionX') );
 }
 
 
@@ -127,6 +131,31 @@ Provi.Debug.auto = function(){
  */
 Provi.Debug.get_status = function(){
     return Provi.Debug._status;
+}
+
+
+Provi.Debug.timer_count = 0;
+Provi.Debug.timer = function( params ){
+    this.id = Provi.Debug.timer_count;
+    Provi.Debug.timer_count += 1;
+    this.name = params.name || 'anon';
+    this.name += ' [' + this.id + ']';
+    this.start_time = 0;
+    this.stop_time = 0;
+}
+Provi.Debug.timer.prototype = /** @lends Provi.Debug.timer.prototype */ {
+    start: function(msg){
+        this.start_time = new Date();
+        console.log( 'Timer "' + this.name + '" started. [' + msg + ']' );
+    },
+    stop: function(msg){
+        this.stop_time = new Date();
+        this.duration = this.stop_time - this.start_time;
+        console.log(
+            'Timer "' + this.name + '" stoped. ' +
+            'Duration: ' + this.duration + ' ms. [' + msg + ']'
+        );
+    }
 }
 
 

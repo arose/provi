@@ -92,8 +92,8 @@
 		function typeLayout(type) {
 			return function (container) {
 				var insets = container.insets(),
-					width = 1,
-					height = 1,
+					width = 0,
+					height = 0,
 					type_size;
 
 				if (east && east.isVisible()) {

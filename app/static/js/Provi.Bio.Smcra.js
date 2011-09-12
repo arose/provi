@@ -506,9 +506,6 @@ Provi.Bio.Smcra.level_entity_class_map = {
  */
 Provi.Bio.Smcra.AbstractPropertyMap = function( property_dict ){
     this.property_dict = property_dict;
-    this.property_list = [];
-    var self = this;
-    $.each( property_dict, function(i, e){ return self.property_list.push(e); } );
 };
 Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.AbstractPropertyMap.prototype */ {
     /**
@@ -524,14 +521,32 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
 	return this.property_dict;
     },
     get_list: function( key_fn ){
-	return key_fn ? $.map( this.property_list, key_fn ) : this.property_list;
+	if( !this._property_list ){
+	    var property_list = [];
+	    $.each( this.property_dict, function(i, e){
+		property_list.push(e);
+	    });
+	    this._property_list = property_list;
+	}
+	return key_fn ? this.property_list.map( key_fn ) : this.property_list;
     },
     get_keys: function(){
 	if( !this._keys ){
-	    this._keys = [];
-	    $.each( this.property_dict, function(key, item){ this._keys.push(key) });
+	    var keys = [];
+	    $.each( this.property_dict, function(key, item){
+		// does not work when the keys were made from nested arrays
+		keys.push( key.split(',') );
+	    });
+	    this._keys = keys;
 	}
 	return this._keys;
+    },
+    get_distinct_keys: function( position ){
+	var keys = this.get_keys();
+	if( position ){
+	    keys = keys.map( function(item){ return item[position] } );
+	}
+	return keys.unique();
     },
     get_property_names: function(){
 	//var property_names = [];
@@ -563,8 +578,33 @@ Provi.Bio.Smcra.AbstractPropertyMap.prototype = /** @lends Provi.Bio.Smcra.Abstr
      */
     get: function(id, slice, key_fn){
 	if( !id ) return undefined;
-	var property = this.property_dict[ this._translate_id(id, slice) ];
-        return key_fn ? key_fn( property ) : property;
+	var self = this;
+	id = this._translate_id(id, slice);
+	//console.log('GET ID', id);
+	//console.log(this.key_length - id.length, this.key_length, id.length);
+	if( this.key_length - id.length === 0 ){
+	    var property = this._get( id );
+	    return key_fn ? key_fn( property ) : property;
+	}else{
+	    var keys = this.get_keys().filter( function(key){
+		return self._cmp_id( id, key );
+	    });
+	    var property_list = keys.map( function(key){ return self._get(key); });
+	    return key_fn ? property_list.map( key_fn ) : property_list;
+	}
+    },
+    /**
+     * Can be overwritten by sub classes
+     */
+    _get: function(id){
+	return this.property_dict()[ id ];
+    },
+    /**
+     * Can be overwritten by sub classes
+     */
+    _cmp_id: function(id, own_id ){
+	//console.log( id, own_id, own_id.slice(0, id.length), Provi.Utils.array_cmp(id, own_id.slice(0, id.length)) );
+	return Provi.Utils.array_cmp(id, own_id.slice(0, id.length) );
     },
     /**
      * @param {array|Provi.Bio.Smcra.Entity|Provi.Bio.Smcra.Atom} id The id to look for, also in form of an smcra entity or atom.
@@ -793,7 +833,11 @@ Provi.Bio.Smcra.PropertyMapVisBuilderWidget.prototype = Utils.extend(Provi.Widge
 	    }else{
 		var options = {
 		    slice: -property_map.key_length,
-		    key_fn: function(p){ return p && typeof p === 'object' ? (typeof p[ property_name ] === 'function' ? p[ property_name ]() : p[ property_name ]) : p; },
+		    key_fn: function(p){
+			return p && typeof p === 'object' ?
+			    (typeof p[ property_name ] === 'function' ? p[ property_name ]() : p[ property_name ]) :
+			    p;
+		    },
 		    is_atomic: true,
 		    info: (property_map._property_names[ property_name ] || property_name ) + ' - ' + property_map.info + '',
 		    template: $.template( '<div>' + (property_map._property_names[ property_name ] || property_name ) + ': ${content}</div>' )

@@ -78,7 +78,7 @@
 				.css(opts.split, splitter._DA-bar._DA-newPos).css(opts.fixed,  splitter._DF);
 			// IE fires resize for us; all others pay cash
 			if ( !$.browser.msie )
-				panes.trigger("resize");
+				panes.triggerHandler("resize");
 		}
 		function dimSum(jq, dims) {
 			// Opera returns -1 for missing min/max width, turn into 0
@@ -186,12 +186,12 @@
 				var top = splitter.offset().top;
 				var wh = $(window).height();
 				splitter.css("height", Math.max(wh-top-splitter._hadjust, splitter._hmin)+"px");
-				if ( !$.browser.msie ) splitter.trigger("resize");
-			}).trigger("resize");
+				if ( !$.browser.msie ) splitter.triggerHandler("resize");
+			}).triggerHandler("resize");
 		}
 		else if ( opts.resizeToWidth && !$.browser.msie )
 			$(window).bind("resize", function(){
-				splitter.trigger("resize"); 
+				splitter.triggerHandler("resize"); 
 			});
 
 		// Resize event handler; triggered immediately to set initial position
@@ -206,7 +206,7 @@
 			// Re-divvy the adjustable dimension; maintain size of the preferred pane
 			resplit(!isNaN(size)? size : (!(opts.sizeRight||opts.sizeBottom)? A[0][opts.pxSplit] :
 				splitter._DA-B[0][opts.pxSplit]-bar._DA));
-		}).trigger("resize" , [initPos]);
+		}).triggerHandler("resize" , [initPos]);
 	});
 };
 
