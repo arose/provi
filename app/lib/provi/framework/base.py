@@ -198,13 +198,16 @@ class DefaultWebTransaction( object ):
         self.environ = environ
         self.request = Request( environ )
         self.response = Response()
+        #self.session = self.environ['beaker.session']
     @lazy_property
     def session( self ):
         """
-        Get the user's session state. This is laze since we rarely use it
+        Get the user's session state. This is lazy since we rarely use it
         and the creation/serialization cost is high.
         """
         if 'beaker.session' in self.environ:
+            return self.environ['beaker.session']
+        elif 'beaker.session' in self.environ:
             return self.environ['beaker.session']
         else:
             return None

@@ -5,6 +5,303 @@
  */
 
 
+
+
+/*
+ * jsTree checkbox plugin
+ * Inserts checkboxes in front of every node
+ * Depends on the ui plugin
+ * DOES NOT WORK NICELY WITH MULTITREE DRAG'N'DROP
+ */
+(function ($) {
+    $.jstree.plugin("checkbox_grid", {
+        __init : function () {
+
+            this.get_container()
+                .bind("open_node.jstree create_node.jstree clean_node.jstree refresh.jstree", $.proxy(function (e, data) { 
+                    this._prepare_checkboxes(data.rslt.obj);
+                }, this))
+                .bind("loaded.jstree", $.proxy(function (e) {
+                    this._prepare_checkboxes();
+                }, this))
+                .delegate( "ins.jstree-checkbox" , "click.jstree", $.proxy(function (e) {
+                    e.preventDefault();
+                    var column = $(e.target).index() + 1;
+                    console.log('CHECKBOX GRID CLICK', e, e.target, column);
+                    if( $(e.target).hasClass("jstree-checked") ) {
+                        this.uncheck_node(e.target, column);
+                    }else{
+                        this.check_node(e.target, column);
+                    }
+                }, this));
+        },
+        defaults : {
+            columns: 1,
+            checked_parent_open : true
+        },
+        __destroy : function () {
+            this.get_container()
+                .find("ins.jstree-checkbox").remove();
+        },
+        _fn : {
+            //???
+            _checkbox_notify : function (n, data) {
+                if(data.checked) {
+                    this.check_node(n, false);
+                }
+            },
+            _prepare_checkboxes : function (obj) {
+                obj = !obj || obj == -1 ? this.get_container().find("> ul > li") : this._get_node(obj);
+                if(obj === false) { return; } // added for removing root nodes
+                var checkbox_grid,
+                    _this = this,
+                    columns = this._get_settings().checkbox_grid.columns;
+                
+                checkbox = {};
+                checkbox_grid = "<span class='jstree-checkbox-grid'>";
+                for(var col = 1; col <= columns; ++col){
+                    checkbox[col] = obj.children("a").children("span.jstree-checkbox-grid").children("ins:nth-child(" + col + ")");
+                    checkbox_grid += "<ins class='jstree-checkbox'>&#160;</ins>";
+                }
+                checkbox_grid += "</span>";
+                
+                
+                
+                obj.each(function () {
+                    $(this).find("li").andSelf().each(function () {
+                        var $t = $(this);
+                        var $added = $t.children( "a:eq(0)" )
+                            .not(":has(span.jstree-checkbox-grid)")
+                            .prepend( checkbox_grid ).parent();
+                        for(var col = 1; col <= columns; ++col){
+                            
+                            $added.children("a").children("span.jstree-checkbox-grid").children("ins:nth-child(" + col + ")")
+                                .addClass( checkbox[col].hasClass("jstree-checked") ? "jstree-checked" : "jstree-unchecked" );
+                        }
+                    });
+                });
+                if(obj.length === 1 && obj.is("li")) {
+                    this._repair_state(obj);
+                }else if(obj.is("li")) {
+                    obj.each(function () {
+                        _this._repair_state(this);
+                    });
+                }else{
+                    obj.find("> ul > li").each(function () {
+                        _this._repair_state(this);
+                    });
+                }
+                // if a child is checked, repair from this parent on
+                if(false){
+                    obj.parent().parent().each(function () {
+                        _this._repair_state(this);
+                    });
+                }
+		//obj.find("li").parent().parent().each(function () { _this._repair_state(this); });
+            },
+            change_state : function (obj, column, state) {
+                timer = new Provi.Debug.timer({name:"tree checkbox grid"});
+                obj = this._get_node(obj);
+                //console.log( 'CHANGE_STATE', obj );
+                //
+                timer.start('99');
+                var checkbox = obj.children("a").children("span.jstree-checkbox-grid").children("ins:nth-child(" + column + ")");
+                timer.stop('101');
+                //console.log( "CHECKBOX", checkbox );
+                
+                if(!obj || obj === -1) { return false; }
+                state = (state === false || state === true) ? state : checkbox.hasClass("jstree-checked");
+                timer.start('106');
+                var coll = obj.children("ul").find("li").children("a").children("span.jstree-checkbox-grid")
+                    .children("ins:nth-child(" + column + ")").add(checkbox);
+                if(state) {
+                    //console.log('COLL', coll);
+                    if(!coll.filter(".jstree-checked, .jstree-undetermined").length) { return false; }
+                    coll.removeClass("jstree-checked jstree-undetermined").addClass("jstree-unchecked"); 
+                }else{ 
+                    //console.log('COLL', coll);
+                    if(!coll.filter(".jstree-unchecked, .jstree-undetermined").length) { return false; }
+                    coll.removeClass("jstree-unchecked jstree-undetermined").addClass("jstree-checked"); 
+                }
+                timer.stop('118');
+                
+                obj.parentsUntil(".jstree", "li").each(function () {
+                    var $this = $(this);
+
+                    if(state) {
+                        timer.start('132');
+                        var checked_parents = $this.children("ul").children("li").children("a")
+                        //var checked_parents = $this.children("> ul li a")
+                            .children("span.jstree-checkbox-grid")
+                            .children("ins:nth-child(" + column + ").jstree-checked, " +
+                                  "ins:nth-child(" + column + ").jstree-undetermined");
+                        timer.stop('138');
+                        
+                        if( checked_parents.length) {
+                            timer.start('141');
+                            $this.parentsUntil(".jstree", "li").children("a")
+                                .children("span.jstree-checkbox-grid")
+                                .children("ins:nth-child(" + column + ")")
+                                .add( $this.children("a").find("span.jstree-checkbox-grid ins:nth-child(" + column + ")") )
+                                .removeClass("jstree-checked jstree-unchecked")
+                                .addClass("jstree-undetermined");
+                            timer.stop('148')
+                            return false;
+                        }else{
+                            timer.start('151');
+                            $this.children("a").children("span.jstree-checkbox-grid")
+                                .children("ins:nth-child(" + column + ")")
+                                .removeClass("jstree-checked jstree-undetermined").addClass("jstree-unchecked");
+                            timer.stop('155');
+                        }
+                    }else{
+                        timer.start('158');
+                        var unchecked_parents = $this.children("ul").children("li").children("a")
+                            .children("span.jstree-checkbox-grid")
+                            .children("ins:nth-child(" + column + ").jstree-unchecked, " +
+                                  "ins:nth-child(" + column + ").jstree-undetermined");
+                        timer.stop('163');
+                        if( unchecked_parents.length) {
+                            timer.start('165');
+                            $this.parentsUntil(".jstree", "li").children("a")
+                                .children("span.jstree-checkbox-grid ")
+                                .children("ins:nth-child(" + column + ")")
+                                .add( $this.children("a").find("span.jstree-checkbox-grid ins:nth-child(" + column + ")") )
+                                .removeClass("jstree-checked jstree-unchecked")
+                                .addClass("jstree-undetermined");
+                            timer.stop('172');
+                            return false;
+                        }else{
+                            timer.start('175');
+                            $this.children("a").children("span.jstree-checkbox-grid")
+                                .children("ins:nth-child(" + column + ")")
+                                .removeClass("jstree-unchecked jstree-undetermined").addClass("jstree-checked");
+                            timer.stop('178');
+                        }
+                    }
+                    return true;
+                });
+                this.__callback(obj);
+                return true;
+            },
+            check_node : function (obj, column) {
+                if(this.change_state(obj, column, false)) { 
+                    obj = this._get_node(obj);
+                    if(this._get_settings().checkbox_grid.checked_parent_open) {
+                        var t = this;
+                        obj.parents(".jstree-closed").each(function () { t.open_node(this, false, true); });
+                    }
+                    this.__callback({ "obj" : obj }); 
+                }
+            },
+            uncheck_node : function (obj, column) {
+                if(this.change_state(obj, column, true)) { this.__callback({ "obj" : this._get_node(obj) }); }
+            },
+                check_all : function () {
+                        var _this = this, 
+                                coll = this._get_settings().checkbox.two_state ? this.get_container_ul().find("li") : this.get_container_ul().children("li");
+                        coll.each(function () {
+                                _this.change_state(this, false);
+                        });
+                        this.__callback();
+                },
+            uncheck_all : function (column) {
+                //console.log('uncheck_all');
+                var _this = this;
+                this.get_container_ul().children("li").each(function () {
+                    _this.change_state(this, column, true);
+                });
+                this.__callback();
+            },
+
+                is_checked : function(obj) {
+                        obj = this._get_node(obj);
+                        return obj.length ? obj.is(".jstree-checked") : false;
+                },
+            get_checked : function (obj, column, all) {
+                console.log(column);
+                obj = !obj || obj === -1 ? this.get_container() : this._get_node(obj);
+                //console.log(obj);
+                if( all ){
+                    return obj.find( "li span ins:nth-child(" + column + ").jstree-checked" ).parent().parent().parent();
+                }else{
+                    var undetermined = obj.find( "ins:nth-child(" + column + ").jstree-undetermined" ).parent().parent().parent();
+                    return obj.add( undetermined )
+                        .find( "> ul > li > a > span ins:nth-child(" + column + ").jstree-checked" )
+                        .parent().parent().parent();
+                }
+            },
+                get_unchecked : function (obj, get_all) { 
+                        obj = !obj || obj === -1 ? this.get_container() : this._get_node(obj);
+                        return get_all || this._get_settings().checkbox.two_state ? obj.find(".jstree-unchecked") : obj.find("> ul > .jstree-unchecked, .jstree-undetermined > ul > .jstree-unchecked");
+                },
+                show_checkboxes : function () {
+                    this.get_container().children("ul").removeClass("jstree-no-checkboxes");
+                },
+                hide_checkboxes : function () {
+                    this.get_container().children("ul").addClass("jstree-no-checkboxes");
+                },
+                _repair_state : function (obj) {
+                    // not needed until added nodes bring an initial state, or is it?
+                    return;
+                    obj = this._get_node(obj);
+                    if(!obj.length) { return; }
+                    //var a = obj.find("> ul > .jstree-checked").length,
+                    //    b = obj.find("> ul > .jstree-undetermined").length,
+                    //    c = obj.find("> ul > li").length;
+                        
+                    var a, b, c, checkbox;
+                    var columns = this._get_settings().checkbox_grid.columns;
+                    console.log(obj);
+                    for( var col = 1; col <= columns; ++col ){
+                        console.log(col, columns);
+                        a = obj.children("ul").children("li").children("span.jstree-checkbox-grid")
+                            .children(":nth-child(" + col + ").jstree-checked").length;
+                        b = obj.children("ul").children("li").children("span.jstree-checkbox-grid")
+                            .children(":nth-child(" + col + ").jstree-undetermined").length;
+                        c = obj.children("ul").children("li").length;
+                        console.log("abc", a,b,c);
+                        if(c === 0) {
+                            checkbox = obj.children("a").children("span.jstree-checkbox-grid").children(":nth-child(" + col + ")");
+                            if(checkbox.hasClass("jstree-undetermined")) {
+                                this.change_state(obj, col, false);
+                            }
+                        }else if(a === 0 && b === 0){
+                            this.change_state(obj, col, true);
+                        }else if(a === c){
+                            this.change_state(obj, col, false);
+                        }else{ 
+                            //obj.parentsUntil(".jstree","li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
+                            obj.parentsUntil(".jstree", "li").children("a")
+                                .children("span.jstree-checkbox-grid")
+                                .children(":nth-child(" + column + ")")
+                                .add( obj.children("a").find("span.jstree-checkbox-grid :nth-child(" + col + ")") )
+                                .removeClass("jstree-checked jstree-unchecked")
+                                .addClass("jstree-undetermined");
+                        }
+                    }
+                },
+                reselect : function () {
+                    this.__call_old(); 
+                },
+                save_loaded : function () {
+                    var _this = this;
+                    this.data.core.to_load = [];
+                    this.get_container_ul().find("li.jstree-closed.jstree-undetermined").each(function () {
+                            if(this.id) { _this.data.core.to_load.push("#" + this.id); }
+                    });
+                }
+        }
+    });
+    $(function() {
+            var css_string = '.jstree .jstree-real-checkbox { display:none; } ';
+            $.vakata.css.add_sheet({ str : css_string, title : "jstree" });
+    });
+})(jQuery);
+//*/
+
+
+
 /**
     A function for the Array object to reduce an array to unique elements
     @function
@@ -157,6 +454,47 @@ if (!Array.prototype.reduce)
 
     return rv;
   };
+}
+
+
+if (!Array.prototype.map)
+{
+  Array.prototype.map = function(fun /*, thisp */)
+  {
+    "use strict";
+
+    if (this === void 0 || this === null)
+      throw new TypeError();
+
+    var t = Object(this);
+    var len = t.length >>> 0;
+    if (typeof fun !== "function")
+      throw new TypeError();
+
+    var res = new Array(len);
+    var thisp = arguments[1];
+    for (var i = 0; i < len; i++)
+    {
+      if (i in t)
+        res[i] = fun.call(thisp, t[i], i, t);
+    }
+
+    return res;
+  };
+}
+
+
+if(!Object.keys){
+    Object.keys = function(o){
+        if (o !== Object(o)){
+            throw new TypeError('Object.keys called on non-object');
+        }
+        var ret=[],p;
+        for(p in o){
+            if(Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
+        }
+        return ret;
+    };
 }
 
 
@@ -323,8 +661,7 @@ Provi.Utils.wait = function(timeout, checkFn, onEndFn) {
 
 Provi.Utils.pause = function(ms){
     var start_date = new Date();
-    var current_date = new Date();
-    do{ current_date = new Date() }
+    do{ var current_date = new Date() }
     while( current_date - start_date < ms );
 }
 
@@ -352,6 +689,38 @@ Provi.Utils.in_array = function(array, item, testFn) {
     }
     return false;
 }
+
+/**
+ * http://zeeohemgee.blogspot.com/2006/07/comparing-and-copying-arrays-in.html
+ */
+//Check if two arrays' contents are the same
+//returns true if they are, otherwise false
+Provi.Utils.array_cmp = function(a,b)
+{
+  //Check if the arrays are undefined/null
+  if(!a || !b)
+    return false;
+
+  //first compare their lengths
+  if(a.length == b.length)
+  {
+    //go thru all the vars
+    for(var i = 0; i < a.length;i++)
+    {
+      //if the var is an array, we need to make a recursive check
+      //otherwise we'll just compare the values
+      if(typeof a[i] == 'object') {
+        if(!Provi.Utils.array_cmp(a[i],b[i]))
+          return false;
+      }
+      else if(a[i] != b[i])
+        return false;
+    }
+    return true;
+  }
+  else return false;
+}
+
 
 /**
  * http://james.padolsey.com/javascript/wordwrap-for-javascript/

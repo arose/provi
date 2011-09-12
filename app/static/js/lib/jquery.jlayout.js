@@ -63,11 +63,11 @@ if (jQuery && jLayout) {
 						}
 						if (typeof value.width === 'number') {
 							tmp.width = (value.width - (item.outerWidth(true) - item.width()));
-							tmp.width = (tmp.width > 0) ? tmp.width : 1;
+							tmp.width = (tmp.width >= 0) ? tmp.width : 0;
 						}
 						if (typeof value.height === 'number') {
 							tmp.height = value.height - (item.outerHeight(true) - item.height());
-							tmp.height = (tmp.height > 0) ? tmp.height : 1;
+							tmp.height = (tmp.height >= 0) ? tmp.height : 0;
 						}
 						item.css(tmp);
 						return item;
@@ -85,7 +85,7 @@ if (jQuery && jLayout) {
 					var minSize,
 						maxSize,
 						margin = item.margin(),
-						size = {width: 1, height: 1},
+						size = {width: 0, height: 0},
                         l = item.data('jlayout');
 
 					if (l && resize) {

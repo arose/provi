@@ -8,15 +8,23 @@
  * @class
  */
 Provi.Data.Controller.StructureMixin = {
-    available_widgets: {},
+    available_widgets: {
+	'StructureWidget': Provi.Bio.Structure.StructureWidget
+    },
     load_params_widget: [{
         name: 'load_as',
         obj: Provi.Jmol.JmolLoadAsSelectorWidget,
         getter: 'get_value'
     }],
     init: function(params){
+	if( params.applet ){
+	    new Provi.Bio.Structure.StructureWidget( $.extend( params, {
+		parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+		dataset: this
+	    }));
+	}
         if( typeof(params) == 'object' && params.applet && params.load_as ){
-            this.load( params.applet, params.load_as, params.style );
+            //this.load( params.applet, params.load_as, params.style );
         }
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
@@ -126,7 +134,7 @@ Provi.Data.Controller.StructureMixin = {
             }
         });
         
-        //console.log(m);
+        console.log(m);
         self.set_data( s );
         new Provi.Bio.Sequence.TreeViewWidget({
             parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,

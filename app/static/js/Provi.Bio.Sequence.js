@@ -24,7 +24,7 @@ var Utils = Provi.Utils;
 /** @exports Widget as Provi.Widget.Widget */
 var Widget = Provi.Widget.Widget;
 
-var toggle_type = Provi.Utils.Protovis.toggle_type;
+var toggle_type = {};//Provi.Utils.Protovis.toggle_type;
 
 var Sequence = {};
 
@@ -277,7 +277,7 @@ Provi.Bio.Sequence.TreeViewWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	return this.applet ? this.applet : this.applet_selector.get_value(true);
     },
     select: function( e, selection, applet, selection_string ){
-	applet.script_wait( 'selectionHalos On; select {' + selection_string + '};' );
+	applet.script_wait( 'select {' + selection_string + '};' );
     },
     _tree_view: function(){
         var self = this;

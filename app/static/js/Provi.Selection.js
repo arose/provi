@@ -70,6 +70,7 @@ Provi.Selection.Selection.prototype = /** @lends Provi.Selection.Selection.proto
 	//this._select( this.selection );
     },
     deselect: function() {
+	if(!this.selection) return;
 	selection = 'selected and not ( ' + this.selection + ' )';
 	//console.log( 'deselect', selection );
 	this._select( selection );
@@ -83,8 +84,10 @@ Provi.Selection.Selection.prototype = /** @lends Provi.Selection.Selection.proto
 	this.applet.script_wait('show SELECTED;'); // needed, otherwise 'evaluate' sometimes chokes on the 'selected' variable
         var format = '\'%[atomno]\',%[resno],\'%[chain]\',\'%[model]\',\'%[file]\'';
 	var sele = this.applet.atoms_property_map( format, selection );
-	
+	if(sele == 'ERROR') return false;
+	//console.log(sele);
 	sele = $.map( sele, function(e, i){
+	    if(!e) return {};
 	    var model_file = e[3].split('.');
 	    if (model_file.length >= 2){
 		var model = model_file[1];
@@ -151,6 +154,10 @@ Provi.Selection.SelectionManager.prototype = /** @lends Provi.Selection.Selectio
     select: function( selection, persist ){
 	var sele = new Provi.Selection.Selection({ selection: selection, applet: this.applet, persist: persist });
 	sele.select();
+    },
+    deselect: function( selection, persist ){
+	var sele = new Provi.Selection.Selection({ selection: selection, applet: this.applet, persist: persist });
+	sele.deselect();
     },
     sync: function(){
 	this.select('selected');

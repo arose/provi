@@ -41,6 +41,8 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.VoronoiaMixin );
     }else if( type == 'ndx' ){
         $.extend( obj, Ctrl.NdxMixin );
+    }else if( type == 'story' ){
+        $.extend( obj, Ctrl.StoryMixin );
     }else{
         console.log('unkown file type', obj, type);
     }
