@@ -746,7 +746,7 @@ Provi.Utils.wordwrap = function( str, width, brk, cut ) {
 /**
  * http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric/1830844#1830844
  */
-function isNumber(n) {
+Provi.Utils.isNumber = function(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
