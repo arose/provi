@@ -315,6 +315,10 @@ Provi.Selection.SelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi
 	    return new Provi.Selection.Selection({ applet: this.applet, selection: '' });
 	}
     },
+    set_input: function(sele){
+	$("#" + this.selection_id).val( sele );
+	$("#" + this.selector_id).val('');
+    },
     set_applet: function(applet){
 	var self = this;
 	this.applet = applet;

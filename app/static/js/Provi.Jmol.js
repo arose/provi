@@ -772,6 +772,11 @@ Provi.Jmol.JmolWidget = function(params){
 	});
     }
     
+    this.plot_widget = new Provi.Jmol.Analysis.PlotWidget({
+	parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+	applet: this.applet
+    });
+    
     $('#' + this.more_id).trigger('click');
 //    $(this.dom).resizable({
 //	stop: layout_main
