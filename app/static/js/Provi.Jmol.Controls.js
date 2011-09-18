@@ -254,6 +254,7 @@ Provi.Jmol.Controls.ClippingManager.prototype = Utils.extend( Provi.Jmol.Control
 	slab_by_molecule: "slabByMolecule"
     },
     _command: function( names ){
+	//this.applet.lighting_manager.set({z_depth: (this.depth||0), z_slab: (this.depth||0)+30});
 	names = names || this.names.slice();
 	if( this.slab_range ) names.removeItems( "slab" );
 	return '' +
