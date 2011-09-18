@@ -1,0 +1,347 @@
+# Jmol state version 12.1.50  2011-06-18 00:12;
+  # fullName = "jmol_applet_1__1750306370668113__";
+  # documentBase = "http://127.0.0.1:7272/static/html/provi.html?debug=1&test=1#";
+  # codeBase = "http://127.0.0.1:7272/jmol/current/3/";
+
+
+function _setWindowState() {
+# height 603;
+# width 881;
+  stateVersion = 1201050;
+  background [xffffff];
+  axis1Color = "[xff0000]";
+  axis2Color = "[x008000]";
+  axis3Color = "[x0000ff]";
+  set ambientPercent 45;
+  set diffusePercent 84;
+  set specular true;
+  set specularPercent 22;
+  set specularPower 40;
+  set specularExponent 6;
+  set zShadePower 3;
+  statusReporting  = true;
+}
+
+function _setFileState() {
+
+  set allowEmbeddedScripts false;
+  set appendNew true;
+  set appletProxy "";
+  set applySymmetryToBonds false;
+  set autoBond true;
+  set bondRadiusMilliAngstroms 150;
+  set bondTolerance 0.45;
+  set defaultLattice {0.0 0.0 0.0};
+  set defaultLoadFilter "";
+  set defaultLoadScript "";
+  set defaultStructureDssp true;
+  set defaultVDW Auto;
+  set forceAutoBond false;
+  #set defaultDirectory "";
+  #set loadFormat "http://www.rcsb.org/pdb/files/%FILE.pdb.gz";
+  #set smilesUrlFormat "http://cactus.nci.nih.gov/chemical/structure/%FILE/file?format=sdf&get3d=True";
+  #set nihResolverFormat "http://cactus.nci.nih.gov/chemical/structure/%FILE";
+  #set edsUrlFormat "http://eds.bmc.uu.se/eds/dfs/%LC13/%LCFILE/%LCFILE.omap";
+  #set edsUrlCutoff "load('http://eds.bmc.uu.se/eds/dfs/%LC13/%LCFILE/%LCFILE.sfdat').lines.find('MAP_SIGMA').split(' ')[2]";
+  set legacyAutoBonding false;
+  set minBondDistance 0.4;
+  set minimizationCriterion  0.0010;
+  set minimizationSteps  100;
+  set pdbGetHeader false;
+  set pdbSequential false;
+  set percentVdwAtom 23;
+  set smallMoleculeMaxAtoms 40000;
+  set smartAromatic true;
+  load /*file*/"http://127.0.0.1:7272/data/get/?id=2&data_action=get_pdb";
+
+}
+
+function _setVariableState() {
+
+   set defaultanglelabel "%VALUE %UNITS";
+   set defaultcolorscheme "Jmol";
+   set defaultdistancelabel "%VALUE %UNITS";
+   set defaultdrawarrowscale 0.5;
+   set defaultlabelpdb "%m%r";
+   set defaultlabelxyz "%a";
+   set defaultlattice "{0 0 0}";
+   set defaultloadfilter "";
+   set defaultloadscript "";
+   set defaulttorsionlabel "%VALUE %UNITS";
+   set defaulttranslucent 0.5;
+   set defaultvdw "Auto";
+  set allowembeddedscripts true;
+  set allowmoveatoms false;
+  set allowrotateselected false;
+  set appletproxy "";
+  set applysymmetrytobonds false;
+  set atompicking true;
+  set atomtypes "";
+  set autobond true;
+  set autofps false;
+  set axes window;
+  set axesmode 0;
+  set axesscale 2.0;
+  set bondmodeor false;
+  set bondradiusmilliangstroms 150;
+  set bondtolerance 0.45;
+  set cartoonbaseedges false;
+  set cartoonrockets false;
+  set chaincasesensitive false;
+  set dataseparator "~~~";
+  set defaultstructuredssp true;
+  set delaymaximumms 0;
+  set dipolescale 1.0;
+  set disablepopupmenu false;
+  set displaycellparameters true;
+  set dotdensity 3;
+  set dotscale 1;
+  set dotsselectedonly false;
+  set dotsurface true;
+  set dragselected false;
+  set drawhover false;
+  set drawpicking false;
+  set dsspcalculatehydrogenalways true;
+  set dynamicmeasurements false;
+  set ellipsoidarcs false;
+  set ellipsoidaxes false;
+  set ellipsoidaxisdiameter 0.02;
+  set ellipsoidball true;
+  set ellipsoiddotcount 200;
+  set ellipsoiddots false;
+  set ellipsoidfill false;
+  set forceautobond false;
+  set fractionalrelative false;
+  set gestureswipefactor 1.0;
+  set greyscalerendering false;
+  set hbondsangleminimum 90.0;
+  set hbondsbackbone false;
+  set hbondsdistancemaximum 3.25;
+  set hbondsrasmol true;
+  set hbondssolid false;
+  set helixstep 1;
+  set helppath "http://chemapps.stolaf.edu/jmol/docs/index.htm";
+  set hermitelevel 0;
+  set hidenameinpopup false;
+  set hidenavigationpoint false;
+  set highresolution false;
+  set historylevel 0;
+  set hoverdelay 0.5;
+  set imagestate true;
+  set iskiosk false;
+  set isosurfacepropertysmoothing true;
+  set isosurfacepropertysmoothingpower 7;
+  set justifymeasurements false;
+  set loadatomdatatolerance 0.01;
+  set measureallmodels false;
+  set measurementlabels true;
+  set messagestylechime false;
+  set minbonddistance 0.4;
+  set minimizationcriterion 0.0010;
+  set minimizationrefresh true;
+  set minimizationsilent false;
+  set minimizationsteps 100;
+  set monitorenergy false;
+  set multiplebondradiusfactor 0.0;
+  set multiplebondspacing -1.0;
+  set navigatesurface false;
+  set navigationperiodic false;
+  set navigationspeed 5.0;
+  set partialdots false;
+  set pdbgetheader false;
+  set pdbsequential false;
+  set percentvdwatom 23;
+  set pickingspinrate 10;
+  set picklabel "";
+  set pointgroupdistancetolerance 0.2;
+  set pointgrouplineartolerance 8.0;
+  set propertyatomnumbercolumncount 0;
+  set propertyatomnumberfield 0;
+  set propertycolorscheme "roygb";
+  set propertydatacolumncount 0;
+  set propertydatafield 0;
+  set quaternionframe "p";
+  set rangeselected false;
+  set ribbonaspectratio 16;
+  set ribbonborder false;
+  set rocketbarrels false;
+  set saveproteinstructurestate true;
+  set selectallmodels true;
+  set selecthetero true;
+  set selecthydrogen true;
+  set sheetsmoothing 1.0;
+  set showhiddenselectionhalos false;
+  set showhydrogens true;
+  set showkeystrokes true;
+  set showmeasurements true;
+  set showmultiplebonds true;
+  set shownavigationpointalways false;
+  set slabbyatom false;
+  set slabbymolecule false;
+  set smallmoleculemaxatoms 40000;
+  set smartaromatic true;
+  set solventprobe false;
+  set solventproberadius 1.2;
+  set ssbondsbackbone false;
+  set stereodegrees -5;
+  set strandcountformeshribbon 7;
+  set strandcountforstrands 5;
+  set strutdefaultradius 0.3;
+  set strutlengthmaximum 7.0;
+  set strutsmultiple false;
+  set strutspacing 6;
+  set testflag1 false;
+  set testflag2 false;
+  set testflag3 false;
+  set testflag4 false;
+  set tracealpha true;
+  set usearcball false;
+  set useminimizationthread true;
+  set usenumberlocalization true;
+  set vectorscale 1.0;
+  set vibrationscale 1.0;
+  set wireframerotation false;
+  set zdepth 1;
+  set zoomlarge true;
+  set zslab 11;
+
+# label defaults;
+  select none;
+  color label none;
+  background label none;
+  set labelOffset 4 4;
+  set labelAlignment left;
+  set labelPointer off;
+  font label 13.0 SansSerif Plain;
+
+}
+
+function _setModelState() {
+
+  structure none ({0:2853})    	# model=1.1;
+  structure sheet ({20:39})    	# model=1.1 & (4 - 6);
+  structure turn ({40:54})    	# model=1.1 & (7 - 8);
+  structure sheet ({55:84})    	# model=1.1 & (9 - 11);
+  structure helix310 ({109:132})    	# model=1.1 & (15 - 17);
+  structure turn ({168:194})    	# model=1.1 & (23 - 25);
+  structure helix310 ({216:247})    	# model=1.1 & (29 - 31);
+  structure helixalpha ({262:519})    	# model=1.1 & (34 - 64);
+  structure helix310 ({530:555})    	# model=1.1 & (66 - 68);
+  structure helix310 ({574:596})    	# model=1.1 & (71 - 73);
+  structure helixalpha ({597:722})    	# model=1.1 & (74 - 89);
+  structure turn ({723:726})    	# model=1.1 & (90 - 90);
+  structure helixalpha ({727:791})    	# model=1.1 & (91 - 98);
+  structure turn ({792:813})    	# model=1.1 & (99 - 101);
+  structure turn ({837:854})    	# model=1.1 & (104 - 105);
+  structure helixalpha ({855:1113})    	# model=1.1 & (106 - 140);
+  structure turn ({1138:1151})    	# model=1.1 & (144 - 145);
+  structure helixalpha ({1189:1355})    	# model=1.1 & (150 - 172);
+  structure turn ({1356:1366})    	# model=1.1 & (173 - 174);
+  structure sheet ({1398:1424})    	# model=1.1 & (178 - 180);
+  structure turn ({1434:1454})    	# model=1.1 & (182 - 184);
+  structure sheet ({1467:1484})    	# model=1.1 & (187 - 189);
+  structure turn ({1541:1573})    	# model=1.1 & (196 - 199);
+  structure helixalpha ({1574:1667})    	# model=1.1 & (200 - 210);
+  structure turn ({1668:1688})    	# model=1.1 & (211 - 212);
+  structure helixalpha ({1689:1868})    	# model=1.1 & (213 - 235);
+  structure turn ({1869:1877})    	# model=1.1 & (236 - 236);
+  structure turn ({1887:1904})    	# model=1.1 & (238 - 239);
+  structure helixalpha ({1911:2189})    	# model=1.1 & (241 - 275);
+  structure turn ({2190:2207})    	# model=1.1 & (276 - 277);
+  structure turn ({2260:2293})    	# model=1.1 & (285 - 288);
+  structure helixalpha ({2294:2435})    	# model=1.1 & (289 - 306);
+  structure turn ({2436:2451})    	# model=1.1 & (307 - 308);
+  structure helixalpha ({2468:2558})    	# model=1.1 & (311 - 321);
+  structure turn ({2559:2564})    	# model=1.1 & (322 - 322);
+  structure helixalpha ({2600:2649})    	# model=1.1 & (341 - 346);
+  structure turn ({2650:2659})    	# model=1.1 & (347 - 348);
+
+  select ({2852 2853});
+  Spacefill 0.34;
+  select ({2680:2851});
+  Spacefill 0.5;
+  select ({0:2679});
+  Spacefill 0.0;
+  select ({270:273 276 279 281 282 285:287 304:324 326:337 339:346 352:354 356:368 370:373 379:381 384:405 414:430 432:435 445 447:456 459:462 471:489 498:522 525:538 540 541 550 551 556:571 573:575 578:580 590:594 597:609 623 624 626:639 655:660 675:692 706 708:722 739:751 756:758 760:769 771:777 796:799 834:836 848:854 873:877 884:887 891:904 916:922 924 927:933 951:953 1001:1005 1024 1025 1028:1033 1041 1048:1056 1059:1061 1063 1072:1074 1079:1086 1091:1093 1109:1113 1123 1124 1127:1129 1131 1134:1137 1141 1153 1156:1162 1179 1180 1182 1184:1191 1193:1218 1221:1240 1242:1255 1257:1263 1272:1291 1297:1299 1306:1318 1330:1340 1349:1356 1360:1362 1367 1368 1371:1380 1426:1431 1433:1436 1438:1440 1442:1446 1456 1457 1459 1461 1462 1465 1466 1570 1571 1583:1588 1590:1598 1609:1613 1615:1634 1647:1667 1676 1677 1685:1688 1690:1704 1713:1734 1737 1738 1743:1764 1769:1776 1783:1795 1805:1813 1815:1818 1820:1823 1826 1827 1840:1844 1959:1973 1975:1979 1988:2004 2009:2012 2014:2035 2041:2043 2046 2048:2063 2076:2090 2112:2125 2139:2149 2151:2153 2155:2171 2174:2179 2194:2200 2202 2205:2207 2214 2216 2217 2253:2255 2268:2271 2273:2281 2283:2285 2295:2310 2313:2315 2317:2331 2333 2336:2342 2352:2356 2359:2363 2376:2393 2411:2431 2433 2436 2445:2462 2464:2466 2468 2469 2472:2475 2498:2509 2512:2514 2523:2536 2539:2541 2543:2580 2584:2589 2591 2653 2657:2665 2667:2670 2679 2778:2797 2813:2851});
+  color atoms opaque [xffa500];
+  select ({0:269 274 275 277 278 280 283 284 288:303 325 338 347:351 355 369 374:378 382 383 406:413 431 436:444 446 457 458 463:470 490:497 523 524 539 542:549 552:555 572 576 577 581:589 595 596 610:622 625 640:654 661:674 693:705 707 723:738 752:755 759 770 778:795 800:833 837:847 855:872 878:883 888:890 905:915 923 925 926 934:950 954:1000 1006:1023 1026 1027 1034:1040 1042:1047 1057 1058 1062 1064:1071 1075:1078 1087:1090 1094:1108 1114:1122 1125 1126 1130 1132 1133 1138:1140 1142:1152 1154 1155 1163:1178 1181 1183 1192 1219 1220 1241 1256 1264:1271 1292:1296 1300:1305 1319:1329 1341:1348 1357:1359 1363:1366 1369 1370 1381:1425 1432 1437 1441 1447:1455 1458 1460 1463 1464 1467:1569 1572:1582 1589 1599:1608 1614 1635:1646 1668:1675 1678:1684 1689 1705:1712 1735 1736 1739:1742 1765:1768 1777:1782 1796:1804 1814 1819 1824 1825 1828:1839 1845:1958 1974 1980:1987 2005:2008 2013 2036:2040 2044 2045 2047 2064:2075 2091:2111 2126:2138 2150 2154 2172 2173 2180:2193 2201 2203 2204 2208:2213 2215 2218:2252 2256:2267 2272 2282 2286:2294 2311 2312 2316 2332 2334 2335 2343:2351 2357 2358 2364:2375 2394:2410 2432 2434 2435 2437:2444 2463 2467 2470 2471 2476:2497 2510 2511 2515:2522 2537 2538 2542 2581:2583 2590 2592:2652 2654:2656 2666 2671:2678 2680:2777 2798:2812 2852 2853});
+  color atoms opaque [x808080];
+  select BONDS ({2765:2906 2908:2923 2925:2940});
+  wireframe 0.16;
+  select BONDS ({8:10 12:16 115 116 118:122 2644:2652 2654 2655 2764 2907 2924});
+  wireframe 0.1;
+  select BONDS ({0:7 11 17:114 117 123:2643 2653 2656:2763});
+  wireframe 0.0;
+
+  measures delete;
+  select *; set measures nanometers;
+  font measures 15.0 SansSerif Plain;
+
+  select ({0:2757});
+  Cartoon on;
+
+  draw delete;
+  draw ID "plane_widget_71_1" POLYGON 4 {-46.290344 -33.878 18.317001} {-49.01046 -33.878 62.337997} {-52.794296 15.8150015 18.317001} {-55.514412 15.8150015 62.337997} 2 [0, 1, 2, 5] [2, 1, 3, 6];
+  draw ID "plane_widget_71_1" fill noMesh noDots notFrontOnly fullylit;
+  color draw translucent 128 [x0000ff];
+  draw ID "plane_widget_71_2" POLYGON 4 {-13.963654 -33.878 18.317001} {-16.683765 -33.878 62.337997} {-20.467606 15.8150015 18.317001} {-23.187717 15.8150015 62.337997} 2 [0, 1, 2, 5] [2, 1, 3, 6];
+  draw ID "plane_widget_71_2" fill noMesh noDots notFrontOnly fullylit;
+  color draw translucent 128 [x0000ff];
+
+  isosurface ID "isosurface_widget_76" select ({270:273 276 279 281 282 285:287 304:324 326:337 339:346 352:354 356:368 370:373 379:381 384:405 414:430 432:435 445 447:456 459:462 471:489 498:522 525:538 540 541 550 551 556:571 573:575 578:580 590:594 597:609 623 624 626:639 655:660 675:692 706 708:722 739:751 756:758 760:769 771:777 796:799 834:836 848:854 873:877 884:887 891:904 916:922 924 927:933 951:953 1001:1005 1024 1025 1028:1033 1041 1048:1056 1059:1061 1063 1072:1074 1079:1086 1091:1093 1109:1113 1123 1124 1127:1129 1131 1134:1137 1141 1153 1156:1162 1179 1180 1182 1184:1191 1193:1218 1221:1240 1242:1255 1257:1263 1272:1291 1297:1299 1306:1318 1330:1340 1349:1356 1360:1362 1367 1368 1371:1380 1426:1431 1433:1436 1438:1440 1442:1446 1456 1457 1459 1461 1462 1465 1466 1570 1571 1583:1588 1590:1598 1609:1613 1615:1634 1647:1667 1676 1677 1685:1688 1690:1704 1713:1734 1737 1738 1743:1764 1769:1776 1783:1795 1805:1813 1815:1818 1820:1823 1826 1827 1840:1844 1959:1973 1975:1979 1988:2004 2009:2012 2014:2035 2041:2043 2046 2048:2063 2076:2090 2112:2125 2139:2149 2151:2153 2155:2171 2174:2179 2194:2200 2202 2205:2207 2214 2216 2217 2253:2255 2268:2271 2273:2281 2283:2285 2295:2310 2313:2315 2317:2331 2333 2336:2342 2352:2356 2359:2363 2376:2393 2411:2431 2433 2436 2445:2462 2464:2466 2468 2469 2472:2475 2498:2509 2512:2514 2523:2536 2539:2541 2543:2580 2584:2589 2591 2653 2657:2665 2667:2670 2679 2778:2797 2813:2851})  resolution 1.0 slab {-0.9896875 -0.12953298 -0.06115405 -49.08114} saSurface 1.2;
+  isosurface ID "isosurface_widget_76" slab {-0.9896875 -0.12953298 -0.06115405 -49.08114};
+  isosurface ID "isosurface_widget_76" fill noMesh noDots notFrontOnly frontlit;
+  color isosurface opaque [xffa500];
+
+  set echo off;
+
+  boundBox off;
+  font boundBox 14.0 SansSerif Plain;
+  boundBox off;
+
+  hover "%U";
+
+  frank on;
+  font frank 16.0 SansSerif Bold;
+  select *;
+  set fontScaling false;
+
+}
+
+function _setPerspectiveState() {
+  set perspectiveModel 11;
+  set scaleAngstromsPerInch 0.0;
+  set perspectiveDepth true;
+  set visualRange 5.0;
+  set cameraDepth 3.0;
+  boundbox ({0:2853});
+  center {-39.008114 -8.656659 38.592598};
+  moveto -1.0 {0 0 1 0} 100.0 0.06 0.08 {-42.718998 -9.031499 40.3275} 47.40357 {0.0 0.0 0.0} 0.0 0.0 0.0;
+  save orientation "default";
+  moveto 0.0 { 673 -244 -698 147.01} 100.0 0.06 0.08 {-39.008114 -8.656659 38.592598} 50.64587 {0.0 0.0 0.0} 35.856926 41.527805 0.0;;
+  slab 100;depth 0;
+  set slabRange 0.0;
+  set zShade;
+  set spinX 0; set spinY 30; set spinZ 0; set spinFps 30;  set navX 0; set navY 0; set navZ 0; set navFps 10;
+}
+
+function _setSelectionState() {
+  set hideNotSelected false;
+}
+
+function _setState() {
+  initialize;
+  set refreshing false;
+  _setWindowState;
+  _setFileState;
+  _setVariableState;
+  _setModelState;
+  _setPerspectiveState;
+  _setSelectionState;
+  set refreshing true;
+  set antialiasDisplay false;
+  set antialiasTranslucent true;
+  set antialiasImages true;
+}
+
+_setState;
