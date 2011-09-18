@@ -190,12 +190,26 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
                 (this.color.charAt(0) == '#' ? '[x' + this.color.substring(1) + ']' : this.color);
             var base_plane = (this.size==-2) ?
                 ('intersection boundbox plane ') :
-                ('plane ' + this.size + ' ')
+                ('plane ' + this.size + ' ');
+            //var p_min, p_max;
+            //var b = eval( this.applet.evaluate(
+            //    '"["+' +
+            //        '"[" + {*}.X.min + "," + {*}.Y.min + "," + {*}.Z.min + "]"' +
+            //    '+","+' +
+            //        '"[" + {*}.X.max + "," + {*}.Y.max + "," + {*}.Z.max + "]"' +
+            //    '+"]"'
+            //));
+            //console.log( b );
+            
+            //p_min = [ b[0][0], b[0][1], -10 ];
+            //p_min = b[0];
+            //p_max = b[1];
             
             var s = 'boundbox {*} OFF;';
+            //var s = 'boundbox CORNERS {' + p_min.join(' ') + '} {' + p_max.join(' ') + '} OFF;';
             s += 'draw ' + base_name + '_1 ' + color + ' ' + base_plane + mp_f[0] + ';';
             s += 'draw ' + base_name + '_2 ' + color + ' ' + base_plane + mp_f[1] + ';';
-                
+            console.log(s);
             this.applet.script(s);
         }else{
             this.applet.script('draw ' + base_name + '_* off;');

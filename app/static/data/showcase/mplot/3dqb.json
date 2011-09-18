@@ -1,5 +1,17 @@
 [
     {
+        "type": "story",
+        "params": {
+            "sort_key": 0,
+            "data": {
+                "pdb_id": "3dqb",
+                "probe_radius": 1.4,
+                "family": "GPCR",
+                "mphd_url": "http://proteinformatics.charite.de/mphd/"
+            }
+        }
+    },
+    {
         "dir": "showcase",
         "filename": "mplot/3dqb.mbn",
         "type": "mbn",

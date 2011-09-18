@@ -31,16 +31,11 @@ var Widget = Provi.Widget.Widget;
 Provi.Jmol.Modeling.JmolModelingWidget = function(params){
     this.picking_select = 'ATOM';
     this.drag_selected = false;
-    this.selection_halos = false;
     Widget.call( this, params );
-    this._build_element_ids([ 'selection_halos', 'picking_select', 'drag_selected', 'rotate_selected', 'rotate_range_begin', 'rotate_range_end', 'rotate_range', 'duplicate_selection', 'applet_selector_widget' ]);
+    this._build_element_ids([ 'picking_select', 'drag_selected', 'rotate_selected', 'rotate_range_begin', 'rotate_range_end', 'rotate_range', 'duplicate_selection', 'applet_selector_widget' ]);
     
     var content = '<div class="control_group">' +
         '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
-	'<div class="control_row">' +
-            '<input id="' + this.selection_halos_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.selection_halos_id + '" style="display:inline-block;">selection halos</label>' +
-        '</div>' +
         '<div class="control_row">' +
             '<label for="' + this.picking_select_id + '">picking select</label>' +
             '<select id="' + this.picking_select_id + '" class="ui-state-default">' +
@@ -79,20 +74,6 @@ Provi.Jmol.Modeling.JmolModelingWidget = function(params){
 Provi.Jmol.Modeling.JmolModelingWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Modeling.JmolModelingWidget.prototype */ {
     _init: function(){
         var self = this;
-	
-	// init selection halos
-        this.selection_halos = $("#" + this.selection_halos_id).is(':checked');
-        $('#' + this.selection_halos_id).click(function(){
-            var applet = self.applet_selector.get_value();
-            if(applet){
-		self.selection_halos = $("#" + self.selection_halos_id).is(':checked');
-		if(self.selection_halos){
-		    applet.script('selectionHalos ON');
-		}else{
-		    applet.script('selectionHalos OFF');
-		}
-            }
-        });
 	
         // init drag selected
         this.drag_selected = $("#" + this.drag_selected_id).is(':checked');
@@ -193,15 +174,12 @@ Provi.Jmol.Modeling.JmolModelingWidget.prototype = Utils.extend(Widget, /** @len
 	var applet = this.applet_selector.get_value();
         if(applet){
 	    applet.script(
-		"selectionHalos OFF;" +
 		"var n = {*}.atomIndex.max;" +
 		"var x = write('coords','pdb');" +
 		"set appendNew OFF;" +
 		"load append '@x';" +
 		"set appendNew ON;" +
-		"select atomIndex > n;" +
-		
-		"selectionHalos ON;"
+		"select atomIndex > n;"
 	    );
 	}
     }
