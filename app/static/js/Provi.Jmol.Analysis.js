@@ -392,4 +392,241 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.
 
 
 
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Analysis.PlotWidget = function(params){
+    params = $.extend(
+        Provi.Jmol.Analysis.PlotWidget.prototype.default_params,
+        params
+    );
+    params.collapsed = true;
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+	'canvas', 'draw', 'selector', 'xaxis', 'yaxis', 'bgimage', 'presets', 'chart'
+    ]);
+    
+    var template = '' +
+	'<div class="control_group">' +
+	    '<div class="control_row">' +
+		'<label for="${eids.presets}">Presets:</label>' +
+		'<select id="${eids.presets}" class="ui-state-default">' +
+		    '<option value=""></option>' +
+		    '<option value="rama"">Ramachandran</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<span id="${eids.selector}"></span>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.xaxis}">X-axis:</label>' +
+		'<select id="${eids.xaxis}" class="ui-state-default">' +
+		    '<option value=""></option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.yaxis}">Y-axis:</label>' +
+		'<select id="${eids.yaxis}" class="ui-state-default">' +
+		    '<option value=""></option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.chart}">Chart type image:</label>' +
+		'<select id="${eids.chart}" class="ui-state-default">' +
+		    '<option value="points">Points</option>' +
+		    '<option value="lines"">Lines</option>' +
+		    '<option value="bars">Bars</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.bgimage}">Background image:</label>' +
+		'<select id="${eids.bgimage}" class="ui-state-default">' +
+		    '<option value=""></option>' +
+		    '<option value="rama_general"">Ramachandran: General</option>' +
+		    '<option value="rama_glycine">Ramachandran: Glycine</option>' +
+		    '<option value="rama_pre-pro">Ramachandran: Pre-Pro</option>' +
+		    '<option value="rama_proline">Ramachandran: Proline</option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<button id="${eids.draw}">draw</button>' +
+	    '</div>' +
+	'</div>' +
+	'<div class="control_group">' +
+	    '<div class="control_row" style="width:300px; height:300px;" id="${eids.canvas}"></div>' +
+        '</div>' +
+	'';
+    
+    this.add_content( template, params );
+    
+    this.selector = new Provi.Selection.SelectorWidget({
+        parent_id: this.eid('selector'),
+	applet: params.applet,
+	tag_name: 'span'
+    });
+    
+    this._init();
+}
+Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.PlotWidget.prototype */ {
+    default_params: {
+        persist_on_applet_delete: true
+    },
+    _init: function(){
+        var self = this;
+	
+	this.data_types = {
+	    'res': {
+		label: 'Residue',
+		format: "'%[group]', '%[resNo]', '%[chain]'",
+		value: function(d){ return d[1]; },
+		min: function(d){ return _.min(d) },
+		max: function(d){ return _.max(d) }
+	    },
+	    'atom': {
+		label: 'Atom',
+		format: "'%[group]', '%[resNo]', '%[chain]', '%[atomName]'"
+	    },
+	    'psi': {
+		label: 'Psi',
+		format: '%[psi]',
+		value: function(d){ return d[0]; },
+		min: function(){ return -180 },
+		max: function(){ return 180 }
+	    },
+	    'phi': {
+		label: 'Phi',
+		format: '%[phi]',
+		value: function(d){ return d[0]; },
+		min: function(){ return -180 },
+		max: function(){ return 180 }
+	    },
+	    'color': {
+		label: 'Color',
+		format: '%[color]',
+		value: function(d){ return d; }
+	    }
+	};
+	
+	this.bgimages = {
+	    'rama_general': [ '../img/ramachandran_plot_empty_General.png', -180, -180, 180, 180 ],
+	    'rama_glycine': [ '../img/ramachandran_plot_empty_Glycine.png', -180, -180, 180, 180 ],
+	    'rama_pre-pro': [ '../img/ramachandran_plot_empty_Pre-Pro.png', -180, -180, 180, 180 ],
+	    'rama_proline': [ '../img/ramachandran_plot_empty_Proline.png', -180, -180, 180, 180 ]
+	}
+	
+	this.elm('draw').button().click(function(){
+            self.draw();
+        });
+        
+	// init axis selects
+	$.each( this.data_types, function( key, elm ){
+	    var opt = "<option value='" + key + "'>" + elm.label + "</option>";
+	    self.elm('xaxis').append( opt );
+	    self.elm('yaxis').append( opt );
+	});
+	
+	// init presets
+	this.elm('presets').bind('click change', function(){
+	    var preset = self.elm('presets').children("option:selected").val();
+	    switch( preset ){
+		case 'rama':
+		    self.elm('xaxis').val( 'phi' );
+		    self.elm('yaxis').val( 'psi' );
+		    self.elm('chart').val( 'points' );
+		    self.selector.set_input( '*.CA' );
+		    break;
+		    
+		default:
+		    break;
+	    }
+	    self.draw();
+	});
+	
+	Provi.Widget.Widget.prototype.init.call(this);
+    },
+    get_data: function( type ){
+	var sele = this.selector.get().selection;//'protein and helix and {*.ca}';
+	var dt = this.data_types[ type ];
+	var format = dt.format;
+	var data = this.applet.evaluate('"[" + {' + sele + '}.label("[' + format + ']").join(",") + "]"');
+	data = data.replace(/(%\[psi\]|%\[phi\]|\,\])/g,"null");
+	if( type=='color' ){
+	    data = data.replace(/\.00/g,",").replace(/\,\]/g, "]");
+	}
+	data = eval( data );
+	data = _.map( data, dt.value );
+	
+	return {
+	    data: data,
+	    min: dt.min ? dt.min( data ) : null,
+	    max: dt.max ? dt.max( data ) : null
+	};
+    },
+    draw: function(){
+	var self = this;
+	var chart = this.elm('chart').children("option:selected").val();
+	var x = this.get_data( this.elm('xaxis').children("option:selected").val() );
+	var y = this.get_data( this.elm('yaxis').children("option:selected").val() );
+	var c = this.get_data( 'color' );
+	console.log(c);
+	
+	var d1 = _.zip( x.data, y.data );
+	
+	var data = [];
+	data.push({
+	    data: d1,
+	    lines: { show: chart=='lines' },
+	    points: { show: chart=='points' },
+	    bars: { show: chart=='bars' },
+	    grid: { show: true },
+	    colors: c.data
+	});
+	
+	var options = {
+	    xaxis: { min: x.min, max: x.max },
+	    yaxis: { min: y.min, max: y.max },
+	    series: { images: { anchor: null } },
+	    grid: { show: true }
+	}
+	
+	var bgimage = this.elm('bgimage').children("option:selected").val();
+	if( bgimage ){
+	    options['grid']['backgroundImage'] = this.bgimages[ bgimage ];
+	}
+	console.log(options);
+	console.log(data);
+	
+	var colors = c.data;
+	function raw(plot, ctx) {
+	    var data = plot.getData();
+	    var axes = plot.getAxes();
+	    var offset = plot.getPlotOffset();
+	    for (var i = 0; i < data.length; i++) {
+		var series = data[i];
+		for (var j = 0; j < series.data.length; j++) {
+		    var color = $.color.make( colors[j][0], colors[j][1], colors[j][2] ).toString();
+		    var d = (series.data[j]);
+		    var x = offset.left + axes.xaxis.p2c(d[0]);
+		    var y = offset.top + axes.yaxis.p2c(d[1]);
+		    var r = 4;            
+		    ctx.lineWidth = 2;
+		    ctx.beginPath();
+		    ctx.arc(x,y,r,0,Math.PI*2,true);
+		    ctx.closePath();            
+		    ctx.fillStyle = color;
+		    ctx.fill();
+		}    
+	    }
+	};  
+	options.hooks = { draw  : [raw]  };
+	
+	$.plot( this.elm('canvas'), data, options );
+    }
+});
+
+
+
 })();
