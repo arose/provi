@@ -406,7 +406,7 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
     params.collapsed = true;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
-	'canvas', 'draw', 'selector', 'xaxis', 'yaxis', 'bgimage', 'presets', 'chart'
+	'canvas', 'draw', 'selector', 'selector2', 'xaxis', 'yaxis', 'bgimage', 'presets', 'chart', 'color'
     ]);
     
     var template = '' +
@@ -416,10 +416,14 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
 		'<select id="${eids.presets}" class="ui-state-default">' +
 		    '<option value=""></option>' +
 		    '<option value="rama"">Ramachandran</option>' +
+		    '<option value="dist"">Distance map</option>' +
 		'</select>' +
 	    '</div>' +
 	    '<div class="control_row">' +
 		'<span id="${eids.selector}"></span>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<span id="${eids.selector2}"></span>' +
 	    '</div>' +
 	    '<div class="control_row">' +
 		'<label for="${eids.xaxis}">X-axis:</label>' +
@@ -431,6 +435,13 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
 		'<label for="${eids.yaxis}">Y-axis:</label>' +
 		'<select id="${eids.yaxis}" class="ui-state-default">' +
 		    '<option value=""></option>' +
+		'</select>' +
+	    '</div>' +
+	    '<div class="control_row">' +
+		'<label for="${eids.color}">Color:</label>' +
+		'<select id="${eids.color}" class="ui-state-default">' +
+		    '<option value="color">Structure color</option>' +
+		    '<option value="dist">Distance</option>' +
 		'</select>' +
 	    '</div>' +
 	    '<div class="control_row">' +
@@ -468,6 +479,12 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
 	tag_name: 'span'
     });
     
+    this.selector2 = new Provi.Selection.SelectorWidget({
+        parent_id: this.eid('selector2'),
+	applet: params.applet,
+	tag_name: 'span'
+    });
+    
     this._init();
 }
 Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.PlotWidget.prototype */ {
@@ -482,6 +499,40 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 		label: 'Residue',
 		format: "'%[group]', '%[resNo]', '%[chain]'",
 		value: function(d){ return d[1]; },
+		min: function(d){ return _.min(d) },
+		max: function(d){ return _.max(d) }
+	    },
+	    'resres': {
+		label: 'Residue vs. residue (R1,R2,...RN,R1,...)',
+		format: "'%[group]', '%[resNo]', '%[chain]'",
+		value: function(d){ return d[1]; },
+		proc: function(d,m){
+		    var ret = [];
+		    var n = d.length;
+		    for( var i=0; i<m; ++i ){
+			for( var j=0; j<n; ++j ){
+			    ret.push( d[j] );
+			}
+		    }
+		    return ret;
+		},
+		min: function(d){ return _.min(d) },
+		max: function(d){ return _.max(d) }
+	    },
+	    'resres2': {
+		label: 'Residue vs. residue (R1,R1,...R1,R2,...)',
+		format: "'%[group]', '%[resNo]', '%[chain]'",
+		value: function(d){ return d[1]; },
+		proc: function(d,m){
+		    var ret = [];
+		    var n = d.length;
+		    for( var i=0; i<n; ++i ){
+			for( var j=0; j<m; ++j ){
+			    ret.push( d[i] );
+			}
+		    }
+		    return ret;
+		},
 		min: function(d){ return _.min(d) },
 		max: function(d){ return _.max(d) }
 	    },
@@ -506,7 +557,54 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	    'color': {
 		label: 'Color',
 		format: '%[color]',
-		value: function(d){ return d; }
+		value: function(d){
+		    return $.color.make( d[0], d[1], d[2] ).toString();
+		}
+	    },
+	    'dist': {
+		//script: 'for(var a1 in sele){ for(var a2 in sele){ ret += [ distance(a1,a2) ] } }',
+		script: '' +
+		    'var t = 5;' +
+		    'for(var a1 in sele2){ ' +
+			'var g1 = {within(GROUP,@a1)};' +
+			'for(var a2 in sele){' +
+			    'var g2 = {within(GROUP,@a2)};' +
+			    'var g3 = {@g2 and within(@t,@g1)};' +
+			    'var tmp = [];' +
+			    'if( g3.length < 1 ){' +
+				'ret += [ t ];' +
+			    '}else{' +
+				'for(var ag1 in {@g1 and within(@t,@g3)}){' +
+				    'for(var ag2 in @g3){' +
+					'tmp += [ distance(ag1,ag2) ];' +
+				    '}' +
+				'}' +
+				'ret += [ tmp.min ];' +
+			    '}' +
+			'}' +
+		    '}' +
+		'',
+		value: function(d){
+		    if( d < 1){
+			return 'rgb(0,0,0)';
+		    }else if( d < 1.5){
+			return 'rgb(30,30,30)';
+		    }else if( d < 2.0){
+			return 'rgb(60,60,60)';
+		    }else if( d < 3.5){
+			return 'rgb(90,90,90)';
+		    }else if( d < 4){
+			return 'rgb(120,120,120)';
+		    }else if( d < 5){
+			return 'rgb(150,150,150)';
+		//    }else if( d < 6){
+		//	return 'rgb(180,180,180)';
+		//    }else if( d < 7){
+		//	return 'rgb(210,210,210)';
+		    }else{
+			return 'rgb(255,255,255)';
+		    }
+		}
 	    }
 	};
 	
@@ -535,10 +633,25 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 		case 'rama':
 		    self.elm('xaxis').val( 'phi' );
 		    self.elm('yaxis').val( 'psi' );
+		    self.elm('color').val( 'color' );
 		    self.elm('chart').val( 'points' );
-		    self.selector.set_input( '*.CA' );
+		    self.elm('bgimage').val( 'rama_general' );
+		    self.selector.set_input( '*.CA and protein' );
+		    self.selector2.set_input( '' );
+		    self.radius = 2;
+		    self.shadow = 3;
 		    break;
-		    
+		case 'dist':
+		    self.elm('xaxis').val( 'resres' );
+		    self.elm('yaxis').val( 'resres2' );
+		    self.elm('color').val( 'dist' );
+		    self.elm('chart').val( 'points' );
+		    self.elm('bgimage').val( '' );
+		    self.selector.set_input( '*.CA and protein and resno < 339' );
+		    self.selector2.set_input( '*.CA and protein and resno >= 339' );
+		    self.radius = 'auto';
+		    self.shadow = 0;
+		    break;
 		default:
 		    break;
 	    }
@@ -547,17 +660,33 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	
 	Provi.Widget.Widget.prototype.init.call(this);
     },
-    get_data: function( type ){
-	var sele = this.selector.get().selection;//'protein and helix and {*.ca}';
+    get_data: function( type, sele, sele2 ){
 	var dt = this.data_types[ type ];
-	var format = dt.format;
-	var data = this.applet.evaluate('"[" + {' + sele + '}.label("[' + format + ']").join(",") + "]"');
-	data = data.replace(/(%\[psi\]|%\[phi\]|\,\])/g,"null");
-	if( type=='color' ){
-	    data = data.replace(/\.00/g,",").replace(/\,\]/g, "]");
+	if( dt.format ){
+	    var format = dt.format;
+	    var data = this.applet.evaluate('"[" + {' + sele + '}.label("[' + format + ']").join(",") + "]"');
+	    data = data.replace(/(%\[psi\]|%\[phi\]|\,\])/g,"null");
+	    if( type=='color' ){
+		data = data.replace(/\.00/g,",").replace(/\,\]/g, "]");
+	    }
+	    data = eval( data );
+	}else if( dt.script ){
+	    var script = '' +
+		'var sele = {' + sele + '}; ' +
+		'var sele2 = {' + sele2 + '}; ' +
+		'var ret = []; ' +
+		dt.script +
+		'print ret; return ret;' +
+		'';
+	    var data = this.applet.script_wait_output( script ).split('\n').slice(0,-1);
+	    //var data = this.applet.script_wait( script );
+	    console.log('JMOL finished');
+	    //console.log( data );
 	}
-	data = eval( data );
 	data = _.map( data, dt.value );
+	if( _.isFunction(dt.proc) ){
+	    //data = dt.proc( data );
+	}
 	
 	return {
 	    data: data,
@@ -567,10 +696,37 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
     },
     draw: function(){
 	var self = this;
+	var sele = this.selector.get().selection;
+	var sele2 = this.selector2.get().selection || sele;
 	var chart = this.elm('chart').children("option:selected").val();
-	var x = this.get_data( this.elm('xaxis').children("option:selected").val() );
-	var y = this.get_data( this.elm('yaxis').children("option:selected").val() );
-	var c = this.get_data( 'color' );
+	var xtype = this.elm('xaxis').children("option:selected").val();
+	var ytype = this.elm('yaxis').children("option:selected").val();
+	var ctype = this.elm('color').children("option:selected").val();
+	var x = this.get_data( xtype, sele );
+	var y = this.get_data( ytype, sele2 );
+	var c = this.get_data( ctype, sele, sele2 );
+	
+	var preset = self.elm('presets').children("option:selected").val();
+	if( preset == 'dist' ){
+	    var xlen = x.data.length;
+	    var ylen = y.data.length;
+	    x.data = this.data_types[ xtype ].proc( x.data, ylen );
+	    y.data = this.data_types[ ytype ].proc( y.data, xlen );
+	    this.radius = [ (300/xlen*0.40), (300/ylen*0.40) ];
+	    this.symbol = 'rect';
+	    //this.symbol = 'square';
+	    this.radius = (300/xlen*0.40);
+	    this.radius2 = (300/ylen*0.40);
+	    this.grid = false;
+	}else{
+	    this.symbol = 'circle';
+	    this.radius = 2;
+	    this.radius2 = 0;
+	    this.grid = true;
+	}
+	
+	console.log(x);
+	console.log(y);
 	console.log(c);
 	
 	var d1 = _.zip( x.data, y.data );
@@ -579,49 +735,33 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	data.push({
 	    data: d1,
 	    lines: { show: chart=='lines' },
-	    points: { show: chart=='points' },
+	    points: {
+		show: chart=='points',
+		colors: c.data,
+		symbol: this.symbol,
+		radius: this.radius,
+		radius2: this.radius2
+	    },
 	    bars: { show: chart=='bars' },
-	    grid: { show: true },
-	    colors: c.data
+	    shadowSize: this.shadow
 	});
 	
 	var options = {
-	    xaxis: { min: x.min, max: x.max },
-	    yaxis: { min: y.min, max: y.max },
+	    xaxis: { min: x.min, max: x.max, tickLength: 0 },
+	    yaxis: { min: y.min, max: y.max, tickLength: 0 },
 	    series: { images: { anchor: null } },
-	    grid: { show: true }
+	    grid: {
+		show: true,
+		axisMargin: 3,
+		minBorderMargin: _.max( [this.radius, this.radius2] ),
+		borderWidth: 0
+	    }
 	}
 	
 	var bgimage = this.elm('bgimage').children("option:selected").val();
 	if( bgimage ){
 	    options['grid']['backgroundImage'] = this.bgimages[ bgimage ];
 	}
-	console.log(options);
-	console.log(data);
-	
-	var colors = c.data;
-	function raw(plot, ctx) {
-	    var data = plot.getData();
-	    var axes = plot.getAxes();
-	    var offset = plot.getPlotOffset();
-	    for (var i = 0; i < data.length; i++) {
-		var series = data[i];
-		for (var j = 0; j < series.data.length; j++) {
-		    var color = $.color.make( colors[j][0], colors[j][1], colors[j][2] ).toString();
-		    var d = (series.data[j]);
-		    var x = offset.left + axes.xaxis.p2c(d[0]);
-		    var y = offset.top + axes.yaxis.p2c(d[1]);
-		    var r = 4;            
-		    ctx.lineWidth = 2;
-		    ctx.beginPath();
-		    ctx.arc(x,y,r,0,Math.PI*2,true);
-		    ctx.closePath();            
-		    ctx.fillStyle = color;
-		    ctx.fill();
-		}    
-	    }
-	};  
-	options.hooks = { draw  : [raw]  };
 	
 	$.plot( this.elm('canvas'), data, options );
     }
