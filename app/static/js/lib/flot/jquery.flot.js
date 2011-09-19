@@ -2091,16 +2091,23 @@
                     if (x == null || x < axisx.min || x > axisx.max || y < axisy.min || y > axisy.max)
                         continue;
                     
+		    if ( !shadow && $.isArray(series.points.colors) ) {
+			ctx.strokeStyle = series.points.colors[i/ps];
+		    }
+		    
                     ctx.beginPath();
                     x = axisx.p2c(x);
                     y = axisy.p2c(y) + offset;
                     if (symbol == "circle")
                         ctx.arc(x, y, radius, 0, shadow ? Math.PI : Math.PI * 2, false);
                     else
-                        symbol(ctx, x, y, radius, shadow);
+                        symbol(ctx, x, y, radius, shadow, series.points.radius2);
                     ctx.closePath();
                     
-                    if (fillStyle) {
+                    if ( !shadow && $.isArray(series.points.colors) ) {
+			ctx.fillStyle = series.points.colors[i/ps];
+                        ctx.fill();
+		    }else if (fillStyle) {
                         ctx.fillStyle = fillStyle;
                         ctx.fill();
                     }
@@ -2110,7 +2117,7 @@
             
             ctx.save();
             ctx.translate(plotOffset.left, plotOffset.top);
-
+	    
             var lw = series.points.lineWidth,
                 sw = series.shadowSize,
                 radius = series.points.radius,

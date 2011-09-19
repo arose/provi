@@ -18,6 +18,14 @@ choice:
         // same as a circle of the given radius
 
         var handlers = {
+            rect: function (ctx, x, y, radius, shadow, radius2) {
+                // pi * r^2 = (2s)^2  =>  s = r * sqrt(pi)/2
+                var size = radius * Math.sqrt(Math.PI) / 2;
+                var a = radius;
+                var b = radius2;
+                //console.log(radius);
+                ctx.rect(x - a, y - b, a + a, b + b);
+            },
             square: function (ctx, x, y, radius, shadow) {
                 // pi * r^2 = (2s)^2  =>  s = r * sqrt(pi)/2
                 var size = radius * Math.sqrt(Math.PI) / 2;
