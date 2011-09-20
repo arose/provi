@@ -658,6 +658,11 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	    self.draw();
 	});
 	
+	// init select
+	this.elm('canvas').bind("plotselected", function (event, ranges) {
+	    self.select( ranges );
+	});
+	
 	Provi.Widget.Widget.prototype.init.call(this);
     },
     get_data: function( type, sele, sele2 ){
@@ -694,24 +699,26 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	    max: dt.max ? dt.max( data ) : null
 	};
     },
+    _get_options: function(){
+	this.sele = this.selector.get().selection;
+	this.sele2 = this.selector2.get().selection || this.sele;
+	this.chart = this.elm('chart').children("option:selected").val();
+	this.xtype = this.elm('xaxis').children("option:selected").val();
+	this.ytype = this.elm('yaxis').children("option:selected").val();
+	this.ctype = this.elm('color').children("option:selected").val();
+	this.preset = self.elm('presets').children("option:selected").val();
+    },
     draw: function(){
 	var self = this;
-	var sele = this.selector.get().selection;
-	var sele2 = this.selector2.get().selection || sele;
-	var chart = this.elm('chart').children("option:selected").val();
-	var xtype = this.elm('xaxis').children("option:selected").val();
-	var ytype = this.elm('yaxis').children("option:selected").val();
-	var ctype = this.elm('color').children("option:selected").val();
-	var x = this.get_data( xtype, sele );
-	var y = this.get_data( ytype, sele2 );
-	var c = this.get_data( ctype, sele, sele2 );
+	var x = this.get_data( this.xtype, this.sele );
+	var y = this.get_data( this.ytype, this.sele2 );
+	var c = this.get_data( this.ctype, this.sele, this.sele2 );
 	
-	var preset = self.elm('presets').children("option:selected").val();
-	if( preset == 'dist' ){
+	if( this.preset == 'dist' ){
 	    var xlen = x.data.length;
 	    var ylen = y.data.length;
-	    x.data = this.data_types[ xtype ].proc( x.data, ylen );
-	    y.data = this.data_types[ ytype ].proc( y.data, xlen );
+	    x.data = this.data_types[ this.xtype ].proc( x.data, ylen );
+	    y.data = this.data_types[ this.ytype ].proc( y.data, xlen );
 	    this.radius = [ (300/xlen*0.40), (300/ylen*0.40) ];
 	    this.symbol = 'rect';
 	    //this.symbol = 'square';
@@ -734,15 +741,15 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	var data = [];
 	data.push({
 	    data: d1,
-	    lines: { show: chart=='lines' },
+	    lines: { show: this.chart=='lines' },
 	    points: {
-		show: chart=='points',
+		show: this.chart=='points',
 		colors: c.data,
 		symbol: this.symbol,
 		radius: this.radius,
 		radius2: this.radius2
 	    },
-	    bars: { show: chart=='bars' },
+	    bars: { show: this.chart=='bars' },
 	    shadowSize: this.shadow
 	});
 	
@@ -755,7 +762,10 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 		axisMargin: 3,
 		minBorderMargin: _.max( [this.radius, this.radius2] ),
 		borderWidth: 0
-	    }
+	    },
+	    // zoom: { interactive: true },
+	    // pan: { interactive: false },
+	    selection: { mode: "xy" }
 	}
 	
 	var bgimage = this.elm('bgimage').children("option:selected").val();
@@ -764,6 +774,10 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	}
 	
 	$.plot( this.elm('canvas'), data, options );
+    },
+    select: function( s ){
+	// TODO: mapping between xaxis/yaxis and data (data needs to be added first!)
+	console.log( s );
     }
 });
 
