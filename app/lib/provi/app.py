@@ -35,10 +35,9 @@ class DataStorage(object):
         self.data_dict = {}
         
     def add( self, data ):
-        self.lock.acquire()
-        count = self.count
-        self.count += 1
-        self.lock.release()
+        with self.lock:
+            count = self.count
+            self.count += 1
         self.data_dict[ count ] = data
         LOG.debug('DATA ID %s' % count)
         return count
