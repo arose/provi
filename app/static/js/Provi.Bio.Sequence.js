@@ -203,6 +203,135 @@ Provi.Bio.Sequence.SequenceViewWidget.prototype = Utils.extend(Widget, /** @lend
 
 
 /**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Bio.Sequence.GridWidget = function(params){
+    params = $.extend(
+        Provi.Bio.Sequence.GridWidget.prototype.default_params,
+        params
+    );
+    console.log('SEQUENCE GRID', params);
+    params.persist_on_applet_delete = false;
+    params.heading = 'Sequence Grid';
+    params.collapsed = false;
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager( ['grid'] );
+    
+    this.dataset = params.dataset;
+    this.applet = params.applet;
+    
+    var template = '' +
+	'<div class="control_row">' +
+	'<div class="control_row">' +
+        '<div style="width:600px;height:500px; position:absolute;" id="${eids.grid}"></div>' +
+	'</div>' +
+	'</div>' +
+	'';
+    
+    this.add_content( template, params );
+    this._init();
+}
+Provi.Bio.Sequence.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Sequence.GridWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+        var self = this;
+        
+        this.create_grid();
+	this.update_grid();
+        
+	if( this.applet ){
+	    $(this.applet).bind('load_struct', function(){
+		self.update_grid();
+	    });
+	    $(this.applet).bind('script', function(){
+		//self.update_grid();
+	    });
+	    $(this.applet).bind('select', function(){
+		self.update_grid();
+	    });
+	}
+	
+	Provi.Widget.Widget.prototype.init.call(this);
+    },
+    create_grid: function(){
+	var self = this;
+	
+	BoolCellFormatter = function(row, cell, value, columnDef, dataContext) {
+	    return value ? "<img src='../js/lib/slickgrid/images/tick.png'>" : "";
+	}
+	
+	ColorCellFormatter = function(row, cell, value, columnDef, dataContext) {
+	    var c = "0,0,0";
+	    if( value ){
+		c = value.split(/\s+/g).join(',');
+	    }
+	    return "<div style='background-color:rgb(" + c + ");'>&nbsp;</div>";
+	}
+	
+	var columns = [
+	    {id:"atomno", name:"Atom No", field:"atomno", width:60},
+	    {id:"group", name:"Group", field:"group", width:50},
+	    {id:"resno", name:"Res No", field:"resno", width:60},
+	    {id:"chain", name:"Chain", field:"chain", width:40},
+	    {id:"color", name:"Color", field:"color", width:40, formatter:ColorCellFormatter},
+	    {id:"selected", name:"Selected", field:"selected", width:40, formatter:BoolCellFormatter},
+	    //{id:"atomname", name:"Atom Name"},
+	    //{id:"model", name:"Model"},
+	    //{id:"altloc", name:"Alt Loc"},
+	    //{id:"bfac", name:"Bfac"}
+	];
+	
+	var data = [ { resno: "1", chain: "A", atomno: 1 } ];
+	
+	var options = {
+	    enableCellNavigation: false,
+	    enableColumnReorder: false
+	};
+	
+	data = [ { resno: "1", chain: "A", atomno: 1, group:"Lys", selected:1.0 } ];
+        //this.gridx = new Slick.Grid( this.elm('grid'), data, columns, options);
+	this.grid = new Slick.Grid( $('#grid'), data, columns, options);
+	//console.log( this.grid );
+	
+    },
+    update_grid: function(){
+	if( this.applet ){
+	    //var selection = 'protein and {*}';
+	    var selection = '{*}';
+	    var format = '' +
+		'\'%[group]\',\'%[sequence]\',\'%[resno]\',\'%[chain]\',\\"%[atomName]\\"' +
+		',\'%[atomNo]\',\'%[model]\',\'%[altLoc]\',\'%[temperature]\',\'%[selected]\'' +
+		',\'%[color]\',\'%[altLoc]\',\'%[selected]\'' +
+		'';
+	    var atoms_data = this.applet.atoms_property_map( format, selection );
+	    atoms_data = _.map( atoms_data, function(val,i){
+		return {
+		    resno: parseInt(val[2]),
+		    chain: val[3],
+		    group: val[0],
+		    atomno: parseInt(val[5]),
+		    selected: (val[9] === '1.0' ? 1 : 0),
+		    color: val[10].replace(/\.00/g, ' ').trim()
+		}
+	    });
+	    //console.log( atoms_data );
+	    data = atoms_data;
+	    this.grid.setData( data );
+	    this.grid.updateRowCount();
+	    this.grid.render();
+	}
+    }
+});
+
+
+
+
+/**
  * A widget to create tree view from molecular data
  * @constructor
  * @extends Provi.Widget.Widget
