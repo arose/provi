@@ -15,12 +15,10 @@ Provi.Data.Controller.PropensitiesMixin = {
         var self = this;
         this.retrieve_data( function(d){
             self.set_data( new Provi.Bio.Propensities.Propensities( d ) );
-            if( params.applet ){
-                new Provi.Bio.Propensities.PropensitiesWidget( $.extend( params, {
-                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
-                    dataset: self
-                }));
-            }
+            new Provi.Bio.Propensities.PropensitiesWidget( $.extend( params, {
+                parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                dataset: self
+            }));
         });
         Provi.Data.Dataset.prototype.init.call(this, params);
     },

@@ -180,8 +180,8 @@
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 	
-	//Provi.Jmol.init("../../jmol/current/13/", !$.query.get('unsigned'));
-	Provi.Jmol.init("../../jmol/current/13/", $.query.get('signed'));
+	//Provi.Jmol.init("../../jmol/current/14/", !$.query.get('unsigned'));
+	Provi.Jmol.init("../../jmol/current/14/", $.query.get('signed'));
 	
         $(document).ready(function(){
 	    
@@ -196,7 +196,7 @@
 	//	}
 	//    });
 	    
-	    Provi.Utils.event.init();
+	    	Provi.Utils.event.init();
 	    
             var container = $('#container');
             var main = $('#main');
@@ -235,7 +235,13 @@
 				sort_key: 0,
 				hide_color_models: true
             });
-	    
+	    	
+	    	Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
+				sort_key: 2,
+				heading: 'Propensities',
+				description: 'Propensity data from curated MPHD data set',
+				show_dataset_info: false
+		    });
             
             $('#tab_scrollbox').scroll(function (event, ui) {
                 $(this).data('scrollTop-tab-' + tabs_panel.tabs('option', 'selected'), $(this).scrollTop());
@@ -255,52 +261,54 @@
                 anchorToWindow: true,
                 sizeRight: true
             }).mousedown( function(edown){
-		$(edown.target).one('mouseup', function(eup){
-		    //if( edown.clientX == eup.clientX ) console.log('not moved');
-		});
-	    });
+				$(edown.target).one('mouseup', function(eup){
+				    //if( edown.clientX == eup.clientX ) console.log('not moved');
+				});
+	    	});
 	    
-	    $('#tabs_panel a[title]').tipsy({ gravity: 'nw' });
+		    $('#tabs_panel a[title]').tipsy({ gravity: 'nw' });
+		    
+		    $('#tab_widgets').bind('Provi.widget_added', function(event, data){
+				$('#tab_widgets').children().sortElements( function(a, b){
+				    var widget_a = Provi.Widget.WidgetManager.get_widget( $(a).attr('id') );
+				    var widget_b = Provi.Widget.WidgetManager.get_widget( $(b).attr('id') );
+				    return widget_a.sort_key > widget_b.sort_key ? 1 : -1;
+				});
+	    	});
 	    
-	    $('#tab_widgets').bind('Provi.widget_added', function(event, data){
-		$('#tab_widgets').children().sortElements( function(a, b){
-		    var widget_a = Provi.Widget.WidgetManager.get_widget( $(a).attr('id') );
-		    var widget_b = Provi.Widget.WidgetManager.get_widget( $(b).attr('id') );
-		    return widget_a.sort_key > widget_b.sort_key ? 1 : -1;
-		});
-	    });
-	    
-	    // when in test mode, load some data for development purposes
-	    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
-			var applet = Provi.Jmol.get_default_applet( true );
-			Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
-			    applet: applet
-			});
-			Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
-			    applet: applet
-			});
-			Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
-			    applet: applet
-			});
-			Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
-			    applet: applet
-			});
-			( new Provi.Data.Dataset({type:'story'}) ).init({
-			    data: {
-				pdb_id: "3dqb",
-				probe_radius: 1.4,
-				family: "GPCR",
-				mphd_url: "http://proteinformatics.charite.de/mphd/"
-			    }
-			});
-			Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
-				sort_key: 2,
-				heading: 'Propensities',
-				description: 'Propensity data from curated MPHD data set',
-				show_dataset_info: false,
-				applet: applet
-		    });
-	    }
+		    // when in test mode, load some data for development purposes
+		    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
+				var applet = Provi.Jmol.get_default_applet( true );
+				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
+				    applet: applet
+				});
+				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
+				    applet: applet
+				});
+				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
+				    applet: applet
+				});
+				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
+				    applet: applet
+				});
+				( new Provi.Data.Dataset({type:'story'}) ).init({
+				    data: {
+					pdb_id: "3dqb",
+					probe_radius: 1.4,
+					family: "GPCR",
+					mphd_url: "http://proteinformatics.charite.de/mphd/"
+				    }
+				});
+				Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
+					sort_key: 2,
+					heading: 'Propensities',
+					applet: applet,
+					description: '',
+					show_dataset_info: true
+			    });
+		    }else{
+
+		    }
 	    
         });
         
