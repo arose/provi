@@ -86,11 +86,11 @@ Provi.Data.Controller.VolumeMixin = {
         var self = this;
         Provi.Data.Dataset.prototype.init.call(this, params);
         console.log( this, params );
-        if( params.reload_widget ){
+        //if( params.reload_widget ){
             new Provi.Bio.Isosurface.VolumeWidget( $.extend( params, {
                 parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                 dataset: self
             }));
-        }
+        //}
     }
 }
