@@ -2,6 +2,19 @@
  * @fileOverview This file contains the {@link Provi.Data.Controller.VoronoiaMixin} controller.
  * @author <a href="mailto:alexander.rose@charite.de">Alexander Rose</a>
  * @version 0.0.1
+ *
+ *
+ *
+ * Jmol ideas:
+ *
+ * 2xc2
+ * isosurface ID "isosurface1" select {1.1} ignore {not 1.1} resolution 2.0 cavity 0.1 3.0 cap within 2.5 {2.1 and 1}
+ * isosurface select {1.1 and (37,40,76)} ignore {not(1.1 and (37,40,76))} solvent 0.1 cap within 2.5 {2.1 and 1}
+ *
+ * 1u19
+ * isosurface select {1.1 and (131,128,124,127,257,302,261,301)} ignore {not(1.1 and (131,128,124,127,257,302,261,301))} solvent 0.3 cap within 2.5 {2.1 and 8}
+ *
+ * draw voronoi data/edges???
  */
 
 /**
@@ -58,7 +71,7 @@ Provi.Data.Controller.VoronoiaMixin = $.extend(true, {}, Provi.Data.Controller.S
     get_cavities: function( applet, onload ){
 	console.log('get cavities');
         //applet.script_wait('set refreshing false;');
-        applet._script_wait('load APPEND "PDB::../../data/get/?id=' + this.server_id + '&data_action=get_cavities";');
+        applet._script_wait('load APPEND "PDB::../../data/get/?id=' + this.server_id + '&data_action=get_cavities&session_id=' + $.cookie('provisessions') + '";');
 	console.log('get cavities, after load');
         //var model_number = '2.1';
 	var model_number = applet.evaluate('_modelNumber');
