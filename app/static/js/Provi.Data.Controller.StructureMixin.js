@@ -30,7 +30,7 @@ Provi.Data.Controller.StructureMixin = {
     },
     load: function( applet, load_as, style ){
 	var self = this;
-        var params = '?id=' + this.server_id;
+        var params = '?id=' + this.server_id + '&provisessionX=' + $.cookie('provisessionX');
         var type = this.type;
         if( $.inArray(this.type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol']) >= 0 ){
             params += '&data_action=get_pdb';
