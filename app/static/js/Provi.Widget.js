@@ -91,7 +91,7 @@ Provi.Widget.Widget = function(params){
     Provi.Widget.WidgetManager.add_widget(this.id, this);
     
     if( !this.parent_id || $('#' + this.parent_id).length == 0 ){
-	throw "Widget is missing a parent object to add to.";
+	   throw "Widget is missing a parent object to add to.";
     }
     
     var template = '' +
@@ -108,7 +108,7 @@ Provi.Widget.Widget = function(params){
 	'</div>' +
 	'<div class="my-content">' +
 	    '<div class="" id="${eids.description}" ' +
-		    'style="{{if !params.info}}display:none;{{/if}}">' +
+		    'style="{{if !params.description}}display:none;{{/if}}">' +
 		'${params.description}' +
 	    '</div>' +
 	    '{{if params.show_dataset_info && params.dataset && params.applet}}' +
@@ -155,7 +155,10 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	    $(this).toggleClass('ui-state-active ui-state-default');
 	    return false;
 	});
-	if( this.heading && this.collapsed ) heading.triggerHandler('click');
+	if( this.heading && this.collapsed ){
+	    heading.triggerHandler('click');
+	    heading.siblings().toggle(false);
+	}
 	
 	if( !this.heading ) this.elm( 'heading' ).hide();
 	if( !this.info ) this.elm( 'info' ).hide();
