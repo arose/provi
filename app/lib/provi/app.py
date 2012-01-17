@@ -556,7 +556,7 @@ class GetSessionMiddleware( object ):
         LOG.debug( environ['QUERY_STRING'] )
         LOG.debug( query_dict )
         if 'session_id' in query_dict:
-            environ['HTTP_COOKIE'] = 'provisessionX=%s' % query_dict['session_id']
+            environ['HTTP_COOKIE'] = 'provisessions=%s' % query_dict['session_id']
         return self.app(environ, start_response)
 
 def wrap_in_middleware( app, global_conf, **local_conf  ):

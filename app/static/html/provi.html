@@ -70,6 +70,7 @@
     <script type="text/javascript" src="../js/Provi.Bio.HydrogenBonds.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.InterfaceContacts.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Isosurface.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Propensities.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Jmol.js"></script>
     <script type="text/javascript" src="../js/Provi.Jmol.Controls.js"></script>
@@ -92,13 +93,20 @@
     <script type="text/javascript" src="../js/Provi.Data.Controller.NdxMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.HbondsMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.VoronoiaMixin.js"></script>
+    <script type="text/javascript" src="../js/Provi.Data.Controller.PropensitiesMixin.js"></script>
     
     <link rel="stylesheet" media="screen" type="text/css" href="../js/lib/jquery-colorPicker/colorPicker.css" />
     <script type="text/javascript" src="../js/lib/jquery-colorPicker/jquery.colorPicker.js"></script>
     
+    <link rel="stylesheet" href="../js/lib/slickgrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+    <script language="JavaScript" src="../js/lib/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.editors.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.grid.js"></script>
+    
     <link type="text/css" href="../js/lib/jquery-ui/css/smoothness/jquery-ui.css" rel="stylesheet" />
     <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
     <link type="text/css" href="../js/lib/chosen/chosen.css" rel="stylesheet" />
+    <link rel='stylesheet' type='text/css' href='../css/keys.css'>
     <link rel='stylesheet' type='text/css' href='../css/view.css'>
     <!--[if IE 6]><link rel='stylesheet' type='text/css' href='../css/view_ie6.css'><![endif]-->
 </head>
@@ -135,7 +143,7 @@
 	//Provi.Jmol.init("../applet/jmol/12.1.42/", true);
 	//Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
 	//Provi.Jmol.init("../applet/jmol/12.1.51/", true);
-	Provi.Jmol.init("../../jmol/current/13/", true);
+	Provi.Jmol.init("../../jmol/current/17/", false);
 	
         $(document).ready(function(){
 	    
@@ -179,7 +187,7 @@
 		{
 		    parent_id: "main",
 		    no_sequence_view_widget: true,
-		    no_selection_manager_widget: true,
+		    no_selection_manager_widget: false,
 		    no_tree_view_widget: true
 		}
 	    );
@@ -380,7 +388,13 @@
 			description: 'Description',
 			applet: applet,
 			load_as: 'new'
-		});
+                    });
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
+			sort_key: 2,
+			heading: 'Propensities',
+			applet: applet
+		    });
 		    
 		}else{
 		
@@ -553,7 +567,9 @@
 			    </div>
 			</div>
                         <div id="tab_controls"></div>
-                        <div id="tab_tree"></div>
+                        <div id="tab_tree">
+                            <div id="grid" style="height:400px;"></div>
+                        </div>
                         <div id="tab_load"></div>
                         <div id="tab_save"></div>
 			<div id="tab_data"></div>

@@ -62,12 +62,12 @@ h3 {
 }
 
 
-/*
+
 .ui-tabs .ui-tabs-hide {
-    position: absolute;
-    left: -10000px;
+    position: absolute !important;
+    left: -10000px !important;
 }
-*/
+
 
 
 .ui-widget {
