@@ -8,6 +8,8 @@ syntax: glob
 *.sync.db-journal
 Icon*
 .~lock*
+*.sublime-project
+*.sublime-workspace
 
 doc/jsdoc/*
 doc/sphinx/_build
