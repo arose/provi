@@ -68,7 +68,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     this.structure_atoms = [];
     
     Widget.call( this, params );
-    this._build_element_ids([ 'interface_name', 'cutoff', 'show_only_interface_atoms', 'color_interface_residue', 'tmh_filter_check', 'autofocus', 'color_by_min_cutoff' ]);
+    this._build_element_ids([ 'interface_name', 'cutoff', 'show_only_interface_atoms', 'color_interface_residue', 'tmh_filter_check', 'autofocus', 'color_by_min_cutoff', 'update' ]);
     
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
@@ -120,6 +120,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
                 '<span style="background-color:#8B0000; padding: 1px 3px; color: white;">2.8</span>' +
             '</label>' +
             '<div style="clear: both;"></div>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<button id="' + this.update_id + '">update</button>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
@@ -186,6 +189,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
         });
         $("#" + self.color_by_min_cutoff_id).bind('change click', function(){
             self.color_by_min_cutoff = $("#" + self.color_by_min_cutoff_id).is(':checked');
+            self.draw();
+        });
+
+        $("#" + self.update_id).button().click( function(){
             self.draw();
         });
         
