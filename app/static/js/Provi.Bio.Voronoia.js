@@ -68,10 +68,14 @@ Provi.Bio.Voronoia.Vol.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAt
     _make_cavity_neighbours_dict: function(){
         var self = this;
         if( this.atoms && this.cavities ){
+	    console.log(this.atoms);
+	    console.log(this.cavities);
             $.each( this.cavities, function(i){
                 var cav = this;
+		//console.log(cav);
                 self.cavity_neighbours_dict[ cav[0] ] = [];
             });
+	    console.log( self.cavity_neighbours_dict );
             $.each( this.atoms, function(i){
                 var atom = this;
                 if(atom[10].length){
