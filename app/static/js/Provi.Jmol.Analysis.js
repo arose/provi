@@ -538,7 +538,8 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	    },
 	    'atom': {
 		label: 'Atom',
-		format: "'%[group]', '%[resNo]', '%[chain]', '%[atomName]'"
+		value: function(d){ return d[0]; },
+		format: "'%[atomno]', '%[group]', '%[resNo]', '%[chain]', '%[atomName]', '%[file]', '%[model]', '%[modelindex]'"
 	    },
 	    'psi': {
 		label: 'Psi',
@@ -554,6 +555,11 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 		min: function(){ return -180 },
 		max: function(){ return 180 }
 	    },
+	    'bfac': {
+		label: 'B-factor',
+		format: '%[temperature]',
+		value: function(d){ return d[0]; }
+	    },
 	    'color': {
 		label: 'Color',
 		format: '%[color]',
@@ -563,47 +569,73 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	    },
 	    'dist': {
 		//script: 'for(var a1 in sele){ for(var a2 in sele){ ret += [ distance(a1,a2) ] } }',
-		script: '' +
-		    'var t = 5;' +
+		script2: '' +
+		    'var t = 5.0;' +
 		    'for(var a1 in sele2){ ' +
 			'var g1 = {within(GROUP,@a1)};' +
 			'for(var a2 in sele){' +
 			    'var g2 = {within(GROUP,@a2)};' +
 			    'var g3 = {@g2 and within(@t,@g1)};' +
-			    'var tmp = [];' +
-			    'if( g3.length < 1 ){' +
-				'ret += [ t ];' +
-			    '}else{' +
+			    'var tmp = t;' +
+			    'if( g3.length > 0 ){' +
 				'for(var ag1 in {@g1 and within(@t,@g3)}){' +
 				    'for(var ag2 in @g3){' +
-					'tmp += [ distance(ag1,ag2) ];' +
+					'var d = distance(ag1,ag2);' +
+					'if( d<tmp ){' +
+					    'tmp = d;' +
+					    'ret += [ {@ag1}.resno, {@ag2}.resno, d ];' +
+					'}' +
 				    '}' +
 				'}' +
-				'ret += [ tmp.min ];' +
 			    '}' +
 			'}' +
 		    '}' +
 		'',
-		value: function(d){
+		script: '' +
+		    'var t = 5.0;' +
+		    'var g2 = {within(GROUP,@sele)};' +
+		    'for(var a1 in sele2){ ' +
+			'var g1 = {within(GROUP,@a1)};' +
+			'var g3 = {@g2 and within(@t,@g1)};' +
+			'var mindist = t;' +
+			'var tmp = [];' +
+			'if( g3.length > 0 ){' +
+			    'for(var ag1 in {@g1 and within(@t,@g3)}){' +
+				'for(var ag2 in @g3){' +
+				    'var d = distance(ag1,ag2);' +
+				    'if( d<mindist ){' +
+					'mindist = d;' +
+					'tmp = [ {@ag1}.resno, {@ag2}.resno, mindist ];' +
+				    '}' +
+				'}' +
+			    '}' +
+			    'ret += tmp;' +
+			'}' +
+		    '}' +
+		'',
+		value: function(dat){
+		    dat.push( dat[2] );
+		    var d = dat[2];
 		    if( d < 1){
-			return 'rgb(0,0,0)';
+			dat[2] = 'rgb(0,0,0)';
 		    }else if( d < 1.5){
-			return 'rgb(30,30,30)';
+			dat[2] = 'rgb(30,30,30)';
 		    }else if( d < 2.0){
-			return 'rgb(60,60,60)';
+			dat[2] = 'rgb(60,60,60)';
 		    }else if( d < 3.5){
-			return 'rgb(90,90,90)';
+			dat[2] = 'rgb(90,90,90)';
 		    }else if( d < 4){
-			return 'rgb(120,120,120)';
-		    }else if( d < 5){
-			return 'rgb(150,150,150)';
+			dat[2] = 'rgb(120,120,120)';
+		    }else if( d <= 5){
+			dat[2] = 'rgb(150,150,150)';
 		//    }else if( d < 6){
-		//	return 'rgb(180,180,180)';
+		//	dat[2] = 'rgb(180,180,180)';
 		//    }else if( d < 7){
-		//	return 'rgb(210,210,210)';
+		//	dat[2] = 'rgb(210,210,210)';
 		    }else{
-			return 'rgb(255,255,255)';
+			dat[2] = 'rgb(255,255,255)';
 		    }
+		    return dat;
 		}
 	    }
 	};
@@ -621,9 +653,11 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
         
 	// init axis selects
 	$.each( this.data_types, function( key, elm ){
-	    var opt = "<option value='" + key + "'>" + elm.label + "</option>";
-	    self.elm('xaxis').append( opt );
-	    self.elm('yaxis').append( opt );
+	    if( elm.label ){
+		var opt = "<option value='" + key + "'>" + elm.label + "</option>";
+		self.elm('xaxis').append( opt );
+		self.elm('yaxis').append( opt );
+	    }
 	});
 	
 	// init presets
@@ -678,10 +712,18 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 		dt.script +
 		'print ret; return ret;' +
 		'';
-	    var data = this.applet.script_wait_output( script ).split('\n').slice(0,-1);
+	    var data = this.applet.script_wait_output( script );
+	    //console.log( data );
+	    data = data.split('\n').slice(0,-1);
+	    var n = data.length;
+	    var data2 = [];
+	    for( var i=0; i<n; i+=3 ){
+		data2.push( [ data[i], data[i+1], data[i+2] ] );
+	    }
+	    var data = data2;
 	    //var data = this.applet.script_wait( script );
 	    console.log('JMOL finished');
-	    //console.log( data );
+	    console.log( data );
 	}
 	data = _.map( data, dt.value );
 	if( _.isFunction(dt.proc) ){
@@ -710,11 +752,12 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	if( preset == 'dist' ){
 	    var xlen = x.data.length;
 	    var ylen = y.data.length;
-	    x.data = this.data_types[ xtype ].proc( x.data, ylen );
-	    y.data = this.data_types[ ytype ].proc( y.data, xlen );
-	    this.radius = [ (300/xlen*0.40), (300/ylen*0.40) ];
+	    x.data = _.map( c.data, function(e){ return e[1]; } );
+	    y.data = _.map( c.data, function(e){ return e[0]; } );
+	    c.data = _.map( c.data, function(e){ return e[2]; } );
+	    //x.data = this.data_types[ xtype ].proc( x.data, ylen );
+	    //y.data = this.data_types[ ytype ].proc( y.data, xlen );
 	    this.symbol = 'rect';
-	    //this.symbol = 'square';
 	    this.radius = (300/xlen*0.40);
 	    this.radius2 = (300/ylen*0.40);
 	    this.grid = false;
@@ -725,9 +768,11 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
 	    this.grid = true;
 	}
 	
-	console.log(x);
-	console.log(y);
-	console.log(c);
+	//console.log(x);
+	//console.log(y);
+	//console.log(c);
+	
+	
 	
 	var d1 = _.zip( x.data, y.data );
 	
