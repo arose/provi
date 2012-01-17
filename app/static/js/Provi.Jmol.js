@@ -63,7 +63,7 @@ var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
  */
 var jmol_script_callback = function(applet_name, status, message, millisec, errorUntranslated){
     //console.log( applet_name+'', status+'', message+'', millisec+'', errorUntranslated+'' );
-    Provi.Jmol.get_applet_by_id( applet_name+'' )._message_callback( status+'', message+'', millisec+'', errorUntranslated+'' );
+    Provi.Jmol.get_applet_by_id( applet_name+'' )._script_callback( status+'', message+'', millisec+'', errorUntranslated+'' );
 };
 
 /**
@@ -99,6 +99,18 @@ function jmol_bind (applet_name){
     console.log('BIND');
     console.log( applet_name+'' );
     Provi.Jmol.get_applet( applet_name+'' ).clipping_manager.sync();
+    Provi.Jmol.get_applet( applet_name+'' ).lighting_manager.sync();
+};
+
+
+/**
+ * Function to delegate a jmol applet center callback to the corresponding applet wrapper.
+ * Also available as a global function because Jmol would not accept it otherwise.
+ * @memberOf Provi.Jmol
+ */
+function jmol_center (applet_name, x, y){
+    console.log('CENTER');
+    console.log( applet_name+'', x+'', y+'' );
 };
 
 
@@ -306,8 +318,8 @@ Provi.Jmol.Applet = function(params){
     
     this._determining_load_status = false;
     this.selection_manager = new Provi.Selection.SelectionManager({ applet: this });
+    this.clipping_manager = new Provi.Jmol.Controls.ClippingManager({ applet: this }); // needs to come before lighting manager because the lighting manager depends on the clipping manager
     this.lighting_manager = new Provi.Jmol.Controls.LightingManager({ applet: this });
-    this.clipping_manager = new Provi.Jmol.Controls.ClippingManager({ applet: this });
     this.quality_manager = new Provi.Jmol.Controls.QualityManager({ applet: this });
     this.picking_manager = new Provi.Jmol.Controls.PickingManager({ applet: this });
     this.style_manager = new Provi.Jmol.Controls.StyleManager({ applet: this });
@@ -527,7 +539,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     _script_wait: function(script, maintain_selection, message){
 	script = this._prepare_script( script, maintain_selection, message );
-	console.log(script);
+	//console.log(script);
 	var ret = '';
 	try{
 	    ret = this.applet.scriptWait(script);
@@ -621,7 +633,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 	return false;
     },
     get_property_as_array: function(property, value){
-        if(this.loaded) return this._evalJSON( this.get_property_as_json(property, value), property );
+        if(this.loaded) return this._evalJSON( this.get_property_as_json(property, value) + '', property );
 	return false;
     },
     evaluate: function(molecular_math){
@@ -710,6 +722,7 @@ Provi.Jmol.JmolWidget = function(params){
     this.applet_parent_id = this.id + '_applet';
     this.more_id = this.id + '_more';
     this.data_id = this.id + '_data';
+    this.picking_id = this.id + '_picking';
     this.delete_id = this.id + '_delete';
     this.sequence_view_id = this.id + '_sequence_view';
     var content =
@@ -721,6 +734,20 @@ Provi.Jmol.JmolWidget = function(params){
 	    '<span title="more views" class="ui-icon ui-icon-triangle-1-e" id="' + this.more_id + '"></span>&nbsp;' +
 	    '<span>Applet: ' + this.applet.name_suffix + '</span>' +
 	    '<span style="margin-left:20px; margin-right:10px; overflow:hidden;">Data: <span id="' + this.data_id + '" ></span></span>' +
+	    '<span style="position:absolute; right:26px; top:3px;">' +
+		'<select id="' + this.picking_id + '" class="ui-state-default">' +
+		    '<option value=""></option>' +
+		    '<option value="center">center</option>' +
+		    '<option value="atom">select atom</option><option value="group">select group</option>' +
+		    '<option value="chain">select chain</option><option value="molecule">select molecule</option>' +
+		    '<option value="label">label</option>' +
+		    '<option value="spin">spin</option>' +
+		    '<option value="draw">draw</option>' +
+		    '<option value="distance">measure distance</option>' +
+		    '<option value="angle">measure angle</option>' +
+		    '<option value="torsion">measure torsion</option>' +
+		'</select>' +
+	    '</span>' +
 	    '<span title="delete" class="ui-icon ui-icon-trash" style="cursor:pointer; position:absolute; right:6px; top:6px;" id="' + this.delete_id + '">delete</span>' +
 	'</div>';
     $(this.dom).append( content );
@@ -733,6 +760,16 @@ Provi.Jmol.JmolWidget = function(params){
     $('#' + this.applet_parent_id).append( this.applet.dom );
     
     var self = this;
+    
+    $('#' + this.picking_id).bind('click change', $.proxy( function(){
+	var picking = $('#' + self.picking_id).children("option:selected").val();
+	self.applet.picking_manager.set({picking: picking});
+    }, this ));
+    $(this.applet.picking_manager).bind('change', function(){
+	var params = self.applet.picking_manager.get();
+	$('#' + self.picking_id).val( params.picking );
+    });
+    
     $('#' + this.delete_id).tipsy({ gravity: 'e' }).click(function(){
 	$(this).trigger('mouseout');
 	$(self.dom).hide();
@@ -758,24 +795,33 @@ Provi.Jmol.JmolWidget = function(params){
     }
     
     if( !params.no_selection_manager_widget ){
-	this.selection_manager = new Provi.Selection.SelectionManagerWidget({
-	    parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-	    selection_manager: this.applet.selection_manager,
-	    applet: this.applet
-	});
+    	this.selection_manager = new Provi.Selection.SelectionManagerWidget({
+    	    parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+    	    selection_manager: this.applet.selection_manager,
+    	    applet: this.applet
+    	});
     }
     
     if( !params.no_tree_view_widget ){
-	this.tree_widget = new Provi.Bio.Sequence.TreeViewWidget({
-	    parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-	    applet: this.applet
-	});
+    	this.tree_widget = new Provi.Bio.Sequence.TreeViewWidget({
+    	    parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+    	    applet: this.applet
+    	});
     }
     
-    this.plot_widget = new Provi.Jmol.Analysis.PlotWidget({
-	parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-	applet: this.applet
-    });
+    if( !params.no_grid_widget ){
+        this.grid_widget = new Provi.Bio.Sequence.GridWidget({
+    	parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+    	applet: this.applet
+        });
+    }
+    
+    if( !params.no_plot_widget ){
+        this.plot_widget = new Provi.Jmol.Analysis.PlotWidget({
+    	parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+    	applet: this.applet
+        });
+    }
     
     $('#' + this.more_id).trigger('click');
 //    $(this.dom).resizable({
