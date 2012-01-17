@@ -82,6 +82,10 @@ try{if(typeof(_jmol)!="undefined")exit()
 // ah 1/2011  -- wider detection of browsers; more browsers now use the object tag instead of the applet tag; 
 //               fix of object tag (removed classid) accounts for change of behavior in Chrome
 // bh 3/2011  -- added jmolLoadAjax_STOLAF_NIH
+// ah 9/2011  -- Applet is now wrapped in a <span> tag (might break existing user code).
+//               Added jmolSwitchToSignedApplet(); replaces an applet with the signed applet, 
+//               preserving size, model and state; an additional script may be specified. 
+//               Note: as a result, unsigned and signed applets may coexist in a page.
 
 var defaultdir = "."
 var defaultjar = "JmolApplet.jar"
@@ -100,6 +104,9 @@ var defaultjar = "JmolApplet.jar"
 // then the user is presented with a warning and asked whether it is OK to change Jar files.
 // The default action, if the user just presses "OK" is to NOT allow the change. 
 // The user must type the word "yes" in the prompt box for the change to be approved.
+
+// For a simple change to the signed applet in the same original directory (if it's available),
+// you can use JMOLJAR=SIGNED on the URL.
 
 // If you don't want people to be able to switch in their own JAR file on your page,
 // simply set this next line to read "var allowJMOLJAR = false".
@@ -128,6 +135,7 @@ function jmolInitialize(codebaseDirectory, fileNameOrUseSignedApplet) {
         alert("The web page URL was ignored. Continuing using " + _jmol.archivePath + ' in directory "' + codebaseDirectory + '"');
       }
     } else {
+			if (f=="SIGNED") { f=true; }
       fileNameOrUseSignedApplet = f;
     }
   }
@@ -488,6 +496,26 @@ function jmolCheckBrowser(action, urlOrMessage, nowOrLater) {
     _jmolCheckBrowser();
 }
 
+var _jmolScriptForSwitching;
+function jmolSwitchToSignedApplet(targetSuffix, additionalScript) {
+  if (!targetSuffix) { targetSuffix = "0"; }
+  if (!additionalScript) { additionalScript = ""; }
+  var s = jmolEvaluate("_signedApplet",targetSuffix);
+  var w = jmolEvaluate("_width",targetSuffix); 
+  var h = jmolEvaluate("_height",targetSuffix); 
+  if (s=="true") { 
+    jmolScript(additionalScript,targetSuffix);
+    return;
+  }
+  var appletParent = document.getElementById("jmolApplet"+targetSuffix).parentNode;
+  _jmolScriptForSwitching = jmolGetPropertyAsString("stateInfo", "", targetSuffix) + additionalScript;
+  appletParent.innerHTML = ""; 
+  _jmolGetJarFilename(true);
+  jmolSetDocument(false);
+  appletParent.innerHTML = jmolApplet([w,h], "javascript jmolScript(_jmolScriptForSwitching," + targetSuffix + ")", targetSuffix);
+  jmolSetDocument(document);
+}
+
 ////////////////////////////////////////////////////////////////
 // Cascading Style Sheet Class support
 ////////////////////////////////////////////////////////////////
@@ -761,11 +789,11 @@ function _jmolApplet(size, inlineModel, script, nameSuffix) {
       params.mayscript = 'true';
       params.codebase = codebase;
       params.code = 'JmolApplet';
-      tHeader = 
+      tHeader = "<span>" +
         "<object name='jmolApplet" + nameSuffix +
         "' id='jmolApplet" + nameSuffix + "' " + appletCssText + "\n" +
 				widthAndHeight + "\n";
-      tFooter = "</object>";
+      tFooter = "</object></span>";
     }
     if (java_arguments)
       params.java_arguments = java_arguments;
@@ -782,14 +810,14 @@ function _jmolApplet(size, inlineModel, script, nameSuffix) {
 					Removing the classid parameter seems to be well tolerated by all browsers (even IE!).
 				*/
     } else { // use applet tag
-      tHeader = 
+      tHeader = "<span>" +
         "<applet name='jmolApplet" + nameSuffix +
         "' id='jmolApplet" + nameSuffix + "' " + appletCssText + "\n" +
 				widthAndHeight + "\n" +
         " code='JmolApplet'" +
         " archive='" + archivePath + "' codebase='" + codebase + "'\n" +
         " mayscript='true'>\n";
-      tFooter = "</applet>";
+      tFooter = "</applet></span>";
     }
     var visitJava;
     if (useIEObject || useHtml4Object) {
