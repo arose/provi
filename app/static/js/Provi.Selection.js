@@ -130,11 +130,24 @@ Provi.Selection.Selection.prototype = /** @lends Provi.Selection.Selection.proto
  */
 Provi.Selection.SelectionManager = function(params) {
     this.applet = params.applet;
+    this.init();
 }
 Provi.Selection.SelectionManager.prototype = /** @lends Provi.Selection.SelectionManager.prototype */ {
-    _selection_dict: {},
-    _selection_list: [],
-    _selection_counter: 0,
+    init: function(){
+	var self = this;
+	this._selection_dict = {};
+	this._selection_list = [];
+	this._selection_counter = 0;
+	$(this.applet).bind('delete', function(event){
+	    self.reset();
+	});
+    },
+    reset: function(){
+	this._selection_dict = {};
+	this._selection_list = [];
+	this._selection_counter = 0;
+	$(this).triggerHandler('reset');
+    },
     add: function(selection){
         this._selection_counter += 1;
 	selection.set_id( this._selection_counter );
@@ -174,10 +187,11 @@ Provi.Selection.SelectionManager.prototype = /** @lends Provi.Selection.Selectio
 Provi.Selection.SelectionWidget = function(params){
     this.selection = params.selection;
     Widget.call( this, params );
-    this._build_element_ids([ 'select', 'show', 'hide']);
+    this._build_element_ids([ 'select', 'show', 'hide', 'name', 'id' ]);
     var content = '<div  class="control_group" style="margin:0;">' +
         '<div>' +
-	    this.selection.id + ': ' + this.selection.name + '&nbsp;' +
+	    '<span id="' + this.id_id + '">' + this.selection.id + ':&nbsp;</span>' +
+	    '<span id="' + this.name_id + '">' + this.selection.name + '</span>&nbsp;' +
 	    '<div style="float:right;">' +
 		'<button id="' + this.select_id + '">select</button>' +
 		'<button id="' + this.show_id + '">show</button>' +
@@ -192,6 +206,11 @@ Provi.Selection.SelectionWidget = function(params){
 Provi.Selection.SelectionWidget.prototype = Utils.extend(Widget, /** @lends Provi.Selection.SelectionWidget.prototype */ {
     init: function(){
         var self = this;
+	$("#" + this.name_id).empty()
+	    .text( this.abbr_name( this.selection.name ) )
+	$("#" + this.id_id)
+	    .attr( 'title', '<span style="word-wrap: break-word;">' + this.selection.name + '</span>' )
+	    .tipsy({ gravity: 'nw', html: true });
 	$("#" + this.select_id).button().click(function() {
 	    self.selection.select();
 	});
@@ -201,6 +220,15 @@ Provi.Selection.SelectionWidget.prototype = Utils.extend(Widget, /** @lends Prov
 	$("#" + this.hide_id).button().click(function() {
 	    self.selection.applet.script_wait( 'hide hidden or (' + self.selection.selection + ');' );
 	});
+    },
+    abbr_name: function( name ){
+	splitted = name.split('/');
+	ret = { 'all': name, 'short': name, 'split': name, 'prefix': name };
+	if( splitted.length > 0 ){
+	    return splitted[ splitted.length-1 ];
+	}else{
+	    return name;
+	}
     }
 });
 
@@ -215,7 +243,7 @@ Provi.Selection.SelectionWidget.prototype = Utils.extend(Widget, /** @lends Prov
 Provi.Selection.SelectionManagerWidget = function(params){
     this._widget_list = [];
     this.selection_manager = params.selection_manager;
-    this.persist_on_applet_delete = params.persist_on_applet_delete = true;
+    this.persist_on_applet_delete = params.persist_on_applet_delete = false;
     this.applet = params.applet;
     Widget.call( this, params );
     this._build_element_ids([ 'list', 'selection_creator' ]);
@@ -241,15 +269,59 @@ Provi.Selection.SelectionManagerWidget.prototype = Utils.extend(Widget, /** @len
 	$(this.selection_manager).bind('add', function(event, selection){
 	    self.add( selection );
 	});
-	$(this.applet).bind('load_struct', function(event, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
-	    if(lastLoadedModelNumberDotted){
+	$(this.selection_manager).bind('reset', function(event){
+	    $("#" + self.list_id).empty();
+	});
+	//$(this.applet).bind('load_struct', function(event, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
+	//    if(lastLoadedModelNumberDotted){
+	//	new Provi.Selection.Selection({
+	//	    persist: true,
+	//	    applet: self.applet,
+	//	    name: 'Protein ' + lastLoadedModelNumberDotted,
+	//	    selection: lastLoadedModelNumberDotted
+	//	});
+	//    }
+	//});
+	$(Provi.Bio.Structure).bind('load', function( event, structure_widget, applet, load_as, file_number, model_number ){
+	    if( applet != self.applet ) return;
+	    applet.script_wait('select *');
+	    console.log( applet, self.applet, structure_widget.dataset );
+	    var s = '' +
+		'var modelInfo = getProperty("modelInfo");' +
+		'var count = modelInfo["modelCount"];' +
+		'var models = modelInfo["models"];' +
+		'var file_model_array = [];' +
+		'for (var i = 0; i < count; i++){' +
+		    'var m = models[i];' +
+		    'file_model_array += m["file_model"];' +
+		'}' +
+		'file_model_array.sort();' +
+		'print "[\'" + file_model_array.join("\',\'") + "\']";' +
+		'';
+	    var model_info = undefined;
+	    if(s){
+		var script_output = applet.script_wait_output( s );
+		if( script_output && script_output != -1 ){
+		    model_info = $.parseJSON( script_output.replace(/'/g,'"') );
+		}
+	    }
+	    console.log( model_info );
+	    
+	    applet.script_wait('select none');
+	    if( load_as != 'append' && load_as != 'trajectory+append' ){
 		new Provi.Selection.Selection({
 		    persist: true,
-		    applet: self.applet,
-		    name: 'Protein ' + lastLoadedModelNumberDotted,
-		    selection: lastLoadedModelNumberDotted
+		    applet: applet,
+		    name: 'All',
+		    selection: '*'
 		});
 	    }
+	    new Provi.Selection.Selection({
+		persist: true,
+		applet: applet,
+		name: structure_widget.dataset.name + ' (' + structure_widget.dataset.id + ')',
+		selection: 'file=' + file_number
+	    });
 	});
     },
     add: function(selection){
@@ -270,7 +342,7 @@ Provi.Selection.SelectionManagerWidget.prototype = Utils.extend(Widget, /** @len
 Provi.Selection.SelectorWidget = function(params){
     this._widget_list = [];
     this.selection_manager = params.selection_manager;
-    this.persist_on_applet_delete = params.persist_on_applet_delete = true;
+    this.persist_on_applet_delete = params.persist_on_applet_delete;
     this.applet = params.applet;
     Widget.call( this, params );
     this._build_element_ids([ 'selector', 'selection' ]);
@@ -293,16 +365,16 @@ Provi.Selection.SelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi
 	}
     },
     _update: function(){
-	var elm = $("#" + this.selector_id);
+		var elm = $("#" + this.selector_id);
         var value = $("#" + this.selector_id + " option:selected").val();
-	elm.empty();
-	if( this.selection_manager ){
-	    elm.append("<option value=''></option>");
-	    $.each(this.selection_manager.get_list(), function(){
-		elm.append("<option value='" + this.id + "'>" + this.name + ' (' + this.id + ')' + "</option>");
-	    });
-	    elm.val( value );
-	}
+		elm.empty();
+		if( this.selection_manager ){
+		    elm.append("<option value=''></option>");
+		    $.each(this.selection_manager.get_list(), function(){
+				elm.append("<option value='" + this.id + "'>" + this.id + ': ' + this.name + "</option>");
+		    });
+		    elm.val( value );
+		}
     },
     get: function(selection){
 	var id = $("#" + this.selector_id + " option:selected").val();
@@ -324,7 +396,7 @@ Provi.Selection.SelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi
 	this.applet = applet;
 	if( applet ){
 	    this.selection_manager = applet.selection_manager;
-	    $( this.selection_manager ).bind('change change_selected', function(){
+	    $( this.selection_manager ).bind('reset change change_selected', function(){
 		self._update();
 	    });
 	}
@@ -342,7 +414,7 @@ Provi.Selection.SelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi
 Provi.Selection.CreatorWidget = function(params){
     this._widget_list = [];
     this.selection_manager = params.selection_manager;
-    this.persist_on_applet_delete = params.persist_on_applet_delete = true;
+    this.persist_on_applet_delete = params.persist_on_applet_delete;
     this.applet = params.applet;
     Widget.call( this, params );
     this._build_element_ids([ 'name', 'selection', 'construct' ]);
