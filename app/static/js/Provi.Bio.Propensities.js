@@ -90,10 +90,17 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
         params
     );
     console.log('PROPENSITIES', params);
-    params.persist_on_applet_delete = false;
+    if( params.applet ){
+        params.persist_on_applet_delete = false;
+    }else{
+        params.persist_on_applet_delete = true;
+    }
     //params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
-    this._init_eid_manager( ['colorize', 'scale', 'radius', 'cutoff', 'min', 'max'] );
+    this._init_eid_manager([
+        'colorize', 'scale', 'radius', 'cutoff', 'min', 'max',
+        'applet_selector_widget'
+    ]);
     
     this.dataset = params.dataset;
     this.applet = params.applet;
@@ -102,6 +109,7 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
     this.cutoff = params.cutoff;
     
     var template = '' +
+        '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row">' +
             'scale&nbsp;<select id="${eids.scale}" class="ui-state-default"></select>' +
         '</div>' +
@@ -121,8 +129,14 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
             '<button id="${eids.colorize}">colorize</button>' +
         '</div>' +
 	'';
-    
     this.add_content( template, params );
+
+    if( !this.applet ){
+        this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
+            parent_id: this.eid('applet_selector_widget')
+        });
+    }
+
     this._init();
 }
 Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Structure.StructureWidget.prototype */ {
@@ -131,6 +145,13 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
         radius: '2.8',
         cutoff: '1.5',
         heading: 'Propensities'
+    },
+    get_applet: function(){
+        if( this.applet ){
+            return this.applet;
+        }else{
+            return this.applet_selector.get_value(true);
+        }
     },
     _init: function(){
         var self = this;
@@ -212,6 +233,9 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
         this.elm('cutoff').val( value );
     },
     colorize: function(){
+        var applet = this.get_applet();
+        if( !applet ) return;
+
         var scale = this.scale;
         var radius = this.radius;
         var cutoff = this.cutoff;
@@ -230,7 +254,7 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
         this.elm('max').text( max.toFixed(2) );
 
         var self = this;
-        if( this.applet ){
+        if( applet ){
             var s = 'select all; color grey;';
             _.each( prop_data, function( value, key ){
                 s += '' +
@@ -238,7 +262,7 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
                     'color @{ color("bwr", ' + min + ', ' + max + ', ' + value + ') };' +
                     '';
             });
-            this.applet.script(s, true);
+            applet.script(s, true);
         }
     }
 });
