@@ -262,7 +262,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
                 return false;
             }
         });
-        $("#" + self.tmh_filter_check_id).parent().toggle( this.tmh_ds );
+        $("#" + self.tmh_filter_check_id).parent().toggle( this.tmh_ds ? true : false );
     },
     retrieve_atoms: function (){
         this.block();

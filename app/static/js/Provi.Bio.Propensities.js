@@ -263,7 +263,8 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
             }
         });
         this.elm('tmh_filter').attr( 'checked', this.tmh_filter );
-        this.elm('tmh_filter').parent().toggle( this.tmh_ds );
+        this.elm('tmh_filter').parent().toggle( this.tmh_ds ? true : false );
+        //this.elm('tmh_filter').parent().show();
     },
     colorize: function(){
         var applet = this.get_applet();
