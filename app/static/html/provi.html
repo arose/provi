@@ -238,6 +238,14 @@
 	    new Provi.Jmol.Analysis.HbondsWidget({
                 parent_id: 'tab_widgets'
             });
+
+        Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
+			//sort_key: 2,
+			heading: 'Propensities',
+			description: 'Propensity data from curated MPHD data set',
+			show_dataset_info: false,
+			parent_id: 'tab_tree'
+	    });
             
 	    new Provi.Jmol.Analysis.IsosurfaceConstructionWidget({
 		parent_id: 'tab_tree'
