@@ -99,7 +99,7 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
         'colorize', 'scale', 'radius', 'cutoff', 'min', 'max',
-        'applet_selector_widget'
+        'tmh_filter', 'applet_selector_widget'
     ]);
     
     this.dataset = params.dataset;
@@ -107,6 +107,7 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
     this.scale = params.scale;
     this.radius = params.radius;
     this.cutoff = params.cutoff;
+    this.tmh_filter = params.tmh_filter;
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
@@ -118,6 +119,10 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
         '</div>' +
         '<div class="control_row">' +
             'cut-off&nbsp;<select id="${eids.cutoff}" class="ui-state-default"></select>' +
+        '</div>' +
+        '<div class="control_row checkbox">' +
+            '<input id="${eids.tmh_filter}" type="checkbox" />' +
+            '<label for="${eids.tmh_filter}">limit coloring to tmh atoms</label>' +
         '</div>' +
         '<div class="control_row">' +
             '<div class="scale bwr" style="width:250px; height:20px; padding:0.15em;">' +
@@ -144,6 +149,7 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
         scale: 'TMLIP2',
         radius: '2.8',
         cutoff: '1.5',
+        tmh_filter: true,
         heading: 'Propensities'
     },
     get_applet: function(){
@@ -178,6 +184,15 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
             self.colorize();
         });
         this._init_cutoff( this.cutoff );
+
+        this.elm('tmh_filter').parent().hide();
+        this._init_tmh_filter();
+        this.elm('tmh_filter').change( function() {
+            self.tmh_filter = self.elm('tmh_filter').is(':checked');
+            self.colorize();
+        });
+        
+        $(Provi.Data.DatasetManager).bind('change', function(){ self._init_tmh_filter() });
 
 	   Provi.Widget.Widget.prototype.init.call(this);
     },
@@ -232,6 +247,29 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
         this.cutoff = value;
         this.elm('cutoff').val( value );
     },
+    /** initialize the tmh filter controls */
+    _init_tmh_filter: function(){
+        var self = this;
+        _.any( Provi.Data.DatasetManager.get_list(), function(dataset, i){
+            if( dataset.type == 'tmhelix' && dataset.data && 
+                _.include(dataset.applet_list, self.get_applet()) 
+            ){
+                self.tmh_list = dataset.data.tmh_list;
+                // breaks the loop
+                return true;
+            }else{
+                self.tmh_list = false;
+                return false;
+            }
+        });
+
+        if( this.tmh_list ){
+            this.elm('tmh_filter').attr( 'checked', this.tmh_filter );
+            this.elm('tmh_filter').parent().show();
+        }else{
+            this.elm('tmh_filter').parent().hide();
+        }
+    },
     colorize: function(){
         var applet = this.get_applet();
         if( !applet ) return;
@@ -255,10 +293,24 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
 
         var self = this;
         if( applet ){
+
+            if( this.tmh_filter && this.tmh_list ){
+                var tmh_filter = []
+                _.each( this.tmh_list, function( tmh, i ){
+                    tmh_filter.push(
+                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
+                    );
+                });
+                tmh_filter = ' and (' + tmh_filter.join( ' or ' ) + ')';
+            }else{
+                var tmh_filter = '';
+            }
+
             var s = 'select all; color grey;';
+            var tmh
             _.each( prop_data, function( value, key ){
                 s += '' +
-                    'select group1="' + key + '";' +
+                    'select group1="' + key + '"' + tmh_filter + ';' +
                     'color @{ color("bwr", ' + min + ', ' + max + ', ' + value + ') };' +
                     '';
             });
