@@ -63,7 +63,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     this.interface_ids = '';
     this.interface_names = '';
     this.tmh_filter = false;
-    this.tmh_list = false;
+    this.tmh_ds = false;
     this.atoms = [];
     this.structure_atoms = [];
     
@@ -250,17 +250,19 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
     /** initialize the tmh filter controls */
     _init_tmh_filter: function(){
         var self = this;
-        $.each( Provi.Data.DatasetManager.get_list(), function(i, dataset){
-            $("#" + self.tmh_filter_check_id).parent().hide();
-            if( dataset.type == 'tmhelix' && dataset.data && Utils.in_array(dataset.applet_list, self.applet) ){
-                self.tmh_list = dataset.data.tmh_list;
-                self.tmh_filter = false;
-                $("#" + self.tmh_filter_check_id).parent().show();
-                return false;
-            }else{
+        _.any( Provi.Data.DatasetManager.get_list(), function(dataset, i){
+            if( dataset.type == 'tmhelix' && dataset.data && 
+                _.include(dataset.applet_list, self.applet) 
+            ){
+                self.tmh_ds = dataset.data;
+                // breaks the loop
                 return true;
+            }else{
+                self.tmh_ds = false;
+                return false;
             }
         });
+        $("#" + self.tmh_filter_check_id).parent().toggle( this.tmh_ds );
     },
     retrieve_atoms: function (){
         this.block();
@@ -317,15 +319,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             timer.stop();
             atoms = atoms2;
             
-            if( this.tmh_filter && this.tmh_list ){
-                console.log( this.tmh_list );
-                var tmh_filter = []
-                $.each( this.tmh_list, function( i, tmh ){
-                    tmh_filter.push(
-                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
-                    );
-                });
-                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+            if( this.tmh_filter && this.tmh_ds ){
+                atoms = '( (' + atoms + ') ) and ' + this.tmh_ds.jmol_sele();
             }
             
             this.interface_contacts_selection.selection = '(' + atoms + ')';
@@ -386,15 +381,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             atoms = atoms.join(',');
             timer.stop();
             
-            if( this.tmh_filter && this.tmh_list ){
-                console.log( this.tmh_list );
+            if( this.tmh_filter && this.tmh_ds ){
+                console.log( this.tmh_ds );
                 var tmh_filter = []
-                $.each( this.tmh_list, function( i, tmh ){
-                    tmh_filter.push(
-                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
-                    );
-                });
-                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+                atoms = '( (' + atoms + ') ) and ' + this.tmh_ds.jmol_sele();
             }
             
             this.interface_contacts_selection.selection = '(' + atoms + ')';
@@ -457,15 +447,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             
             //console.log( atoms );
             
-            if( this.tmh_filter && this.tmh_list ){
-                console.log( this.tmh_list );
-                var tmh_filter = []
-                $.each( this.tmh_list, function( i, tmh ){
-                    tmh_filter.push(
-                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
-                    );
-                });
-                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+            if( this.tmh_filter && this.tmh_ds ){
+                console.log( this.tmh_ds );
+                atoms = '( (' + atoms + ') ) and ' + this.tmh_ds.jmol_sele();
             }
             
             this.interface_contacts_selection.selection = '(' + atoms + ')';
@@ -556,15 +540,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             //console.log( cutoffs );
             
             var atoms_filter = '';
-            if( this.tmh_filter && this.tmh_list ){
-                console.log( this.tmh_list );
-                var tmh_filter = []
-                $.each( this.tmh_list, function( i, tmh ){
-                    tmh_filter.push(
-                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
-                    );
-                });
-                atoms_filter = '(' + tmh_filter.join( ' or ' ) + ')';
+            if( this.tmh_filter && this.tmh_ds ){
+                console.log( this.tmh_ds );
+                atoms_filter = this.tmh_ds.jmol_sele();
             }
             
             this.interface_contacts_selection.selection = '(' + atoms + ')';
@@ -691,15 +669,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             
             //console.log( atoms );
             
-            if( this.tmh_filter && this.tmh_list ){
-                console.log( this.tmh_list );
-                var tmh_filter = []
-                $.each( this.tmh_list, function( i, tmh ){
-                    tmh_filter.push(
-                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
-                    );
-                });
-                atoms = '( (' + atoms + ') ) and (' + tmh_filter.join( ' or ' ) + ')';
+            if( this.tmh_filter && this.tmh_ds ){
+                console.log( this.tmh_ds );
+                atoms = '( (' + atoms + ') ) and ' + this.tmh_ds.jmol_sele();
             }
             
             this.interface_contacts_selection.selection = '(' + atoms + ')';
