@@ -254,21 +254,16 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
             if( dataset.type == 'tmhelix' && dataset.data && 
                 _.include(dataset.applet_list, self.get_applet()) 
             ){
-                self.tmh_list = dataset.data.tmh_list;
+                self.tmh_ds = dataset.data;
                 // breaks the loop
                 return true;
             }else{
-                self.tmh_list = false;
+                self.tmh_ds = false;
                 return false;
             }
         });
-
-        if( this.tmh_list ){
-            this.elm('tmh_filter').attr( 'checked', this.tmh_filter );
-            this.elm('tmh_filter').parent().show();
-        }else{
-            this.elm('tmh_filter').parent().hide();
-        }
+        this.elm('tmh_filter').attr( 'checked', this.tmh_filter );
+        this.elm('tmh_filter').parent().toggle( this.tmh_ds );
     },
     colorize: function(){
         var applet = this.get_applet();
@@ -294,20 +289,12 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
         var self = this;
         if( applet ){
 
-            if( this.tmh_filter && this.tmh_list ){
-                var tmh_filter = []
-                _.each( this.tmh_list, function( tmh, i ){
-                    tmh_filter.push(
-                        '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
-                    );
-                });
-                tmh_filter = ' and (' + tmh_filter.join( ' or ' ) + ')';
-            }else{
-                var tmh_filter = '';
+            var tmh_filter = '';
+            if( this.tmh_filter && this.tmh_ds ){
+                tmh_filter = ' and ' + this.tmh_ds.jmol_sele();
             }
 
             var s = 'select all; color grey;';
-            var tmh
             _.each( prop_data, function( value, key ){
                 s += '' +
                     'select group1="' + key + '"' + tmh_filter + ';' +
