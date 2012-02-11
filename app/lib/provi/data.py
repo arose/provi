@@ -9,6 +9,7 @@ import itertools
 from collections import defaultdict
 from utils.odict import odict
 import threading
+import csv
 
 from MembraneProtein.AndreanTools import contact
 from MembraneProtein.AndreanTools import membran_neu
@@ -356,16 +357,45 @@ class Xyzrn( Text ):
     file_ext = 'xyzrn'
 
 
+class Csv( Text ):
+    file_ext = 'csv'
+    @expose
+    def get_json( self, dataset, **kwargs ):
+        csvReader = csv.reader( dataset.data.split('\n'), delimiter=',' )
+        d = [line for line in csvReader]
+        print d
+        return json.dumps( d )
+
+
+class Json( Text ):
+    file_ext = 'json'
+    @expose
+    def get_json( self, dataset, **kwargs ):
+        return json.dumps( dataset.data )
+
+    
+class Prop( Json ):
+    file_ext = 'prop'
+        # csvReader = csv.DictReader( dataset.data.split('\n'), delimiter=',' )
+        # prop_dict = {}
+        # for line in csvReader:
+        #     prop_dict[ line['AA'] ] = line
+        # #print prop_dict
+        # return json.dumps( prop_dict )
+
+
 extension_to_datatype_dict = {
     'anal': Hbx(),
     'bin': Binary(),
     'ccp4': Ccp4(),
     'cif': Cif(),
+    'csv': Csv(),
     'cube': Cube(),
     'dat': Data(),
     'dx': Dx(),
     'ent': Ent(),
     'gro': Gromacs(),
+    'json': Json(),
     'jspt': JmolScript(),
     'jvxl': JmolVoxel(),
     'map': Map(),
@@ -378,6 +408,7 @@ extension_to_datatype_dict = {
     'obj': Obj(),
     'pdb': Pdb(),
     'pqr': Pqr(),
+    'prop': Prop(),
     'sco': Sco(),
     'sdf': Sdf(),
     'tmhelix': Tmhelix(),

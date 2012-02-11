@@ -35,10 +35,9 @@ class DataStorage(object):
         self.data_dict = {}
         
     def add( self, data ):
-        self.lock.acquire()
-        count = self.count
-        self.count += 1
-        self.lock.release()
+        with self.lock:
+            count = self.count
+            self.count += 1
         self.data_dict[ count ] = data
         LOG.debug('DATA ID %s' % count)
         return count
@@ -399,7 +398,8 @@ class JmolCalculateController( BaseController ):
             name, value = cookie.split('=')
             cookie_dict[name] = value
         LOG.debug( cookie_dict )
-        return cookie_dict[ 'provisessionX' ]
+        return cookie_dict[ 'provisessions' ]
+        #return cookie_dict[ self.app.config.session_key ]
     def prepare( self, data, session_id ):
         base_url = 'http://127.0.0.1:7272/data/get/?'
         data = data.replace( base_url, '%ssession_id=%s&' % (base_url, session_id) )
@@ -557,7 +557,7 @@ class GetSessionMiddleware( object ):
         LOG.debug( environ['QUERY_STRING'] )
         LOG.debug( query_dict )
         if 'session_id' in query_dict:
-            environ['HTTP_COOKIE'] = 'provisessionX=%s' % query_dict['session_id']
+            environ['HTTP_COOKIE'] = '%s=%s' % ( 'provisessions', query_dict['session_id'] )
         return self.app(environ, start_response)
 
 def wrap_in_middleware( app, global_conf, **local_conf  ):
@@ -625,6 +625,7 @@ def wrap_in_static( app, global_conf, **local_conf ):
 class Configuration( object ):
     def __init__( self, **kwargs ):
         self.config_dict = kwargs
+        self.session_key = kwargs.get( 'session.key', 'provisessions' )
         self.root = kwargs.get( 'root_dir', '.' )
         self.galaxy_url = kwargs.get( 'galaxy_url', 'http://localhost:9090' )
         self.provi_url = kwargs.get( 'provi_url', 'http://localhost:7070' )

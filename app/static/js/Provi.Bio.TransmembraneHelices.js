@@ -31,26 +31,36 @@ Provi.Bio.TransmembraneHelices.TmHelices = function(tmh_list){
 Provi.Bio.TransmembraneHelices.TmHelices.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractResiduePropertyMap, /** @lends Provi.Bio.TransmembraneHelices.TmHelices.prototype */ {
     key_length: 2,
     init: function(){
-	var self = this;
-	this.property_dict = {};
-	this.property_list = [];
-	this._keys = [];
-	$.each( this.tmh_list, function(i, tmh){
-	    var property = {
-		beg: { resno: tmh[0][1], chain: tmh[0][0] },
-		end: { resno: tmh[1][1], chain: tmh[1][0] },
-		len: tmh[1][1] - tmh[0][1],
-		sele: '(chain = "' + tmh[0][0] + '" and (resNo >= ' + tmh[0][1] + ' and resNo <= ' + tmh[1][1] + '))'
-	    }
-	    var key = [ tmh[0][0], [ tmh[0][1], tmh[1][1] ] ];
-	    self._keys.push( key );
-	    self.property_dict[ key ] = property;
-	    self.property_list.push( property );
-	});
+		var self = this;
+		this.property_dict = {};
+		this.property_list = [];
+		this._keys = [];
+		_.each( this.tmh_list, function(tmh, i){
+		    var property = {
+				beg: { resno: tmh[0][1], chain: tmh[0][0] },
+				end: { resno: tmh[1][1], chain: tmh[1][0] },
+				len: tmh[1][1] - tmh[0][1],
+				sele: '(chain = "' + tmh[0][0] + '" and (resNo >= ' + tmh[0][1] + ' and resNo <= ' + tmh[1][1] + '))'
+		    }
+		    var key = [ tmh[0][0], [ tmh[0][1], tmh[1][1] ] ];
+		    self._keys.push( key );
+		    self.property_dict[ key ] = property;
+		    self.property_list.push( property );
+		});
     },
     _get: function(id){
-	//console.log('ID', id );
-	return this.property_dict[ id ];
+		//console.log('ID', id );
+		return this.property_dict[ id ];
+    },
+    jmol_sele: function(){
+    	var sele = []
+        _.each( this.tmh_list, function( tmh, i ){
+            sele.push(
+                '(' + ( tmh[0][0] ? ('chain = "' + tmh[0][0] + '" and ') : '' ) + 
+                'resno >= ' + tmh[0][1] + ' and resno <= ' + tmh[1][1] + ')'
+            );
+        });
+        return '(' + sele.join( ' or ' ) + ')';
     }
 });
 

@@ -91,7 +91,7 @@ Provi.Widget.Widget = function(params){
     Provi.Widget.WidgetManager.add_widget(this.id, this);
     
     if( !this.parent_id || $('#' + this.parent_id).length == 0 ){
-	throw "Widget is missing a parent object to add to.";
+	   throw "Widget is missing a parent object to add to.";
     }
     
     var template = '' +
@@ -108,7 +108,7 @@ Provi.Widget.Widget = function(params){
 	'</div>' +
 	'<div class="my-content">' +
 	    '<div class="" id="${eids.description}" ' +
-		    'style="{{if !params.info}}display:none;{{/if}}">' +
+		    'style="{{if !params.description}}display:none;{{/if}}">' +
 		'${params.description}' +
 	    '</div>' +
 	    '{{if params.show_dataset_info && params.dataset && params.applet}}' +
@@ -155,7 +155,10 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	    $(this).toggleClass('ui-state-active ui-state-default');
 	    return false;
 	});
-	if( this.heading && this.collapsed ) heading.triggerHandler('click');
+	if( this.heading && this.collapsed ){
+	    heading.triggerHandler('click');
+	    heading.siblings().toggle(false);
+	}
 	
 	if( !this.heading ) this.elm( 'heading' ).hide();
 	if( !this.info ) this.elm( 'info' ).hide();
@@ -169,24 +172,24 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
 	$(this).triggerHandler('init');
     },
     del: function(){
-	$(this.dom).hide();
-	$(this.dom).appendTo('#trash');
+    	$(this.dom).hide();
+    	$(this.dom).appendTo('#trash');
     },
     set_heading: function( heading ){
-	this.elm( 'heading' ).text( heading ).show();
+	   this.elm( 'heading' ).text( heading ).show();
     },
     set_description: function( description ){
-	this.elm( 'description' ).text( description ).show();
+	   this.elm( 'description' ).text( description ).show();
     },
     set_info: function( info ){
-	this.elm( 'info' ).text( info ).show();
+	   this.elm( 'info' ).text( info ).show();
     },
     set_content: function( content ){
-	this.elm( 'content' ).innerHTML( content );
+	   this.elm( 'content' ).innerHTML( content );
     },
     add_content: function( template, params ){
-	var e = this.elm( 'content' );
-	$.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo(e);
+    	var e = this.elm( 'content' );
+    	$.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo(e);
     },
     /**
     * Helper function to create unique ids for dom elements that belong to the widget.
@@ -196,24 +199,24 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     * @returns {void}
     */
     _build_element_ids: function( names ){
-	var self = this;
-	$.each( names, function(i, name){
-	    self[ name + '_id' ] = self.id + '_' + name;
-	});
+    	var self = this;
+    	$.each( names, function(i, name){
+    	    self[ name + '_id' ] = self.id + '_' + name;
+    	});
     },
     _make_eid: function( name ){
-	return this.id + '_' + name;
+    	return this.id + '_' + name;
     },
     _init_eid_manager: function( eid_list ){
-	this.add_eids( eid_list );
+	   this.add_eids( eid_list );
     },
     add_eids: function( eid_list ){
-	var self = this;
-	var eid_dict = {};
-	$.each( eid_list, function(i, eid){
-	    eid_dict[eid] = self._make_eid(eid);
-	});
-	this.eid_dict = $.extend( this.eid_dict, eid_dict );
+    	var self = this;
+    	var eid_dict = {};
+    	$.each( eid_list, function(i, eid){
+    	    eid_dict[eid] = self._make_eid(eid);
+    	});
+    	this.eid_dict = $.extend( this.eid_dict, eid_dict );
     },
     eid: function( name ){
 	if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";

@@ -67,7 +67,8 @@ Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget
     load: function( applet, load_as, style ){
 	var self = this;
         console.log( this, this.dataset );
-        var params = '?id=' + this.dataset.server_id;
+	var params = '?id=' + this.dataset.server_id + '&session_id=' + $.cookie('provisessions');
+        //var params = '?id=' + this.dataset.server_id;
         var type = this.dataset.type;
         if( $.inArray(type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol']) >= 0 ){
             params += '&data_action=get_pdb';
@@ -100,7 +101,7 @@ Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget
 		'subset file = _currentFileNumber; ' + style + ' subset;';
 	}else if(load_as == 'append'){
 	    s = 'load APPEND "' + type + '../../data/get/' + params + '"; ' +
-		'subset file = _currentFileNumber; ' + style + ' frame all; subset; ';
+		'subset file = _currentFileNumber; ' + style + '; subset; ';
 	//}else if(load_as == 'new'){
 	}else{
 	    console.log('../../data/get/' + params);
@@ -108,10 +109,17 @@ Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget
 	}
 	
 	applet.script_wait( s , true );
+	var model_number = applet.evaluate('_modelNumber');
+	var file_number = applet.evaluate('_currentFileNumber');
+	console.log( 'STRUCTURE LOAD', file_number, model_number );
+	$(Provi.Bio.Structure).triggerHandler('load', [this, applet, load_as, file_number, model_number]);
 	if( load_as != 'append' && load_as != 'trajectory+append' ){
 	    applet.lighting_manager.set();
 	    applet.clipping_manager.set();
 	    applet.picking_manager.set();
+	}
+	if( load_as != 'trajectory+append' && load_as != 'trajectory'  ){
+	    applet.script_wait( 'frame all;', true );
 	}
     }
 });
