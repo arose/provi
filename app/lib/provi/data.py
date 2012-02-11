@@ -8,6 +8,7 @@ from cStringIO import StringIO
 import itertools
 from collections import defaultdict
 from utils.odict import odict
+import threading
 import csv
 
 from MembraneProtein.AndreanTools import contact
@@ -67,6 +68,7 @@ def sniff_datatype( data, name ):
 
 class Dataset( object ):
     def __init__( self, data, type=None, name="", extra_data={} ):
+        self.lock = threading.Lock()
         self.data = data
         self.extra_data = extra_data
         self.name = name
@@ -77,6 +79,10 @@ class Dataset( object ):
             type = extension_to_datatype_dict[ str(type).lower() ]
         LOG.debug( type )
         self.type = type
+    def update( self, extra_data ):
+        self.lock.acquire()
+        self.extra_data.update( extra_data )
+        self.lock.release()
 
 
 class Data( object ):
@@ -100,6 +106,22 @@ class Text( Data ):
 class Dx( Data ):
     """Dx datatype"""
     file_ext = 'dx'
+    pass
+
+class Dcd( Binary ):
+    """Dcd datatype"""
+    file_ext = 'dcd'
+    # todo: dataset.data a pointer - sort of
+    def get_trj( self, dataset ):
+        pass
+    def set_psf( self, dataset ):
+        pass
+    def _init_universe( self, dataset ):
+        pass
+
+class Psf( Text ):
+    """Psf datatype"""
+    file_ext = 'psf'
     pass
 
 class Sdf( Data ):
