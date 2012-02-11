@@ -1,0 +1,84 @@
+
+load "1crn.pdb";
+
+select all; cartoon on; wireframe 0.15;
+
+selectionHalos OFF;
+
+var n = {*}.atomIndex.max;
+var x = "ATOM    201  N   TYR    39       1.622  13.211   6.524  1.00  5.01           N  
+ATOM    202  CA  TYR    39       0.794  12.027   6.667  1.00  6.59           C  
+ATOM    203  C   TYR    39       1.262  11.218   7.863  1.00  4.92           C  
+ATOM    204  O   TYR    39       0.173  10.574   8.454  1.00  7.13           O  
+ATOM    205  CB  TYR    39       0.804  11.240   5.360  1.00  9.66           C  
+ATOM    206  CG  TYR    39      -0.197  10.133   5.366  1.00 11.56           C  
+ATOM    207  CD1 TYR    39      -1.613  10.431   5.606  1.00 12.85           C  
+ATOM    208  CD2 TYR    39       0.240   8.750   5.130  1.00 14.42           C  
+ATOM    209  CE1 TYR    39      -2.594   9.338   5.648  1.00 16.61           C  
+ATOM    210  CE2 TYR    39      -0.744   7.658   5.152  1.00 17.11           C  
+ATOM    211  CZ  TYR    39      -2.154   7.958   5.422  1.00 19.97           C  
+ATOM    212  OH  TYR    39      -3.069   6.942   5.457  1.00 28.96           O  "
+set appendNew OFF;
+load append '@x';
+set appendNew ON;
+
+var old = {atomIndex <= n and 36};
+var new = {atomIndex > n};
+
+#var t = {@new and *.CA}.XYZ - {@old and *.CA}.XYZ;
+var t = {@old and *.CA}.XYZ - {@new and *.CA}.XYZ;
+
+print @t;
+
+select @new;
+translateSelected @t;
+
+
+var v1 = {@old and *.CB}.XYZ - {@old and *.CA}.XYZ;
+var ca = {@old and *.CA}.XYZ;
+var v2 = {@new and *.CB}.XYZ - {@new and *.CA}.XYZ;
+var cr = cross(v1, v2);
+var p = cr + ca;
+draw ID "p" @p;
+draw ID "v2" vector {@new and *.CA} @v1 scale 500;
+draw ID "v1" vector {@new and *.CA} @v2 scale 500;
+draw ID "cr" vector {@new and *.CA} @cr scale 500;
+var an = -angle({@old and *.CB}, {@old and *.CA}, {@new and *.CB});
+
+print @an;
+
+select @new;
+rotateSelected @an @ca @p;
+
+
+{@new and (*.N)}.XYZ = {@old and (*.N)}.XYZ;
+#{@new and (*.CA)}.XYZ = {@old and (*.CA)}.XYZ;
+{@new and (*.C)}.XYZ = {@old and (*.C)}.XYZ;
+{@new and (*.O)}.XYZ = {@old and (*.O)}.XYZ;
+
+
+#connect (@new and *.CB) (@old and *.CA) SINGLE CREATE
+
+connect (@new and *.N) (within(1.4, (@old and *.N)) and not @old and not @new);
+connect (@new and *.C) (within(1.4, (@old and *.C)) and not @old and not @new);
+
+#delete {@old};
+#connect;
+
+#delete {@old and sidechain};
+#delete {@new and backbone};
+
+#select {@old};
+select {39};
+
+selectionHalos ON;
+
+hide hidden or (@old and backbone);
+color {@old} red;
+color {@new} green;
+center {@new};
+
+select all; cartoon on; wireframe 0.15;
+
+
+select none;
