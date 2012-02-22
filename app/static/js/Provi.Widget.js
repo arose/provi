@@ -218,9 +218,9 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     	});
     	this.eid_dict = $.extend( this.eid_dict, eid_dict );
     },
-    eid: function( name ){
-	if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";
-	return this.eid_dict[ name ];
+    eid: function( name, selector ){
+	   if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";
+	   return (selector ? '#' : '') + this.eid_dict[ name ];
     },
     elm: function( name ){
 	return $( '#' + this.eid(name) );
