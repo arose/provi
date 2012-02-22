@@ -1,0 +1,215 @@
+
+select none;
+selectionHalos off;
+#draw off;
+
+uid_counter = 0;
+function uid(){
+    uid_counter = uid_counter + 1;
+    return uid_counter;
+}
+
+function norm( v ){
+    return v/v;
+}
+
+function mag( v ){
+    return sqrt(v.x**2 + v.y**2 + v.z**2);
+}
+
+function ang( v1, v2 ){
+    var a = acos( (v1*v2)/(mag(v1)*mag(v2)) );
+    if( a > 90 ) a = 180-a;
+    return a;
+}
+
+function draw_intersection( plane, point, color ){
+    if( !color ) color = 'green';
+    var i= intersection(point, plane);
+    var name = "i_" + uid();
+    draw id @name @i radius 0.2 color @color;
+    return i;
+}
+
+function draw_bond_intersection( plane, p1, p2 ){
+    var i1= intersection(p1, plane);
+    var i2= intersection(p2, plane);
+    var name = "bi_" + uid();
+    draw id @name @i1 @i2 radius 0.1 color lightgreen;
+}
+
+function view_plane( p ){
+    var dp = _depthPlane;
+    var vp = (dp%4);
+    var vpx1 = norm( cross( vp, {1,0,0} ) );
+    var vpx2 = norm( cross( vp, vpx1 ) );
+    var pl = plane( p, p+vpx1, p+vpx2 );
+    
+    #isosurface id "p" plane @pl color blue translucent
+    #select *;
+    #draw id "p" intersection boundbox;
+    #select none;
+    return pl;
+}
+
+function mindist( s1, s2 ){
+    var min_dist = 10000;
+    var min_contact = false;
+    for( a1 in s1 ){
+        for( a2 in s2 ){
+            var d = distance( a1, a2 );
+            if( d<min_dist ){
+                min_dist = d;
+                min_contact = [ d, a1.atomno, a2.atomno ];
+            }
+        }
+    }
+    return min_contact;
+}
+
+function array_to_json( array, level ){
+    if( !level ) level = 0;
+    if( array.type == 'array' ){
+        var new_array = [];
+        for( var i=1; i<=array.length; i+=1 ){
+            new_array += array_to_json( array[i], level+1 );
+        }
+        if(level>0){
+            return "[ " + new_array.join(", ") + " ]";
+        }else{
+            return "[\n\t" + new_array.join(", \n\t") + "\n]";
+        }
+    }else{
+        return array;
+    }
+}
+
+#isosurface id "p0" plane @{plane(1,0,0,0)} color skyblue translucent
+#select *;
+#draw id "p0" intersection boundbox scale 100;
+
+var c = {*}.XYZ;
+draw id "c" @c radius 0.3;
+
+var p = view_plane( c );
+###plane###
+var f = {###sele###};
+var pn = p%4;
+
+
+select @f; cpk 20%; wireframe 0.2;
+#select *;
+
+var uv = point( -pn.x, -pn.y, -pn.z );
+var av = point( pn.y, -pn.x, 0 );
+var bv = cross( pn, av );
+
+draw id "pn" vector @c @pn color pink;
+draw id "uv" vector @c @uv color red;
+draw id "av" vector @c @av color red;
+draw id "bv" vector @c @bv color red;
+
+var focusdata = [];
+
+for(a in f){
+    var bonds = connected(a, f);
+    var ab = bonds.atoms;
+    var bondlist = [];
+    var bondlist2 = [];
+    var bondlist3 = [];
+    for(b in ab){
+        if( a.atomno != b.atomno ){
+            draw_bond_intersection( p, a, b );
+            var bonddata = [];
+            bonddata += b.atomno;
+            bonddata += distance(a, b);
+            bondlist += [bonddata];
+            var bonds2 = connected(b, f);
+            var ab2 = bonds2.atoms;
+            for(b2 in ab2){
+                if( b.atomno != b2.atomno ){
+                    var bonddata2 = [];
+                    bonddata2 += b2.atomno;
+                    bonddata2 += distance(a, b2);
+                    bondlist2 += [bonddata2];
+                    var bonds3 = connected(b2, f);
+                    var ab3 = bonds3.atoms;
+                    for(b3 in ab3){
+                        if( b2.atomno != b3.atomno ){
+                            var bonddata3 = [];
+                            bonddata3 += b3.atomno;
+                            bonddata3 += distance(a, b3);
+                            bondlist3 += [bonddata3];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    var i = draw_intersection( p, a );
+    var i0 = point(0, i*av, i*bv);    
+    var name = "i_" + uid();
+    draw id @name @i0 radius 0.2 color orange;
+    var atomdata = [];
+    atomdata += a.atomno;
+    atomdata += [bondlist];
+    atomdata += [[ a.x, a.y, a.z ]];
+    atomdata += [[ i0.x, i0.y, i0.z ]];
+    atomdata += [[ a.color.x, a.color.y, a.color.z ]];
+    atomdata += [bondlist2];
+    atomdata += [bondlist3];
+    focusdata += [atomdata];
+}
+
+var polardata = [];
+var pi = {};
+
+var vdwdata = [];
+var hi = { within(GROUP, within(0, @f)) and *.CA and not @f };
+select { within(GROUP, @hi) }; wireframe 0.1;
+for(a in hi){
+    var ag = { within(GROUP, @a) };
+    var ac = ag.XYZ;
+    var md = mindist( ag, f );
+    var md1 = md[2];
+    var md2 = md[3];
+    var mda1 = { atomno = md1 };
+    var mda2 = { atomno = md2 };
+    var v = { atomno = md2 }.XYZ - { atomno = md1 }.XYZ;
+    draw id @{uid()} vector @mda1 @v color @{ color("low", 30, 90, ang(v,pn)) };
+    draw id @{uid()} vector @mda1 @{pn*-4} color white;
+    
+    var i = draw_intersection( p, mda1.XYZ, 'orange' );
+    var i0 = point(0, i*av, i*bv);
+    var plist = [];
+    for(ba in hi){
+        if( a.resno != ba.resno ){
+            var pdata = [];
+            pdata += ba.resno;
+            pdata += distance(ac, { within(GROUP, @ba) }.XYZ);
+            plist += [pdata];
+        }
+    }
+    var nbdata = [];
+    nbdata += a.resno
+    nbdata += [md]
+    nbdata += [[ a.x, a.y, a.z ]];
+    nbdata += [[ i0.x, i0.y, i0.z ]];
+    nbdata += [plist];
+    nbdata += ang( v, pn );
+    vdwdata += [nbdata];
+}
+
+
+ret = [];
+ret += [ focusdata ];
+ret += [ polardata ];
+ret += [ vdwdata ];
+
+print array_to_json( ret );
+
+background black;
+display within(GROUP, (@f or @hi));
+center displayed;
+select *; cartoon off;
+select none;

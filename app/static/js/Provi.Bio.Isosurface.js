@@ -279,7 +279,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	};
     },
     init_isosurface: function(){
-	var file_url = '../../data/get/?id=' + this.dataset.server_id;
+	var file_url = '../../data/get/?id=' + this.dataset.server_id + '&session_id=' + $.cookie('provisessions');
 	if( this.dataset.type=='vert' ){
 	    file_url += '&dataname=data.vert';
 	}
@@ -365,7 +365,7 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
 		(this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
 		(this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
 		'color density ' +
-		'"../../data/get/?id=' + this.dataset.server_id + '" ' +
+		'"../../data/get/?id=' + this.dataset.server_id + '&session_id=' + $.cookie('provisessions') + '" ' +
 		';' +
 		'color $' + this.isosurface_name + ' "rwb" range -20 20;' +
 		'', true);
