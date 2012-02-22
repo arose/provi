@@ -54,12 +54,12 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
     );
     this.dataset = params.dataset;
     this.applet = params.applet;
-    this.color = "blue";
-    this.translucency = 0.6;
-    this.size = -2;
-    this.visibility = true;
+    this.color = params.color;
+    this.translucency = params.translucency;
+    this.size = params.size;
+    this.visibility = params.visibility;
     Widget.call( this, params );
-    this._build_element_ids([ 'size', 'size_slider', 'size_slider_option', 'visibility', 'orient', 'color', 'distance' ]);
+    this._build_element_ids([ 'size', 'size_slider', 'size_slider_option', 'visibility', 'orient', 'color', 'distance', 'modelbased' ]);
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
             'The distance between the membrane planes is: ' +
@@ -93,6 +93,10 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
             '<label for="' + this.color_id + '" >color</label>' +
         '</div>' +
         '<div class="control_row">' +
+            '<input id="' + this.modelbased_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="' + this.modelbased_id + '" >modelbased</label>' +
+        '</div>' +
+        '<div class="control_row">' +
             '<button id="' + this.orient_id + '">orient along membrane normal</button>' +
         '</div>' +
     '</div>'
@@ -100,6 +104,13 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
     this._init();
 }
 Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.MembranePlanes.MplaneWidget.prototype */ {
+    default_params: {
+        size: -2,
+        color: 'blue',
+        translucency: 0.6,
+        visibility: true,
+        modelbased: true
+    },
     _init: function () {
         this.visibility = $("#" + this.visibility_id).is(':checked');
         $("#" + this.size_slider_option_id).hide();
@@ -147,6 +158,12 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
             self.color = $('#' + self.color_id).val();
             self.draw();
         });
+
+        // init modelbased/fixed
+        $("#" + this.modelbased_id).bind('change click', function() {
+            self.modelbased = $("#" + self.modelbased_id).is(':checked');
+            self.draw();
+        });
         
         // init orient
         $('#' + this.orient_id).button().click( $.proxy( this.orient, this ) );
@@ -191,6 +208,7 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
             var base_plane = (this.size==-2) ?
                 ('intersection boundbox plane ') :
                 ('plane ' + this.size + ' ');
+            var fixed_modelbased = this.modelbased ? 'MODELBASED' : 'FIXED';
             //var p_min, p_max;
             //var b = eval( this.applet.evaluate(
             //    '"["+' +
@@ -207,8 +225,10 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
             
             var s = 'boundbox {*} OFF;';
             //var s = 'boundbox CORNERS {' + p_min.join(' ') + '} {' + p_max.join(' ') + '} OFF;';
-            s += 'draw ' + base_name + '_1 ' + color + ' ' + base_plane + mp_f[0] + ';';
-            s += 'draw ' + base_name + '_2 ' + color + ' ' + base_plane + mp_f[1] + ';';
+            s += 'draw ' + base_name + '_1 ' + color + ' ' + fixed_modelbased 
+                + ' ' + base_plane + mp_f[0] + ';';
+            s += 'draw ' + base_name + '_2 ' + color + ' ' + fixed_modelbased 
+                + ' ' + base_plane + mp_f[1] + ';';
             console.log(s);
             this.applet.script(s);
         }else{
