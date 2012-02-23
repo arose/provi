@@ -25,7 +25,7 @@ var Widget = Provi.Widget.Widget;
  * mapping of file extension to Provi datatypes
  */
 Provi.Data.types = {
-    structure: ['pdb', 'ent', 'pqr', 'gro', 'cif', 'mmcif', 'mol', 'sdf', 'xyzr', 'xyzrn'],
+    structure: ['pdb', 'ent', 'pqr', 'gro', 'cif', 'mmcif', 'mol', 'mol2', 'sdf', 'xyzr', 'xyzrn'],
     isosurface: ['jvxl', 'obj', 'vert'],
     volume: ['cube', 'mrc', 'cub', 'ccp4', 'dx', 'map'],
     interface_contacts: ['sco', 'mbn']
@@ -57,7 +57,7 @@ Provi.Data.DatasetManager = {
      * @param {Provi.Data.Dataset} dataset The dataset to be added.
      * @returns {int} The unique id of dataset.
      */
-    add: function(dataset){
+    add: function( dataset ){
         this._dataset_counter += 1;
         var self = this;
         this._dataset_dict[this._dataset_counter] = dataset;
@@ -65,8 +65,16 @@ Provi.Data.DatasetManager = {
         $(this).triggerHandler('add', [dataset]);
         return this._dataset_counter;
     },
-    get_list: function(){
-        return this._dataset_list;
+    get_list: function( params ){
+        params = params || {};
+
+        if( params.ext_list ){
+            return _.filter( this._dataset_list, function(ds, i){
+                return _.include( params.ext_list, ds.type );
+            });
+        }else{
+            return this._dataset_list;
+        }
     },
     get: function( id ){
         return this._dataset_dict[ id ];
@@ -105,9 +113,9 @@ Provi.Data.Dataset = function(params){
 };
 Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     _init: function(){
-	$(this).bind('change', function(){
-	    $(Provi.Data.DatasetManager).triggerHandler('change');
-	});
+    	$(this).bind('change', function(){
+    	    $(Provi.Data.DatasetManager).triggerHandler('change');
+    	});
     },
     /**
      * get the status of the dataset
@@ -140,22 +148,22 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     },
     _set_type: function(type){
         this.type = type;
-	Provi.Data.Controller.extend_by_type( this, type );
+	   Provi.Data.Controller.extend_by_type( this, type );
     },
     add_data: function( name, data ){
-	this.data_list.push( data );
-	this.data_dict[ name ] = data;
-	$(this).triggerHandler('change');
+    	this.data_list.push( data );
+    	this.data_dict[ name ] = data;
+    	$(this).triggerHandler('change');
     },
     get: function( name ){
-	if( typeof(name) == 'undefined' ) name = 'main';
-	return this.data_dict[ name ];
+    	if( typeof(name) == 'undefined' ) name = 'main';
+    	return this.get_dict()[ name ];
     },
     get_list: function(){
-	return [ this.data ].concat( this.data_list );
+	   return [ this.data ].concat( this.data_list );
     },
     get_dict: function(){
-	return $.extend( { main: this.data }, this.data_dict );
+	   return $.extend( { main: this.data }, this.data_dict );
     },
     /**
      * Sets the type of the dataset.
@@ -174,7 +182,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     },
     init: function( params ){
         if( params.applet ){
-	    this.applet_list.push( params.applet );
+    	    this.applet_list.push( params.applet );
             var name = this.name + ' (' + this.id + ')';
             if( $('#' + params.applet.widget.data_id).text() ){
                 name = ', ' + name;
@@ -306,6 +314,77 @@ Provi.Data.DatasetManagerWidget.prototype = Utils.extend(Widget, /** @lends Prov
             parent_id: this.list_id,
             dataset: dataset
         }));
+    }
+});
+
+
+
+
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Data.DatasetSelectorWidget = function(params){
+    params = $.extend(
+        Provi.Data.DatasetSelectorWidget.prototype.default_params,
+        params
+    );
+    params.persist_on_applet_delete = true;
+    
+    //params.collapsed = false;
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+        'selector'
+    ]);
+    
+    this.ext_list = params.ext_list
+    
+    var template = '' +
+        '<div>' + 
+            '<label for="${eids.selector}">${params.selector_label}:</label>' +
+            '<select id="${eids.selector}" class="ui-state-default"></select>' +
+        '</div>' +
+    '';
+    this.add_content( template, params );
+
+    this._init();
+}
+Provi.Data.DatasetSelectorWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Structure.StructureWidget.prototype */ {
+    default_params: {
+        ext_list: [],
+        selector_label: 'Dataset'
+    },
+    _init: function(){
+        var self = this;
+        $(Provi.Data.DatasetManager).bind('change', function(){ self.render(); });
+        this.elm('selector').bind('change', function(){ 
+            $(self).triggerHandler('change') 
+        });
+        this.render();
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    render: function(){
+        var elm = this.elm('selector');
+        var value = this.elm('selector').children("option:selected").val();
+        elm.empty();
+        elm.append( '<option value=""></option>' );
+        var ds_list = Provi.Data.DatasetManager.get_list({ext_list: this.ext_list});
+        _.each(ds_list, function(ds, i){
+            var label = ds.id + '. ' + ds.name + ' (' + ds.type + ')';
+            elm.append("<option value='" + ds.id + "'>" + label + "</option>");
+        });
+        elm.val( value );
+        if( !_.any( ds_list, function(ds){ return ds.id === value } ) ){
+            $(this).triggerHandler('change');
+        }
+    },
+    get_ds: function(){
+        var ds_id = this.elm('selector').children("option:selected").val();
+        return Provi.Data.DatasetManager.get( ds_id );
     }
 });
 

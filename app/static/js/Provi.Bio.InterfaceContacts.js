@@ -169,8 +169,11 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             if( self.autofocus ){
                 self.draw();
             }else{
-                // remove focus???
-                self.applet.script( 'center {*};', true );
+                // just 'center {*}' is not enough, because there seems to be
+                // a bug that changes slab/depth but fails to update the
+                // variables accessible to scripting?!
+                self.applet.script_wait( 'center {*}; slab 100; depth 0;', true );
+                self.applet.clipping_manager.sync();
             }
         });
         
