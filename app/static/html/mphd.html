@@ -181,7 +181,7 @@
         }
 	
 	//Provi.Jmol.init("../../jmol/current/14/", !$.query.get('unsigned'));
-	Provi.Jmol.init("../../jmol/current/14/", $.query.get('signed'));
+	Provi.Jmol.init("../../jmol/current/16/", $.query.get('signed'));
 	
         $(document).ready(function(){
 	    
@@ -345,6 +345,11 @@
 								<span style="font-size: 1.3em;"><kbd>Alt</kbd>+<kbd>Ctrl</kbd>+<kbd>Mouse-Wheel</kbd></span>
 								<br/>
 								Moves the front and back clipping planes parallel to the center.
+							</div>
+							<div style="padding:0.5em 0em 1em 1.5em;">
+								<span style="font-size: 1.3em;"><kbd>Ctrl</kbd>+<kbd>Mouse-Left</kbd></span>
+								<br/>
+								Centers the view on the clicked atom/object.
 							</div>
 						</div>
                     </div>
