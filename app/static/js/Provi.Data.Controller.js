@@ -17,36 +17,58 @@ Provi.Data.Controller = {};
 /** @exports Utils as Provi.Utils */
 var Utils = Provi.Utils;
 
+
+/**
+ * @class
+ */
+Provi.Data.Controller.DataMixin = {
+    available_widgets: {},
+    init: function( params ){
+        var self = this;
+        this.retrieve_data( function(d){
+            self.set_data( d );
+            console.log( 'DataMixin', d );
+        });
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    },
+    retrieve_data: function( onload ){
+        var get_params = { 'id': this.server_id+'' };
+        $.get( '../../data/get/', get_params, onload, 'text' );
+    }
+}
+
+
 Provi.Data.Controller.extend_by_type = function( obj, type ){
     
     var Ctrl = Provi.Data.Controller;
     
-    if( $.inArray(type, Provi.Data.types.structure) >= 0 ){
+    if( _.include(Provi.Data.types.structure, type) ){
         $.extend( obj, Ctrl.StructureMixin );
-    }else if( $.inArray(type, Provi.Data.types.interface_contacts) >= 0 ){
+    }else if( _.include(Provi.Data.types.interface_contacts, type) ){
         $.extend( obj, Ctrl.InterfaceContactsMixin );
-    }else if( type == 'mplane' ){
+    }else if( type === 'mplane' ){
         $.extend( obj, Ctrl.MplaneMixin );
-    }else if( $.inArray(type, Provi.Data.types.isosurface) >= 0 ){
+    }else if( _.include(Provi.Data.types.isosurface, type) ){
         $.extend( obj, Ctrl.IsosurfaceMixin );
-    }else if( $.inArray(type, Provi.Data.types.volume) >= 0 ){
+    }else if( _.include(Provi.Data.types.volume, type) ){
         $.extend( obj, Ctrl.VolumeMixin );
-    }else if( type == 'jspt' ){
+    }else if( type === 'jspt' ){
         $.extend( obj, Ctrl.ScriptMixin );
-    }else if( type == 'tmhelix' ){
+    }else if( type === 'tmhelix' ){
         $.extend( obj, Ctrl.TmHelicesMixin );
-    }else if( type == 'anal' ){
+    }else if( type === 'anal' ){
         $.extend( obj, Ctrl.HbondsMixin );
-    }else if( type == 'vol' ){
+    }else if( type === 'vol' ){
         $.extend( obj, Ctrl.VoronoiaMixin );
-    }else if( type == 'ndx' ){
+    }else if( type === 'ndx' ){
         $.extend( obj, Ctrl.NdxMixin );
-    }else if( type == 'story' ){
+    }else if( type === 'story' ){
         $.extend( obj, Ctrl.StoryMixin );
-    }else if( type == 'prop' ){
+    }else if( type === 'prop' ){
         $.extend( obj, Ctrl.PropensitiesMixin );
     }else{
         console.log('unkown file type', obj, type);
+        $.extend( obj, Ctrl.DataMixin );
     }
 }
 
