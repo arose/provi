@@ -235,13 +235,13 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
 	
 	if( true ){
 	    $(this.applet).bind('pick', function(event, info, applet_id){
-		var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
-		var chain = parsedInfo[2];
-		var res = parsedInfo[1];
-		var atom = parsedInfo[3];
-		self.sele = 'resNo=' + res + (chain ? ' and chain=' + chain : '') + ' and atomName="' + atom + '"';
-		console.log( self.sele );
-		self.set_focus();
+			var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
+			var chain = parsedInfo[2];
+			var res = parsedInfo[1];
+			var atom = parsedInfo[3];
+			self.sele = 'resNo=' + res + (chain ? ' and chain=' + chain : '') + ' and atomName="' + atom + '"';
+			console.log( self.sele );
+			self.set_focus();
 	    });
 	    this.set_focus();
 	}
@@ -254,20 +254,20 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         this.applet.script( s + ' $' + this.isosurface_name + ';' );
     },
     set_focus: function(){
-	var s = '';
-	if( this.focus ){
-	    s = 'isosurface id "' + this.isosurface_name + '" ' +
-		    'display within ' + this.display_within + ' {' + this.sele + '}; ' +
-		'set rotationRadius 15; zoom {' + this.sele + '} 100; ' +
-		'select *; star off; select ' + this.sele + '; color star green; star 1.0;' +
-		'slab on; set slabRange 28.0; set zShade on; set zSlab 50; set zDepth 37; ' +
-		//'slab on; set slabRange 25.0;' +
-		'';
-	}else{
-	    s = 'isosurface id "' + this.isosurface_name + '" display all; ' +
-		'center {all}; slab off;';
-	}
-	this.applet.script(s);
+		var s = '';
+		if( this.focus ){
+		    s = 'isosurface id "' + this.isosurface_name + '" ' +
+			    'display within ' + this.display_within + ' {' + this.sele + '}; ' +
+				'set rotationRadius 15; zoom {' + this.sele + '} 100; ' +
+				'select *; star off; select ' + this.sele + '; color star green; star 1.0;' +
+				'slab on; set slabRange 28.0; set zShade on; set zSlab 50; set zDepth 37; ' +
+				//'slab on; set slabRange 25.0;' +
+			'';
+		}else{
+		    s = 'isosurface id "' + this.isosurface_name + '" display all; ' +
+				'center {all}; slab off;';
+		}
+		this.applet.script(s);
     },
     init_load_params: function( params ){
 	this.within = params.within || '';

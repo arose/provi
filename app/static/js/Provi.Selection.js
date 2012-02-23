@@ -287,40 +287,40 @@ Provi.Selection.SelectionManagerWidget.prototype = Utils.extend(Widget, /** @len
 	    applet.script_wait('select *');
 	    console.log( applet, self.applet, structure_widget.dataset );
 	    var s = '' +
-		'var modelInfo = getProperty("modelInfo");' +
-		'var count = modelInfo["modelCount"];' +
-		'var models = modelInfo["models"];' +
-		'var file_model_array = [];' +
-		'for (var i = 0; i < count; i++){' +
-		    'var m = models[i];' +
-		    'file_model_array += m["file_model"];' +
-		'}' +
-		'file_model_array.sort();' +
-		'print "[\'" + file_model_array.join("\',\'") + "\']";' +
+			'var modelInfo = getProperty("modelInfo");' +
+			'var count = modelInfo["modelCount"];' +
+			'var models = modelInfo["models"];' +
+			'var file_model_array = [];' +
+			'for (var i = 0; i < count; i++){' +
+			    'var m = models[i];' +
+			    'file_model_array += m["file_model"];' +
+			'}' +
+			'file_model_array.sort();' +
+			'print "[\'" + file_model_array.join("\',\'") + "\']";' +
 		'';
 	    var model_info = undefined;
 	    if(s){
-		var script_output = applet.script_wait_output( s );
-		if( script_output && script_output != -1 ){
-		    model_info = $.parseJSON( script_output.replace(/'/g,'"') );
-		}
+			var script_output = applet.script_wait_output( s );
+			if( script_output && script_output != -1 ){
+			    model_info = $.parseJSON( script_output.replace(/'/g,'"') );
+			}
 	    }
 	    console.log( model_info );
 	    
 	    applet.script_wait('select none');
 	    if( load_as != 'append' && load_as != 'trajectory+append' ){
-		new Provi.Selection.Selection({
-		    persist: true,
-		    applet: applet,
-		    name: 'All',
-		    selection: '*'
-		});
+			new Provi.Selection.Selection({
+			    persist: true,
+			    applet: applet,
+			    name: 'All',
+			    selection: '*'
+			});
 	    }
 	    new Provi.Selection.Selection({
-		persist: true,
-		applet: applet,
-		name: structure_widget.dataset.name + ' (' + structure_widget.dataset.id + ')',
-		selection: 'file=' + file_number
+			persist: true,
+			applet: applet,
+			name: structure_widget.dataset.name + ' (' + structure_widget.dataset.id + ')',
+			selection: 'file=' + file_number
 	    });
 	});
     },

@@ -192,7 +192,7 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
             self.colorize();
         });
         
-        $(Provi.Data.DatasetManager).bind('change', function(){ self._init_tmh_filter() });
+        $(Provi.Data.DatasetManager).bind('change', function(){ self._init_tmh_filter(); });
 
 	   Provi.Widget.Widget.prototype.init.call(this);
     },

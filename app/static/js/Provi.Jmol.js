@@ -108,9 +108,11 @@ function jmol_bind (applet_name){
  * Also available as a global function because Jmol would not accept it otherwise.
  * @memberOf Provi.Jmol
  */
-function jmol_center (applet_name, x, y){
+function jmol_center (applet_name, atom_index){
     console.log('CENTER');
-    console.log( applet_name+'', x+'', y+'' );
+    console.log( applet_name+'', atom+'' );
+    Provi.Jmol.get_applet( applet_name+'' )
+        .script('zoomTo 0.75 {atomIndex=' + atom_index + '}', true);
 };
 
 
@@ -317,6 +319,7 @@ Provi.Jmol.Applet = function(params){
     this.widget = false;
     
     this._determining_load_status = false;
+    this.bind_manager = new Provi.Jmol.Controls.BindManager({ applet: this });
     this.selection_manager = new Provi.Selection.SelectionManager({ applet: this });
     this.clipping_manager = new Provi.Jmol.Controls.ClippingManager({ applet: this }); // needs to come before lighting manager because the lighting manager depends on the clipping manager
     this.lighting_manager = new Provi.Jmol.Controls.LightingManager({ applet: this });
@@ -326,33 +329,33 @@ Provi.Jmol.Applet = function(params){
     
     this._init();
     if( typeof(Provi.Jmol._default_applet) == 'undefined' ){
-	//Provi.Jmol.set_default_applet( this.name_suffix );
-	Provi.Jmol._default_applet = this;
-	Provi.Jmol.add_applet(this.name_suffix, this);
-	$(Provi.Jmol).triggerHandler( 'default_applet_change' );
+    	//Provi.Jmol.set_default_applet( this.name_suffix );
+    	Provi.Jmol._default_applet = this;
+    	Provi.Jmol.add_applet(this.name_suffix, this);
+    	$(Provi.Jmol).triggerHandler( 'default_applet_change' );
     }else{
-	Provi.Jmol.add_applet(this.name_suffix, this);
+	   Provi.Jmol.add_applet(this.name_suffix, this);
     }
     
 };
 Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     default_params: {
-	width: 300,
-	height: 300,
-	css_class: 'jmol_applet',
-	sync_id: ("" + Math.random()).substring(3)
+	   width: 300,
+	   height: 300,
+	   css_class: 'jmol_applet',
+	   sync_id: ("" + Math.random()).substring(3)
     },
     _init: function(){
-	this._create_html();
-	this._create_dom();
-	$(this.selection_manager).bind('select', $.proxy(this.select, this));
+	   this._create_html();
+	   this._create_dom();
+	   $(this.selection_manager).bind('select', $.proxy(this.select, this));
     },
     select: function( e, selection, applet, selection_string ){
-	applet.script_wait( 'select {' + selection_string + '};' );
+	   applet.script_wait( 'select {' + selection_string + '};' );
     },
     _delete: function(){
-	$('#' + this.widget.data_id).empty();
-	$(this).triggerHandler('delete');
+	   $('#' + this.widget.data_id).empty();
+	   $(this).triggerHandler('delete');
     },
     _create_html: function(){
         this.html = "<applet " +
@@ -379,333 +382,335 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     _get_params: function(){
         params = {
             loadInline: '',
-	    //script: 'load ../data/3dqb.pdb;cartoon on;color cartoon structure',
-	    //script: 'javascript "Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ',
-            //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; unbind "_slideZoom"; set debug on;',
-	    //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ' + (Provi.Debug.get_status() ? 'set debug on;' : ''),
-	    //script: 'unbind "_slideZoom"; set debug on;',
-	    //script: 'set appletReadyCallback "jmol_applet_ready_callback";',
-	    //script: 'bind "ALT-WHEEL" "slab @{slab - _DELTAY}; depth @{depth + _DELTAY}";',
-	    script: '',
-	    appletReadyCallback: "jmol_applet_ready_callback",
-	    animFrameCallback: "jmol_anim_frame_callback",
-	    loadStructCallback: "jmol_load_struct_callback",
-	    messageCallback: "jmol_message_callback",
-	    scriptCallback: "jmol_script_callback",
-	    pickCallback: "jmol_pick_callback",
+    	    //script: 'load ../data/3dqb.pdb;cartoon on;color cartoon structure',
+    	    //script: 'javascript "Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ',
+                //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; unbind "_slideZoom"; set debug on;',
+    	    //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ' + (Provi.Debug.get_status() ? 'set debug on;' : ''),
+    	    //script: 'unbind "_slideZoom"; set debug on;',
+    	    //script: 'set appletReadyCallback "jmol_applet_ready_callback";',
+    	    //script: 'bind "ALT-WHEEL" "slab @{slab - _DELTAY}; depth @{depth + _DELTAY}";',
+    	    script: '',
+    	    appletReadyCallback: "jmol_applet_ready_callback",
+    	    animFrameCallback: "jmol_anim_frame_callback",
+    	    loadStructCallback: "jmol_load_struct_callback",
+    	    messageCallback: "jmol_message_callback",
+    	    scriptCallback: "jmol_script_callback",
+    	    pickCallback: "jmol_pick_callback",
             boxbgcolor: "white",
-            boxfgcolor: "black",
+            boxfgcolor: "white",
             progresscolor: "lightgreen",
             progressbar: "true",
-	    syncId: this.default_params.sync_id,
-	    boxmessage: "Downloading JmolApplet ...",
-	    java_arguments: "-Xmx512m -Ddisplay.speed=fps"
+    	    syncId: this.default_params.sync_id,
+    	    boxmessage: "Downloading JmolApplet ...",
+    	    java_arguments: "-Xmx512m -Ddisplay.speed=fps"
         };
         var t = "";
-        for (var i in params)
-            if(params[i]!="")
+        for (var i in params){
+            if(params[i]!=""){
                 t+="  <param name='"+i+"' value='"+params[i]+"' />\n";
-	//console.log(t);
+	           //console.log(t);
+           }
+        }
         return t;
     },
     _create_dom: function(){
         var e = document.createElement("span");
-	e.innerHTML = this.html;
-        this.dom = e;
-	this.applet = e.firstChild;
+    	e.innerHTML = this.html;
+            this.dom = e;
+    	this.applet = e.firstChild;
     },
     dom: function(){
-	return this.dom;
+	   return this.dom;
     },
     set_loaded: function(){
-	//console.log('TRYING TO SET LOADED');
-	if( this.loaded || this._determining_load_status  ) return;
-	//console.log('TRYING TO SET LOADED');
-	this._determining_load_status = true;
-	console.log('done loading');
-	this._load();
-	return;
-    
-    
-	var self = this;
-	var count = 0;
-	//console.log('pause start');
-	//Utils.pause(5000);
-	//console.log('pause end');
-	Utils.wait(500,
-            function(){
-		console.log(count, ' count');
-		if(count > 20) return true;
-		++count;
-                var applet = self.applet;
-		//console.log(typeof(applet.script), $.isFunction(applet.script), typeof(applet.isActive), applet.isActive());
-		console.log(count);
-		try {
-		    if(applet &&
-		       //typeof(applet.isActive) == 'function' && applet.isActive() &&
-		       ($.isFunction(applet.script) || typeof(applet.script) == 'function' ) &&
-		       ($.isFunction(applet.scriptWait) || typeof(applet.scriptWait) == 'function' ) &&
-		       ($.isFunction(applet.getPropertyAsJSON) || typeof(applet.getPropertyAsJSON) == 'function' ) ){
-			return true;
-		    }else{
-			return false;
-		    }
-		} catch(e){
-		    console.log('error loading, trying some more');
-		    return false;
-		}
-            },
-            function(){
-		console.log('done loading');
-		self._load();
+    	//console.log('TRYING TO SET LOADED');
+    	if( this.loaded || this._determining_load_status  ) return;
+    	//console.log('TRYING TO SET LOADED');
+    	this._determining_load_status = true;
+    	console.log('done loading');
+    	this._load();
+    	return;
+        
+        
+    	var self = this;
+    	var count = 0;
+    	//console.log('pause start');
+    	//Utils.pause(5000);
+    	//console.log('pause end');
+    	Utils.wait(500,
+                function(){
+    		console.log(count, ' count');
+    		if(count > 20) return true;
+    		++count;
+                    var applet = self.applet;
+    		//console.log(typeof(applet.script), $.isFunction(applet.script), typeof(applet.isActive), applet.isActive());
+    		console.log(count);
+    		try {
+    		    if(applet &&
+    		       //typeof(applet.isActive) == 'function' && applet.isActive() &&
+    		       ($.isFunction(applet.script) || typeof(applet.script) == 'function' ) &&
+    		       ($.isFunction(applet.scriptWait) || typeof(applet.scriptWait) == 'function' ) &&
+    		       ($.isFunction(applet.getPropertyAsJSON) || typeof(applet.getPropertyAsJSON) == 'function' ) ){
+    			return true;
+    		    }else{
+    			return false;
+    		    }
+    		} catch(e){
+    		    console.log('error loading, trying some more');
+    		    return false;
+    		}
+                },
+                function(){
+    		console.log('done loading');
+    		self._load();
             }
         );
     },
     _evalJSON: function(s,key){
-	// from Jmol.js
-	s=s+"";
-	if(!s)return [];
-	if(s.charAt(0)!="{"){
-	       if(s.indexOf(" | ")>=0)s=s.replace(/\ \|\ /g, "\n");
-	       return s;
-	}
-	
-	try{
-	    var A = eval("("+s+")");
-	}catch(e){
-	    console.log('evalJSON ERROR', e, s, key);
-	}
-	
-	if(!A){
-	    return undefined;
-	}
-	if(key && A[key]){
-	    A=A[key];
-	}
-	return A;
+    	// from Jmol.js
+    	s=s+"";
+    	if(!s)return [];
+    	if(s.charAt(0)!="{"){
+    	       if(s.indexOf(" | ")>=0)s=s.replace(/\ \|\ /g, "\n");
+    	       return s;
+    	}
+    	
+    	try{
+    	    var A = eval("("+s+")");
+    	}catch(e){
+    	    console.log('evalJSON ERROR', e, s, key);
+    	}
+    	
+    	if(!A){
+    	    return undefined;
+    	}
+    	if(key && A[key]){
+    	    A=A[key];
+    	}
+    	return A;
     },
     echo: function( message ){
-	if(message){
-	    this.script(
-		'set echo TOP LEFT; font echo 20 sansserif; color echo red; ' +
-		'set echo "' + message + '";'
-	    );
-	}else{
-	    this.script( 'set echo off;' );
-	}
+    	if(message){
+    	    this.script(
+    		'set echo TOP LEFT; font echo 20 sansserif; color echo red; ' +
+    		'set echo "' + message + '";'
+    	    );
+    	}else{
+    	    this.script( 'set echo off;' );
+    	}
     },
     _prepare_script: function( script, maintain_selection, message ){
-	if(maintain_selection){
-	    script = 'save selection tmp; ' + script + ' restore selection tmp;';
-	}
-	if(false && message){
-	    console.log(message);
-	    script = 'set echo top left; font echo 20 sansserif;color echo red; ' +
-		'echo "' + message + '";' + script + ' set echo off;';
-	}
-	return script;
+    	if(maintain_selection){
+    	    script = 'save selection tmp; ' + script + ' restore selection tmp;';
+    	}
+    	if(false && message){
+    	    console.log(message);
+    	    script = 'set echo top left; font echo 20 sansserif;color echo red; ' +
+    		'echo "' + message + '";' + script + ' set echo off;';
+    	}
+    	return script;
     },
     _script: function(script, maintain_selection, message){
-	script = this._prepare_script( script, maintain_selection, message );
-	//console.log(script);
-	try{
-	    if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
-		//console.log( 'SAFARI' );
-		this.applet.script( script );
-	    }else{
-		//console.log( 'NOT SAFARI' );
-		var tmp = this.applet.scriptWait( script );
-	    }
-	}catch(e){
-	    console.log(e, script);
-	}
-	return true;
+    	script = this._prepare_script( script, maintain_selection, message );
+    	//console.log(script);
+    	try{
+    	    if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
+    		//console.log( 'SAFARI' );
+    		this.applet.script( script );
+    	    }else{
+    		//console.log( 'NOT SAFARI' );
+    		var tmp = this.applet.scriptWait( script );
+    	    }
+    	}catch(e){
+    	    console.log(e, script);
+    	}
+    	return true;
     },
     /**
      * executes a jmol asynchronously
      */
     script: function(script, maintain_selection, message){
-	if(this.loaded){
-	    return this._script(script, maintain_selection, message);
-	}else{
-	    //console.log('script DEFERED');
-	    var self = this;
-	    $(this).bind('load', function(){
-		//console.log('exec defered script: "' + script + '"');
-		self.script(script, maintain_selection, message);
-	    });
-	    return -1;
-	}
+    	if(this.loaded){
+    	    return this._script(script, maintain_selection, message);
+    	}else{
+    	    //console.log('script DEFERED');
+    	    var self = this;
+    	    $(this).bind('load', function(){
+    		  //console.log('exec defered script: "' + script + '"');
+    		  self.script(script, maintain_selection, message);
+    	    });
+    	    return -1;
+    	}
     },
     _script_wait: function(script, maintain_selection, message){
-	script = this._prepare_script( script, maintain_selection, message );
-	//console.log(script);
-	var ret = '';
-	try{
-	    ret = this.applet.scriptWait(script);
-	}catch(e){
-	    console.log('scriptWait ERROR', e, script);
-	}
-	
-	var s = ""
-	if( ret ){
-	    for(var i=ret.length;--i>=0;){
-		for(var j=0;j< ret[i].length;j++){
-		    s+=ret[i][j]+"\n"
-		}
-	    }
-	}
-	return s;
+    	script = this._prepare_script( script, maintain_selection, message );
+    	//console.log(script);
+    	var ret = '';
+    	try{
+    	    ret = this.applet.scriptWait(script);
+    	}catch(e){
+    	    console.log('scriptWait ERROR', e, script);
+    	}
+    	
+    	var s = ""
+    	if( ret ){
+    	    for(var i=ret.length;--i>=0;){
+        		for(var j=0;j< ret[i].length;j++){
+        		    s+=ret[i][j]+"\n"
+        		}
+    	    }
+    	}
+    	return s;
     },
     /**
      * executes a jmol script synchronously
      */
     script_wait: function(script, maintain_selection, message){
-	//console.log( 'SCRIPT: ' + script );
-	if(this.loaded){
-	    return this._script_wait(script, maintain_selection, message);
-	}else{
-	    console.log('script_wait DEFERED');
-	    var self = this;
-	    //$(this).bind('load', function(){ self.script_wait(script, maintain_selection) });
-	    $(this).bind('load', function(){ self.script(script, maintain_selection, message) });
-	    return -1;
-	}
+    	//console.log( 'SCRIPT: ' + script );
+    	if(this.loaded){
+    	    return this._script_wait(script, maintain_selection, message);
+    	}else{
+    	    console.log('script_wait DEFERED');
+    	    var self = this;
+    	    //$(this).bind('load', function(){ self.script_wait(script, maintain_selection) });
+    	    $(this).bind('load', function(){ self.script(script, maintain_selection, message) });
+    	    return -1;
+    	}
     },
     _script_wait_output: function(script, maintain_selection, message){
-	script = this._prepare_script( script, maintain_selection, message );
-	try{
-	    var ret = this.applet.scriptWaitOutput(script);
-	}catch(e){
-	    console.log('scriptWaitOutput ERROR', e, script);
-	}
-	
-	// remove first line and last two lines then return
-	return ret.split('\n').slice(1,-3).join('\n')
+    	script = this._prepare_script( script, maintain_selection, message );
+    	try{
+    	    var ret = this.applet.scriptWaitOutput(script);
+    	}catch(e){
+    	    console.log('scriptWaitOutput ERROR', e, script);
+    	}
+    	
+    	// remove first line and last two lines then return
+    	return ret.split('\n').slice(1,-3).join('\n')
     },
     /**
      * executes a jmol script synchronously and returns the output
      */
     script_wait_output: function(script, maintain_selection, message){
-	//console.log( 'SCRIPT: ' + script );
-	if(this.loaded){
-	    //return this._script_wait_output(script, maintain_selection);
-	    return this._script_wait_output(script, maintain_selection, message);
-	}else{
-	    console.log('script_wait_output defered');
-	    var self = this;
-	    $(this).bind('load', function(){ self.script_wait_output(script, maintain_selection, message) });
-	    return -1;
-	}
+    	//console.log( 'SCRIPT: ' + script );
+    	if(this.loaded){
+    	    //return this._script_wait_output(script, maintain_selection);
+    	    return this._script_wait_output(script, maintain_selection, message);
+    	}else{
+    	    console.log('script_wait_output defered');
+    	    var self = this;
+    	    $(this).bind('load', function(){ self.script_wait_output(script, maintain_selection, message) });
+    	    return -1;
+    	}
     },
     _load_inline: function(model, script, maintain_selection, message){
-	script = typeof(script) != 'undefined' ? script : '';
-	script = this._prepare_script( script, maintain_selection, message );
-	return this.applet.loadInlineString(model, script, false);
+    	script = typeof(script) != 'undefined' ? script : '';
+    	script = this._prepare_script( script, maintain_selection, message );
+    	return this.applet.loadInlineString(model, script, false);
     },
     /**
      * loads a model given as a string, can execute a script afterwards
      */
     load_inline: function(model, script, maintain_selection, message){
-	if(this.loaded){
-	    return this._load_inline(model, script, maintain_selection, message);
-	}else{
-	    console.log('load_inline defered');
-	    var self = this;
-	    $(this).bind('load', function(){ self.load_inline(model, script, maintain_selection, message) });
-	    return -1;
-	}
+    	if(this.loaded){
+    	    return this._load_inline(model, script, maintain_selection, message);
+    	}else{
+    	    console.log('load_inline defered');
+    	    var self = this;
+    	    $(this).bind('load', function(){ self.load_inline(model, script, maintain_selection, message) });
+    	    return -1;
+    	}
     },
     _load: function(){
-	this.loaded = true;
-	$(this).triggerHandler('load');
+    	this.loaded = true;
+    	$(this).triggerHandler('load');
     },
     get_property: function(property, value){
-	if(this.loaded) return this.applet.getProperty(property, value);
-	return false;
+    	if(this.loaded) return this.applet.getProperty(property, value);
+    	return false;
     },
     get_property_as_json: function(property, value){
         if(this.loaded) return this.applet.getPropertyAsJSON(property, value) + '';
-	return false;
+	   return false;
     },
     get_property_as_string: function(property, value){
         if(this.loaded) return this.applet.getPropertyAsString(property, value) + '';
-	return false;
+	   return false;
     },
     get_property_as_array: function(property, value){
         if(this.loaded) return this._evalJSON( this.get_property_as_json(property, value) + '', property );
-	return false;
+	   return false;
     },
     evaluate: function(molecular_math){
-	if(!this.loaded) return false;
-	// from Jmol.js
-	var result = "" + this.get_property("evaluate", molecular_math);
-	if( result == 'ERROR' ){
-	    console.log('evaluate: ', molecular_math, result);
-	}
-	if( result == "true" ) return true;
-	if( result == "false" ) return false;
-	var s = result.replace(/\-*\d+/,"")
-	if (s == "" && !isNaN(parseInt(result))) return parseInt(result);
-	var s = result.replace(/\-*\d*\.\d*/,"")
-	if (s == "" && !isNaN(parseFloat(result))) return parseFloat(result);
-	return result;
+    	if(!this.loaded) return false;
+    	// from Jmol.js
+    	var result = "" + this.get_property("evaluate", molecular_math);
+    	if( result == 'ERROR' ){
+    	    console.log('evaluate: ', molecular_math, result);
+    	}
+    	if( result == "true" ) return true;
+    	if( result == "false" ) return false;
+    	var s = result.replace(/\-*\d+/,"")
+    	if (s == "" && !isNaN(parseInt(result))) return parseInt(result);
+    	var s = result.replace(/\-*\d*\.\d*/,"")
+    	if (s == "" && !isNaN(parseFloat(result))) return parseFloat(result);
+    	return result;
     },
     atoms_property_map: function( format, selection ){
-	//this.script_wait('show SELECTED;'); // needed, otherwise 'evaluate' sometimes chokes on the 'selected' variable
-	//console.log(this.applet.evaluate('"[" + {' + 'selected' + '}.label("[' + format + ']").join(",") + "]"'));
-	var map = this.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
-	//console.log(map);
-	try{
-	    map = eval(map);
-	}catch(e){
-	    console.log('get_atom_property_map ERROR', map, format, selection);
-	}
-	return map;
+    	//this.script_wait('show SELECTED;'); // needed, otherwise 'evaluate' sometimes chokes on the 'selected' variable
+    	//console.log(this.applet.evaluate('"[" + {' + 'selected' + '}.label("[' + format + ']").join(",") + "]"'));
+    	var map = this.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
+    	//console.log(map);
+    	try{
+    	    map = eval(map);
+    	}catch(e){
+    	    console.log('get_atom_property_map ERROR', map, format, selection);
+    	}
+    	return map;
     },
     /** Triggers the {@link Provi.Jmol.Applet#anim_frame} event. */
     _anim_frame_callback: function( frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
-	console.log(frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection);
-	$(this).triggerHandler('anim_frame', [ frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ]);
+	   console.log(frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection);
+    	$(this).triggerHandler('anim_frame', [ frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ]);
     },
     /** Triggers the {@link Provi.Jmol.Applet#load_struct} event. */
     _load_struct_callback: function( fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ){
-	console.log('_load_struct_callback', 'XYZ');
-	//setTimeout( function(){ console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber')); }, 500 );
-	console.log( fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted );
-	$(this).triggerHandler('load_struct', [ fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ]);
+    	console.log('_load_struct_callback', 'XYZ');
+    	//setTimeout( function(){ console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber')); }, 500 );
+    	console.log( fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted );
+    	$(this).triggerHandler('load_struct', [ fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ]);
     },
     _message_callback: function( msg1, msg2, msg3 ){
-	//console.log(msg1, msg2, msg3);
-	$(this).triggerHandler('message', [ msg1, msg2, msg3 ]);
+    	//console.log(msg1, msg2, msg3);
+    	$(this).triggerHandler('message', [ msg1, msg2, msg3 ]);
     },
     _script_callback: function( status, message, millisec, errorUntranslated ){
-	//console.log(status, message, millisec, errorUntranslated);
-	$(this).triggerHandler('script', [ status, message, millisec, errorUntranslated ]);
+    	//console.log(status, message, millisec, errorUntranslated);
+    	$(this).triggerHandler('script', [ status, message, millisec, errorUntranslated ]);
     },
     _pick_callback: function( info, id ){
-	console.log( 'pick_callback', info, id );
-	// [ARG]193:B.CZ #4197 40.248 -4.2279997 38.332996
-	var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
-	var chain = parsedInfo[2];
-	var res = parsedInfo[1];
-	var atom = parsedInfo[3];
-	console.log(chain, res, atom);
-	//return;
-	//this.selection_manager.select( 'resNo=' + res + ' ' + (chain ? 'and chain=' + chain : '') + ' and atomname=' + atom );
-	//this.selection_manager.select( 'resNo=' + res + (chain ? ' and chain=' + chain : '') );
-	//var sele = new Selection({ selection: 'resNo=' + res + (chain ? ' and chain=' + chain : ''), applet: this });
-	//sele.select();
-	//this.script_wait('show SELECTED;');
-	$(this).triggerHandler('pick', [info, id]);
+	   console.log( 'pick_callback', info, id );
+        // [ARG]193:B.CZ #4197 40.248 -4.2279997 38.332996
+        var parsedInfo = /\[\w.+\](\d+):([\w\d]+)\.(\w+) .*/.exec(info);
+        var chain = parsedInfo[2];
+        var res = parsedInfo[1];
+        var atom = parsedInfo[3];
+        console.log(chain, res, atom);
+        //return;
+        //this.selection_manager.select( 'resNo=' + res + ' ' + (chain ? 'and chain=' + chain : '') + ' and atomname=' + atom );
+        //this.selection_manager.select( 'resNo=' + res + (chain ? ' and chain=' + chain : '') );
+        //var sele = new Selection({ selection: 'resNo=' + res + (chain ? ' and chain=' + chain : ''), applet: this });
+        //sele.select();
+        //this.script_wait('show SELECTED;');
+        $(this).triggerHandler('pick', [info, id]);
     },
     _applet_ready_callback: function( status ){
-	console.log(status);
-	if( status ) this.set_loaded();
-	$(this).triggerHandler('ready', [ status ]);
+    	console.log(status);
+    	if( status ) this.set_loaded();
+    	$(this).triggerHandler('ready', [ status ]);
     },
     get_smcra: function(selection){
-	return Provi.Bio.Sequence.jmol_to_smcra( this, selection );
+	   return Provi.Bio.Sequence.jmol_to_smcra( this, selection );
     }
 };
 
@@ -762,36 +767,36 @@ Provi.Jmol.JmolWidget = function(params){
     var self = this;
     
     $('#' + this.picking_id).bind('click change', $.proxy( function(){
-	var picking = $('#' + self.picking_id).children("option:selected").val();
-	self.applet.picking_manager.set({picking: picking});
+    	var picking = $('#' + self.picking_id).children("option:selected").val();
+    	self.applet.picking_manager.set({picking: picking});
     }, this ));
     $(this.applet.picking_manager).bind('change', function(){
-	var params = self.applet.picking_manager.get();
-	$('#' + self.picking_id).val( params.picking );
+    	var params = self.applet.picking_manager.get();
+    	$('#' + self.picking_id).val( params.picking );
     });
     
     $('#' + this.delete_id).tipsy({ gravity: 'e' }).click(function(){
-	$(this).trigger('mouseout');
-	$(self.dom).hide();
-	$(self.dom).appendTo('#trash');
-	Provi.Jmol.remove_applet( self.applet.name_suffix );
-	
-	//layout_main();
+    	$(this).trigger('mouseout');
+    	$(self.dom).hide();
+    	$(self.dom).appendTo('#trash');
+    	Provi.Jmol.remove_applet( self.applet.name_suffix );
+    	
+    	//layout_main();
     });
     
     //$('#' + this.sequence_view_id).hide();
     $('#' + this.more_id).tipsy({ gravity: 'w' }).click(function(){
-	self.toggle_sequence_view();
+	   self.toggle_sequence_view();
     });
     
     if( !params.no_sequence_view_widget ){
-	this.sequence_view = new Provi.Bio.Sequence.SequenceViewWidget({
-	    parent_id: this.sequence_view_id,
-	    applet: this.applet
-	});
+    	this.sequence_view = new Provi.Bio.Sequence.SequenceViewWidget({
+    	    parent_id: this.sequence_view_id,
+    	    applet: this.applet
+    	});
     }else{
-	self.toggle_sequence_view();
-	$('#' + this.more_id).remove();
+    	self.toggle_sequence_view();
+    	$('#' + this.more_id).remove();
     }
     
     if( !params.no_selection_manager_widget ){
@@ -871,31 +876,31 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
     _update: function(){
         var elm = $("#" + this.selector_id);
         var value = $("#" + this.selector_id + " option:selected").val();
-	var default_applet_name = '';
-	var applet = Provi.Jmol.get_default_applet();
-	if(applet){
-	    default_applet_name = ' (' + applet.name_suffix + ')';
-	}
+    	var default_applet_name = '';
+    	var applet = Provi.Jmol.get_default_applet();
+    	if(applet){
+    	    default_applet_name = ' (' + applet.name_suffix + ')';
+    	}
         elm.empty();
         elm.append(
 	    (!this.show_default_applet && !this.allow_new_applets ? '<option value=""></option>' : '' ) +
             (this.show_default_applet ? '<option value="default">default' + default_applet_name + '</option>' : '' ) +
             (this.allow_new_applets ? '<option value="new">new</option><option value="new once">new once</option>' : '')
         );
-	var applet_list = Provi.Jmol.get_applet_list();
+    	var applet_list = Provi.Jmol.get_applet_list();
         $.each(applet_list, function(){
             elm.append("<option value='" + this.name_suffix + "'>" + this.name_suffix + "</option>");
         });
         elm.val( value );
-	elm.triggerHandler('change');
-	//$(this).triggerHandler('change', [ this.get_value(true) ]);
-	
-	// hide applet selector, if only one option is available
-	if( !this.allow_new_applets && applet_list.length <= 1 ){
-	    this.hide();
-	}else{
-	    this.show();
-	}
+    	elm.triggerHandler('change');
+    	//$(this).triggerHandler('change', [ this.get_value(true) ]);
+    	
+    	// hide applet selector, if only one option is available
+    	if( !this.allow_new_applets && applet_list.length <= 1 ){
+    	    this.hide();
+    	}else{
+    	    this.show();
+    	}
     },
     _init: function(){
         this._update();
@@ -926,11 +931,11 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         }
     },
     set_value: function( value ){
-	console.log( 'set_value ' + value );
-	$("#" + this.selector_id).val( value );
+	   console.log( 'set_value ' + value );
+	   $("#" + this.selector_id).val( value );
     },
     change: function(fn){
-	$("#" + this.selector_id).change(fn);
+	   $("#" + this.selector_id).change(fn);
     }
 });
 
