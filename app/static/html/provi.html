@@ -145,7 +145,7 @@
 	//Provi.Jmol.init("../applet/jmol/12.1.42/", true);
 	//Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
 	//Provi.Jmol.init("../applet/jmol/12.1.51/", true);
-	Provi.Jmol.init("../../jmol/current/17/", false);
+	Provi.Jmol.init("../../jmol/current/19/", $.query.get('signed'));
 	
         $(document).ready(function(){
 	    
@@ -190,7 +190,8 @@
 		    parent_id: "main",
 		    no_sequence_view_widget: true,
 		    no_selection_manager_widget: false,
-		    no_tree_view_widget: true
+		    no_tree_view_widget: true,
+            no_grid_widget: true
 		}
 	    );
             $(Provi.Jmol).bind('applet_list_change', layout_main);
@@ -212,6 +213,10 @@
             });
 	    
 	    new Provi.Jmol.Controls.QualityManagerWidget({
+                parent_id: 'tab_controls'
+            });
+
+        new Provi.Jmol.Controls.BindManagerWidget({
                 parent_id: 'tab_controls'
             });
 	    
@@ -236,8 +241,12 @@
 //            });
 	    
 	    new Provi.Jmol.Analysis.HbondsWidget({
-                parent_id: 'tab_widgets'
-            });
+            parent_id: 'tab_widgets'
+        });
+
+        new Provi.Jmol.Analysis.GromacsHelixorientWidget({
+            parent_id: 'tab_widgets'
+        });
 
         Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
 			//sort_key: 2,

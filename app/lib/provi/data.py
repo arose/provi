@@ -380,6 +380,7 @@ extension_to_datatype_dict = {
     'mbn': Mbn(),
     'mmcif': MmCif(),
     'mol': Mol(),
+    'mol2': Mol(),
     'mplane': Mplane(),
     'mrc': MrcDensityMap(),
     'ndx': Ndx(),
