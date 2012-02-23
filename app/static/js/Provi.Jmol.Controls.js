@@ -200,30 +200,53 @@ Provi.Jmol.Controls.LightingManager = function(params) {
 }
 Provi.Jmol.Controls.LightingManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.LightingManager.prototype */ {
     default_params: {
-	ambient_percent: 45,
-	diffuse_percent: 84,
-	specular: true,
-	specular_percent: 22,
-	specular_power: 40,
-	specular_exponent: 6,
-	phong_exponent: 64,
-	z_shade: true,
-	z_shade_power: 3,
-	z_slab: 10,
-	z_depth: 0
+		ambient_percent: 45,
+		diffuse_percent: 84,
+		specular: true,
+		specular_percent: 22,
+		specular_power: 40,
+		specular_exponent: 6,
+		phong_exponent: 64,
+		z_shade: true,
+		z_shade_power: 3,
+		z_slab: 10,
+		z_depth: 0,
+		//background_color: '"[xffffff]"'
+		background_color: '"[x000000]"'
     },
     jmol_param_names: {
-	ambient_percent: "ambientPercent",
-	diffuse_percent: "diffusePercent",
-	specular: "specular",
-	specular_percent: "specularPercent",
-	specular_power: "specularPower",
-	specular_exponent: "specularExponent",
-	phong_exponent: "phongExponent",
-	z_shade: "zShade",
-	z_shade_power: "zShadePower",
-	z_slab: "zSlab",
-	z_depth: "zDepth"
+		ambient_percent: "ambientPercent",
+		diffuse_percent: "diffusePercent",
+		specular: "specular",
+		specular_percent: "specularPercent",
+		specular_power: "specularPower",
+		specular_exponent: "specularExponent",
+		phong_exponent: "phongExponent",
+		z_shade: "zShade",
+		z_shade_power: "zShadePower",
+		z_slab: "zSlab",
+		z_depth: "zDepth",
+		background_color: "backgroundColor"
+    }
+});
+
+
+/**
+ * A class to provide a central instance for setting lighting parameters
+ * @constructor
+ * @extends Provi.Jmol.Controls.SettingsManager
+ */
+Provi.Jmol.Controls.BindManager = function(params) {
+    Provi.Jmol.Controls.SettingsManager.call( this, params );
+};
+Provi.Jmol.Controls.BindManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.BindManager.prototype */ {
+    default_params: {
+		mousedrag_factor: 2.0, // 1.0,
+		mousewheel_factor: 1.15
+    },
+    jmol_param_names: {
+		mousedrag_factor: "mousedragFactor",
+		mousewheel_factor: "mousewheelFactor"
     }
 });
 
@@ -238,35 +261,41 @@ Provi.Jmol.Controls.ClippingManager = function(params) {
 }
 Provi.Jmol.Controls.ClippingManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.ClippingManager.prototype */ {
     default_params: {
-	clipping: true,
-	slab_range: 0,
-	slab: 100,
-	depth: 0,
-	slab_by_atom: false,
-	slab_by_molecule: false
+		clipping: true,
+		slab_range: 0,
+		slab: 100,
+		depth: 0,
+		slab_by_atom: false,
+		slab_by_molecule: false
     },
     jmol_param_names: {
-	clipping: "slabEnabled",
-	slab_range: "slabRange",
-	slab: "slab",
-	depth: "depth",
-	slab_by_atom: "slabByAtom",
-	slab_by_molecule: "slabByMolecule"
+		clipping: "slabEnabled",
+		slab_range: "slabRange",
+		slab: "slab",
+		depth: "depth",
+		slab_by_atom: "slabByAtom",
+		slab_by_molecule: "slabByMolecule"
     },
     _command: function( names ){
-	//this.applet.lighting_manager.set({z_depth: (this.depth||0), z_slab: (this.depth||0)+30});
-	//var p = {z_depth: 0, z_slab: (params.depth||20)+10}
-	names = names || this.names.slice();
-	if( this.slab_range ) names.removeItems( "slab" );
-	return '' +
-	    'bind "ALT-WHEEL" "slab @{slab - _DELTAY/abs(_DELTAY)}; if(slab<0){slab 0;} if(slab>100){slab 100;} set zSlab @{zSlab + _DELTAY/abs(_DELTAY)}; if(zSlab<0){set zSlab 0;} if(zSlab>100){set zSlab 100;} javascript jmol_bind(' + this.applet.name_suffix + ') ";' +
-	    'bind "ALT-CTRL-WHEEL" "slab @{slab - _DELTAY/abs(_DELTAY)}; if(slab<0){slab 0;} if(slab>100){slab 100;} set zSlab @{zSlab - _DELTAY/abs(_DELTAY)}; if(zSlab<0){set zSlab 0;} if(zSlab>100){set zSlab 100;} javascript jmol_bind(' + this.applet.name_suffix + ') ";' +
-	    'bind "SHIFT-LEFT" "_translate";' +
-	    'bind "ALT-LEFT" "javascript jmol_center(' + this.applet.name_suffix + ', _X, _Y);";' +
-	    //'javascript "jmol_bind(1);";' +
-	    //'function javascript_bind(i){ javascript "xjmol_binder()"; }' +
-	    //'bind "ALT-WHEEL" "javascript_bind(1);";' +
-	    Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
+		//this.applet.lighting_manager.set({z_depth: (this.depth||0), z_slab: (this.depth||0)+30});
+		//var p = {z_depth: 0, z_slab: (params.depth||20)+10}
+		names = names || this.names.slice();
+		if( this.slab_range ) names.removeItems( "slab" );
+		return '' +
+			'unbind "CTRL-LEFT";' + 
+			'unbind "ALT-WHEEL";' + 
+			'unbind "ALT-CTRL-WHEEL";' + 
+		    'bind "CTRL-LEFT" "if(_MODE==2 and _ATOM){ zoomTo 0.6 (_ATOM); }";' +
+		    'bind "ALT-WHEEL" "slab @{slab - _DELTAY/abs(_DELTAY)}; if(slab<0){slab 0;} if(slab>100){slab 100;} set zSlab @{zSlab + _DELTAY/abs(_DELTAY)}; if(zSlab<0){set zSlab 0;} if(zSlab>100){set zSlab 100;} javascript jmol_bind(' + this.applet.name_suffix + ') ";' +
+		    'bind "ALT-CTRL-WHEEL" "slab @{slab - _DELTAY/abs(_DELTAY)}; if(slab<0){slab 0;} if(slab>100){slab 100;} set zSlab @{zSlab - _DELTAY/abs(_DELTAY)}; if(zSlab<0){set zSlab 0;} if(zSlab>100){set zSlab 100;} javascript jmol_bind(' + this.applet.name_suffix + ') ";' +
+		    //'bind "SHIFT-LEFT" "_translate";' +
+		    //'bind "ALT-LEFT" "_selectToggleOr";' +
+		    
+		    //'bind "ALT-LEFT" "print _X; print _Y; print _picked; print _pickedAtom;";' +
+		    //'javascript "jmol_bind(1);";' +
+		    //'function javascript_bind(i){ javascript "xjmol_binder()"; }' +
+		    //'bind "ALT-WHEEL" "javascript_bind(1);";' +
+		    Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
     }
 });
 
@@ -281,18 +310,18 @@ Provi.Jmol.Controls.QualityManager = function(params) {
 }
 Provi.Jmol.Controls.QualityManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.QualityManager.prototype */ {
     default_params: {
-	high_resolution: false,
-	antialias_display: false,
-	antialias_translucent: true,
-	antialias_images: true,
-	wireframe_rotation: false
+		high_resolution: false,
+		antialias_display: false,
+		antialias_translucent: true,
+		antialias_images: true,
+		wireframe_rotation: false
     },
     jmol_param_names: {
-	high_resolution: "highResolution",
-	antialias_display: "antialiasDisplay",
-	antialias_translucent: "antialiasTranslucent",
-	antialias_images: "antialiasImages",
-	wireframe_rotation: "wireframeRotation"
+		high_resolution: "highResolution",
+		antialias_display: "antialiasDisplay",
+		antialias_translucent: "antialiasTranslucent",
+		antialias_images: "antialiasImages",
+		wireframe_rotation: "wireframeRotation"
     }
 });
 
@@ -307,26 +336,26 @@ Provi.Jmol.Controls.PickingManager = function(params) {
 }
 Provi.Jmol.Controls.PickingManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.PickingManager.prototype */ {
     default_params: {
-	atom_picking: true,
-	draw_picking: false,
-	picking: 'group',
-	picking_style: 'toggle',
-	selection_halos: true,
-	selection_halos_color: 'green',
-	hover_delay: 0.1
+		atom_picking: true,
+		draw_picking: false,
+		picking: 'group',
+		picking_style: 'toggle',
+		selection_halos: true,
+		selection_halos_color: 'green',
+		hover_delay: 0.1
     },
     jmol_param_names: {
-	atom_picking: "atomPicking",
-	draw_picking: "drawPicking",
-	picking: "picking",
-	picking_style: "pickingStyle",
-	selection_halos: "selectionHalos",
-	hover_delay: "hoverDelay"
+		atom_picking: "atomPicking",
+		draw_picking: "drawPicking",
+		picking: "picking",
+		picking_style: "pickingStyle",
+		selection_halos: "selectionHalos",
+		hover_delay: "hoverDelay"
     },
     _command: function( names ){
-	return '' +
-	    'color selectionHalos ' + this['selection_halos_color'] + ';' +
-	    Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
+		return '' +
+		    'color selectionHalos ' + this['selection_halos_color'] + ';' +
+		    Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
     }
 });
 
@@ -342,59 +371,59 @@ Provi.Jmol.Controls.StyleManager = function(params) {
 }
 Provi.Jmol.Controls.StyleManager.prototype = Utils.extend( Provi.Jmol.Controls.SettingsManager, /** @lends Provi.Jmol.Controls.StyleManager.prototype */ {
     default_params: {
-	cartoon: '0.8',
-	trace: '0.3',
-	line: '0.01',
-	stick: '0.15',
-	cpk: '20%',
-	spacefill: '0.5',
-	backbone: '0.3',
-	style: '' +
-	    'select protein; cartoon only; select helix or sheet; cartoon ${cartoon};' +
-	    'select (ligand or ace or ((ypl or lrt) and sidechain) ); wireframe ${stick}; spacefill ${spacefill};' +
-	    'select (ypl or lrt) and (sidechain or *.CA); wireframe ${stick};' +
-	    'select water; wireframe ${line};' +
-	    //'select group=hoh; cpk 20%;' +
-	    'select HOH; cpk ${cpk};' +
-	    //'select (hetero or ypl or lrt or ace) or within(GROUP, connected(hetero or ypl or lrt or ace)); wireframe ${stick};' +
-	    'select (hetero and not(ret or plm or ace or lrt or ypl)) or within(GROUP, connected(hetero and not(ret or plm or ace or lrt or ypl))); wireframe ${stick};' +
-	    'select (ace) or (within(GROUP, connected(ace)) and (*.N or *.CA)); wireframe ${stick};' +
-	    'select ((ret or plm) and hetero) or (within(GROUP, connected(ret or plm)) and (sidechain or *.CA)); wireframe ${stick};' +
-	    'select (dmpc or dmp or popc or pop); wireframe ${stick};' +
-	    'select none;' +
-	    '',
-	hermite_level: 0,
-	cartoon_rockets: false,
-	ribbon_aspect_ratio: 16,
-	ribbon_border: false,
-	rocket_barrels: false,
-	sheet_smoothing: 1,
-	trace_alpha: true
+		cartoon: '0.8',
+		trace: '0.3',
+		line: '0.01',
+		stick: '0.15',
+		cpk: '20%',
+		spacefill: '0.5',
+		backbone: '0.3',
+		style: '' +
+		    'select protein; cartoon only; select helix or sheet; cartoon ${cartoon};' +
+		    'select (ligand or ace or ((ypl or lrt) and sidechain) ); wireframe ${stick}; spacefill ${spacefill};' +
+		    'select (ypl or lrt) and (sidechain or *.CA); wireframe ${stick};' +
+		    'select water; wireframe ${line};' +
+		    //'select group=hoh; cpk 20%;' +
+		    'select HOH; cpk ${cpk};' +
+		    //'select (hetero or ypl or lrt or ace) or within(GROUP, connected(hetero or ypl or lrt or ace)); wireframe ${stick};' +
+		    'select (hetero and not(ret or plm or ace or lrt or ypl)) or within(GROUP, connected(hetero and not(ret or plm or ace or lrt or ypl))); wireframe ${stick};' +
+		    'select (ace) or (within(GROUP, connected(ace)) and (*.N or *.CA)); wireframe ${stick};' +
+		    'select ((ret or plm) and hetero) or (within(GROUP, connected(ret or plm)) and (sidechain or *.CA)); wireframe ${stick};' +
+		    'select (dmpc or dmp or popc or pop); wireframe ${stick};' +
+		    'select none;' +
+		    '',
+		hermite_level: 0,
+		cartoon_rockets: false,
+		ribbon_aspect_ratio: 16,
+		ribbon_border: false,
+		rocket_barrels: false,
+		sheet_smoothing: 1,
+		trace_alpha: true
     },
     jmol_param_names: {
-	hermite_level: "hermiteLevel",
-	cartoon_rockets: "cartoonRockets",
-	ribbon_aspect_ratio: "ribbonAspectRatio",
-	ribbon_border: "ribbonBorder",
-	rocket_barrels: "rocketBarrels",
-	sheet_smoothing: "sheetSmoothing",
-	trace_alpha: "traceAlpha"
+		hermite_level: "hermiteLevel",
+		cartoon_rockets: "cartoonRockets",
+		ribbon_aspect_ratio: "ribbonAspectRatio",
+		ribbon_border: "ribbonBorder",
+		rocket_barrels: "rocketBarrels",
+		sheet_smoothing: "sheetSmoothing",
+		trace_alpha: "traceAlpha"
     },
     get_default_style: function(){
-	return this.get_style( this.style );
+		return this.get_style( this.style );
     },
     get_style: function( style ){
-	return $.tmpl( style, this ).text();
+		return $.tmpl( style, this ).text();
     },
     _command: function( names ){
-	var trace = this['trace'];
-	if( this['trace']=='0.333' ){
-	    trace = '0.333; for( var a in {*.CA and trace=0.333} ){ {a}.trace = 4*{a}.temperature; };';
-	}
-	return '' +
-	    'select cartoon>0 and (helix or sheet); cartoon ' + this['cartoon'] + '; select none; ' +
-	    'select trace>0; trace ' + trace + '; select none; ' +
-	    Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
+		var trace = this['trace'];
+		if( this['trace']=='0.333' ){
+		    trace = '0.333; for( var a in {*.CA and trace=0.333} ){ {a}.trace = 4*{a}.temperature; };';
+		}
+		return '' +
+		    'select cartoon>0 and (helix or sheet); cartoon ' + this['cartoon'] + '; select none; ' +
+		    'select trace>0; trace ' + trace + '; select none; ' +
+		    Provi.Jmol.Controls.SettingsManager.prototype._command.call( this, names );
     }
 });
 
@@ -533,7 +562,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
 				'<option value="cpk">cpk</option>' +
 				'<option value="molecule">by molecule</option>' +
 				'<option value="property temperature">temperature (b-factor)</option>' +
-				'<option value="property partialCharge">partial charge</option>' +
+				'<option value=\'property partialCharge "rwb" range -1 1\'>partial charge</option>' +
 				'<option value="altloc">altloc</option>' +
 				'<option value="formalcharge">formalcharge</option>' +
             '</select>' +
@@ -609,7 +638,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 		// init color model
         this.elm('color_models').bind('click change', function(){
             var applet = self.applet_selector.get_value();
-	    	var cs = this.elm('color_models').children("option:selected").val();
+	    	var cs = self.elm('color_models').children("option:selected").val();
             if(applet && cs){
 				var s = '' +
 				    'var modelInfo = getProperty("modelInfo");' +
@@ -617,18 +646,18 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 				    'var models = modelInfo["models"];' +
 				    'var file_model_array = [];' +
 				    'for (var i = 0; i < count; i++){' +
-					'var m = models[i];' +
-					'file_model_array += m["file_model"];' +
+						'var m = models[i];' +
+						'file_model_array += m["file_model"];' +
 				    '}' +
 				    'file_model_array.sort();' +
 				    'for( var i = 1; i <= count; i++ ){' +
-					'var c = color("' + cs + '", 1-0.5, count+0.5, i);' +
-					'select @{ file_model_array[i] }; color @c;' +
+						'var c = color("' + cs + '", 1-0.5, count+0.5, i);' +
+						'select @{ file_model_array[i] }; color @c;' +
 				    '}' +
 			    '';
                 applet.script_wait( s, true );
             }
-	    	this.elm('color_models').val('');
+	    	self.elm('color_models').val('');
         });
 	
         // init centering
@@ -735,7 +764,7 @@ Provi.Jmol.Controls.SettingsManagerWidget = function(params){
     params.collapsed = true;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
-	'defaults', 'applet_selector'
+		'defaults', 'applet_selector'
     ]);
     
     var template = '' +
@@ -768,15 +797,17 @@ Provi.Jmol.Controls.SettingsManagerWidget.prototype = Utils.extend(Provi.Widget.
 		this.elm('defaults').button().click(function(){
             var applet = self.applet_selector.get_value();
             if(applet){
-		applet[ self.manager_name ].defaults();
+				applet[ self.manager_name ].defaults();
             }
         });
 	
         // init clipping manager
 		this._init_manager();
+		// bindings to the applet or its properties need to get
+		// re-bound when the selected applet changes
 		$( this.applet_selector ).bind('change_selected', function(event, applet){
-		    $.each( Provi.Jmol.get_applet_list(), function(i, applet){
-			$(applet[ self.manager_name ]).unbind('.'+self.id);
+		    _.each( Provi.Jmol.get_applet_list(), function(applet, i){
+				$(applet[ self.manager_name ]).unbind('.'+self.id);
 		    });
 		    self._init_manager();
 		});
@@ -784,27 +815,27 @@ Provi.Jmol.Controls.SettingsManagerWidget.prototype = Utils.extend(Provi.Widget.
 		Provi.Widget.Widget.prototype.init.call(this);
     },
     _init_manager: function(){
-	var applet = this.applet_selector.get_value();
+		var applet = this.applet_selector.get_value();
         if(applet){
-	    var self = this;
-	    $( applet[ this.manager_name ] ).bind('change', function(){
-		self._sync();
-	    });
-	    this._sync();
-	}
+		    var self = this;
+		    $( applet[ this.manager_name ] ).bind('change.'+self.id, function(){
+				self._sync();
+		    });
+		    this._sync();
+		}
     },
     _sync: function(){
-	var applet = this.applet_selector.get_value();
+		var applet = this.applet_selector.get_value();
         if(applet){
-	    var params = applet[ this.manager_name ].get();
-	}
+		    var params = applet[ this.manager_name ].get();
+		}
     },
     set: function(){
-	var applet = this.applet_selector.get_value();
+		var applet = this.applet_selector.get_value();
         if(applet){
-	    applet[ this.manager_name ].set({
-		
-	    });
+		    applet[ this.manager_name ].set({
+			
+		    });
         }
     }
 });
@@ -870,31 +901,31 @@ Provi.Jmol.Controls.ClippingManagerWidget.prototype = Utils.extend(Provi.Jmol.Co
         this.elm('clipping_slider').slider({
             values: [0, 100], range: true,
             min: 0, max: 100
-	}).bind( 'slidestop slide', function(event, ui){
-	    console.log( event.orginalEvent );
-	    // deactivate slabRange/clipping_range
-	    if(ui.values[1] < 100){
-		self.elm('clipping_range').slider('value', 0);
-	    }
-	    self.set();
-	});
-	this.elm('clipping_range').slider({
-	    min: 0, max: 100
-	}).bind( 'slidestop slide', function(event, ui){
-	    // deactivate clipping slab
-	    if( ui.value > 0 ){
-		self.elm('clipping_slider').slider('values', 1, 100);
-	    }
+		}).bind( 'slidestop slide', function(event, ui){
+		    console.log( event.orginalEvent );
+		    // deactivate slabRange/clipping_range
+		    if(ui.values[1] < 100){
+				self.elm('clipping_range').slider('value', 0);
+		    }
+		    self.set();
+		});
+		this.elm('clipping_range').slider({
+		    min: 0, max: 100
+		}).bind( 'slidestop slide', function(event, ui){
+		    // deactivate clipping slab
+		    if( ui.value > 0 ){
+				self.elm('clipping_slider').slider('values', 1, 100);
+		    }
             self.set();
         });
-	
-	this.elm('slab_by_atom').bind('click', $.proxy( this.set, this ));
-	this.elm('slab_by_molecule').bind('click', $.proxy( this.set, this ));
+		
+		this.elm('slab_by_atom').bind('click', $.proxy( this.set, this ));
+		this.elm('slab_by_molecule').bind('click', $.proxy( this.set, this ));
         
-	Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+		Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
     },
     _sync: function(){
-	var applet = this.applet_selector.get_value();
+		var applet = this.applet_selector.get_value();
         if(applet){
 	    var params = applet.clipping_manager.get();
 	    
@@ -940,57 +971,62 @@ Provi.Jmol.Controls.LightingManagerWidget = function(params){
     Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
     
     this._init_eid_manager([
-	'ambient_percent', 'diffuse_percent',
-	'specular_state', 'specular_percent', 'specular_exponent',
-	'specular_power', 'phong_exponent',
-	'z_shade_state', 'z_shade_slider', 'z_shade_power'
+		'ambient_percent', 'diffuse_percent',
+		'specular_state', 'specular_percent', 'specular_exponent',
+		'specular_power', 'phong_exponent',
+		'z_shade_state', 'z_shade_slider', 'z_shade_power',
+		'background_color'
     ]);
     
     var template = '' +
-	'<div class="control_group">' +
-	    '<div class="control_row">' +
-		'<label for="${eids.ambient_percent}" style="display:block;">ambient percent</label>' +
-		'<div id="${eids.ambient_percent}"></div>' +
-	    '</div>' +
-	    '<div class="control_row">' +
-		'<label for="${eids.diffuse_percent}" style="display:block;">diffuse percent</label>' +
-		'<div id="${eids.diffuse_percent}"></div>' +
-	    '</div>' +
-	    '<div class="control_row">' +
-		'<label for="${eids.specular_percent}" style="display:block;">specular percent</label>' +
-		'<input id="${eids.specular_state}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-		'<div id="${eids.specular_percent}"></div>' +
-	    '</div>' +
-	    '<div class="control_row">' +
-		'<label for="${eids.specular_power}" style="display:block;">specular power</label>' +
-		'<div id="${eids.specular_power}"></div>' +
-	    '</div>' +
-	    '<div class="control_row">' +
-		'<label for="${eids.specular_exponent}">specular exponent</label>' +
-		'<select id="${eids.specular_exponent}" class="ui-state-default">' +
-		    '<option value="1">1</option><option value="2">2</option>' +
-		    '<option value="3">3</option><option value="4">4</option>' +
-		    '<option value="5">5</option><option value="6">6</option>' +
-		    '<option value="7">7</option><option value="8">8</option>' +
-		    '<option value="9">9</option><option value="10">10</option>' +
-		'</select>' +
-	    '</div>' +
-	    '<div class="control_row">' +
-		'<label for="${eids.phong_exponent}" style="display:block;">phong exponent (specular)</label>' +
-		'<div id="${eids.phong_exponent}"></div>' +
-	    '</div>' +
-	    '<div class="control_row">' +
-		'<label for="${eids.z_shade_state}" style="display:block;">z-shade</label>' +
-		'<input id="${eids.z_shade_state}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-		'<div id="${eids.z_shade_slider}"></div>' +
-	    '</div>' +
-	    '<div class="control_row">' +
-		'<label for="${eids.z_shade_power}">z-shade power</label>' +
-		'<select id="${eids.z_shade_power}" class="ui-state-default">' +
-		    '<option value="1">1</option><option value="2">2</option>' +
-		    '<option value="3">3</option><option value="4">4</option>' +
-		'</select>' +
-	    '</div>' +
+		'<div class="control_group">' +
+		    '<div class="control_row">' +
+				'<label for="${eids.ambient_percent}" style="display:block;">ambient percent</label>' +
+				'<div id="${eids.ambient_percent}"></div>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+				'<label for="${eids.diffuse_percent}" style="display:block;">diffuse percent</label>' +
+				'<div id="${eids.diffuse_percent}"></div>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+				'<label for="${eids.specular_percent}" style="display:block;">specular percent</label>' +
+				'<input id="${eids.specular_state}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+				'<div id="${eids.specular_percent}"></div>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+				'<label for="${eids.specular_power}" style="display:block;">specular power</label>' +
+				'<div id="${eids.specular_power}"></div>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+				'<label for="${eids.specular_exponent}">specular exponent</label>' +
+				'<select id="${eids.specular_exponent}" class="ui-state-default">' +
+				    '<option value="1">1</option><option value="2">2</option>' +
+				    '<option value="3">3</option><option value="4">4</option>' +
+				    '<option value="5">5</option><option value="6">6</option>' +
+				    '<option value="7">7</option><option value="8">8</option>' +
+				    '<option value="9">9</option><option value="10">10</option>' +
+				'</select>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+				'<label for="${eids.phong_exponent}" style="display:block;">phong exponent (specular)</label>' +
+				'<div id="${eids.phong_exponent}"></div>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+				'<label for="${eids.z_shade_state}" style="display:block;">z-shade</label>' +
+				'<input id="${eids.z_shade_state}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+				'<div id="${eids.z_shade_slider}"></div>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+				'<label for="${eids.z_shade_power}">z-shade power</label>' +
+				'<select id="${eids.z_shade_power}" class="ui-state-default">' +
+				    '<option value="1">1</option><option value="2">2</option>' +
+				    '<option value="3">3</option><option value="4">4</option>' +
+				'</select>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+		    	'<label for="${eids.background_color}" >background color</label>' +
+	            '<input id="${eids.background_color}" type="text" value="#000000"/> ' +
+	        '</div>' +
         '</div>' +
 	'';
     
@@ -1005,77 +1041,157 @@ Provi.Jmol.Controls.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Co
     _init: function(){
         var self = this;
 	
-	this.elm('ambient_percent')
-	    .slider({min: 0, max: 100})
-	    .bind( 'slidestop slide', $.proxy( this.set, this ));
-	
-	this.elm('diffuse_percent')
-	    .slider({min: 0, max: 100})
-	    .bind( 'slidestop slide', $.proxy( this.set, this ));
-	
-	this.elm('specular_state').click( $.proxy( this.set, this ) );
-	
-	this.elm('specular_percent')
-	    .slider({min: 0, max: 100})
-	    .bind( 'slidestop slide', $.proxy( this.set, this ));
-	
-	this.elm('specular_exponent').bind('click change', $.proxy( this.set, this ));
-	
-	this.elm('specular_power')
-	    .slider({min: 0, max: 100})
-	    .bind( 'slidestop slide', $.proxy( this.set, this ));
-	
-	this.elm('phong_exponent')
-	    .slider({min: 0, max: 100})
-	    .bind( 'slidestop slide', $.proxy( this.set, this ));
-	
+		this.elm('ambient_percent')
+		    .slider({min: 0, max: 100})
+		    .bind( 'slidestop slide', $.proxy( this.set, this ));
+		
+		this.elm('diffuse_percent')
+		    .slider({min: 0, max: 100})
+		    .bind( 'slidestop slide', $.proxy( this.set, this ));
+		
+		this.elm('specular_state').click( $.proxy( this.set, this ) );
+		
+		this.elm('specular_percent')
+		    .slider({min: 0, max: 100})
+		    .bind( 'slidestop slide', $.proxy( this.set, this ));
+		
+		this.elm('specular_exponent').bind('click change', $.proxy( this.set, this ));
+		
+		this.elm('specular_power')
+		    .slider({min: 0, max: 100})
+		    .bind( 'slidestop slide', $.proxy( this.set, this ));
+		
+		this.elm('phong_exponent')
+		    .slider({min: 0, max: 100})
+		    .bind( 'slidestop slide', $.proxy( this.set, this ));
+		
         this.elm('z_shade_state').click( $.proxy( this.set, this ) );
-	
-	this.elm('z_shade_slider')
-	    .slider({ values: [0, 100], range: true, min: 0, max: 100 })
-	    .bind( 'slidestop slide', $.proxy( this.set, this ));
-	
-	this.elm('z_shade_power').bind('click change', $.proxy( this.set, this ));
-	
-	Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+		
+		this.elm('z_shade_slider')
+		    .slider({ values: [0, 100], range: true, min: 0, max: 100 })
+		    .bind( 'slidestop slide', $.proxy( this.set, this ));
+		
+		this.elm('z_shade_power').bind('click change', $.proxy( this.set, this ));
+		
+		// init color picker
+        this.elm('background_color').colorPicker();
+        this.elm('background_color').bind('change', $.proxy( this.set, this ));
+
+		Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
     },
     _sync: function(){
-	var applet = this.applet_selector.get_value();
+		var applet = this.applet_selector.get_value();
         if(applet){
-	    var params = applet.lighting_manager.get();
-	    this.elm('ambient_percent').slider("value", params.ambient_percent);
-	    this.elm('diffuse_percent').slider("value", params.diffuse_percent);
-	    this.elm('specular_state').attr('checked', params.specular);
-	    this.elm('specular_percent').slider("value", params.specular_percent);
-	    this.elm('specular_exponent').val( params.specular_exponent );
-	    this.elm('specular_power').slider("value", params.specular_power);
-	    this.elm('phong_exponent').slider("value", params.phong_exponent);
-	    this.elm('z_shade_state').attr('checked', params.z_shade);
-	    this.elm('z_shade_slider').slider("values", 0, params.z_depth);
-	    this.elm('z_shade_slider').slider("values", 1, params.z_slab);
-	    this.elm('z_shade_power').val( params.z_shade_power );
-	}
+		    var params = applet.lighting_manager.get();
+		    this.elm('ambient_percent').slider("value", params.ambient_percent);
+		    this.elm('diffuse_percent').slider("value", params.diffuse_percent);
+		    this.elm('specular_state').attr('checked', params.specular);
+		    this.elm('specular_percent').slider("value", params.specular_percent);
+		    this.elm('specular_exponent').val( params.specular_exponent );
+		    this.elm('specular_power').slider("value", params.specular_power);
+		    this.elm('phong_exponent').slider("value", params.phong_exponent);
+		    this.elm('z_shade_state').attr('checked', params.z_shade);
+		    this.elm('z_shade_slider').slider("values", 0, params.z_depth);
+		    this.elm('z_shade_slider').slider("values", 1, params.z_slab);
+		    this.elm('z_shade_power').val( params.z_shade_power );
+		    this.elm('background_color').val( params.background_color.substring(3,9) );
+		}
     },
     set: function(){
-	var applet = this.applet_selector.get_value();
+		var applet = this.applet_selector.get_value();
         if(applet){
-	    applet.lighting_manager.set({
-		ambient_percent: this.elm('ambient_percent').slider("value"),
-		diffuse_percent: this.elm('diffuse_percent').slider("value"),
-		specular: this.elm('specular_state').is(':checked'),
-		specular_percent: this.elm('specular_percent').slider("value"),
-		specular_power: this.elm('specular_power').slider("value"),
-		specular_exponent: this.elm('specular_exponent').children("option:selected").val(),
-		phong_exponent: this.elm('phong_exponent').slider("value"),
-		z_shade: this.elm('z_shade_state').is(':checked'),
-		z_shade_power: this.elm('z_shade_power').children("option:selected").val(),
-		z_depth: this.elm('z_shade_slider').slider("values", 0),
-		z_slab: this.elm('z_shade_slider').slider("values", 1)
-	    });
+		    applet.lighting_manager.set({
+				ambient_percent: this.elm('ambient_percent').slider("value"),
+				diffuse_percent: this.elm('diffuse_percent').slider("value"),
+				specular: this.elm('specular_state').is(':checked'),
+				specular_percent: this.elm('specular_percent').slider("value"),
+				specular_power: this.elm('specular_power').slider("value"),
+				specular_exponent: this.elm('specular_exponent').children("option:selected").val(),
+				phong_exponent: this.elm('phong_exponent').slider("value"),
+				z_shade: this.elm('z_shade_state').is(':checked'),
+				z_shade_power: this.elm('z_shade_power').children("option:selected").val(),
+				z_depth: this.elm('z_shade_slider').slider("values", 0),
+				z_slab: this.elm('z_shade_slider').slider("values", 1),
+				background_color: '"[x' + this.elm('background_color').val().substring(1) + ']"'
+		    });
         }
     }
 });
 
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Controls.BindManagerWidget = function(params){
+    params = $.extend(
+        Provi.Jmol.Controls.BindManagerWidget.prototype.default_params,
+        params
+    );
+    params.heading = 'Bind Settings';
+    params.manager_name = 'bind_manager';
+    
+    Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
+    
+    this._init_eid_manager([
+		'mousedrag_factor', 'mousewheel_factor'
+    ]);
+    
+    var template = '' +
+		'<div class="control_group">' +
+	    	'<div class="control_row">' +
+				'<label for="${eids.mousedrag_factor}" style="display:block;">mousedrag factor</label>' +
+				'<div id="${eids.mousedrag_factor}"></div>' +
+		    '</div>' +
+		    '<div class="control_row">' +
+				'<label for="${eids.mousewheel_factor}" style="display:block;">mousewheel factor</label>' +
+				'<div id="${eids.mousewheel_factor}"></div>' +
+		    '</div>' +
+        '</div>' +
+	'';
+    
+    this.add_content( template, params );
+    
+    this._init();
+}
+Provi.Jmol.Controls.BindManagerWidget.prototype = Utils.extend(Provi.Jmol.Controls.SettingsManagerWidget, /** @lends Provi.Jmol.Controls.BindManagerWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+        var self = this;
+
+        this.elm('mousedrag_factor')
+		    .slider({min: 50, max: 400})
+		    .bind( 'slidestop slide', $.proxy( this.set, this ));
+
+	    this.elm('mousewheel_factor')
+		    .slider({min: 50, max: 400})
+		    .bind( 'slidestop slide', $.proxy( this.set, this ));
+        
+		Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+    },
+    _sync: function(){
+		var applet = this.applet_selector.get_value();
+        if(applet){
+		    var params = applet.bind_manager.get();
+		    
+		    this.elm('mousedrag_factor').slider("value", Math.round(params.mousedrag_factor*100));
+		    this.elm('mousewheel_factor').slider("value", Math.round(params.mousewheel_factor*100));
+		}
+    },
+    set: function(){
+		var applet = this.applet_selector.get_value();
+        if(applet){
+		    applet.bind_manager.set({
+		    	mousedrag_factor: this.elm('mousedrag_factor').slider("value")/100,
+		    	mousewheel_factor: this.elm('mousewheel_factor').slider("value")/100
+		    });
+        }
+    }
+});
 
 
 /**
@@ -1260,29 +1376,29 @@ Provi.Jmol.Controls.PickingManagerWidget.prototype = Utils.extend(Provi.Jmol.Con
 	    this._prevent = true;
 	    var picking = this.elm('picking').children("option:selected").val();
 	    if( Provi.Utils.in_array( ['atom', 'group', 'chain', 'molecule'], picking ) ){
-		var style = this.elm('picking_style').children("option:selected").val();
-		if( !Provi.Utils.in_array( ['toggle', 'selectOrToggle', 'extendedSelect'], style ) ){
-		    this.elm('picking_style').val( 'toggle' );
-		}
+			var style = this.elm('picking_style').children("option:selected").val();
+			if( !Provi.Utils.in_array( ['toggle', 'selectOrToggle', 'extendedSelect'], style ) ){
+			    this.elm('picking_style').val( 'toggle' );
+			}
 	    }
 	    if( Provi.Utils.in_array( ['distance', 'angle', 'torsion'], picking ) ){
-		this.elm('picking_style').val( 'measure' );
+			this.elm('picking_style').val( 'measure' );
 	    }
 	    this.set();
 	    this._prevent = false;
 	}, this ));
 	this.elm('picking_style').bind('click change', $.proxy( function(){
 	    if( this._prevent ) return;
-	    this._prevent = true;
-	    var style = this.elm('picking_style').children("option:selected").val();
+    	this._prevent = true;
+    	var style = this.elm('picking_style').children("option:selected").val();
 	    if( style=='measure' ){
-		this.elm('picking').val( 'distance' );
+			this.elm('picking').val( 'distance' );
 	    }
 	    if( Provi.Utils.in_array( ['toggle', 'selectOrToggle', 'extendedSelect'], style ) ){
-		var picking = this.elm('picking').children("option:selected").val();
-		if( !Provi.Utils.in_array( ['atom', 'group', 'chain', 'molecule'], picking ) ){
-		    this.elm('picking').val( 'group' );
-		}
+			var picking = this.elm('picking').children("option:selected").val();
+			if( !Provi.Utils.in_array( ['atom', 'group', 'chain', 'molecule'], picking ) ){
+			    this.elm('picking').val( 'group' );
+			}
 	    }
 	    this.set();
 	    this._prevent = false;
@@ -1505,145 +1621,196 @@ Provi.Jmol.Controls.StyleManagerWidget.prototype = Utils.extend(Provi.Jmol.Contr
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Controls.JmolAnimationWidget = function(params){
-    Widget.call( this, params );
-    this._build_element_ids([ 'mode', 'mode_loop', 'mode_once', 'mode_palindrome' ]);
-    this._build_element_ids([ 'play', 'stop', 'next', 'previous', 'first', 'last' ]);
-    this._build_element_ids([ 'current_frame', 'applet_selector_widget' ]);
+	params = $.extend(
+        Provi.Jmol.Controls.JmolAnimationWidget.prototype.default_params,
+        params
+    );
+    Provi.Widget.Widget.call( this, params );
+
+    this.frame_list = []; //maps frames to file_model ids
+    this.file_model_dict = {}; //maps file_model ids to frames
+
+    this._init_eid_manager([
+        'mode', 'mode_loop', 'mode_once', 'mode_palindrome',
+        'play', 'stop', 'next', 'previous', 'first', 'last',
+        'slider', 'current_frame', 'applet_selector_widget'
+    ]);
     
-    var content = '<div class="control_group">' +
-        '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+    var template = '' +
+        '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row">' +
-            '<span>' +
-		'<button id="' + this.first_id + '">first frame</button>' +
-		'<button id="' + this.previous_id + '">previous frame</button>' +
-		'<button id="' + this.play_id + '">play</button>' +
-		'<button id="' + this.stop_id + '">stop frame</button>' +
-		'<button id="' + this.next_id + '">next frame</button>' +
-		'<button id="' + this.last_id + '">last frame</button>' +
-		'<span id="' + this.mode_id + '">' +
-		    '<input type="radio" value="loop" id="' + this.mode_loop_id + '" name="' + this.mode_id + '" checked="checked" /><label for="' + this.mode_loop_id + '">Loop</label>' +
-		    '<input type="radio" value="once" id="' + this.mode_once_id + '" name="' + this.mode_id + '" /><label for="' + this.mode_once_id + '">Once</label>' +
-		    '<input type="radio" value="palindrome" id="' + this.mode_palindrome_id + '" name="' + this.mode_id + '" /><label for="' + this.mode_palindrome_id + '">Palindrome</label>' +
-		'</span>' +
+		    '<span>' +
+				'<button id="${eids.first}">first frame</button>' +
+				'<button id="${eids.previous}">previous frame</button>' +
+				'<button id="${eids.play}">play</button>' +
+				'<button id="${eids.stop}">stop frame</button>' +
+				'<button id="${eids.next}">next frame</button>' +
+				'<button id="${eids.last}">last frame</button>' +
+				'<span id="${eids.mode}">' +
+				    '<input type="radio" value="loop" id="${eids.mode_loop}" name="${eids.mode}" checked="checked" /><label for="${eids.mode_loop}">Loop</label>' +
+				    '<input type="radio" value="once" id="${eids.mode_once}" name="${eids.mode}" /><label for="${eids.mode_once}">Once</label>' +
+				    '<input type="radio" value="palindrome" id="${eids.mode_palindrome}" name="${eids.mode}" /><label for="${eids.mode_palindrome}">Palindrome</label>' +
+				'</span>' +
             '</span>' +
         '</div>' +
-	'<div class="control_row">' +
-	    'Frame <span id="' + this.current_frame_id + '"></span>' + 
-	'</div>' +
-    '</div>';
-    $(this.dom).append( content );
+        '<div class="control_row">' +
+        	'<div id="${eids.slider}"></div>' +
+    	'</div>' +
+		'<div class="control_row">' +
+		    'Frame <span id="${eids.current_frame}"></span>' + 
+		'</div>' +
+    '';
+    this.add_content( template, params );
+    
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-        parent_id: this.applet_selector_widget_id
+        parent_id: this.eid('applet_selector_widget')
     });
     this._init();
 }
 Provi.Jmol.Controls.JmolAnimationWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Controls.JmolAnimationWidget.prototype */ {
+	default_params: {
+		heading: 'Animation'
+	},
     _init: function(){
         var self = this;
         
-	this._init_anim_callback();
-	this.applet_selector.change( function() {
-            self._init_anim_callback();
-        });
+        this._init_anim_callback();
+        $( this.applet_selector ).bind('change_selected', function(event, applet){
+		    _.each( Provi.Jmol.get_applet_list(), function(applet, i){
+				$(applet).unbind('.'+self.id);
+		    });
+		    self._init_anim_callback();
+		});
 	
-        $('#' + this.first_id).button({
+        this.elm('first').button({
             text: false,
-            icons: {
-                primary: 'ui-icon-seek-start'
-            }
+            icons: { primary: 'ui-icon-seek-start' }
         }).click(function(){
             var s = 'frame REWIND;';
             self.update_animation(s);
         });
         
-        $('#' + this.previous_id).button({
+        this.elm('previous').button({
             text: false,
-            icons: {
-                primary: 'ui-icon-seek-prev'
-            }
+            icons: { primary: 'ui-icon-seek-prev' }
         }).click(function(){
             var s = 'frame PREVIOUS;';
             self.update_animation(s);
         });
         
-        $('#' + this.play_id).button({
+        this.play_next = true;
+        this.elm('play').button({
             text: false,
-            icons: {
-                primary: 'ui-icon-play'
-            }
-        })
-        .click(function() {
+            icons: { primary: 'ui-icon-play' }
+        }).click(function() {
             var options;
             var s = '';
-            if ($(this).text() == 'play') {
-                options = {
-                    label: 'pause',
-                    icons: {
-                        primary: 'ui-icon-pause'
-                    }
-                };
+            if (self.play_next) {
+            	self.play_next = false;
+            	self.elm('play').button({
+		            text: false,
+		            icons: { primary: 'ui-icon-pause' }
+		        });
                 s = 'frame PLAY;';
             } else {
-                options = {
-                    label: 'play',
-                    icons: {
-                        primary: 'ui-icon-play'
-                    }
-                };
+            	self.play_next = true;
+                self.elm('play').button({
+		            text: false,
+		            icons: { primary: 'ui-icon-play' }
+		        });
                 s = 'frame PAUSE;';
             }
             self.update_animation(s);
         });
         
-        $('#' + this.stop_id).button({
+        this.elm('stop').button({
             text: false,
-            icons: {
-                primary: 'ui-icon-stop'
-            }
-        })
-        .click(function() {
+            icons: { primary: 'ui-icon-stop' }
+        }).click(function() {
             $('#' + self.play_id).button('option', {
                 label: 'play',
-                icons: {
-                    primary: 'ui-icon-play'
-                }
+                icons: { primary: 'ui-icon-play' }
             });
             var s = 'frame PAUSE; frame REWIND;';
             self.update_animation(s);
         });
         
-        $('#' + this.next_id).button({
+        this.elm('next').button({
             text: false,
-            icons: {
-                primary: 'ui-icon-seek-next'
-            }
+            icons: { primary: 'ui-icon-seek-next' }
         }).click(function(){
             var s = 'frame NEXT;';
             self.update_animation(s);
         });
         
-        $('#' + this.last_id).button({
+        this.elm('last').button({
             text: false,
-            icons: {
-                primary: 'ui-icon-seek-end'
-            }
+            icons: { primary: 'ui-icon-seek-end' }
         }).click(function(){
             var s = 'frame LAST;';
             self.update_animation(s);
         });
         
-        $("#" + this.mode_id).buttonset().change(function(){
+        this.elm('mode').buttonset().change(function(){
             self.set_animation_mode();
         });
+
+        this.elm('slider').slider({
+            value: 30, min: 0, max: 50
+		}).bind( 'slide slidestop', function(event, ui){
+			console.log('UI.VALUE', ui.value, ui, event);
+			var s = 'frame ' + ui.value + ';';
+            self.update_animation(s);
+	    });
+    },
+    _init_model_info: function(){
+		var applet = this.applet_selector.get_value(true);
+		if(!applet) return;
+
+    	var script = '' +
+    		'var modelInfo = getProperty("modelInfo");' +
+		    'var count = modelInfo["modelCount"];' +
+		    'var models = modelInfo["models"];' +
+		    'var file_model_array = [];' +
+		    'for (var i = 0; i < count; i++){' +
+				'var m = models[i];' +
+				'file_model_array += m["file_model"];' +
+		    '}' +
+		    'file_model_array.sort();' +
+			'print file_model_array;' +
+		'';
+
+		var data = applet.script_wait_output( script );
+	    console.log( data );
+	    if( data && data!==-1 ){
+		    data = data.split('\n').slice(0,-1);
+
+	    	this.frame_list = [];
+	    	this.file_model_dict = {};
+	    	_.each( data, function(d, i){
+	    		
+	    	});
+	    }
     },
     _init_anim_callback: function(){
         var applet = this.applet_selector.get_value(true);
-	if(applet){
-	    var self = this;
-	    $(applet).bind('anim_frame', function( event, frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
-		$('#' + self.current_frame_id).html( frameNo +'' );
-	    });
-	}
+		if(applet){
+		    var self = this;
+		    //this._init_model_info();
+		    var model_info = applet.get_property_as_array('modelInfo');
+		    console.log('MODEL_INFO', model_info);
+		    this.elm('slider').slider({ max: model_info.modelCount-1 });
+		    $(applet).bind('load_struct.'+this.id, function( event, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ){
+		    	//self._init_model_info();
+		    	var model_info = applet.get_property_as_array('modelInfo');
+		    	console.log('MODEL_INFO', model_info);
+			    self.elm('slider').slider({ max: model_info.modelCount-1 });
+		    });
+		    $(applet).bind('anim_frame.'+this.id, function( event, frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
+				self.elm('current_frame').html( frameNo + ' ' + modelNo + '' );
+				self.elm('slider').slider({ value: frameNo });
+		    });
+		}
     },
     update_animation: function(script){
         this.set_animation_mode();
@@ -1656,7 +1823,8 @@ Provi.Jmol.Controls.JmolAnimationWidget.prototype = Utils.extend(Widget, /** @le
         var applet = this.applet_selector.get_value(true);
         if(applet){
             var s = '';
-            var mode = $("#" + this.mode_id + " input[name=" + this.mode_id + "]:radio:checked").val();
+            var mode = this.elm('mode')
+            	.children("input[name=" + this.mode_id + "]:radio:checked").val();
             if(mode == 'palindrome'){
                 s = 'animation mode PALINDROME';
             }else if(mode == 'once'){
