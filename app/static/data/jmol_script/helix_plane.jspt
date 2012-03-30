@@ -27,7 +27,7 @@ function draw_intersection( plane, point, color ){
     if( !color ) color = 'green';
     var i= intersection(point, plane);
     var name = "i_" + uid();
-    draw id @name @i radius 0.2 color @color;
+    #draw id @name @i radius 0.2 color @color;
     return i;
 }
 
@@ -35,7 +35,7 @@ function draw_bond_intersection( plane, p1, p2 ){
     var i1= intersection(p1, plane);
     var i2= intersection(p2, plane);
     var name = "bi_" + uid();
-    draw id @name @i1 @i2 radius 0.1 color lightgreen;
+    #draw id @name @i1 @i2 radius 0.1 color lightgreen;
 }
 
 function view_plane( p ){
@@ -67,20 +67,20 @@ function mindist( s1, s2 ){
     return min_contact;
 }
 
-function array_to_json( array, level ){
-    if( !level ) level = 0;
-    if( array.type == 'array' ){
+function array_to_json( arr, lvl ){
+    if( !lvl ) lvl = 0;
+    if( arr.type == 'array' ){
         var new_array = [];
-        for( var i=1; i<=array.length; i+=1 ){
-            new_array += array_to_json( array[i], level+1 );
+        for( var i=1; i<=arr.length; i+=1 ){
+            new_array += array_to_json( arr[i], lvl+1 );
         }
-        if(level>0){
+        if(lvl>0){
             return "[ " + new_array.join(", ") + " ]";
         }else{
             return "[\n\t" + new_array.join(", \n\t") + "\n]";
         }
     }else{
-        return array;
+        return arr;
     }
 }
 
@@ -89,7 +89,7 @@ function array_to_json( array, level ){
 #draw id "p0" intersection boundbox scale 100;
 
 var c = {*}.XYZ;
-draw id "c" @c radius 0.3;
+#draw id "c" @c radius 0.3;
 
 var p = view_plane( c );
 ###plane###
@@ -98,16 +98,45 @@ var pn = p%4;
 
 
 select @f; cpk 20%; wireframe 0.2;
+select search("[R]"); color pink;
 #select *;
 
 var uv = point( -pn.x, -pn.y, -pn.z );
 var av = point( pn.y, -pn.x, 0 );
 var bv = cross( pn, av );
 
-draw id "pn" vector @c @pn color pink;
-draw id "uv" vector @c @uv color red;
-draw id "av" vector @c @av color red;
-draw id "bv" vector @c @bv color red;
+#draw id "pn" vector @c @pn color pink;
+#draw id "uv" vector @c @uv color red;
+#draw id "av" vector @c @av color red;
+#draw id "bv" vector @c @bv color red;
+
+
+function _get_bonds( a, f, depth, prev, i, bond_acc ){
+    var bonds = connected(prev, f);
+    var ab = bonds.atoms;
+    var bondlist = [];
+    for(b in ab){
+        if( prev.atomno != b.atomno ){
+            var bonddata = [];
+            bonddata += b.atomno;
+            bonddata += distance(a, b);
+            bond_acc[i] += [bonddata];
+            if(i<depth-1){
+                bond_acc = _get_bonds( a, f, depth, b, i+1, bond_acc );
+            }
+        }
+    }
+    return bond_acc;
+}
+
+function get_bonds( a, f, depth ){
+    var bond_acc = [];
+    for( var j=0; j<depth; j+=1 ){
+        bond_acc += [[['"foo"','"bar"', j]]];
+    }
+    return _get_bonds( a, f, depth, a, 1, bond_acc );
+}
+
 
 var focusdata = [];
 
@@ -117,6 +146,8 @@ for(a in f){
     var bondlist = [];
     var bondlist2 = [];
     var bondlist3 = [];
+    var bondlist4 = [];
+    var bondlist5 = [];
     for(b in ab){
         if( a.atomno != b.atomno ){
             draw_bond_intersection( p, a, b );
@@ -140,16 +171,39 @@ for(a in f){
                             bonddata3 += b3.atomno;
                             bonddata3 += distance(a, b3);
                             bondlist3 += [bonddata3];
+                            var bonds4 = connected(b3, f);
+                            var ab4 = bonds4.atoms;
+                            for(b4 in ab4){
+                                if( b3.atomno != b4.atomno ){
+                                    var bonddata4 = [];
+                                    bonddata4 += b4.atomno;
+                                    bonddata4 += distance(a, b4);
+                                    bondlist4 += [bonddata4];
+                                    var bonds5 = connected(b4, f);
+                                    var ab5 = bonds5.atoms;
+                                    for(b5 in ab5){
+                                        if( b4.atomno != b5.atomno ){
+                                            var bonddata5 = [];
+                                            bonddata5 += b5.atomno;
+                                            bonddata5 += distance(a, b5);
+                                            bondlist5 += [bonddata5];
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
+    var ring_members = {@f}.find("SMARTS", "[R]");
+    var ring = { @a and @ring_members }.length;
+    var bbone = { @a and backbone }.length;
     var i = draw_intersection( p, a );
     var i0 = point(0, i*av, i*bv);    
     var name = "i_" + uid();
-    draw id @name @i0 radius 0.2 color orange;
+    #draw id @name @i0 radius 0.2 color orange;
     var atomdata = [];
     atomdata += a.atomno;
     atomdata += [bondlist];
@@ -158,6 +212,11 @@ for(a in f){
     atomdata += [[ a.color.x, a.color.y, a.color.z ]];
     atomdata += [bondlist2];
     atomdata += [bondlist3];
+    atomdata += [bondlist4];
+    atomdata += [bondlist5];
+    atomdata += ring+"";
+    atomdata += bbone+"";
+    #atomdata += [ get_bonds( a, f, 4 ) ];
     focusdata += [atomdata];
 }
 
@@ -165,8 +224,8 @@ var polardata = [];
 var pi = {};
 
 var vdwdata = [];
-var hi = { within(GROUP, within(0, @f)) and *.CA and not @f };
-select { within(GROUP, @hi) }; wireframe 0.1;
+var hi = { within(GROUP, within(4.0, @f)) and *.CA and not @f };
+select { within(GROUP, @hi) }; wireframe 0.1; cpk off;
 for(a in hi){
     var ag = { within(GROUP, @a) };
     var ac = ag.XYZ;
@@ -176,8 +235,8 @@ for(a in hi){
     var mda1 = { atomno = md1 };
     var mda2 = { atomno = md2 };
     var v = { atomno = md2 }.XYZ - { atomno = md1 }.XYZ;
-    draw id @{uid()} vector @mda1 @v color @{ color("low", 30, 90, ang(v,pn)) };
-    draw id @{uid()} vector @mda1 @{pn*-4} color white;
+    #draw id @{uid()} vector @mda1 @v color @{ color("low", 30, 90, ang(v,pn)) };
+    #draw id @{uid()} vector @mda1 @{pn*-4} color white;
     
     var i = draw_intersection( p, mda1.XYZ, 'orange' );
     var i0 = point(0, i*av, i*bv);
@@ -206,10 +265,14 @@ ret += [ focusdata ];
 ret += [ polardata ];
 ret += [ vdwdata ];
 
-print array_to_json( ret );
+var test = array_to_json( ret );
+print test;
 
 background black;
 display within(GROUP, (@f or @hi));
 center displayed;
+zoom (displayed) 100;
+var d = {displayed}.distance({displayed});
+set rotationRadius @{d*2};
 select *; cartoon off;
 select none;
