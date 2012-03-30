@@ -106,7 +106,7 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
 Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.MembranePlanes.MplaneWidget.prototype */ {
     default_params: {
         size: -2,
-        color: 'blue',
+        color: '#3366FF',
         translucency: 0.6,
         visibility: true,
         modelbased: true
