@@ -62,7 +62,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     this.color_by_min_cutoff = params.color_by_min_cutoff;
     this.interface_ids = '';
     this.interface_names = '';
-    this.tmh_filter = false;
+    this.tmh_filter = params.tmh_filter;
     this.tmh_ds = false;
     this.atoms = [];
     this.structure_atoms = [];
@@ -135,7 +135,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
         show_only_interface_atoms: false,
         color_interface_residue: false,
         autofocus: true,
-        color_by_min_cutoff: false
+        color_by_min_cutoff: false,
+        tmh_filter: false
     },
     _init: function(){
         var self = this;
@@ -185,7 +186,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype = Utils.extend(Wid
             self.show_only_interface_atoms = $("#" + self.show_only_interface_atoms_id).is(':checked');
             self.draw();
         });
+
         this._init_tmh_filter();
+        $("#" + this.tmh_filter_check_id).attr('checked', this.tmh_filter);
         $("#" + this.tmh_filter_check_id).change( function() {
             self.tmh_filter = $("#" + self.tmh_filter_check_id).is(':checked');
             self.draw();

@@ -53,9 +53,7 @@
     <script type="text/javascript" src="../js/lib/flot/jquery.flot.navigate.js"></script>
     <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../js/lib/flot/excanvas.min.js"></script><![endif]-->
     
-    <script type="text/javascript" src="../js/lib/d3/d3.js"></script>
-    <script type="text/javascript" src="../js/lib/d3/d3.geom.js"></script>
-    <script type="text/javascript" src="../js/lib/d3/d3.layout.js"></script>
+    <script type="text/javascript" src="../js/lib/d3/d3.v2.js"></script>
 
     <script type="text/javascript" src="../js/Provi.js"></script>
     <script type="text/javascript" src="../js/Provi.Debug.js"></script>
@@ -151,7 +149,7 @@
         //Provi.Jmol.init("../applet/jmol/12.1.42/", true);
         //Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
         //Provi.Jmol.init("../applet/jmol/12.1.51/", true);
-	Provi.Jmol.init("../../jmol/current/19/", $.query.get('signed'));
+	Provi.Jmol.init("../../jmol/current/20/", $.query.get('signed'));
     
         $(document).ready(function(){
         
@@ -247,12 +245,12 @@
             // });
         
             new Provi.Jmol.Analysis.HbondsWidget({
-            parent_id: 'tab_widgets'
-        });
+                parent_id: 'tab_widgets'
+            });
 
-        new Provi.Jmol.Analysis.GromacsHelixorientWidget({
-            parent_id: 'tab_widgets'
-        });
+            new Provi.Jmol.Analysis.GromacsHelixorientWidget({
+                parent_id: 'tab_widgets'
+            });
 
             new Provi.Bio.Flatland.FlatlandWidget({
                 parent_id: 'tab_widgets'
@@ -397,6 +395,13 @@
                     applet: applet
                 });
             
+            }else if( $.query.get('test') == '3dqb' ){
+                
+                Provi.Data.Io.import_example( 'showcase', 'rhodopsin/3dqb.pdb', 'pdb', {
+                    applet: applet,
+                    load_as: 'new'
+                });
+
             }else if( $.query.get('test') == '1gzm' ){
                 
                 Provi.Data.Io.import_example( 'showcase', 'mplot/1gzm_mod.pdb', 'pdb', {

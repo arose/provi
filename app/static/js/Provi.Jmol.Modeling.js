@@ -29,6 +29,10 @@ var Widget = Provi.Widget.Widget;
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Modeling.JmolModelingWidget = function(params){
+	params = $.extend(
+        Provi.Jmol.Modeling.JmolModelingWidget.prototype.default_params,
+        params
+    );
     this.picking_select = 'ATOM';
     this.drag_selected = false;
     Widget.call( this, params );
@@ -72,6 +76,10 @@ Provi.Jmol.Modeling.JmolModelingWidget = function(params){
     this._init();
 }
 Provi.Jmol.Modeling.JmolModelingWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Modeling.JmolModelingWidget.prototype */ {
+	default_params: {
+        heading: 'Modeling',
+        collapsed: true
+    },
     _init: function(){
         var self = this;
 	
@@ -155,7 +163,7 @@ Provi.Jmol.Modeling.JmolModelingWidget.prototype = Utils.extend(Widget, /** @len
             self.duplicate_selection();
         });
 	
-	Widget.prototype.init.call(this);
+		Provi.Widget.Widget.prototype.init.call(this);
     },
     rotate_range: function(){
 	var applet = this.applet_selector.get_value();

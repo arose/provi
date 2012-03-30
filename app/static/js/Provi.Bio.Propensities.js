@@ -112,7 +112,7 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row">' +
-            'scale&nbsp;<select id="${eids.scale}" class="ui-state-default"></select>' +
+            'method&nbsp;<select id="${eids.scale}" class="ui-state-default"></select>' +
         '</div>' +
         '<div class="control_row">' +
             'probe radius&nbsp;<select id="${eids.radius}" class="ui-state-default"></select>' +

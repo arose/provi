@@ -515,11 +515,11 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     	//console.log(script);
     	try{
     	    if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
-    		//console.log( 'SAFARI' );
-    		this.applet.script( script );
+        		//console.log( 'SAFARI' );
+        		this.applet.script( script );
     	    }else{
-    		//console.log( 'NOT SAFARI' );
-    		var tmp = this.applet.scriptWait( script );
+        		//console.log( 'NOT SAFARI' );
+        		var tmp = this.applet.scriptWait( script );
     	    }
     	}catch(e){
     	    console.log(e, script);
@@ -560,7 +560,8 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         		}
     	    }
     	}
-    	return s;
+    	//return s;
+        return ret;
     },
     /**
      * executes a jmol script synchronously
@@ -582,11 +583,15 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     	try{
     	    var ret = this.applet.scriptWaitOutput(script);
     	}catch(e){
-    	    console.log('scriptWaitOutput ERROR', e, script);
+    	    console.log('scriptWaitOutput ERROR', e, {stack: e.stack, script: script});
     	}
     	
-    	// remove first line and last two lines then return
-    	return ret.split('\n').slice(1,-3).join('\n')
+        if(ret){
+        	// remove first line and last two lines then return
+        	return ret.split('\n').slice(1,-3).join('\n');
+        }else{
+            return false;
+        }
     },
     /**
      * executes a jmol script synchronously and returns the output

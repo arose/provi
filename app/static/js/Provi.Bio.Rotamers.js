@@ -38,7 +38,6 @@ Provi.Bio.Rotamers.sidechain_atoms = {"CYS":[["N","CA","CB","SG"]],"ASP":[["N","
 
 
 Provi.Bio.Rotamers.db["CNO"] = [
-    
     ['{t,p,m}',-180,64,-101],
     ['{m,m,m}',-67,-64,-83],
     ['{m,t,p}',-71,153,85],
@@ -47,15 +46,7 @@ Provi.Bio.Rotamers.db["CNO"] = [
     ['{t,p,p}',-180,63,89],
     ['{t,m,m}',-171,-85,-91],
     ['{t,t,p}',-174,178,90],
-    ['{t,t,m}',-178,170,-90],
-    
-    //['{m,m,m}',-64.3,-77.32,-42.11,-53.39,9.56],
-    //['{m,m,p}',-64.3,-95.42,93.37,-150.24,146.48],
-    //['{t,p,p}',-177.3,87.5,106.02,-78.41,62.99],
-    //['{t,p,m}',-177.3,81.85,-109.49,134.32,-104.89],
-    
-    //[56.64,-64.3,90],[27.42,-177.3,90],[15.94,63.7,90],
-    //[56.64,-64.3,-90],[27.42,-177.3,-90],[15.94,63.7,-90]
+    ['{t,t,m}',-178,170,-90]
 ];
 Provi.Bio.Rotamers.sidechain_atoms["CNO"] = [
     ["N","CA","CB","SG"],["CA","CB","SG","SD"],["CB","SG","SD","CE"],
@@ -82,6 +73,10 @@ Provi.Bio.Rotamers.sidechain_atoms["PRX"] = [
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Rotamers.RotamersWidget = function(params){
+    params = $.extend(
+        Provi.Bio.Rotamers.RotamersWidget.prototype.default_params,
+        params
+    );
     this.picking_select = 'ATOM';
     this.drag_selected = false;
     this.selection_halos = false;
@@ -134,6 +129,10 @@ Provi.Bio.Rotamers.RotamersWidget = function(params){
     this._init();
 }
 Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Rotamers.RotamersWidget.prototype */ {
+    default_params: {
+        heading: 'Rotamers',
+        collapsed: true
+    },
     _init: function(){
         var self = this;
 	
@@ -245,7 +244,7 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
 	    console.log( self.clash_expression );
         });
 	
-	Widget.prototype.init.call(this);
+	   Provi.Widget.Widget.prototype.init.call(this);
     },
     get_rotamers: function(){
         var self = this;
