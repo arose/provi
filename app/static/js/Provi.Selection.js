@@ -346,11 +346,11 @@ Provi.Selection.SelectorWidget = function(params){
     this.applet = params.applet;
     Widget.call( this, params );
     this._build_element_ids([ 'selector', 'selection' ]);
-    var content = '<span>' +
+    var content = '' +
 	'<label for="' + this.selector_id + '">Selection:</label>&nbsp;' +
         '<select id="' + this.selector_id + '" class="ui-state-default"></select>' +
 	'<input id="' + this.selection_id + '" type="text"/>' +
-    '</span>';
+    '';
     $(this.dom).append( content );
     this.init();
 }

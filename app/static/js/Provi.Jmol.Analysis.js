@@ -947,6 +947,15 @@ Provi.Jmol.Analysis.GromacsHelixorientWidget.prototype = Utils.extend(Provi.Widg
 
 	    var n1 = this.ndx_dat.length-1;
 	    var s = '';
+        s += 'draw PLANE {47 62 62} {67 12 62} {17 52 62} FIXED; ' +
+            'draw ID "pv1" Vector {47 62 62} {0 0 15} FIXED; ' +
+            'function vec_mag(v){ return sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z) }; ' +
+            'function vec2plane_proj(v, pn){' +
+                'var c1 = cross( v, pn );' + 
+                'var c2 = cross( c1, pn );' + 
+                'return c2/c2;' +
+            '};' +
+            '';
 	    _.each( this.center_dat, function( d, i ){
 	    	var axis = self.axis_dat[i];
 	    	s += 'frame ' + i + ';';
@@ -964,6 +973,12 @@ Provi.Jmol.Analysis.GromacsHelixorientWidget.prototype = Utils.extend(Provi.Widg
 			    		'SCALE 700 ' +
 			    		'COLOR @{ color("rwb", 1, ' + n1 + ', ' + j + ') } ' +
 			    		';';
+                    s += 'draw ID "p_' + i + '_' + j + '" VECTOR ' + 
+                        '{ ' + (10*c[0]) + ' ' + (10*c[1]) + ' ' + '62' + ' } ' +
+                        '@{ vec2plane_proj(point(' + v[0] + ', ' + v[1] + ', ' + v[2] + '), point(0, 0, 10)) } ' +
+                        'SCALE 700 ' +
+                        'COLOR @{ color("rwb", 1, ' + n1 + ', ' + j + ') } ' +
+                        ';';
 		    	}
     		});
 	    });
@@ -971,6 +986,30 @@ Provi.Jmol.Analysis.GromacsHelixorientWidget.prototype = Utils.extend(Provi.Widg
 	    applet.script( s, true );
     }
 });
+
+
+// function vec_norm(v){
+//     return v/v;
+// }
+
+// function vec_mag(v){ 
+//     return sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z);
+// };
+
+// function vec2plane_proj(v, pn){ 
+//     return v-(v*pn); 
+// };
+
+// var a = {-0.57 -0.28 -0.76};
+
+// draw ID "pv2" vector { 42.37 46.46 62 } {0 0 10};
+
+// draw ID "pv3" vector { 42.37 46.46 62 } @{ cross( {0 0 10},  {-0.57 -0.28 -0.76} ) };
+
+// var c = cross( cross( {0 0 10},  {-0.57 -0.28 -0.76} ), {0 0 10} );
+// draw ID "pv4" vector { 42.37 46.46 62 } @{ vec_norm(c) * 7  };
+
+// draw ID "p_250_5" VECTOR { 42.37 46.46 62 } @{ vec2plane_proj(point(-0.57, -0.28, -0.76), point(0, 0, 1)) } SCALE 700 COLOR @{ color("rwb", 1, 6, 5) }
 
 
 

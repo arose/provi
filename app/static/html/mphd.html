@@ -96,105 +96,123 @@
 <body>
     <script type="text/javascript">
 	
-	Provi.Debug.auto();
-	
-	Provi.defaults.dom_parent_ids = $.extend( Provi.defaults.dom_parent_ids, {
-	    DATASET_WIDGET: 'tab_widgets',
-	    CANVAS_WIDGET: 'main',
-	    SELECTION_WIDGET: 'tab_widgets',
-	    BUILDER_WIDGET: 'tab_widgets'
-	});
-	
-	Provi.Jmol.Controls.StyleManager.prototype.default_params.style += '' +
-	    'select protein; wireframe ${stick};';
-	
-	//Provi.Jmol.Controls.PickingManager.prototype.default_params.picking = 'center';
-	
-	Provi.Bio.Structure.StructureWidget.prototype.default_params = $.extend(
-	    Provi.Bio.Structure.StructureWidget.prototype.default_params,
-	    {
-		hidden: true
+		Provi.Debug.auto();
+		
+		Provi.defaults.dom_parent_ids = $.extend( Provi.defaults.dom_parent_ids, {
+		    DATASET_WIDGET: 'tab_widgets',
+		    CANVAS_WIDGET: 'main',
+		    SELECTION_WIDGET: 'tab_widgets',
+		    BUILDER_WIDGET: 'tab_widgets'
+		});
+		
+		Provi.Jmol.Controls.StyleManager.prototype.default_params = $.extend(
+			Provi.Jmol.Controls.StyleManager.prototype.default_params,
+			{
+				sidechain_helper: false
+			}
+		);
+		Provi.Jmol.Controls.StyleManager.prototype.default_params.style += '' +
+		    'select ${sidechain_helper_sele}; wireframe ${stick};';
+		
+		//Provi.Jmol.Controls.PickingManager.prototype.default_params.picking = 'center';
+		
+		Provi.Bio.Structure.StructureWidget.prototype.default_params = $.extend(
+		    Provi.Bio.Structure.StructureWidget.prototype.default_params,
+		    {
+				hidden: true
+		    }
+		);
+		
+		Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params = $.extend(
+		    Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params,
+		    {
+				sort_key: 1,
+				heading: 'Interface Contacts',
+				show_dataset_info: false,
+				load_as: 'new',
+				cutoff: 2,
+				tmh_filter: true,
+				collapsed: true
+		    }
+		);
+		
+		Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params = $.extend(
+		    Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params,
+		    {
+				sort_key: 2,
+				heading: 'Membrane Planes',
+				show_dataset_info: false,
+				collapsed: true
+		    }
+		);
+		
+		Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params = $.extend(
+		    Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params,
+		    {
+				sort_key: 3,
+				heading: 'Transmembrane Helix Segments',
+				show_dataset_info: false,
+				collapsed: true
+		    }
+		);
+		
+		Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params = $.extend(
+		    Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params,
+		    {
+				sort_key: 4,
+				heading: 'Hydrogen Bonds',
+				show_dataset_info: false,
+				collapsed: true
+		    }
+		);
+		
+		Provi.Widget.StoryWidget.prototype.default_params = $.extend(
+		    Provi.Widget.StoryWidget.prototype.default_params,
+		    {
+				sort_key: -1,
+				heading: 'Data info',
+				show_dataset_info: false,
+				template: 'mphd',
+				collapsed: false
+		    }
+		);
+		Provi.Widget.StoryWidget.prototype.templates[ 'mphd' ] = '' +
+		    '<ul>' +
+			'<li>PDB ID: <a target="_blank" href="http://www.rcsb.org/pdb/explore/explore.do?structureId=${params.pdb_id}">${params.pdb_id}</a></li>' +
+			'<li>Probe radius: ${params.probe_radius}</li>' +
+			'<li>Family: ${params.family}</li>' +
+			'<li><a target="_blank" href="${params.mphd_url}">MPHD entry</a></li>' +
+		    '</ul>' +
+		    '';
+		
+		Provi.Jmol.Controls.LightingManager.prototype.default_params = $.extend(
+		    Provi.Jmol.Controls.LightingManager.prototype.default_params,
+		    {
+				background_color: '[x000000]'
+		    }
+		);
+		
+		function layout_main() {
+	        var n = Provi.Jmol.get_applet_list().length;
+	        var i = Math.round( Math.sqrt(n) );
+	        $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
 	    }
-	);
-	
-	Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params = $.extend(
-	    Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params,
-	    {
-		sort_key: 1,
-		heading: 'Interface Contacts',
-		show_dataset_info: false,
-		load_as: 'new',
-		cutoff: 2
-	    }
-	);
-	
-	Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params = $.extend(
-	    Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params,
-	    {
-		sort_key: 2,
-		heading: 'Membrane Planes',
-		show_dataset_info: false
-	    }
-	);
-	
-	Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params = $.extend(
-	    Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params,
-	    {
-		sort_key: 3,
-		heading: 'Transmembrane Helix Segments',
-		show_dataset_info: false
-	    }
-	);
-	
-	Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params = $.extend(
-	    Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params,
-	    {
-		sort_key: 4,
-		heading: 'Hydrogen Bonds',
-		show_dataset_info: false
-	    }
-	);
-	
-	Provi.Widget.StoryWidget.prototype.default_params = $.extend(
-	    Provi.Widget.StoryWidget.prototype.default_params,
-	    {
-		sort_key: -1,
-		heading: 'Data info',
-		show_dataset_info: false,
-		template: 'mphd'
-	    }
-	);
-	Provi.Widget.StoryWidget.prototype.templates[ 'mphd' ] = '' +
-	    '<ul>' +
-		'<li>PDB ID: <a target="_blank" href="http://www.rcsb.org/pdb/explore/explore.do?structureId=${params.pdb_id}">${params.pdb_id}</a></li>' +
-		'<li>Probe radius: ${params.probe_radius}</li>' +
-		'<li>Family: ${params.family}</li>' +
-		'<li><a target="_blank" href="${params.mphd_url}">MPHD entry</a></li>' +
-	    '</ul>' +
-	    '';
-	
-	
-	function layout_main() {
-            var n = Provi.Jmol.get_applet_list().length;
-            var i = Math.round( Math.sqrt(n) );
-            $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
-        }
-	
-	//Provi.Jmol.init("../../jmol/current/14/", !$.query.get('unsigned'));
-	Provi.Jmol.init("../../jmol/current/16/", $.query.get('signed'));
-	
-        $(document).ready(function(){
+		
+		//Provi.Jmol.init("../../jmol/current/14/", !$.query.get('unsigned'));
+		Provi.Jmol.init("../../jmol/current/16/", $.query.get('signed'));
+		
+	    $(document).ready(function(){
 	    
-	//    // hack to get session cookie
-	//    $.ajax({
-	//	url: '../../data/index/',
-	//	async: false,
-	//	dataType: 'text',
-	//	cache: false,
-	//	success: function(response){
-	//	    console.log( response );
-	//	}
-	//    });
+		//    // hack to get session cookie
+		//    $.ajax({
+		//	url: '../../data/index/',
+		//	async: false,
+		//	dataType: 'text',
+		//	cache: false,
+		//	success: function(response){
+		//	    console.log( response );
+		//	}
+		//    });
 	    
 	    	Provi.Utils.event.init();
 	    
@@ -233,14 +251,16 @@
             new Provi.Jmol.Controls.JmolDisplayWidget({
                 parent_id: 'tab_widgets',
 				sort_key: 0,
-				hide_color_models: true
+				hide_color_models: true,
+				collapsed: true
             });
 	    	
 	    	Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
 				sort_key: 2,
 				heading: 'Propensities',
 				description: 'Propensity data from curated MPHD data set',
-				show_dataset_info: false
+				show_dataset_info: false,
+				collapsed: true
 		    });
             
             $('#tab_scrollbox').scroll(function (event, ui) {

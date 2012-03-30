@@ -398,7 +398,11 @@ Provi.Jmol.Controls.StyleManager.prototype = Utils.extend( Provi.Jmol.Controls.S
 		ribbon_border: false,
 		rocket_barrels: false,
 		sheet_smoothing: 1,
-		trace_alpha: true
+		trace_alpha: true,
+		sidechain_helper: true,
+		sidechain_helper_sele: '',
+		_sidechain_helper_sele_on: 'protein and (sidechain or *.CA)',
+		_sidechain_helper_sele_off: 'protein'
     },
     jmol_param_names: {
 		hermite_level: "hermiteLevel",
@@ -413,6 +417,7 @@ Provi.Jmol.Controls.StyleManager.prototype = Utils.extend( Provi.Jmol.Controls.S
 		return this.get_style( this.style );
     },
     get_style: function( style ){
+    	this.sidechain_helper_sele = this.sidechain_helper ? this._sidechain_helper_sele_on : this._sidechain_helper_sele_off;
 		return $.tmpl( style, this ).text();
     },
     _command: function( names ){
@@ -436,11 +441,15 @@ Provi.Jmol.Controls.StyleManager.prototype = Utils.extend( Provi.Jmol.Controls.S
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Controls.JmolGlobalControlWidget = function(params){
-    this.sync_mouse = false;
+	params = $.extend(
+        Provi.Jmol.Controls.JmolGlobalControlWidget.prototype.default_params,
+        params
+    );
+    this.sync_mouse = params.sync_mouse;
     Widget.call( this, params );
     this._build_element_ids([ 'sync_mouse', 'sync_orientation', 'applet_selector_sync_orientation', 'change_default_applet' ]);
     
-    var content = '<div class="control_group">' +
+    var template = '' +
         '<div class="control_row">' +
             '<input id="' + this.sync_mouse_id + '" type="checkbox" style="float:left; margin-top: 0.0em;"/>' +
             '<label for="' + this.sync_mouse_id + '">sync mouse</label>' +
@@ -453,8 +462,9 @@ Provi.Jmol.Controls.JmolGlobalControlWidget = function(params){
             'Change default&nbsp;' +
             '<span id="' + this.change_default_applet_id + '"></span>' +
         '</div>' +
-    '</div>';
-    $(this.dom).append( content );
+    '';
+    this.add_content( template, params );
+
     this.applet_selector_sync_orientation = new Provi.Jmol.JmolAppletSelectorWidget({
         parent_id: this.applet_selector_sync_orientation_id
     });
@@ -465,8 +475,13 @@ Provi.Jmol.Controls.JmolGlobalControlWidget = function(params){
     this._init();
 }
 Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Controls.JmolGlobalControlWidget.prototype */ {
+	default_params: {
+        heading: 'Global Controls',
+        sync_mouse: false,
+        collapsed: true
+    },
     _init: function(){
-	this.sync_mouse = $("#" + this.sync_mouse_id).is(':checked');
+		this.sync_mouse = $("#" + this.sync_mouse_id).is(':checked');
         this.update_sync_mouse();
         var self = this;
         
@@ -477,19 +492,21 @@ Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /**
         $("#" + this.sync_orientation_id).button().click(function() {
             self.sync_orientation();
         });
-	$(this.change_default_applet_selector).bind('change_selected', function( event ) {
-	    var applet = self.change_default_applet_selector.get_value(true);
-	    var default_applet = Provi.Jmol.get_default_applet();
-	    if(applet && applet != default_applet){
-		Provi.Jmol.set_default_applet( applet );
-	    }
-        });
-	$(Provi.Jmol).bind('default_applet_change', function(){
-	    var applet = Provi.Jmol.get_default_applet();
-	    if(applet && self.change_default_applet_selector.get_value(true) != applet){
-		self.change_default_applet_selector.set_value( applet.name_suffix );
-	    }
-	});
+		$(this.change_default_applet_selector).bind('change_selected', function( event ) {
+		    var applet = self.change_default_applet_selector.get_value(true);
+		    var default_applet = Provi.Jmol.get_default_applet();
+		    if(applet && applet != default_applet){
+			Provi.Jmol.set_default_applet( applet );
+		    }
+	        });
+		$(Provi.Jmol).bind('default_applet_change', function(){
+		    var applet = Provi.Jmol.get_default_applet();
+		    if(applet && self.change_default_applet_selector.get_value(true) != applet){
+			self.change_default_applet_selector.set_value( applet.name_suffix );
+		    }
+		});
+
+		Provi.Widget.Widget.prototype.init.call(this);
     },
     update_sync_mouse: function(){
         var s = '';
@@ -531,7 +548,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
 	    'style', 'quality', 'color_scheme', 'color_models', 'center', 
-	    'applet_selector_widget' 
+	    'applet_selector_widget', 'style_sele'
     ]);
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
@@ -551,6 +568,9 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
 				'<option value="cartoon+sticks">cartoon & sticks</option>' +
 				'<option value="cartoon+aromatic">cartoon & aromatic</option>' +
             '</select>' +
+            '&nbsp;' +
+            '<label for="${eids.style_sele}">selection only</label>' +
+            '<input id="${eids.style_sele}" type="checkbox" style="margin-top: 0.5em;">' +
         '</div>' +
         '<div class="control_row">' +
             '<label for="${eids.color_scheme}">color scheme</label>' +
@@ -668,6 +688,8 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 				applet.clipping_manager.sync();
             }
         });
+
+        Provi.Widget.Widget.prototype.init.call(this);
     },
     update_quality: function(){
         var applet = this.applet_selector.get_value();
@@ -718,22 +740,26 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
 		
 		var styles = {
 		    'default': 'select protein;',
-	            'lines': 'select protein; wireframe -${line};',
-	            'sticks': 'select protein; wireframe -${stick};',
+            'lines': 'select protein; wireframe -${line};',
+            'sticks': 'select protein; wireframe -${stick};',
 		    'backbone': 'select protein; backbone -${backbone};',
-		    'backbone+lines': 'select protein; backbone -${backbone}; wireframe ${line};',
-		    'backbone+sticks': 'select protein; backbone -${backbone}; wireframe ${stick};',
+		    'backbone+lines': 'select protein; backbone -${backbone}; select ${sidechain_helper_sele}; wireframe ${line};',
+		    'backbone+sticks': 'select protein; backbone -${backbone}; select ${sidechain_helper_sele}; wireframe ${stick};',
 		    'trace': 'select protein; trace only; {protein}.trace = ${trace};',
 		    'cartoon': 'select protein; cartoon only; select helix or sheet; cartoon ${cartoon};',
-		    'cartoon+lines': 'select protein; cartoon only; wireframe ${line}; select helix or sheet; cartoon ${cartoon};',
-		    'cartoon+sticks': 'select protein; cartoon only; wireframe ${stick}; select helix or sheet; cartoon ${cartoon};',
-		    'cartoon+aromatic': 'select protein; cartoon only; select helix or sheet; cartoon ${cartoon}; select aromatic; wireframe ${stick};'
-	        }
+		    'cartoon+lines': 'select protein; cartoon only; select ${sidechain_helper_sele}; wireframe ${line}; select helix or sheet; cartoon ${cartoon};',
+		    'cartoon+sticks': 'select protein; cartoon only; select ${sidechain_helper_sele}; wireframe ${stick}; select helix or sheet; cartoon ${cartoon};',
+		    'cartoon+aromatic': 'select protein; cartoon only; select ${sidechain_helper_sele}; select helix or sheet; cartoon ${cartoon}; select aromatic; wireframe ${stick};'
+        }
 		
 		this.style_cmd = applet.style_manager.get_style( styles[ selected_style ] || '' );
 		
         if( this.style_cmd ){
-            applet.script( default_style + this.style_cmd, true);
+        	var s = default_style + this.style_cmd;
+        	if( this.elm('style_sele').is(':checked') ){
+        		s = 'subset selected; ' + s + 'subset;';
+        	}
+            applet.script( s, true);
         }
     },
     set_color_scheme: function (){
@@ -1454,9 +1480,9 @@ Provi.Jmol.Controls.StyleManagerWidget = function(params){
     Provi.Jmol.Controls.SettingsManagerWidget.call( this, params );
     
     this._init_eid_manager([
-	'cartoon', 'line', 'stick', 'cpk', 'spacefill', 'backbone', 'trace',
-	'hermite_level', 'cartoon_rockets', 'ribbon_aspect_ratio', 'ribbon_border',
-	'rocket_barrels', 'sheet_smoothing', 'trace_alpha'
+		'cartoon', 'line', 'stick', 'cpk', 'spacefill', 'backbone', 'trace',
+		'hermite_level', 'cartoon_rockets', 'ribbon_aspect_ratio', 'ribbon_border',
+		'rocket_barrels', 'sheet_smoothing', 'trace_alpha', 'sidechain_helper'
     ]);
     
     var template = '' +
@@ -1533,21 +1559,25 @@ Provi.Jmol.Controls.StyleManagerWidget = function(params){
 		'<label for="${eids.rocket_barrels}" style="display:block;">rocket barrels</label>' +
 	    '</div>' +
 	    '<div class="control_row">' +
-		'<label for="${eids.sheet_smoothing}">sheet smoothing</label>' +
-		'<select id="${eids.sheet_smoothing}" class="ui-state-default">' +
-		    '<option value="0">0</option><option value="0.1">0.1</option>' +
-		    '<option value="0.2">0.2</option><option value="0.3">0.3</option>' +
-		    '<option value="0.4">0.4</option><option value="0.5">0.5</option>' +
-		    '<option value="0.6">0.6</option><option value="0.7">0.7</option>' +
-		    '<option value="0.8">0.8</option><option value="0.9">0.9</option>' +
-		    '<option value="1.0">1.0</option>' +
-		'</select>' +
+			'<label for="${eids.sheet_smoothing}">sheet smoothing</label>' +
+			'<select id="${eids.sheet_smoothing}" class="ui-state-default">' +
+			    '<option value="0">0</option><option value="0.1">0.1</option>' +
+			    '<option value="0.2">0.2</option><option value="0.3">0.3</option>' +
+			    '<option value="0.4">0.4</option><option value="0.5">0.5</option>' +
+			    '<option value="0.6">0.6</option><option value="0.7">0.7</option>' +
+			    '<option value="0.8">0.8</option><option value="0.9">0.9</option>' +
+			    '<option value="1.0">1.0</option>' +
+			'</select>' +
 	    '</div>' +
 	    '<div class="control_row">' +
-		'<input id="${eids.trace_alpha}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-		'<label for="${eids.trace_alpha}" style="display:block;">trace alpha</label>' +
+			'<input id="${eids.trace_alpha}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+			'<label for="${eids.trace_alpha}" style="display:block;">trace alpha</label>' +
 	    '</div>' +
-        '</div>' +
+	    '<div class="control_row">' +
+			'<input id="${eids.sidechain_helper}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+			'<label for="${eids.sidechain_helper}" style="display:block;">sidechain helper</label>' +
+	    '</div>' +
+    '</div>' +
 	'';
     
     this.add_content( template, params );
@@ -1561,53 +1591,56 @@ Provi.Jmol.Controls.StyleManagerWidget.prototype = Utils.extend(Provi.Jmol.Contr
     _init: function(){
         var self = this;
 	
-	this.elm('cartoon').bind('click change', $.proxy( this.set, this ));
-	this.elm('trace').bind('click change', $.proxy( this.set, this ));
-	this.elm('line').bind('click change', $.proxy( this.set, this ));
-        
-	this.elm('hermite_level').bind('click change', $.proxy( this.set, this ));
-	this.elm('cartoon_rockets').bind('click', $.proxy( this.set, this ));
-	this.elm('ribbon_aspect_ratio').bind('click change', $.proxy( this.set, this ));
-	this.elm('ribbon_border').bind('click', $.proxy( this.set, this ));
-	this.elm('rocket_barrels').bind('click', $.proxy( this.set, this ));
-	this.elm('sheet_smoothing').bind('click change', $.proxy( this.set, this ));
-	this.elm('trace_alpha').bind('click', $.proxy( this.set, this ));
-	
-	Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
+		this.elm('cartoon').bind('click change', $.proxy( this.set, this ));
+		this.elm('trace').bind('click change', $.proxy( this.set, this ));
+		this.elm('line').bind('click change', $.proxy( this.set, this ));
+	        
+		this.elm('hermite_level').bind('click change', $.proxy( this.set, this ));
+		this.elm('cartoon_rockets').bind('click', $.proxy( this.set, this ));
+		this.elm('ribbon_aspect_ratio').bind('click change', $.proxy( this.set, this ));
+		this.elm('ribbon_border').bind('click', $.proxy( this.set, this ));
+		this.elm('rocket_barrels').bind('click', $.proxy( this.set, this ));
+		this.elm('sheet_smoothing').bind('click change', $.proxy( this.set, this ));
+		this.elm('trace_alpha').bind('click', $.proxy( this.set, this ));
+		this.elm('sidechain_helper').bind('click', $.proxy( this.set, this ));
+		
+		Provi.Jmol.Controls.SettingsManagerWidget.prototype._init.call(this);
     },
     _sync: function(){
-	var applet = this.applet_selector.get_value();
+		var applet = this.applet_selector.get_value();
         if(applet){
-	    var params = applet.style_manager.get();
-	    this.elm('cartoon').val( params.cartoon );
-	    this.elm('trace').val( params.trace );
-	    this.elm('line').val( params.line );
-	    
-	    this.elm('hermite_level').val( params.hermite_level );
-	    this.elm('cartoon_rockets').attr('checked', params.cartoon_rockets);
-	    this.elm('ribbon_aspect_ratio').val( params.ribbon_aspect_ratio );
-	    this.elm('ribbon_border').attr('checked', params.ribbon_border);
-	    this.elm('rocket_barrels').attr('checked', params.rocket_barrels);
-	    this.elm('sheet_smoothing').val( params.sheet_smoothing );
-	    this.elm('trace_alpha').attr('checked', params.trace_alpha);
-	}
+		    var params = applet.style_manager.get();
+		    this.elm('cartoon').val( params.cartoon );
+		    this.elm('trace').val( params.trace );
+		    this.elm('line').val( params.line );
+		    
+		    this.elm('hermite_level').val( params.hermite_level );
+		    this.elm('cartoon_rockets').attr('checked', params.cartoon_rockets);
+		    this.elm('ribbon_aspect_ratio').val( params.ribbon_aspect_ratio );
+		    this.elm('ribbon_border').attr('checked', params.ribbon_border);
+		    this.elm('rocket_barrels').attr('checked', params.rocket_barrels);
+		    this.elm('sheet_smoothing').val( params.sheet_smoothing );
+		    this.elm('trace_alpha').attr('checked', params.trace_alpha);
+		    this.elm('sidechain_helper').attr('checked', params.sidechain_helper);
+		}
     },
     set: function(){
-	var applet = this.applet_selector.get_value();
+		var applet = this.applet_selector.get_value();
         if(applet){
-	    applet.style_manager.set({
-		cartoon: this.elm('cartoon').children("option:selected").val(),
-		trace: this.elm('trace').children("option:selected").val(),
-		line: this.elm('line').children("option:selected").val(),
-		
-		hermite_level: this.elm('hermite_level').children("option:selected").val(),
-		cartoon_rockets: this.elm('cartoon_rockets').is(':checked'),
-		ribbon_aspect_ratio: this.elm('ribbon_aspect_ratio').children("option:selected").val(),
-		ribbon_border: this.elm('ribbon_border').is(':checked'),
-		rocket_barrels: this.elm('rocket_barrels').is(':checked'),
-		sheet_smoothing: this.elm('sheet_smoothing').children("option:selected").val(),
-		trace_alpha: this.elm('trace_alpha').is(':checked')
-	    });
+		    applet.style_manager.set({
+				cartoon: this.elm('cartoon').children("option:selected").val(),
+				trace: this.elm('trace').children("option:selected").val(),
+				line: this.elm('line').children("option:selected").val(),
+				
+				hermite_level: this.elm('hermite_level').children("option:selected").val(),
+				cartoon_rockets: this.elm('cartoon_rockets').is(':checked'),
+				ribbon_aspect_ratio: this.elm('ribbon_aspect_ratio').children("option:selected").val(),
+				ribbon_border: this.elm('ribbon_border').is(':checked'),
+				rocket_barrels: this.elm('rocket_barrels').is(':checked'),
+				sheet_smoothing: this.elm('sheet_smoothing').children("option:selected").val(),
+				trace_alpha: this.elm('trace_alpha').is(':checked'),
+				sidechain_helper: this.elm('sidechain_helper').is(':checked')
+		    });
         }
     }
 });
