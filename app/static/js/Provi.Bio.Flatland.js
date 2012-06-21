@@ -64,9 +64,9 @@ var principal_axes = function(m){
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Flatland.FlatlandWidget = function(params){
-    params = $.extend(
-        Provi.Bio.Flatland.FlatlandWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Bio.Flatland.FlatlandWidget.prototype.default_params
     );
     console.log('FLATLAND', params);
     if( params.applet ){

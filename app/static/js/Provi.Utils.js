@@ -219,22 +219,45 @@
                         return obj.length ? obj.is(".jstree-checked") : false;
                 },
             get_checked : function (obj, column, all) {
-                console.log(column);
+                // console.log(column);
                 obj = !obj || obj === -1 ? this.get_container() : this._get_node(obj);
-                //console.log(obj);
+                // console.log(obj);
                 if( all ){
                     return obj.find( "li span ins:nth-child(" + column + ").jstree-checked" ).parent().parent().parent();
                 }else{
-                    var undetermined = obj.find( "ins:nth-child(" + column + ").jstree-undetermined" ).parent().parent().parent();
-                    return obj.add( undetermined )
-                        .find( "> ul > li > a > span ins:nth-child(" + column + ").jstree-checked" )
+                    var obj_checked = obj
+                        .find( "> a > span ins:nth-child(" + column + ").jstree-checked" )
                         .parent().parent().parent();
+                    if( obj_checked ){
+                        return obj;
+                    }else{
+                        var undetermined = obj.find( "ins:nth-child(" + column + ").jstree-undetermined" ).parent().parent().parent();
+                        return obj.add( undetermined )
+                            .find( "> ul > li > a > span ins:nth-child(" + column + ").jstree-checked" )
+                            .parent().parent().parent();
+                    }
                 }
             },
-                get_unchecked : function (obj, get_all) { 
-                        obj = !obj || obj === -1 ? this.get_container() : this._get_node(obj);
-                        return get_all || this._get_settings().checkbox.two_state ? obj.find(".jstree-unchecked") : obj.find("> ul > .jstree-unchecked, .jstree-undetermined > ul > .jstree-unchecked");
-                },
+            get_unchecked : function (obj, column, all) { 
+                // console.log(column);
+                obj = !obj || obj === -1 ? this.get_container() : this._get_node(obj);
+                // console.log(obj);
+                if( all ){
+                    return obj.find( "li span ins:nth-child(" + column + ").jstree-unchecked" ).parent().parent().parent();
+                }else{
+                    var obj_unchecked = obj
+                        .find( "> a > span ins:nth-child(" + column + ").jstree-unchecked" )
+                        .parent().parent().parent();
+                    if( obj_unchecked ){
+                        return obj;
+                    }else{
+                        var undetermined = obj.find( "ins:nth-child(" + column + ").jstree-undetermined" ).parent().parent().parent();
+                        return obj.add( undetermined )
+                            .find( "> ul > li > a > span ins:nth-child(" + column + ").jstree-unchecked" )
+                            .parent().parent().parent();
+                    }
+                }
+            },
                 show_checkboxes : function () {
                     this.get_container().children("ul").removeClass("jstree-no-checkboxes");
                 },
@@ -494,6 +517,13 @@ if(!Object.keys){
             if(Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
         }
         return ret;
+    };
+}
+
+
+if (typeof String.prototype.startsWith != 'function') {
+    String.prototype.startsWith = function (str){
+        return this.slice(0, str.length) == str;
     };
 }
 

@@ -121,14 +121,18 @@ def read_rotamer_lib( lib_path = '../data/rotamers/bbind02.May.lib' ):
     
     return rotamer_dict
 
-json_str = json.dumps( read_rotamer_lib(), separators=(',', ':') )
 
-import re
-# remove double quotes around float values
-json_str = re.sub('"(-?(?:[0-9]+|[0-9]*\.[0-9]+))"', "\\1", json_str)
+if __name__ == '__main__':
 
-json_str += '\n\n' + json.dumps( CHIS, separators=(',', ':') )
+    json_str = json.dumps( read_rotamer_lib(), separators=(',', ':') )
 
-fh = open( '../data/rotamers/bbind02.May.lib.json', "w" )
-fh.write( json_str )
-fh.close()
+    import re
+    # remove double quotes around float values
+    json_str = re.sub('"(-?(?:[0-9]+|[0-9]*\.[0-9]+))"', "\\1", json_str)
+
+    json_str += '\n\n' + json.dumps( CHIS, separators=(',', ':') )
+
+    fh = open( '../data/rotamers/bbind02.May.lib.json', "w" )
+    fh.write( json_str )
+    fh.close()
+

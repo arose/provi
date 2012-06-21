@@ -1,0 +1,59 @@
+too many sidechain atoms in residue  ARG  209 D
+too many sidechain atoms in residue  ALA  101 F
+too many sidechain atoms in residue  TRP  156 G
+too many sidechain atoms in residue  TRP  138 H
+too many sidechain atoms in residue  ARG  128 I
+too many sidechain atoms in residue  SER  129 K
+too many sidechain atoms in residue  TRP   61 N
+too many sidechain atoms in residue  GLY   89 O
+too many sidechain atoms in residue  LYS   88 R
+too many sidechain atoms in residue  ALA  106 T
+too many sidechain atoms in residue  GLU  405 Z
+too many sidechain atoms in residue  ALA   85 0
+too many sidechain atoms in residue  ALA   72 2
+too many sidechain atoms in residue  VAL   60 5
+too many sidechain atoms in residue  ILE   54 6
+too many sidechain atoms in residue  GLY   37 9
+too many sidechain atoms in residue  SER  228 C
+too many sidechain atoms in residue  LYS  276 D
+too many sidechain atoms in residue  LYS  182 G
+too many sidechain atoms in residue  LEU  122 O
+too many sidechain atoms in residue  ALA  150 P
+too many sidechain atoms in residue  GLN  141 Q
+too many sidechain atoms in residue  GLU  118 R
+not enough sidechain atoms in residue  PHE   32 U
+too many sidechain atoms in residue  GLY  118 U
+too many sidechain atoms in residue  GLY  101 V
+not enough sidechain atoms in residue  LYS  113 W
+too many sidechain atoms in residue  ARG  209 D
+too many sidechain atoms in residue  ALA  101 F
+too many sidechain atoms in residue  TRP  156 G
+too many sidechain atoms in residue  TRP  138 H
+too many sidechain atoms in residue  ARG  128 I
+too many sidechain atoms in residue  SER  129 K
+too many sidechain atoms in residue  TRP   61 N
+too many sidechain atoms in residue  GLY   89 O
+too many sidechain atoms in residue  LYS   88 R
+too many sidechain atoms in residue  ALA  106 T
+too many sidechain atoms in residue  GLU  405 Z
+too many sidechain atoms in residue  ALA   85 0
+too many sidechain atoms in residue  ALA   72 2
+too many sidechain atoms in residue  VAL   60 5
+too many sidechain atoms in residue  ILE   54 6
+too many sidechain atoms in residue  GLY   37 9
+too many sidechain atoms in residue  SER  228 C
+too many sidechain atoms in residue  LYS  276 D
+too many sidechain atoms in residue  LYS  182 G
+too many sidechain atoms in residue  LEU  122 O
+too many sidechain atoms in residue  ALA  150 P
+too many sidechain atoms in residue  GLN  141 Q
+too many sidechain atoms in residue  GLU  118 R
+not enough sidechain atoms in residue  PHE   32 U
+too many sidechain atoms in residue  GLY  118 U
+too many sidechain atoms in residue  GLY  101 V
+not enough sidechain atoms in residue  LYS  113 W
+Initialisierung :               491463
+FindInnerWater  :                    0
+Connolly 1      :              6588136
+Entfernen       :            -60000336
+insgesamt       :            -52920737

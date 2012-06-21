@@ -48,29 +48,35 @@ Provi.Bio.MembranePlanes.Mplane.prototype = /** @lends Provi.Bio.MembranePlanes.
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.MembranePlanes.MplaneWidget = function(params){
-    params = $.extend(
-        Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params
     );
+    
     this.dataset = params.dataset;
     this.applet = params.applet;
     this.color = params.color;
     this.translucency = params.translucency;
     this.size = params.size;
     this.visibility = params.visibility;
+    
     Widget.call( this, params );
-    this._build_element_ids([ 'size', 'size_slider', 'size_slider_option', 'visibility', 'orient', 'color', 'distance', 'modelbased' ]);
-    var content = '<div class="control_group">' +
+
+    this._init_eid_manager([
+        'size', 'size_slider', 'size_slider_option', 'visibility', 
+        'orient', 'color', 'distance', 'modelbased' 
+    ]);
+    var template = '' +
         '<div class="control_row">' +
             'The distance between the membrane planes is: ' +
-            '<span id="' + this.distance_id + '"></span>&nbsp;&#8491;' +
+            '<span id="${eids.distance}"></span>&nbsp;&#8491;' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="' + this.size_id + '">membrane plane size</label>' +
-            '<select id="' + this.size_id + '" class="ui-state-default">' +
+            '<label for="${eids.size}">membrane plane size</label>' +
+            '<select id="${eids.size}" class="ui-state-default">' +
                 '<option value="0">hide</option>' +
                 '<option value="-2" selected="selected">boundbox</option>' +
-                '<option id="' + this.size_slider_option_id + '" value="-1">slider</option>' +
+                '<option id="${eids.size_slider_option}" value="-1">slider</option>' +
                 '<option value="100">100</option>' +
                 '<option value="200">200</option>' + 
                 '<option value="300">300</option>' +
@@ -85,22 +91,22 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
             '</select>' +
         '</div>' +
         '<div class="control_row">' +
-            '<input id="' + this.visibility_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-            '<div id="' + this.size_slider_id + '"></div>' +
+            '<input id="${eids.visibility}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+            '<div id="${eids.size_slider}"></div>' +
         '</div>' +
         '<div class="control_row">' +
-            '<input id="' + this.color_id + '" type="text" value="' + this.color + '"/> ' +
-            '<label for="' + this.color_id + '" >color</label>' +
+            '<input id="${eids.color}" type="text" value="${params.color}"/> ' +
+            '<label for="${eids.color}" >color</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<input id="' + this.modelbased_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.modelbased_id + '" >modelbased</label>' +
+            '<input id="${eids.modelbased}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="${eids.modelbased}" >modelbased</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button id="' + this.orient_id + '">orient along membrane normal</button>' +
+            '<button id="${eids.orient}">orient along membrane normal</button>' +
         '</div>' +
-    '</div>'
-    $(this.dom).append( content );
+    ''
+    this.add_content( template, params );
     this._init();
 }
 Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.MembranePlanes.MplaneWidget.prototype */ {
@@ -112,26 +118,26 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         modelbased: true
     },
     _init: function () {
-        this.visibility = $("#" + this.visibility_id).is(':checked');
-        $("#" + this.size_slider_option_id).hide();
-        $("#" + this.size_id).val(this.size);
+        this.visibility = this.elm("visibility").is(':checked');
+        this.elm("size_slider_option").hide();
+        this.elm("size").val(this.size);
         this.draw();
         this.orient();
         var self = this;
         
-        $("#" + this.distance_id).html( this.dataset.data.distance.toFixed(2) );
+        this.elm("distance").html( this.dataset.data.distance.toFixed(2) );
         
-        $("#" + this.visibility_id).bind('change click', function() {
-            self.visibility = $("#" + self.visibility_id).is(':checked');
+        this.elm("visibility").bind('change click', function() {
+            self.visibility = self.elm("visibility").is(':checked');
             self.draw();
         });
-        $("#" + this.size_id).change( function() {
-            self.size = $("#" + self.size_id + " option:selected").val();
-            $("#" + self.size_slider_id).slider('option', 'value', self.size);
-            $("#" + self.size_slider_option_id).hide();
+        this.elm("size").change( function() {
+            self.size = self.elm("size").children("option:selected").val();
+            self.elm("size_slider").slider('option', 'value', self.size);
+            self.elm("size_slider_option").hide();
             self.draw();
         });
-        $("#" + this.size_slider_id)
+        this.elm("size_slider")
             .slider({min: 1, max: 1400})
             .bind( 'slidestop slide', function(event, ui){
                 self.size = ui.value;
@@ -150,42 +156,42 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         //    $("#" + self.size_slider_id).slider('option', 'value', self.size);
         //    self.update_size_slider();
         //});
-        $("#" + this.size_slider_id).slider('option', 'value', this.size);
+        this.elm("size_slider").slider('option', 'value', this.size);
         
         // init color picker
-        $('#' + this.color_id).colorPicker();
-        $('#' + this.color_id).change(function(){
-            self.color = $('#' + self.color_id).val();
+        this.elm("color").colorPicker();
+        this.elm("color").change(function(){
+            self.color = self.elm("color").val();
             self.draw();
         });
 
         // init modelbased/fixed
-        $("#" + this.modelbased_id).bind('change click', function() {
-            self.modelbased = $("#" + self.modelbased_id).is(':checked');
+        this.elm("modelbased").bind('change click', function() {
+            self.modelbased = self.elm("modelbased").is(':checked');
             self.draw();
         });
         
         // init orient
-        $('#' + this.orient_id).button().click( $.proxy( this.orient, this ) );
+        this.elm("orient").button().click( $.proxy( this.orient, this ) );
         Widget.prototype.init.call(this);
     },
     update_size_slider: function(){
-        if( $("#" + this.size_id + " option[value=" + this.size + "]").size() ){
-            if( !$("#" + this.size_slider_option_id).is(':selected') ){
-                $("#" + this.size_slider_option_id).hide();
+        if( this.elm("size").children("option[value=" + this.size + "]").size() ){
+            if( !this.elm("size_slider_option").is(':selected') ){
+                this.elm("size_slider_option").hide();
             }
         }else{
-            $("#" + this.size_slider_option_id).show();
-            $("#" + this.size_slider_option_id).val(this.size);
-            $("#" + this.size_slider_option_id).text(this.size);
+            this.elm("size_slider_option").show();
+            this.elm("size_slider_option").val(this.size);
+            this.elm("size_slider_option").text(this.size);
             Array.prototype.sort.call(
-                $("#" + this.size_id + " option"),
+                this.elm("size").children("option"),
                 function(a,b) {
                     return parseInt($(a).val()) >= parseInt($(b).val()) ? 1 : -1;
                 }
-            ).appendTo("#" + this.size_id); 
+            ).appendTo( this.eid("size") ); 
         }
-        $("#" + this.size_id).val(this.size);
+        this.elm("size").val(this.size);
         this.draw();
     },
     orient: function(){        

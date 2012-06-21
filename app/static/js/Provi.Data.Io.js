@@ -39,7 +39,6 @@ Provi.Data.Io.PluploadLoadWidget = function(params){
     this.load_as_selector_widget_id = this.id + '_load_as';
     this.applet_selector_widget_id = this.id + '_applet';
     var content = '<div class="control_group">' +
-        
         '<div class="control_row">' +
             '<label for="' + this.type_selector_id + '">Filetype:</label>' +
             '<select id="' + this.type_selector_id + '" class="ui-state-default">' +
@@ -74,7 +73,7 @@ Provi.Data.Io.PluploadLoadWidget = function(params){
         new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
         allow_new_applets: true
     });
-    this.load_as_selector = new Provi.Jmol.JmolLoadAsSelectorWidget({
+    this.load_as_selector = new Provi.Bio.Structure.StructureParamsWidget({
         parent_id: this.load_as_selector_widget_id
     })
     this._init();
@@ -94,13 +93,13 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
             url : '../../plupload/index/?datatype=auto&provider=file',
             flash_swf_url : '../js/lib/plupload/js/plupload.flash.swf',
             silverlight_xap_url : '../js/lib/plupload/js/plupload.silverlight.xap'
-	});
+        });
 
-	this.uploader.bind('Init', function(up, params) {
-	    $('#' + self.filelist_id).html("<div>Current runtime: " + params.runtime + "</div>");
-	});
+        this.uploader.bind('Init', function(up, params) {
+            $('#' + self.filelist_id).html("<div>Current runtime: " + params.runtime + "</div>");
+        });
 
-	this.uploader.bind('FilesAdded', function(up, files) {
+        this.uploader.bind('FilesAdded', function(up, files) {
             //console.log(files);
             $.each(files, function(i, file) {
                 file.dataset = new Provi.Data.Dataset({
@@ -115,19 +114,19 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
                     '</div>'
                 );
             });
-	});
+        });
 
-	this.uploader.bind('UploadProgress', function(up, file) {
+        this.uploader.bind('UploadProgress', function(up, file) {
             if(!file.dataset.server_id){
                 file.dataset.set_status('server', file.percent + '% uploaded');
             }
-	    $('#' + file.id + " b").html(file.percent + "%");
-	});
+            $('#' + file.id + " b").html(file.percent + "%");
+        });
 
-	$('#' + this.uploadfiles_id).click(function(e) {
+        $('#' + this.uploadfiles_id).click(function(e) {
             self.uploader.start();
             e.preventDefault();
-	});
+        });
         
         this.uploader.bind('FileUploaded', function(up, file, res) {
             var response = $.parseJSON( res.response );
@@ -136,12 +135,13 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
             file.dataset.set_status( 'server', response.status );
             file.dataset.init({
                 applet: self.applet_selector.get_value(),
-                load_as: self.load_as_selector.get_value()
+                load_as: self.load_as_selector.get_load_as(),
+                filter: self.load_as_selector.get_filter()
             });
             up.refresh();
-	});
+        });
         
-	this.uploader.init();
+        this.uploader.init();
         //$('#'+this.input_id).change(function(){
         //    console.log(this.files);
         //    self._file_reader_load(this);
@@ -187,30 +187,30 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
     // handling of MSMS .vert/.face files
     // example of handling datasets comprised of multiple files
     if( filename.substring( filename.lastIndexOf('.') ) == '.vert' ){
-	extra_files = 'data.face:' + filename.slice( 0, filename.lastIndexOf('.') ) + '.face';
-	console.log( 'extra_files: ', extra_files );
+        extra_files = 'data.face:' + filename.slice( 0, filename.lastIndexOf('.') ) + '.face';
+        console.log( 'extra_files: ', extra_files );
     }
     $.ajax({
         url: '../../example/import_example/',
         data: {
-	    directory_name: directory_name,
-	    filename: filename,
-	    datatype: type,
-	    extra_files: extra_files
-	},
-	cache: false,
+            directory_name: directory_name,
+            filename: filename,
+            datatype: type,
+            extra_files: extra_files
+        },
+        cache: false,
         success: function(response){
             response = $.parseJSON( response );
             dataset.server_id = response.id;
             dataset.set_type( response.type );
             dataset.set_status( 'server', response.status );
-	    // TODO document, move to Dataset code
-	    $( dataset ).triggerHandler( 'loaded' );
-	    if( dataset && !no_init ){
-		dataset.init( params );
-	    }
+            // TODO document, move to Dataset code
+            $( dataset ).triggerHandler( 'loaded' );
+            if( dataset && !no_init ){
+                dataset.init( params );
+            }
             if( $.isFunction(success) ){
-		success( dataset );
+                success( dataset );
             }
         }
     });
@@ -241,12 +241,12 @@ Provi.Data.Io.ExampleDirectorySelectorWidget = function(params){
 Provi.Data.Io.ExampleDirectorySelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.Io.ExampleDirectorySelectorWidget.prototype */ {
     _init: function(){
         var self = this;
-	//if( $.cookie('example_directory_name') ) $("#" + self.directory_selector_id).val( $.cookie('example_directory_name') );
+        //if( $.cookie('example_directory_name') ) $("#" + self.directory_selector_id).val( $.cookie('example_directory_name') );
         this._update();
         $("#" + this.directory_selector_id).change(function(){
             self.directory_name = $("#" + this.directory_selector_id).val();
-	    //console.log(self.directory_name,'sds');
-	    //$.cookie('example_directory_name', self.directory_name);
+            //console.log(self.directory_name,'sds');
+            //$.cookie('example_directory_name', self.directory_name);
         });
         $('#' + this.refresh_id).click(function(){
             self._update();
@@ -273,7 +273,7 @@ Provi.Data.Io.ExampleDirectorySelectorWidget.prototype = Utils.extend(Widget, /*
         return $("#" + this.directory_selector_id + " option:selected").val();
     },
     change: function(fn){
-	$("#" + this.directory_selector_id).change(fn);
+        $("#" + this.directory_selector_id).change(fn);
     }
 });
 
@@ -289,20 +289,23 @@ Provi.Data.Io.ExampleLoadWidget = function(params){
     this.directory_name = '';
     this.opened_dirs = {};
     Widget.call( this, params );
-    this._build_element_ids([ 'directory_selector_widget', 'load_as_selector_widget', 'applet_selector_widget', 'dataset_list', 'dataset_list_open_all', 'dataset_list_close_all', 'js_tree' ]);
+    this._build_element_ids([ 
+        'directory_selector_widget', 'applet_selector_widget', 
+        'dataset_list', 'dataset_list_open_all', 
+        'dataset_list_close_all', 'js_tree' 
+    ]);
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
-        '<div id="' + this.load_as_selector_widget_id + '"></div>' +
         '<div id="' + this.directory_selector_widget_id + '"></div>' +
-	'<div>' +
-	    '<div>' +
-		'<span>Collapse directories: </span>' +
-		'<button id="' + this.dataset_list_open_all_id + '">show all</button>' +
-		'<button id="' + this.dataset_list_close_all_id + '">hide all</button>' +
-	    '</div>' +
-	    '<div class="control_row" id="' + this.dataset_list_id + '"></div>' +
-	'</div>' +
-	'<div class="control_row">' +
+        '<div>' +
+            '<div>' +
+                '<span>Collapse directories: </span>' +
+                '<button id="' + this.dataset_list_open_all_id + '">show all</button>' +
+                '<button id="' + this.dataset_list_close_all_id + '">hide all</button>' +
+            '</div>' +
+            '<div class="control_row" id="' + this.dataset_list_id + '"></div>' +
+        '</div>' +
+        '<div class="control_row">' +
             '<div id="' + this.jstree_id + '"></div>' +
         '</div>' +
     '</div>';
@@ -313,9 +316,6 @@ Provi.Data.Io.ExampleLoadWidget = function(params){
         new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
         allow_new_applets: true
     });
-    this.load_as_selector = new Provi.Jmol.JmolLoadAsSelectorWidget({
-        parent_id: this.load_as_selector_widget_id
-    })
     this.directory_selector = new Provi.Data.Io.ExampleDirectorySelectorWidget({
         parent_id: this.directory_selector_widget_id
     })
@@ -324,69 +324,99 @@ Provi.Data.Io.ExampleLoadWidget = function(params){
 Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.Io.ExampleLoadWidget.prototype */ {
     init: function(){
         var self = this;
-	this._popup = new Provi.Widget.PopupWidget({
-	    parent_id: self.parent_id,
-	    position_my: 'left top',
-	    position_at: 'left bottom',
-	    template: '<div>{{html content}}</div>'
-	});
+        this._popup = new Provi.Widget.PopupWidget({
+            parent_id: self.parent_id,
+            position_my: 'left top',
+            position_at: 'bottom',
+            template: '<div>{{html content}}</div>'
+        });
         this.update();
         this.directory_name = this.directory_selector.get_value();
         this.directory_selector.change(function(){
             self.directory_name = self.directory_selector.get_value();
             self.update();
         });
-	$('#' + this.dataset_list_open_all_id).button().click( function(){
-	    self.jstree.open_all();
-	});
-	$('#' + this.dataset_list_close_all_id).button().click( function(){
-	    self.jstree.close_all();
-	});
-	
-	$( '#' + this.jstree_id + ' button[title="load"]' ).live( 'click', function(e, data){
-	    $(this).attr("disabled", true)
-		.addClass('ui-state-disabled')
-		.button( "option", "label", "loading..." );
-	    var ds = self.load_dataset(
-		self.directory_name,
-		$(this).parent().parent().data('path')
-	    );
-	    var button = this;
-	    $(ds).bind( 'loaded', function(){
-		$(button).attr("disabled", false)
-		    .removeClass('ui-state-disabled')
-		    .button( "option", "label", "load" );
-	    });
-	});
-	$( '#' + this.jstree_id + ' button[title="import"]' ).live( 'click', function(e, data){
-	    $(this).attr("disabled", true)
-		.addClass('ui-state-disabled')
-		.button( "option", "label", "importing..." );
-	    var ds = self.import_dataset(
-		self.directory_name,
-		$(this).parent().parent().data('path'),
-		'',
-		true
-	    );
-	    var button = this;
-	    $(ds).bind( 'loaded', function(){
-		$(button).attr("disabled", false)
-		    .removeClass('ui-state-disabled')
-		    .button( "option", "label", "import" );
-	    });
-	});
-	
+        $('#' + this.dataset_list_open_all_id).button().click( function(){
+            self.jstree.open_all();
+        });
+        $('#' + this.dataset_list_close_all_id).button().click( function(){
+            self.jstree.close_all();
+        });
+        
+        // LOAD //
+        $( '#' + this.jstree_id + ' button[title="load"]' ).live( 'click', function(e, data){
+            $(this).attr("disabled", true)
+                .addClass('ui-state-disabled')
+                .button( "option", "label", "loading..." );
+            var ds = self.load_dataset(
+                self.directory_name,
+                $(this).parent().parent().data('path')
+            );
+            var button = this;
+            $(ds).bind( 'loaded', function(){
+                $(button).attr("disabled", false)
+                    .removeClass('ui-state-disabled')
+                    .button( "option", "label", "load" );
+            });
+        });
+
+        // IMPORT //
+        $( '#' + this.jstree_id + ' button[title="import"]' ).live( 'click', function(e, data){
+            $(this).attr("disabled", true)
+                .addClass('ui-state-disabled')
+                .button( "option", "label", "importing..." );
+            var ds = self.import_dataset(
+                self.directory_name,
+                $(this).parent().parent().data('path'),
+                '',
+                true
+            );
+            var button = this;
+            $(ds).bind( 'loaded', function(){
+                $(button).attr("disabled", false)
+                    .removeClass('ui-state-disabled')
+                    .button( "option", "label", "import" );
+            });
+        });
+
+        // PARAMS //
+        $( '#' + this.jstree_id + ' button[title="params"]' ).live( 'click', function(e, data){
+            $(this).attr("disabled", true)
+                .addClass('ui-state-disabled')
+                .button( "option", "label", "..." );
+            var ds = self.import_dataset(
+                self.directory_name,
+                $(this).parent().parent().data('path'),
+                '',
+                true
+            );
+            var button = this;
+            $(ds).bind( 'loaded', function(){
+                $(button).attr("disabled", false)
+                    .removeClass('ui-state-disabled')
+                    .button( "option", "label", "p" );
+            });
+            self._popup.empty();
+            var dsw = new Provi.Data.DatasetWidget({
+                parent_id: self._popup.data_id,
+                dataset: ds
+            });
+            $(dsw).bind('loaded', function(){ 
+                self._popup.hide();
+            });
+            self._popup.show( $(button).parent().children('ins') );
+        });
+        
         Widget.prototype.init.call(this);
     },
     update: function() {
-	this._popup.hide();
+        this._popup.hide();
         this.dataset_list();
     },
     load_dataset: function(directory_name, filename, type, no_init){
         var self = this;
         var params = {
-            applet: this.applet_selector.get_value(),
-            load_as: this.load_as_selector.get_value()
+            applet: this.applet_selector.get_value()
         }
         return Provi.Data.Io.import_example( directory_name, filename, type, params, function(dataset){
             
@@ -395,8 +425,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
     import_dataset: function(directory_name, filename, type, no_init){
         var self = this;
         var params = {
-            applet: this.applet_selector.get_value(),
-            load_as: this.load_as_selector.get_value()
+            applet: this.applet_selector.get_value()
         }
         return Provi.Data.Io.import_example( directory_name, filename, type, params, function(dataset){
             
@@ -404,176 +433,51 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
     },
     dataset_list: function(){
         if( !this.directory_name ) return;
-	var self = this;
-	
-	var get_url = function(node){
-	    var url = "../../example/dataset_list2/";
-	    if(node!=-1){
-		url += '?path=' + $(node).data('path');
-	    }
-	    return url;
-	}
-	
-	var jstree = $( '#' + this.jstree_id ).jstree({
-	    json_data: {
-		ajax: {
-                    url: get_url,
-		    data: { directory_name: self.directory_name }
-                }
-	    },
-	    core: {
-		html_titles: true
-	    },
-	    themeroller: {
-		item: ""
-	    },
-	    plugins: [ "json_data", 'themeroller', 'cookies' ]
-	});
-	
-	this.jstree = $.jstree._reference( '#' + this.jstree_id );
-	
-	$( jstree ).bind( 'load_node.jstree', function(e, data){
-	    var nodes = data.inst._get_children(data.rslt.obj);
-	    $.each( nodes, function(i,n){
-		var $n = $(n);
-		if( !$n.data('dir') ){
-		    $n.children('a').children('span').before(
-			'<button title="load">load</button>' +
-			'<button title="import">import</button>' +
-			''
-		    );
-		    $n.children('a').children('button').button();
-		}
-	    });
-	    //console.log( 'JSTREE LOAD NODE', nodes );
-	});
-	
-    },
-    _old_dataset_list: function(){
         var self = this;
-	var dir_col = self._directory_collapsed[self.directory_name];
-        $.ajax({
-            url: '../../example/dataset_list/',
-            data: { directory_name: self.directory_name },
-            dataType: 'json',
-            success: function(data, textStatus, XMLHttpRequest) {
-                var list = $('#' + self.dataset_list_id);
-                list.empty();
-		var tree = {};
-                $.each(data.file_list, function(id,name){
-		    var name_list = name.split('/').reverse();
-		    var cur_name = name_list.pop();
-		    var cur_subtree = tree;
-		    while( cur_name ){
-			if( name_list.length > 0 ){
-			    if( !cur_subtree[cur_name] ){
-				cur_subtree[cur_name] = { '__path__': name+name_list.length };
-			    }
-			    cur_subtree = cur_subtree[cur_name];
-			}else{
-			    cur_subtree[ cur_name ] = [id, name];
-			}
-			cur_name = name_list.pop();
-		    }
-                });
-		
-		self._directories = [];
-		
-		function tree_to_html( tree, level ){
-		    html = '';
-		    $.each(tree, function(key,data){
-			if( $.isArray(data) ){
-			    var id = data[0];
-			    var button_id = self.dataset_list_id + '_' + id;
-			    var params_id = self.dataset_list_id + '_params_' + id;
-			    html += '<div style="padding-left:0px;">' +
-				'<button id="' + button_id + '">import</button>' +
-				'<button id="' + params_id + '">params</button>&nbsp;' +
-				'<span>' + key + '</span>' +
-			    "</div>";
-			}else if( data['__path__'] ){
-			    var dir_id = self.dataset_list_id + '_dir_' + data['__path__'].replace( new RegExp( "[^A-Za-z0-9_]", "gi" ), "_" );
-			    html += '' +
-				'<div style="padding-top:5px; padding-bottom:5px; " id="' + dir_id + '">' +
-				    '<span class="ui-icon ui-icon-triangle-1-' + (dir_col ? 's' : 'e') + '"></span>' +
-				    '<span style="font-weight: bold;">' + key + '</span>' +
-				'</div>' +
-				tree_to_html( data, level+1 );
-			    self._directories.push( dir_id );
-			}
-		    });
-		    return '<div style="' + (level>0 ? 'padding-left:20px;' : '') + 'position:relative;">' + html + '</div>';
-		}
-		
-		var html = tree_to_html( tree, 0 );
-		list.append( html );
-		
-		// register on click handlers to show subtrees
-		$.each(self._directories, function(key,id){
-		    $("#" + id).click(function() {
-			$("#" + id).next().toggle();
-			$("#" + id).children('.ui-icon').toggleClass('ui-icon-triangle-1-s').toggleClass('ui-icon-triangle-1-e');
-			dir_col[id] = dir_col[id] ? false : true;
-		    });
-		    
-		    if( !dir_col[id] ){
-			$("#" + id).next().toggle();
-			$("#" + id).children('.ui-icon').toggleClass('ui-icon-triangle-1-s').toggleClass('ui-icon-triangle-1-e');
-		    }
-		});
-		
-		// register on click handlers to import datasets and show import params
-		$.each(data.file_list, function(id,name){
-		    var button_id = self.dataset_list_id + '_' + id;
-		    $("#" + button_id).button().click(function() {
-			$(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
-			self.import_dataset( id, self.directory_name, name );
-		    });
-		    var params_id = self.dataset_list_id + '_params_' + id;
-		    $('#' + params_id).button({
-			text: false,
-			icons: {
-			    primary: 'ui-icon-script'
-			}
-		    }).click(function(){
-			self._popup.hide();
-			$(this).attr("disabled", true).addClass('ui-state-disabled');
-			//var ds = self.import_dataset( id, self.directory_name, name, undefined, true );
-			var ds = Provi.Data.Io.import_example(
-			    self.directory_name, name, undefined, {},
-			    function(dataset){
-				$('#' + params_id).attr("disabled", false).removeClass('ui-state-disabled');
-			    },
-			    true
-			);
-			var dsw = new Provi.Data.DatasetWidget({
-			    parent_id: self._popup.data_id,
-			    dataset: ds
-			});
-			$(dsw).bind('loaded', function(){ 
-			    self._popup.hide();
-			});
-			self._popup.show( $("#" + button_id) );
-			
-			//console.log( params_id );
-			//self._popup.hide();
-			//var tmp_ds = new Provi.Data.Dataset({
-			//    name: id,
-			//    type: 'pdb',
-			//    status: { local: 'temporary', server: null }
-			//});
-			//console.log( tmp_ds.load_params_widget, self._popup.data_id );
-			//if(tmp_ds.load_params_widget){
-			//    $.each(tmp_ds.load_params_widget, function(i, lpw){
-			//	console.log(i, lpw);
-			//	new lpw.obj({ parent_id: self._popup.data_id })
-			//    });
-			//}
-			//self._popup.show( $("#" + button_id) );
-		    });
-		});
+        
+        var get_url = function(node){
+            var url = "../../example/dataset_list2/";
+            if(node!=-1){
+                url += '?path=' + $(node).data('path');
             }
+            return url;
+        }
+        
+        var jstree = $( '#' + this.jstree_id ).jstree({
+            json_data: {
+                ajax: {
+                    url: get_url,
+                    data: { directory_name: self.directory_name }
+                }
+            },
+            core: {
+                html_titles: true
+            },
+            themeroller: {
+                item: ""
+            },
+            plugins: [ "json_data", 'themeroller', 'cookies' ]
         });
+        
+        this.jstree = $.jstree._reference( '#' + this.jstree_id );
+        
+        $( jstree ).bind( 'load_node.jstree', function(e, data){
+            var nodes = data.inst._get_children(data.rslt.obj);
+            $.each( nodes, function(i,n){
+                var $n = $(n);
+                if( !$n.data('dir') ){
+                    $n.children('a').children('span').before(
+                        '<button title="load">load</button>' +
+                        '<button title="import">i</button>' +
+                        '<button title="params">p</button>' +
+                        ''
+                    );
+                    $n.children('a').children('button').button();
+                }
+            });
+            //console.log( 'JSTREE LOAD NODE', nodes );
+        });
+        
     }
 });
 
@@ -652,7 +556,7 @@ Provi.Data.Io.UrlLoadWidget = function(params){
         new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
         allow_new_applets: true
     });
-    this.load_as_selector = new Provi.Jmol.JmolLoadAsSelectorWidget({
+    this.load_as_selector = new Provi.Bio.Structure.StructureParamsWidget({
         parent_id: this.load_as_selector_widget_id
     })
     this.init();
@@ -685,7 +589,8 @@ Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Da
         var self = this;
         var params = {
             applet: this.applet_selector.get_value(),
-            load_as: this.load_as_selector.get_value()
+            load_as: this.load_as_selector.get_load_as(),
+            filter: this.load_as_selector.get_filter()
         }
         Provi.Data.Io.import_url( url, name, type, params, function(dataset){
             $('#' + self.load_button_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
@@ -733,8 +638,8 @@ Provi.Data.Io.SaveDataWidget = function(params){
     params.collapsed = false;
     Widget.call( this, params );
     this._build_element_ids([
-	'save_structure', 'save_structure_selected', 'save_image', 'save_state', 'save_isosurface', 'save_ndx',
-	'ndx_group', 'applet_selector_widget', 'form', 'iframe'
+        'save_structure', 'save_structure_selected', 'save_image', 'save_state', 'save_isosurface', 'save_ndx',
+        'ndx_group', 'applet_selector_widget', 'form', 'iframe'
     ]);
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
@@ -749,10 +654,10 @@ Provi.Data.Io.SaveDataWidget = function(params){
         '<div class="control_row">' +
             '<button id="' + this.save_state_id + '">save state</button>' +
         '</div>' +
-	'<div class="control_row">' +
+        '<div class="control_row">' +
             '<button id="' + this.save_isosurface_id + '">save isosurface</button>' +
         '</div>' +
-	'<div class="control_row">' +
+        '<div class="control_row">' +
             '<button id="' + this.save_ndx_id + '">save ndx</button>&nbsp;' +
             'Group name: ' +
             '<input id="' + this.ndx_group_id + '" type="text"/>' +
@@ -802,14 +707,14 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
             }, 3000);
             self.save_state();
         });
-	$("#" + this.save_isosurface_id).button().click(function() {
+        $("#" + this.save_isosurface_id).button().click(function() {
             $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
             setTimeout(function(){
                 $("#" + self.save_isosurface_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save isosurface" );
             }, 3000);
             self.save_isosurface();
         });
-	$("#" + this.save_ndx_id).button().click(function() {
+        $("#" + this.save_ndx_id).button().click(function() {
             $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
             setTimeout(function(){
                 $("#" + self.save_ndx_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save ndx" );
@@ -828,7 +733,7 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
     },
     save_structure: function(){
         var applet = this.applet_selector.get_value();
-	applet.script_wait('save selection tmp' + this.id + ';');
+        applet.script_wait('save selection tmp' + this.id + ';');
         if( !$("#" + this.save_structure_selected_id).is(':checked') ){
             applet.script_wait('select *;');
         }
@@ -837,7 +742,7 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
         //var data = this.applet_selector.get_value().get_property_as_string("fileContents", '');
         //console.log(data);
         this.save_data( data, 'structure.pdb' );
-	applet.script_wait('restore selection tmp' + this.id + ';');
+        applet.script_wait('restore selection tmp' + this.id + ';');
     },
     save_image: function(){
         var data = this.applet_selector.get_value().get_property_as_string("image", '');
@@ -849,16 +754,16 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
     },
     save_isosurface: function(){
         var data = this.applet_selector.get_value().evaluate("script('show isosurface')");
-	console.log(data);
+        console.log(data);
         this.save_data( data, 'isosurface.jvxl' );
     },
     save_ndx: function(){
-	var name = $('#' + this.ndx_group_id).val() || 'IndexGroup';
-	var atomno = this.applet_selector.get_value().evaluate('{selected}.format("%[atomno]").join(" ")');
+        var name = $('#' + this.ndx_group_id).val() || 'IndexGroup';
+        var atomno = this.applet_selector.get_value().evaluate('{selected}.format("%[atomno]").join(" ")');
         var data = '[ ' + name + ' ]\n' +
-	    Provi.Utils.wordwrap( atomno, 80, '\n', false ) +
-	    '\n\n';
-	console.log(data);
+            Provi.Utils.wordwrap( atomno, 80, '\n', false ) +
+            '\n\n';
+        console.log(data);
         this.save_data( data, 'index.ndx' );
     }
 });
@@ -880,7 +785,7 @@ Provi.Data.Io.SaveExampleWidget = function(params){
             'Filename: ' +
             '<input id="' + this.filename_id + '" type="text"/>' +
         '</div>' +
-	'<div class="control_row">' +
+        '<div class="control_row">' +
             '<input id="' + this.append_id + '" type="checkbox"/>' +
             '<label for="' + this.append_id + '">append (carefull!)</label>' +
         '</div>'
@@ -889,7 +794,7 @@ Provi.Data.Io.SaveExampleWidget = function(params){
         parent_id: this.directory_selector_widget_id
     })
     $('#' + this.form_id).append(
-	'<input type="hidden" name="append" value=""></input>' +
+        '<input type="hidden" name="append" value=""></input>' +
         '<input type="hidden" name="directory_name" value=""></input>'
     );
 }
@@ -900,9 +805,9 @@ Provi.Data.Io.SaveExampleWidget.prototype = Utils.extend(Provi.Data.Io.SaveDataW
     backend_type: 'local',
     save_data: function( data, name, encoding, type ){
         name = $('#' + this.filename_id).val() || name;
-	append = $("#" + this.append_id).is(':checked');
+        append = $("#" + this.append_id).is(':checked');
         var form = $('#' + this.form_id);
-	form.children('input[name=append]').val( append );
+        form.children('input[name=append]').val( append );
         form.children('input[name=directory_name]').val( this.get_directory_name() );
         Provi.Data.Io.SaveDataWidget.prototype.save_data.call( this, data, name, encoding, type );
     },

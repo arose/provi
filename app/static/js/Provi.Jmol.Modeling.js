@@ -29,9 +29,9 @@ var Widget = Provi.Widget.Widget;
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Modeling.JmolModelingWidget = function(params){
-	params = $.extend(
-        Provi.Jmol.Modeling.JmolModelingWidget.prototype.default_params,
-        params
+	params = _.defaults(
+        params,
+        Provi.Jmol.Modeling.JmolModelingWidget.prototype.default_params
     );
     this.picking_select = 'ATOM';
     this.drag_selected = false;

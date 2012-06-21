@@ -70,9 +70,9 @@ Provi.Bio.HydrogenBonds.Hbonds.prototype = Provi.Utils.extend(Provi.Bio.Smcra.Ab
  * @param {Provi.Data.Dataset} params.dataset The dataset the widget will be bond to
  */
 Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
-    params = $.extend(
-        Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params
     );
     /** Color in which the hydrogen bonds are drawn */
     this.color = 'blue';
@@ -306,7 +306,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
     },
     __tree_trigger_selection_update: function(event, data){
 	var self = this;
-	var selected = data.inst.get_checked( -1, data.args[1] );
+	var selected = data.inst.get_checked( -1, data.args[1], true );
 	var selection_list = [];
 	selected.each( function(i, elm){
 	    var $elm = $(elm)

@@ -2,19 +2,6 @@
  * @fileOverview This file contains the {@link Provi.Data.Controller.VoronoiaMixin} controller.
  * @author <a href="mailto:alexander.rose@charite.de">Alexander Rose</a>
  * @version 0.0.1
- *
- *
- *
- * Jmol ideas:
- *
- * 2xc2
- * isosurface ID "isosurface1" select {1.1} ignore {not 1.1} resolution 2.0 cavity 0.1 3.0 cap within 2.5 {2.1 and 1}
- * isosurface select {1.1 and (37,40,76)} ignore {not(1.1 and (37,40,76))} solvent 0.1 cap within 2.5 {2.1 and 1}
- *
- * 1u19
- * isosurface select {1.1 and (131,128,124,127,257,302,261,301)} ignore {not(1.1 and (131,128,124,127,257,302,261,301))} solvent 0.3 cap within 2.5 {2.1 and 8}
- *
- * draw voronoi data/edges???
  */
 
 /**
@@ -26,42 +13,37 @@ Provi.Data.Controller.VoronoiaMixin = $.extend(true, {}, Provi.Data.Controller.S
     },
     init: function( params ){
         var self = this;
-	this.set_data( new Provi.Bio.Voronoia.Vol( [], [] ) );
-	
-        //params.applet.script_wait('set refreshing false;');
+        this.set_data( new Provi.Bio.Voronoia.Vol( [], [] ) );
         
         Provi.Data.Controller.StructureMixin.init.call( this, params );
-	//Provi.Utils.pause(1000);
-	
-	this.retrieve_data( params.applet, function( atoms, cavities, cavities_model_number ){
-	    self.data.init( atoms, cavities );
-	    self.add_data( 'residue_map', new Provi.Bio.Voronoia.VolResidueMap( self.data ) );
-	    console.log( cavities_model_number, self.data );
-	    if( params.applet ){
+    
+        this.retrieve_data( params.applet, function( atoms, cavities, neighbours, cavities_model_number ){
+            self.data.init( atoms, cavities, neighbours );
+            self.add_data( 'residue_map', new Provi.Bio.Voronoia.VolResidueMap( self.data ) );
+            console.log( cavities_model_number, self.data );
+            if( params.applet ){
                 new Provi.Bio.Voronoia.VoronoiaWidget( $.extend( params, {
                     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                     dataset: self,
-		    cavities_model_number: cavities_model_number
+                    cavities_model_number: cavities_model_number
                 }));
             }
-            
-            //params.applet.script_wait('set refreshing true;');
-	});
+        });
     },
     load: function(applet, load_as){
-        Provi.Data.Controller.StructureMixin.load.call( this, applet, load_as );
+
     },
     retrieve_data: function( applet, onload ){
-	var self = this;
-	console.log('retrieve data');
-	this.get_atoms( function( atoms ){
-	    self.get_cavities( applet, function( cavities, cavities_model_number ){
-		onload( atoms, cavities, cavities_model_number );
-	    });
-	});
+        var self = this;
+        this.get_atoms( function( atoms ){
+            self.get_cavities( applet, function( cavities, cavities_model_number ){
+                self.get_neighbours( function( neighbours ){
+                    onload( atoms, cavities, neighbours, cavities_model_number );
+                })
+            });
+        });
     },
     get_atoms: function( onload ){
-	console.log('get atoms');
         var get_params = {
             'id': this.server_id+'',
             'data_action': 'get_atoms'
@@ -69,33 +51,28 @@ Provi.Data.Controller.VoronoiaMixin = $.extend(true, {}, Provi.Data.Controller.S
         $.getJSON( '../../data/get/', get_params, onload );
     },
     get_cavities: function( applet, onload ){
-	console.log('get cavities');
-        //applet.script_wait('set refreshing false;');
-        applet._script_wait('load APPEND "PDB::../../data/get/?id=' + this.server_id + '&data_action=get_cavities&session_id=' + $.cookie('provisessions') + '";');
-	console.log('get cavities, after load');
-        //var model_number = '2.1';
-	var model_number = applet.evaluate('_modelNumber');
-	var selection = model_number;
+        applet._script_wait('load APPEND "PDB::../../data/get/?id=' + this.server_id + '&data_action=get_cavities&session_id=' + $.cookie('provisessions') + '";', true);
+        var model_number = applet.evaluate('_modelNumber');
+        applet._script_wait('hide add ' + model_number + '; frame all;', true);
+        var selection = model_number;
         var format = '\'%[group]\',\'%[sequence]\',%[resno],\'%[chain]\',\'%[atomName]\',%[atomNo],\'%[model]\',\'%[temperature]\'';
-        var cavities = applet.evaluate('"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"');
-	console.log('get cavities, after evaluate');
-        //console.log( cavities );
-        //cavities = cavities.replace(/\'\'/g,"'");
-        //console.log( cavities );
+        var cavities = applet.atoms_property_map( format, selection) ;
         cavities = eval( cavities );
-	//console.log(cavities);
-	applet._script_wait('frame all;');
-	console.log('get cavities, after frame all');
-	applet._script_wait('hide hidden or ' + model_number);
-        //applet.script_wait('set refreshing true;');
-	console.log('get cavities, after hide');
-	var s = '';
-	$.each( cavities, function(i){
-	    s += 'select ' + this[0] + '/' + model_number + '; color translucent blue; spacefill @{ {atomNo=' + this[0] + ' and ' + model_number + '}.temperature/2 };';
-	});
-	applet._script_wait( s );
-	console.log('get cavities, after cav');
-	
-	onload( cavities, model_number );
-    }
+        // max for spacefill is 16...
+        var s = '{'+ model_number + ' and temperature>32}.temperature = 32;';
+        $.each( cavities, function(i){
+            s += 'select ' + this[0] + '/' + model_number + '; color translucent blue; spacefill @{ {atomNo=' + this[0] + ' and ' + model_number + '}.temperature/2 };';
+        });
+        applet._script_wait( s, true );
+        applet.picking_manager.set();
+        applet.misc_manager.set({'default_vdw': 'protor'});
+        onload( cavities, model_number );
+    },
+    get_neighbours: function( onload ){
+        var get_params = {
+            'id': this.server_id+'',
+            'data_action': 'get_neighbours'
+        };
+        $.getJSON( '../../data/get/', get_params, onload );
+    },
 });

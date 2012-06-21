@@ -1,0 +1,30 @@
+[
+	{
+		"dir": "showcase",
+		"filename": "voronoia/test_data/165D_modified.pdb",
+		"type": "pdb",
+		"applet": "default"
+	},
+	{
+		"dir": "showcase", 
+		"filename": "voronoia/test_data/165D_modified.atmprop",
+		"type": "atmprop",
+		"applet": 0,
+		"when": 0
+	},
+	{
+		"dir": "showcase", 
+		"filename": "voronoia/test_data/165D_modified.atmsele",
+		"type": "atmsele",
+		"applet": 0,
+		"when": 0
+	},
+	{
+		"type": "function",
+		"funcname": "Provi.Bio.Voronoia.register",
+		"when": 2,
+		"params": {
+			"holes_ds": "DATASET_2"
+		}
+	}
+]

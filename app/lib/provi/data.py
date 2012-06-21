@@ -19,7 +19,10 @@ from MembraneProtein import HBexplore
 from Bio.PDB.PDBParser import PDBParser
 from provi.framework import expose
 
-from voronoia import VolParser, Voronoia
+try:
+    from voronoia import VolParser, Voronoia
+except:
+    from Voronoia import VolParser, Voronoia
 
 logging.basicConfig( level=logging.DEBUG )
 LOG = logging.getLogger('provi')
@@ -133,6 +136,18 @@ class Mol( Data ):
     """MOL datatype"""
     file_ext = 'mol'
     pass
+
+class Jmol( Binary ):
+    """Jmol datatype"""
+    file_ext = 'jmol'
+
+class AtomProperty( Text ):
+    """Atom property datatype"""
+    file_ext = 'atmprop'
+
+class AtomSelection( Text ):
+    """Atom selection datatype"""
+    file_ext = 'atmsele'
 
 class Pdb( Text ):
     """PDB"""
@@ -326,6 +341,10 @@ class VoronoiaVolume( Text ):
         vol.parse_vol_file( self.options )
         return vol
     @expose
+    def get_neighbours( self, dataset, **kwargs ):
+        vol = self.parse_vol( dataset.data )
+        return json.dumps(vol.cavities)
+    @expose
     def get_cavities( self, dataset, **kwargs ):
         vol = self.parse_vol( dataset.data )
         return vol.get_cavities()
@@ -335,8 +354,9 @@ class VoronoiaVolume( Text ):
         ["A", -3, "GLN", "N", 0.21612130885873901, 13.539999999999999, 49.109999999999999, 62.649999999999999, 1, 0, []]
         chain_id, residue_number, residue_type, atom_type, packing_density, vdw_volume, solv_ex_volume, total_volume, surface, cavity_nb, cavities
         """
-        vol = self.parse_vol( dataset.data )
-        return json.dumps( [ atom[0:11] for atom in vol.atoms ] )
+        return json.dumps( [] )
+        # vol = self.parse_vol( dataset.data )
+        # return json.dumps( [ atom[0:11]+[i] for i, atom in enumerate(vol.atoms) ] )
     @expose
     def get_pdb( self, dataset, **kwargs ):
         vol = self.parse_vol( dataset.data )
@@ -384,8 +404,16 @@ class Prop( Json ):
         # return json.dumps( prop_dict )
 
 
+class Provi( Json ):
+    file_ext = 'provi'
+
+
+
+
 extension_to_datatype_dict = {
     'anal': Hbx(),
+    'atmprop': AtomProperty(),
+    'atmsele': AtomSelection(),
     'bin': Binary(),
     'ccp4': Ccp4(),
     'cif': Cif(),
@@ -395,6 +423,7 @@ extension_to_datatype_dict = {
     'dx': Dx(),
     'ent': Ent(),
     'gro': Gromacs(),
+    'jmol': Jmol(),
     'json': Json(),
     'jspt': JmolScript(),
     'jvxl': JmolVoxel(),
@@ -410,6 +439,7 @@ extension_to_datatype_dict = {
     'pdb': Pdb(),
     'pqr': Pqr(),
     'prop': Prop(),
+    'provi': Provi(),
     'sco': Sco(),
     'sdf': Sdf(),
     'tmhelix': Tmhelix(),
