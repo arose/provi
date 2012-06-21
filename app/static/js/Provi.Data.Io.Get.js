@@ -31,7 +31,7 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
     },
     _exec: function(){
         //console.log( $.query.get() );
-	    
+        
         // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane
         // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane&galaxy[2][id]=110&galaxy[2][name]=3dqb.pdb&galaxy[2][load_as]=append
         if( $.query.get('galaxy') ){
@@ -39,75 +39,56 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
             jw.applet.script( 'cartoon ONLY; wireframe 0.015;' );
             $.each( $.query.get('galaxy'), function(i, data){
                 var load_as = (data.load_as || 'new');
-		var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
+                var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
                 Provi.Data.Io.Galaxy.import_galaxy( data.id, data.name, data.filename, data.type, params );
             });
         }
         
         if( $.query.get('example') ){
-	    var jw_dict = {};
+            var jw_dict = {};
             $.each( $.query.get('example'), function(i, data){
-		if(jw_dict[data.applet]){
-		    var jw = jw_dict[data.applet];
-		}else{
-		    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
-		    jw_dict[i] = jw;
-		}
-		var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: (data.load_as || 'new') } );
+                if(jw_dict[data.applet]){
+                    var jw = jw_dict[data.applet];
+                }else{
+                    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
+                    jw_dict[i] = jw;
+                }
+                var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: (data.load_as || 'new') } );
                 Provi.Data.Io.import_example( data.dir, data.filename, data.type, params );
-		
+        
             });
         }
-	
-	//example json url (eju)
-	if( $.query.get('example_json_url') ){
-	    console.log( $.query.get('example_json_url') );
-	    $.ajax({
-		url: $.query.get('example_json_url'),
-		data: {},
-		dataType: "json",
-		success: function(response){
-		    var jw_dict = {};
-		    $.each( response, function(i, data){
-			
-			if( data.type=='story' ){
-			    ( new Provi.Data.Dataset({type:'story'}) ).init( data.params );
-			}else{
-			    if(jw_dict[data.applet]){
-				var jw = jw_dict[data.applet];
-			    }else{
-				var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
-				jw_dict[i] = jw;
-			    }
-			    var params = $.extend( (data.params || {}), {
-				applet: jw.applet,
-				load_as: (data.load_as || 'new')
-			    });
-			    Provi.Data.Io.import_example( data.dir, data.filename, data.type, params );
-			}
-			
-		    });
-		},
-		error: function( jqXHR, textStatus, errorThrown ){
-		    console.log( jqXHR, textStatus, errorThrown );
-		}
-	    });
-        }
-	
-	if( $.query.get('url') ){
-	    var jw_dict = {};
-            $.each( $.query.get('url'), function(i, data){
-		if(jw_dict[data.applet]){
-		    var jw = jw_dict[data.applet];
-		}else{
-		    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
-		    jw_dict[i] = jw;
-		}
-		var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
-                Provi.Data.Io.import_url( data.url, data.name, data.type, params );
+    
+        //example json url (eju)
+        if( $.query.get('example_json_url') ){
+            console.log( $.query.get('example_json_url') );
+            $.ajax({
+                url: $.query.get('example_json_url'),
+                data: {},
+                dataType: "json",
+                success: function(response){
+                    Provi.Data.Controller.ProviMixin.load( response );
+                },
+                error: function( jqXHR, textStatus, errorThrown ){
+                    console.log( jqXHR, textStatus, errorThrown );
+                }
             });
         }
         
+        if( $.query.get('url') ){
+            var jw_dict = {};
+            $.each( $.query.get('url'), function(i, data){
+                if(jw_dict[data.applet]){
+                    var jw = jw_dict[data.applet];
+                }else{
+                    var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
+                    jw_dict[i] = jw;
+                }
+                var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
+                Provi.Data.Io.import_url( data.url, data.name, data.type, params );
+            });
+        }
+            
         if( $.query.get('pdb') ){
             $.each( $.query.get('pdb').split(','), function(i, id){
                 //console.log( id );

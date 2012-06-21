@@ -53,7 +53,11 @@ Provi.Bio.Propensities.Propensities.prototype = /** @lends Provi.Bio.Propensitie
         return this.scale_ids[ scale ];
     },
     get_data: function( scale, radius, cutoff ){
-        var d = this.propensities['data'][radius][cutoff];
+        if(radius && cutoff){
+            var d = this.propensities['data'][radius][cutoff];
+        }else{
+            var d = this.propensities['data'];
+        }
         var scale_id = this.get_scale_id( scale );
         var aa_prop_dict = {};
         _.each( d, function( value, key ){ 
@@ -85,9 +89,9 @@ Provi.Bio.Propensities.Propensities.prototype = /** @lends Provi.Bio.Propensitie
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Propensities.PropensitiesWidget = function(params){
-    params = $.extend(
-        Provi.Bio.Propensities.PropensitiesWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Bio.Propensities.PropensitiesWidget.prototype.default_params
     );
     console.log('PROPENSITIES', params);
     if( params.applet ){
@@ -108,6 +112,11 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
     this.radius = params.radius;
     this.cutoff = params.cutoff;
     this.tmh_filter = params.tmh_filter;
+    this.mphd = params.mphd;
+    if( !this.mphd ){
+        this.radius = false;
+        this.cutoff = false;
+    }
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
@@ -150,7 +159,8 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
         radius: '2.8',
         cutoff: '1.5',
         tmh_filter: true,
-        heading: 'Propensities'
+        heading: 'Propensities',
+        mphd: false
     },
     get_applet: function(){
         if( this.applet ){
@@ -172,18 +182,23 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
             self.colorize();
         });
         
-        this.elm('radius').bind('change', function(){ 
-            self.radius = self.elm('radius').children("option:selected").val();
-            self._init_cutoff();
-            self.colorize();
-        });
-        this._init_radius( this.radius );
-        
-        this.elm('cutoff').bind('change', function(){ 
-            self.cutoff = self.elm('cutoff').children("option:selected").val();
-            self.colorize();
-        });
-        this._init_cutoff( this.cutoff );
+        if(this.mphd){
+            this.elm('radius').bind('change', function(){ 
+                self.radius = self.elm('radius').children("option:selected").val();
+                self._init_cutoff();
+                self.colorize();
+            });
+            this._init_radius( this.radius );
+            
+            this.elm('cutoff').bind('change', function(){ 
+                self.cutoff = self.elm('cutoff').children("option:selected").val();
+                self.colorize();
+            });
+            this._init_cutoff( this.cutoff );
+        }else{
+            this.elm('radius').parent().hide();
+            this.elm('cutoff').parent().hide();
+        }
 
         this.elm('tmh_filter').parent().hide();
         this._init_tmh_filter();
@@ -274,7 +289,7 @@ Provi.Bio.Propensities.PropensitiesWidget.prototype = Utils.extend(Provi.Widget.
         var radius = this.radius;
         var cutoff = this.cutoff;
         var prop = this.dataset.data;
-        console.log( scale, radius, cutoff );
+        //console.log( scale, radius, cutoff );
         var min = prop.get_min( scale, radius, cutoff );
         var max = prop.get_max( scale, radius, cutoff );
         if( scale !== 'BW' ){

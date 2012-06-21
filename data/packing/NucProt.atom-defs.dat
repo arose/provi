@@ -1,0 +1,31 @@
+C3H0s   1.61    0.72
+C3H0b   1.61    0.72
+C3H1t   1.76    0.68
+C3H1s   1.76    0.68
+C3H1b   1.76    0.68
+C3H2u   1.76    0.77  !not refined
+C4H1s   1.88    0.78
+C4H1b   1.88    0.78
+C4H2s   1.88    0.76
+C4H2b   1.88    0.76
+C4H3u   1.88    0.74
+N2H0s   1.64    0.64
+N2H0b   1.64    0.64
+N3H0u   1.64    0.69
+N3H1s   1.64    0.67
+N3H1b   1.64    0.67
+N3H2u   1.64    0.61
+N4H3u   1.64    0.73
+O1H0u   1.42    0.52
+O2H0s   1.50    0.65
+O2H0b   1.62    0.65
+O2H1u   1.46    0.65
+O2H2u   1.46    0.66  !not refined
+S2H0u   1.77    1.04
+S2H1u   1.77    1.04
+P4H0u   1.82    0.97
+O1N3HH  1.60    0.68  !not refined
+Z2ION   0.74    0.74  !not refined
+FE      1.70    0.70  !not refined
+MGION   1.59    0.70  !not refined
+DEFAULT 1.70    0.77  !not refined

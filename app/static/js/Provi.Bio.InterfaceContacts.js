@@ -50,9 +50,9 @@ Provi.Bio.InterfaceContacts.Contacts.prototype = /** @lends Provi.Bio.InterfaceC
 Provi.Bio.InterfaceContacts.InterfaceContactsWidget = function(params){
     this.applet = params.applet;
     this.dataset = params.dataset;
-    params = $.extend(
-        Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params
     );
     this.color = params.color;
     this.cutoff = params.cutoff;

@@ -27,9 +27,9 @@ var Widget = Provi.Widget.Widget;
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.Io.Jmol.CalculateWidget = function(params){
-    params = $.extend(
-        Provi.Data.Io.Jmol.CalculateWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Data.Io.Jmol.CalculateWidget.prototype.default_params
     );
     params.persist_on_applet_delete = false;
     params.heading = 'Jmol Calculate On Server';

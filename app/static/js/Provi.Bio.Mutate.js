@@ -67,9 +67,9 @@ Provi.Bio.Mutate.build_pdb_line = function( params ){
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Mutate.MutateWidget = function(params){
-    params = $.extend(
-        Provi.Bio.Mutate.MutateWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Bio.Mutate.MutateWidget.prototype.default_params
     );
     console.log('STRUCTURE', params);
     params.persist_on_applet_delete = false;

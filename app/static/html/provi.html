@@ -65,13 +65,17 @@
     
     <script type="text/javascript" src="../js/Provi.Bio.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Smcra.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.AtomProperty.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.AtomSelection.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Sequence.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Alignment.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Structure.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Superposition.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Voronoia.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Rotamers.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.MembranePlanes.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.TransmembraneHelices.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Indices.js"></script>
-    <script type="text/javascript" src="../js/Provi.Bio.Sequence.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.HydrogenBonds.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.InterfaceContacts.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Isosurface.js"></script>
@@ -79,6 +83,7 @@
     <script type="text/javascript" src="../js/Provi.Bio.Flatland.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Jmol.js"></script>
+    <script type="text/javascript" src="../js/Provi.Jmol.Settings.js"></script>
     <script type="text/javascript" src="../js/Provi.Jmol.Controls.js"></script>
     <script type="text/javascript" src="../js/Provi.Jmol.Analysis.js"></script>
     <script type="text/javascript" src="../js/Provi.Jmol.Modeling.js"></script>
@@ -106,6 +111,7 @@
     
     <link rel="stylesheet" href="../js/lib/slickgrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
     <script language="JavaScript" src="../js/lib/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.core.js"></script>
     <script language="JavaScript" src="../js/lib/slickgrid/slick.editors.js"></script>
     <script language="JavaScript" src="../js/lib/slickgrid/slick.grid.js"></script>
     
@@ -121,7 +127,7 @@
     
         Provi.Debug.auto();
         
-        Provi.defaults.dom_parent_ids = $.extend( Provi.defaults.dom_parent_ids, {
+        _.extend( Provi.defaults.dom_parent_ids, {
             DATASET_WIDGET: 'tab_widgets',
             CANVAS_WIDGET: 'main',
             SELECTION_WIDGET: 'tab_tree',
@@ -148,8 +154,8 @@
         //Provi.Jmol.init("../applet/jmol/12.1.41/", true);
         //Provi.Jmol.init("../applet/jmol/12.1.42/", true);
         //Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
-        //Provi.Jmol.init("../applet/jmol/12.1.51/", true);
-	Provi.Jmol.init("../../jmol/current/20/", $.query.get('signed'));
+        //Provi.Jmol.init("../applet/jmol/versions/12.3.9/", true);
+        Provi.Jmol.init("../../jmol/current/24/", $.query.get('signed'));
     
         $(document).ready(function(){
         
@@ -188,16 +194,13 @@
             
             Provi.Jmol.Applet.prototype.default_params.height = "100%";
             Provi.Jmol.Applet.prototype.default_params.width = "100%";
-            Provi.Jmol.JmolWidget.prototype.default_params = $.extend(
-                Provi.Jmol.JmolWidget.prototype.default_params,
-                {
-                    parent_id: "main",
-                    no_sequence_view_widget: true,
-                    no_selection_manager_widget: false,
-		    no_tree_view_widget: true,
-                    no_grid_widget: true
-                }
-            );
+            _.extend( Provi.Jmol.JmolWidget.prototype.default_params, {
+                parent_id: "main",
+                no_sequence_view_widget: true,
+                no_selection_manager_widget: false,
+                no_tree_view_widget: true,
+                no_grid_widget: false
+            });
             $(Provi.Jmol).bind('applet_list_change', layout_main);
             
             new Provi.Jmol.Controls.JmolGlobalControlWidget({
@@ -208,27 +211,31 @@
                 parent_id: 'tab_controls'
             });
         
-            new Provi.Jmol.Controls.LightingManagerWidget({
+            new Provi.Jmol.Settings.LightingManagerWidget({
                 parent_id: 'tab_controls'
             });
         
-            new Provi.Jmol.Controls.ClippingManagerWidget({
+            new Provi.Jmol.Settings.ClippingManagerWidget({
                 parent_id: 'tab_controls'
             });
         
-            new Provi.Jmol.Controls.QualityManagerWidget({
+            new Provi.Jmol.Settings.QualityManagerWidget({
                 parent_id: 'tab_controls'
             });
 
-            new Provi.Jmol.Controls.BindManagerWidget({
-                parent_id: 'tab_controls'
-            });
-	    
-            new Provi.Jmol.Controls.PickingManagerWidget({
+            new Provi.Jmol.Settings.BindManagerWidget({
                 parent_id: 'tab_controls'
             });
         
-            new Provi.Jmol.Controls.StyleManagerWidget({
+            new Provi.Jmol.Settings.PickingManagerWidget({
+                parent_id: 'tab_controls'
+            });
+        
+            new Provi.Jmol.Settings.StyleManagerWidget({
+                parent_id: 'tab_controls'
+            });
+
+            new Provi.Jmol.Settings.MiscManagerWidget({
                 parent_id: 'tab_controls'
             });
         
@@ -248,20 +255,41 @@
                 parent_id: 'tab_widgets'
             });
 
-            new Provi.Jmol.Analysis.GromacsHelixorientWidget({
+            new Provi.Bio.Superposition.SuperposeWidget({
                 parent_id: 'tab_widgets'
             });
 
-            new Provi.Bio.Flatland.FlatlandWidget({
+            new Provi.Jmol.Analysis.PlaneConstructionWidget({
                 parent_id: 'tab_widgets'
+            });
+
+            new Provi.Jmol.Analysis.GromacsHelixorientWidget({
+                parent_id: 'tab_widgets',
+                collapsed: true
+            });
+
+            new Provi.Bio.Flatland.FlatlandWidget({
+                parent_id: 'tab_widgets',
+                collapsed: true
             });
 
             Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
                 //sort_key: 2,
-                heading: 'Propensities',
+                heading: 'MPHD Propensities',
                 description: 'Propensity data from curated MPHD data set',
                 show_dataset_info: false,
-                parent_id: 'tab_tree'
+                parent_id: 'tab_tree',
+                collapsed: true,
+                mphd: true
+            });
+
+            Provi.Data.Io.import_example( 'showcase', 'test/static_scales.prop', 'prop', {
+                //sort_key: 2,
+                heading: 'Various Propensities',
+                description: 'Various propensity scales, see White S and Wimley W. Membrane protein folding and stability: physical principles. Annual review of biophysics and biomolecular structure. 1999;28:319-365.',
+                show_dataset_info: false,
+                parent_id: 'tab_tree',
+                collapsed: true
             });
                 
             new Provi.Jmol.Analysis.IsosurfaceConstructionWidget({
@@ -273,7 +301,8 @@
             // });
         
             new Provi.Jmol.Controls.JmolAnimationWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_controls',
+                collapsed: true
             });
         
             new Provi.Jmol.Controls.JmolConsoleWidget({
@@ -378,6 +407,14 @@
                     load_as: 'new'
                 });
             
+            }else if( $.query.get('test') == 'voro' ){
+                
+                Provi.Data.Io.import_example( 'showcase', 'voronoia/1u19.vol', 'vol', {
+                // Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.vol', 'vol', {
+                    applet: applet,
+                    load_as: 'new'
+                });
+
             }else if( $.query.get('test') == '2a65' ){
                 
                 Provi.Data.Io.import_example( 'showcase', 'test/2a65.mbn', 'mbn', {
@@ -436,6 +473,25 @@
                     heading: 'Propensities',
                     applet: applet
                 });
+
+            }else if( $.query.get('test') == 'ali' ){
+                
+                Provi.Data.Io.import_example( 'showcase', 'test/3cap_a.pdb', 'pdb', {
+                    applet: applet,
+                    load_as: 'new'
+                });
+                Provi.Utils.pause(100); // dirty workaround...
+                Provi.Data.Io.import_example( 'showcase', 'test/3p0g.pdb', 'pdb', {
+                    applet: applet,
+                    load_as: 'append',
+                    script: 'center *;'
+                });
+
+            }else if( $.query.get('test') == 'jmol' ){
+                
+                Provi.Data.Io.import_example( 'showcase', 'test/test2.jmol', 'jmol', {
+                    applet: applet
+                });
                 
             }else{
             
@@ -450,34 +506,34 @@
                 });
                 
                 $(ic_ds).bind('widget_created', function(event, widget){
-                if( widget instanceof Provi.Bio.InterfaceContacts.InterfaceContactsWidget ){
-                    $(ic_ds).unbind('widget_created', event);
-                    var load_ds = function(){
-                    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
-                        sort_key: 2,
-                        heading: 'Membrane Planes',
-                        applet: applet
-                    });
-                    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
-                        sort_key: 3,
-                        heading: 'Transmembrane Helices',
-                        applet: applet
-                    });
-                    Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
-                        sort_key: 4,
-                        heading: 'Hydrogen Bonds',
-                        applet: applet
-                    });
+                    if( widget instanceof Provi.Bio.InterfaceContacts.InterfaceContactsWidget ){
+                        $(ic_ds).unbind('widget_created', event);
+                        var load_ds = function(){
+                            Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
+                                sort_key: 2,
+                                heading: 'Membrane Planes',
+                                applet: applet
+                            });
+                            Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
+                                sort_key: 3,
+                                heading: 'Transmembrane Helices',
+                                applet: applet
+                            });
+                            Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
+                                sort_key: 4,
+                                heading: 'Hydrogen Bonds',
+                                applet: applet
+                            });
+                        }
+                        if( widget.initialized ){
+                            load_ds();
+                        }else{
+                            $(widget).bind('init', function(event){
+                                $(widget).unbind('init');
+                                load_ds();
+                            });
+                        }
                     }
-                    if( widget.initialized ){
-                    load_ds();
-                    }else{
-                    $(widget).bind('init', function(event){
-                        $(widget).unbind('init');
-                        load_ds();
-                    });
-                    }
-                }
                 });
                 
             }
@@ -570,16 +626,16 @@
             <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
                 <div id="tabs_panel" style="height:100%; width:100%;">
                     <ul>
-            <li><a title="Infos about the protein viewer" href="#tab_about">About</a></li>
+                        <li><a title="Infos about the protein viewer" href="#tab_about">About</a></li>
                         <li><a title="General controls" href="#tab_controls">Controls</a></li>
                         <li><a href="#tab_tree">Tree</a></li>
                         <li><a title="Load from various datasources" href="#tab_load">Load</a></li>
                         <li><a title="Save data" href="#tab_save">Save</a></li>
-            <li><a title="A list of all imported data" href="#tab_data">Data</a></li>
-            <li><a title="A collection of control elements" href="#tab_widgets">Widgets</a></li>
+                        <li><a title="A list of all imported data" href="#tab_data">Data</a></li>
+                        <li><a title="A collection of control elements" href="#tab_widgets">Widgets</a></li>
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
-            <div id="tab_about">
+                        <div id="tab_about">
                 
                 <h4><i>Provi</i> integrates the display of protein structures and related data into a convenient graphical user interface (GUI).</h4>
                 <div class="accordion">
@@ -609,7 +665,7 @@
             </div>
                         <div id="tab_controls"></div>
                         <div id="tab_tree">
-                            <div id="grid" style="height:400px;"></div>
+                            <!-- <div id="grid" style="height:400px;"></div> -->
                         </div>
                         <div id="tab_load"></div>
                         <div id="tab_save"></div>

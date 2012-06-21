@@ -228,101 +228,112 @@ Provi.Jmol.Analysis.RamachandranPlotWidget.prototype = Utils.extend(Widget, /** 
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Analysis.HbondsWidget = function(params){
-    //params.persist_on_applet_delete = false;
-    //params.heading = '';
-    //params.collapsed = false;
+    params = _.defaults(
+        params,
+        Provi.Jmol.Analysis.HbondsWidget.prototype.default_params
+    );
+    params.persist_on_applet_delete = true;
     Provi.Widget.Widget.call( this, params );
-    this._build_element_ids([ 'angle_min', 'dist_max', 'calc', 'applet_selector_widget', 'display', 'display_residues' ]);
+    this._init_eid_manager([
+        'angle_min', 'dist_max', 'calc', 'applet_selector_widget', 
+        'display', 'display_residues' 
+    ]);
     
-    this.angle_min = 60;
-    this.dist_max = 3.9;
-    this.visibility = true;
+    this.angle_min = params.angle_min;
+    this.dist_max = params.dist_max;
+    this.visibility = params.visibility;
     
-    var content = '<div class="control_group">' +
-    '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
-    '<div class="control_row">' +
-            '<input id="' + this.display_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.display_id + '" style="display:inline-block;">display hbonds</label>' +
+    var template = '' +
+        '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
+        '<div class="control_row">' +
+            '<input id="${eids.display}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="${eids.display}" style="display:inline-block;">display hbonds</label>' +
         '</div>' +
-    '<div class="control_row">' +
-            '<input size="4" id="' + this.angle_min_id + '" type="text" class="ui-state-default"/>' +
-            '<label for="' + this.angle_min_id + '" >min angle</label> ' +
-        '<input size="4" id="' + this.dist_max_id + '" type="text" class="ui-state-default"/>' +
-            '<label for="' + this.dist_max_id + '" >max distance</label> ' +
-        '<button id="' + this.calc_id + '">calc hbonds</button>' +
+        '<div class="control_row">' +
+            '<input size="4" id="${eids.angle_min}" type="text" class="ui-state-default"/>' +
+            '<label for="${eids.angle_min}" >min angle</label> ' +
+            '<input size="4" id="${eids.dist_max}" type="text" class="ui-state-default"/>' +
+            '<label for="${eids.dist_max}" >max distance</label> ' +
+            '<button id="${eids.calc}">calc hbonds</button>' +
         '</div>' +
-    '<div class="control_row">' +
-            '<button id="' + this.display_residues_id + '">display residues</button>' +
+        '<div class="control_row">' +
+            '<button id="${eids.display_residues}">display residues</button>' +
         '</div>' +
-    '</div>';
-    $(this.dom).append( content );
+    '';
+    this.add_content( template, params );
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-        parent_id: this.applet_selector_widget_id
+        parent_id: this.eid('applet_selector_widget')
     });
     this._init();
 }
 Provi.Jmol.Analysis.HbondsWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.HbondsWidget.prototype */ {
+    default_params: {
+        heading: 'Hbond calculation',
+        collapsed: true,
+        angle_min: 60,
+        dist_max: 3.9,
+        visibility: true
+    },
     _init: function(){
         var self = this;
     
-        $('#' + this.display_id).click(function(){
-        self.visibility = $("#" + self.display_id).is(':checked');
+        this.elm('display').click(function(){
+            self.visibility = self.elm('display').is(':checked');
             self.display();
         }).attr( 'checked', this.visibility );
     
-    $("#" + this.calc_id).button().click(function() {
+        this.elm('calc').button().click(function() {
             self.calc();
         });
     
-    $("#" + this.angle_min_id).change(function() {
-        self.angle_min = $(this).val();
+        this.elm('angle_min').change(function() {
+            self.angle_min = $(this).val();
             self.calc();
         }).val( this.angle_min );
     
-    $("#" + this.dist_max_id).change(function() {
-        self.dist_max = $(this).val();
+        this.elm('dist_max').change(function() {
+            self.dist_max = $(this).val();
             self.calc();
         }).val( this.dist_max );
     
-    $("#" + this.display_residues_id).button().click(function() {
+        this.elm('display_residues').button().click(function() {
             self.display_residues();
         });
     
-    //Provi.Widget.Widget.prototype.init.call(this);
+        Provi.Widget.Widget.prototype.init.call(this);
     },
     calc: function(){
-    var applet = this.applet_selector.get_value();
+        var applet = this.applet_selector.get_value();
         if(applet){
-        applet.script(
-        //"select not backbone and not hydrogen;" +
-        "select not hydrogen;" +
-        "hbonds delete;" +
-        "set hbondsRasmol FALSE;" +
-        "set hbondsAngleMinimum " + this.angle_min + ";" +
-        "set hbondsDistanceMaximum " + this.dist_max + ";" +
-        "calculate hbonds;",
-        true );
-    }
+            applet.script(
+                //"select not backbone and not hydrogen;" +
+                "select not hydrogen;" +
+                "hbonds delete;" +
+                "set hbondsRasmol FALSE;" +
+                "set hbondsAngleMinimum " + this.angle_min + ";" +
+                "set hbondsDistanceMaximum " + this.dist_max + ";" +
+                "calculate hbonds;"
+            , true );
+        }
     },
     display: function(){
-    applet = this.applet_selector.get_value();
+        applet = this.applet_selector.get_value();
         if(applet){
-        applet.script( 'select all; hbonds ' + ( this.visibility ? 'on' : 'off' ) + ';', true );
-    }
+            applet.script( 
+                'select all; hbonds ' + ( this.visibility ? 'on' : 'off' ) + ';'
+            , true );
+        }
     },
     display_residues: function(){
-    applet = this.applet_selector.get_value();
+        applet = this.applet_selector.get_value();
         if(applet){
-        applet.script(
-        'var x = connected("hbond").atoms; ' +
-        'select @x or within(group, @x);' +
-        'wireframe 0.1;',
-        true );
+            applet.script(
+                'var x = connected("hbond").atoms; ' +
+                'select @x or within(group, @x);' +
+                'wireframe 0.1;'
+            , true );
+        }
     }
-    }
-    
-    
-    // 
 });
 
 
@@ -333,6 +344,10 @@ Provi.Jmol.Analysis.HbondsWidget.prototype = Utils.extend(Provi.Widget.Widget, /
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Analysis.IsosurfaceConstructionWidget = function(params){
+    params = _.defaults(
+        params,
+        Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype.default_params
+    );
     //params.persist_on_applet_delete = false;
     //params.heading = '';
     //params.collapsed = false;
@@ -341,12 +356,12 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget = function(params){
     'applet_selector_widget', 'surface_params_widget', 'isosurface_params_widget', 'construct' ]);
     
     var content = '<div class="control_group">' +
-    '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
-    '<div class="control_row" id="' + this.surface_params_widget_id + '"></div>' +
-    '<div class="control_row" id="' + this.isosurface_params_widget_id + '"></div>' +
-    '<div class="control_row">' +
-        '<button id="' + this.construct_id + '">construct</button>' +
-    '</div>' + 
+        '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+        '<div class="control_row" id="' + this.surface_params_widget_id + '"></div>' +
+        '<div class="control_row" id="' + this.isosurface_params_widget_id + '"></div>' +
+        '<div class="control_row">' +
+            '<button id="' + this.construct_id + '">construct</button>' +
+        '</div>' + 
     '</div>';
     $(this.dom).append( content );
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
@@ -361,32 +376,180 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget = function(params){
     this._init();
 }
 Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype */ {
+    default_params: {
+        heading: 'Isosurface Construction',
+        collapsed: true
+    },
     _init: function(){
         var self = this;
     
-    this.surface_params.set_applet( this.applet_selector.get_value(true) );
-    $(this.applet_selector).bind('change change_selected', function(event, applet){
-        //console.log('CHANGE');
-        self.surface_params.set_applet( applet );
-    });
-    
-    $( '#' + this.construct_id ).button().click( function(){
-        var applet = self.applet_selector.get_value();
-        if( applet ){
-        new Provi.Bio.Isosurface.SurfaceWidget({
-            parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
-            dataset: self,
-            applet: applet,
-            within: self.isosurface_params.get_within(),
-            type: self.surface_params.get_type(),
-            resolution: self.surface_params.get_resolution(),
-            select: self.surface_params.get_select(),
-            ignore: self.surface_params.get_ignore(),
-            slab: self.surface_params.get_slab(),
-            map: self.surface_params.get_map()
+        this.surface_params.set_applet( this.applet_selector.get_value(true) );
+        $(this.applet_selector).bind('change change_selected', function(event, applet){
+            //console.log('CHANGE');
+            self.surface_params.set_applet( applet );
         });
-        }
+    
+        $( '#' + this.construct_id ).button().click( function(){
+            var applet = self.applet_selector.get_value();
+            if( applet ){
+                console.log('IsosurfaceConstructionWidget');
+                new Provi.Bio.Isosurface.SurfaceWidget({
+                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                    dataset: self,
+                    applet: applet,
+                    within: self.isosurface_params.get_within(),
+                    type: self.surface_params.get_type(),
+                    resolution: self.surface_params.get_resolution(),
+                    select: self.surface_params.get_select(),
+                    ignore: self.surface_params.get_ignore(),
+                    slab: self.surface_params.get_slab(),
+                    map: self.surface_params.get_map()
+                });
+            }
+        });
+        
+        Provi.Widget.Widget.prototype.init.call(this);
+    }
+});
+
+
+var geometric_center = function(coords){
+    return _.map(_.range(3), function(i){
+        return _.reduce(coords, function(sum, x){ 
+            return sum + x[i]; 
+        }, 0) / coords.length;
     });
+}
+
+var principal_axes = function(m, center){
+    m = numeric.clone(m);
+    // var means = _.map(_.range(m[0].length), function(i){
+    //     return _.reduce(m, function(memo,x){
+    //         return x[i]+memo;
+    //     }, 0) / m.length;
+    // });
+    var means = center || geometric_center(m);
+    // substract means
+    _.each(m, function(d,i){
+        _.each(means, function(me,j){
+            m[i][j] -= me;
+        });
+    });
+    var svd = numeric.svd(m);
+    // scale axes
+    var axes = _.map(svd.S, function(s, i){
+        return _.map(svd.V, function(v){
+            return v[i]*s;
+        });
+    });
+    return axes;
+};
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Jmol.Analysis.PlaneConstructionWidget = function(params){
+    params = _.defaults(
+        params,
+        Provi.Jmol.Analysis.PlaneConstructionWidget.prototype.default_params
+    );
+    params.persist_on_applet_delete = true;
+    
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+        'applet_selector_widget', 'selection_selector_widget', 'create'
+    ]);
+    
+    var template = '' +
+        '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
+        '<div class="control_row" id="${eids.selection_selector_widget}"></div>' +
+        '<div class="control_row">' +
+            '<button id="${eids.create}">create</button>' +
+        '</div>' +
+    '';
+    this.add_content( template, params );
+
+    this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
+        parent_id: this.eid('applet_selector_widget')
+    });
+    this.selection_selector = new Provi.Selection.SelectorWidget({
+        parent_id: this.eid('selection_selector_widget'),
+        applet: params.applet,
+        tag_name: 'span'
+    });
+
+    this._init();
+}
+Provi.Jmol.Analysis.PlaneConstructionWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.PlaneConstructionWidget.prototype */ {
+    default_params: {
+        heading: 'Plane Construction',
+        collapsed: true
+    },
+    _init: function(){
+        var self = this;
+    
+        $(this.applet_selector).bind('change change_selected', function(event, applet){
+            self.selection_selector.set_applet( applet );
+        });
+        this.selection_selector.set_applet( this.get_applet() );
+
+        this.elm('create').button().click( function(){
+            self.create();
+        });
+
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    get_applet: function(){
+        if( this.applet ){
+            return this.applet;
+        }else{
+            return this.applet_selector.get_value(true);
+        }
+    },
+    create: function(){
+        var applet = this.get_applet();
+        var self = this;
+        if (!applet ) return;
+
+        var sele = this.selection_selector.get().selection;
+        console.log('PLANE CONSTRUCTION SELE', sele);
+        var format = "'%[atomno]',%[resno],'%[chain]','%[model]','%[file]','%x','%y','%z'";
+        var apm = applet.atoms_property_map( format, sele );
+
+        var coords = _.map(apm, function(d,i){
+            return _.map([d[5], d[6], d[7]], function(x){ return parseFloat(x); });
+        });
+        console.log(coords);
+        
+        var axes = principal_axes(coords);
+        // var axes = [[2, 1, 1], [1, 2, 1], [1, 1, 2]];
+
+        var s = '' +
+            'function norm( v ){ return v/v; }' +
+            'var sele = {' + sele + '};' +
+            'draw id "fc" @sele radius 0.3 color tomato;' +
+            'draw id "svd1" vector @sele {' + axes[0].join(' ') + '} color pink;' + 
+            'draw id "svd2" vector @sele {' + axes[1].join(' ') + '} color pink;' +
+            'draw id "svd3" vector @sele {' + axes[2].join(' ') + '} color pink;' +
+
+            'var p = sele.XYZ;' + 
+            'var vp = {' + axes[2].join(', ') + '};' +
+            'var vpx1 = norm( cross( vp, {1,0,0} ) );' +
+            'var vpx2 = norm( cross( vp, vpx1 ) );' +
+            'var pl = plane( p, p+vpx1, p+vpx2 );' +
+            'print pl;' +
+    
+            'select *;' +
+            'isosurface id "p" plane @pl color blue translucent;' +
+            'draw id "p" intersection boundbox;' +
+            'select none;' +
+        '';
+
+        console.log( s );
+        applet.script( s, true );
     }
 });
 
@@ -399,9 +562,9 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Analysis.PlotWidget = function(params){
-    params = $.extend(
-        Provi.Jmol.Analysis.PlotWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Jmol.Analysis.PlotWidget.prototype.default_params
     );
     params.collapsed = true;
     Provi.Widget.Widget.call( this, params );
@@ -410,64 +573,64 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
     ]);
     
     var template = '' +
-    '<div class="control_group">' +
-        '<div class="control_row">' +
-        '<label for="${eids.presets}">Presets:</label>' +
-        '<select id="${eids.presets}" class="ui-state-default">' +
-            '<option value=""></option>' +
-            '<option value="rama"">Ramachandran</option>' +
-            '<option value="dist"">Distance map</option>' +
-        '</select>' +
+        '<div class="control_group">' +
+            '<div class="control_row">' +
+                '<label for="${eids.presets}">Presets:</label>' +
+                '<select id="${eids.presets}" class="ui-state-default">' +
+                    '<option value=""></option>' +
+                    '<option value="rama"">Ramachandran</option>' +
+                    '<option value="dist"">Distance map</option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<span id="${eids.selector}"></span>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<span id="${eids.selector2}"></span>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<label for="${eids.xaxis}">X-axis:</label>' +
+                '<select id="${eids.xaxis}" class="ui-state-default">' +
+                    '<option value=""></option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<label for="${eids.yaxis}">Y-axis:</label>' +
+                '<select id="${eids.yaxis}" class="ui-state-default">' +
+                    '<option value=""></option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<label for="${eids.color}">Color:</label>' +
+                '<select id="${eids.color}" class="ui-state-default">' +
+                    '<option value="color">Structure color</option>' +
+                    '<option value="dist">Distance</option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<label for="${eids.chart}">Chart type image:</label>' +
+                '<select id="${eids.chart}" class="ui-state-default">' +
+                    '<option value="points">Points</option>' +
+                    '<option value="lines"">Lines</option>' +
+                    '<option value="bars">Bars</option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<label for="${eids.bgimage}">Background image:</label>' +
+                '<select id="${eids.bgimage}" class="ui-state-default">' +
+                    '<option value=""></option>' +
+                    '<option value="rama_general"">Ramachandran: General</option>' +
+                    '<option value="rama_glycine">Ramachandran: Glycine</option>' +
+                    '<option value="rama_pre-pro">Ramachandran: Pre-Pro</option>' +
+                    '<option value="rama_proline">Ramachandran: Proline</option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<button id="${eids.draw}">draw</button>' +
+            '</div>' +
         '</div>' +
-        '<div class="control_row">' +
-        '<span id="${eids.selector}"></span>' +
-        '</div>' +
-        '<div class="control_row">' +
-        '<span id="${eids.selector2}"></span>' +
-        '</div>' +
-        '<div class="control_row">' +
-        '<label for="${eids.xaxis}">X-axis:</label>' +
-        '<select id="${eids.xaxis}" class="ui-state-default">' +
-            '<option value=""></option>' +
-        '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-        '<label for="${eids.yaxis}">Y-axis:</label>' +
-        '<select id="${eids.yaxis}" class="ui-state-default">' +
-            '<option value=""></option>' +
-        '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-        '<label for="${eids.color}">Color:</label>' +
-        '<select id="${eids.color}" class="ui-state-default">' +
-            '<option value="color">Structure color</option>' +
-            '<option value="dist">Distance</option>' +
-        '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-        '<label for="${eids.chart}">Chart type image:</label>' +
-        '<select id="${eids.chart}" class="ui-state-default">' +
-            '<option value="points">Points</option>' +
-            '<option value="lines"">Lines</option>' +
-            '<option value="bars">Bars</option>' +
-        '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-        '<label for="${eids.bgimage}">Background image:</label>' +
-        '<select id="${eids.bgimage}" class="ui-state-default">' +
-            '<option value=""></option>' +
-            '<option value="rama_general"">Ramachandran: General</option>' +
-            '<option value="rama_glycine">Ramachandran: Glycine</option>' +
-            '<option value="rama_pre-pro">Ramachandran: Pre-Pro</option>' +
-            '<option value="rama_proline">Ramachandran: Proline</option>' +
-        '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-        '<button id="${eids.draw}">draw</button>' +
-        '</div>' +
-    '</div>' +
-    '<div class="control_group">' +
-        '<div class="control_row" style="width:300px; height:300px;" id="${eids.canvas}"></div>' +
+        '<div class="control_group">' +
+            '<div class="control_row" style="width:300px; height:300px;" id="${eids.canvas}"></div>' +
         '</div>' +
     '';
     
@@ -489,6 +652,8 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
 }
 Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.PlotWidget.prototype */ {
     default_params: {
+        heading: 'Plot',
+        collapsed: true,
         persist_on_applet_delete: true
     },
     _init: function(){
@@ -834,9 +999,9 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Analysis.GromacsHelixorientWidget = function(params){
-    params = $.extend(
-        Provi.Jmol.Analysis.GromacsHelixorientWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Jmol.Analysis.GromacsHelixorientWidget.prototype.default_params
     );
     console.log('HELIXORIENT', params);
 	params.persist_on_applet_delete = true;
@@ -882,7 +1047,7 @@ Provi.Jmol.Analysis.GromacsHelixorientWidget = function(params){
 
     this._init();
 }
-Provi.Jmol.Analysis.GromacsHelixorientWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Structure.StructureWidget.prototype */ {
+Provi.Jmol.Analysis.GromacsHelixorientWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Jmol.Analysis.GromacsHelixorientWidget.prototype */ {
     default_params: {
         heading: 'Helixorient'
     },

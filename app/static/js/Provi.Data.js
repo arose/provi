@@ -113,9 +113,9 @@ Provi.Data.Dataset = function(params){
 };
 Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     _init: function(){
-    	$(this).bind('change', function(){
-    	    $(Provi.Data.DatasetManager).triggerHandler('change');
-    	});
+        $(this).bind('change', function(){
+            $(Provi.Data.DatasetManager).triggerHandler('change');
+        });
     },
     /**
      * get the status of the dataset
@@ -137,6 +137,9 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
             throw "Expect exactly one or two arguments";
         }
         $(this).triggerHandler('change');
+        if( status['local']=='loaded' || (arguments[0]=='local' && arguments[1]=='loaded') ){
+            $(this).triggerHandler('loaded2');
+        }
     },
     /**
      * Sets the data/content of the dataset.
@@ -148,22 +151,22 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     },
     _set_type: function(type){
         this.type = type;
-	   Provi.Data.Controller.extend_by_type( this, type );
+        Provi.Data.Controller.extend_by_type( this, type );
     },
     add_data: function( name, data ){
-    	this.data_list.push( data );
-    	this.data_dict[ name ] = data;
-    	$(this).triggerHandler('change');
+        this.data_list.push( data );
+        this.data_dict[ name ] = data;
+        $(this).triggerHandler('change');
     },
     get: function( name ){
-    	if( typeof(name) == 'undefined' ) name = 'main';
-    	return this.get_dict()[ name ];
+        if( typeof(name) == 'undefined' ) name = 'main';
+        return this.get_dict()[ name ];
     },
     get_list: function(){
-	   return [ this.data ].concat( this.data_list );
+        return [ this.data ].concat( this.data_list );
     },
     get_dict: function(){
-	   return $.extend( { main: this.data }, this.data_dict );
+        return $.extend( { main: this.data }, this.data_dict );
     },
     /**
      * Sets the type of the dataset.
@@ -182,7 +185,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     },
     init: function( params ){
         if( params.applet ){
-    	    this.applet_list.push( params.applet );
+            this.applet_list.push( params.applet );
             var name = this.name + ' (' + this.id + ')';
             if( $('#' + params.applet.widget.data_id).text() ){
                 name = ', ' + name;
@@ -243,11 +246,11 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
                 });
             }
             if(this.dataset.load_params_widget && !this.load_params_widget.length){
-		$.each(this.dataset.load_params_widget, function(i, lpw){
-		    self.load_params_widget.push(
-			new lpw.obj({ parent_id: self.load_widget_id, dataset: self.dataset, load_params_values: self.load_params_values })
-		    );
-		});
+                $.each(this.dataset.load_params_widget, function(i, lpw){
+                    self.load_params_widget.push(
+                        new lpw.obj({ parent_id: self.load_widget_id, dataset: self.dataset, load_params_values: self.load_params_values })
+                    );
+                });
             }
             if( !this._load_button_initialized ){
                 this._load_button_initialized = true;
@@ -259,21 +262,21 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
                         applet: self.applet_selector.get_value()
                     }
                     if(self.load_params_widget.length){
-			$.each(self.load_params_widget, function(i, lpw){
-			    var ds_lpw = self.dataset.load_params_widget[i];
-			    if( ds_lpw.params ){
-				$.each(ds_lpw.params, function(i, p){
-				    console.log(p)
-				    params[ p.name ] = lpw[ p.getter ]();
-				});
-			    }else{
-				params[ ds_lpw.name ] = lpw[ ds_lpw.getter ]();
-			    }
-			});
+                        $.each(self.load_params_widget, function(i, lpw){
+                            var ds_lpw = self.dataset.load_params_widget[i];
+                            if( ds_lpw.params ){
+                                $.each(ds_lpw.params, function(i, p){
+                                    console.log(p)
+                                    params[ p.name ] = lpw[ p.getter ]();
+                                });
+                            }else{
+                                params[ ds_lpw.name ] = lpw[ ds_lpw.getter ]();
+                            }
+                        });
                     }
-		    console.log(params);
+                    //console.log('DS LOAD PARAMS', params);
                     self.dataset.init( params );
-		    $(self).triggerHandler('loaded');
+                    $(self).triggerHandler('loaded');
                 });
             }
         }
@@ -329,9 +332,9 @@ Provi.Data.DatasetManagerWidget.prototype = Utils.extend(Widget, /** @lends Prov
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.DatasetSelectorWidget = function(params){
-    params = $.extend(
-        Provi.Data.DatasetSelectorWidget.prototype.default_params,
-        params
+    params = _.defaults(
+        params,
+        Provi.Data.DatasetSelectorWidget.prototype.default_params
     );
     params.persist_on_applet_delete = true;
     
