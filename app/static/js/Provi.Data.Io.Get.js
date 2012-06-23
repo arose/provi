@@ -67,10 +67,11 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
                 data: {},
                 dataType: "json",
                 success: function(response){
+                    console.log( 'example_json_url', response );
                     Provi.Data.Controller.ProviMixin.load( response );
                 },
                 error: function( jqXHR, textStatus, errorThrown ){
-                    console.log( jqXHR, textStatus, errorThrown );
+                    console.error( jqXHR, textStatus, errorThrown );
                 }
             });
         }

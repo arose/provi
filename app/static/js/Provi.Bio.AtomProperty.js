@@ -74,7 +74,8 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
     
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
-        'property_name', 'color_scheme'
+        'property_name', 'color_scheme', 'min', 'max', 'set',
+        'observed_min', 'observed_max'
     ]);
 
     var template = '' +
@@ -84,7 +85,13 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
             '</div>' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="${eids.color_scheme}">color scheme</label>' +
+            'observed min:&nbsp;' +
+            '<span id="${eids.observed_min}"></span>' +
+            ',&nbsp;max:&nbsp;' +
+            '<span id="${eids.observed_max}"></span>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="${eids.color_scheme}">color scheme</label>&nbsp;' +
             '<select id="${eids.color_scheme}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="rwb">red-white-blue</option>' +
@@ -95,6 +102,13 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
                 '<option value="bw">black-white</option>' +
                 '<option value="wb">white-black</option>' +
             '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="${eids.min}">color scheme min</label>&nbsp;' +
+            '<input style="width:3.5em;" type="text" id="${eids.min}" />,&nbsp;' +
+            '<label for="${eids.max}">max</label>&nbsp;' +
+            '<input style="width:3.5em;" type="text" id="${eids.max}" />&nbsp;' +
+            '<button id="${eids.set}">set</button>' +
         '</div>' +
     '';
     this.add_content( template, params );
@@ -108,21 +122,54 @@ Provi.Bio.AtomProperty.AtomPropertyWidget.prototype = Utils.extend(Provi.Widget.
     _init: function () {
         var self = this;
         
+        this.init_range();
+
         // init select
         this.elm('color_scheme').bind('change', function(){
-            console.log(self.applet);
-            if(self.applet){
-                self.color_scheme = self.elm('color_scheme').children("option:selected").val();
-                console.log(self.color_scheme);
-                self.elm('color_scheme').val('');
-                self.applet.script('' +
-                    'select *;' +
-                    'color atoms "' + self.property_name + '" "' + self.color_scheme + '";' +
-                '', true);
-            }
+            self.set_range();
+            self.set_color_scheme();
         });
 
+        this.elm('set').button().bind( 'click', function(){
+            self.set_range();
+        }).hide();
+
         Provi.Widget.Widget.prototype.init.call(this);
+    },
+    init_range: function(){
+        if(!this.applet) return;
+
+        var obs = this.applet.evaluate('[' +
+            '{*}.' + this.property_name + '.min, ' +
+            '{*}.' + this.property_name + '.max' +
+        '].join(",")').split(",");
+        console.log(obs);
+        this.observed_min = parseFloat(obs[0]);
+        this.observed_max = parseFloat(obs[1]);
+        this.elm('observed_min').text( this.observed_min );
+        this.elm('observed_max').text( this.observed_max );
+        this.elm('min').val( this.observed_min );
+        this.elm('max').val( this.observed_max );
+    },
+    set_range: function(){
+        if(!this.applet) return;
+
+        this.min = parseFloat( this.elm('min').val() );
+        this.max = parseFloat( this.elm('max').val() );
+    },
+    set_color_scheme: function(){
+        if(!this.applet) return;
+
+        var range = _.isFinite( this.min ) && _.isFinite( this.max );
+        this.color_scheme = this.elm('color_scheme').children("option:selected").val();
+        console.log(this.color_scheme);
+        this.elm('color_scheme').val('');
+        this.applet.script('' +
+            'select *;' +
+            'color atoms "' + this.property_name + '" "' + this.color_scheme + '" ' +
+                (range ? ' RANGE ' + this.min + ' ' + this.max : '' ) +
+            ';' +
+        '', true);
     }
 });
 

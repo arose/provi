@@ -369,7 +369,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
     this.ids = params.ids;
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
 }
-Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.Voronoia.VoronoiaSelectionType.prototype */ {
+Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableSelectionType, /** @lends Provi.Bio.Voronoia.VoronoiaSelectionType.prototype */ {
     get_ids: function(sele){
         return this.ids;
     },
@@ -447,17 +447,6 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         );
         return $row;
     },
-    selection: function(id, flag){
-        var ids = (id==='all') ? this.get_ids() : [ id ];
-        var sele = _.map( ids, function(id){
-            return 'provi_selection["' + id + '"]';
-        });
-        if(flag){
-            return sele.join(' OR '); 
-        }else{
-            return '@{ ' + sele.join(' } OR @{ ') + ' }';
-        }
-    },
     _show_hole: function(id, flag){
         var self = this;
         var ids = (id==='all') ? this.get_ids() : [ id ];
@@ -497,7 +486,9 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         }else{
             return _.map( ids, function(id){
                 var hole_id = id;
-                return 'isosurface id "' + hole_id + '_iso__no_widget__" ' +
+                return 'set drawHover true;' +
+                    'isosurface id "' + hole_id + '_iso__no_widget__" ' +
+                        //'"Hole ' + hole_id.split('_')[2] + '" ' +
                     'select {' + self.selection(id) + '} ' +
                     'ignore { not ' + self.selection(id) + '} ' +
                     'resolution ' + resolution + ' ' +

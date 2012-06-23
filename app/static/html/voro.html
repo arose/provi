@@ -159,7 +159,7 @@
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
 
-        Provi.Jmol.init("../../jmol/current/24/", !$.query.get('unsigned'));
+        Provi.Jmol.init("../../jmol/current/25/", !$.query.get('unsigned'));
     
         $(document).ready(function(){
         
@@ -228,11 +228,11 @@
             $('#tabs_panel a[title]').tipsy({ gravity: 'n' });
 
 
-            if( $.query.get('test') ){
-
+            if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
+                var pdb = '165D';
                 var applet = Provi.Jmol.get_default_applet( true );    
                 var ds = Provi.Data.Io.import_example(
-                    'showcase', 'voronoia/test_data/1P9X_modified.pdb', 'pdb', 
+                    'showcase', 'voronoia/test_data/' + pdb + '_modified.pdb', 'pdb', 
                     { applet: applet, load_as: 'new' }
                 );
                 $(ds).bind('loaded2', function(){
@@ -242,11 +242,11 @@
                     //     dataset: self
                     // }));
                     var ds_vol = Provi.Data.Io.import_example(
-                        'showcase', 'voronoia/test_data/1P9X_modified.atmprop', 'atmprop',
+                        'showcase', 'voronoia/test_data/' + pdb + '_modified.atmprop', 'atmprop',
                         { applet: applet }
                     );
                     var ds_holes = Provi.Data.Io.import_example(
-                        'showcase', 'voronoia/test_data/1P9X_modified.atmsele', 'atmsele',
+                        'showcase', 'voronoia/test_data/' + pdb + '_modified.atmsele', 'atmsele',
                         { applet: applet }
                     );
                     $(ds_holes).bind('loaded2', function(){
