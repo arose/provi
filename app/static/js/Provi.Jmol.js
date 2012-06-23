@@ -77,9 +77,9 @@ function jmol_pick_callback (applet_name, info, id){
     Provi.Jmol.get_applet_by_id( applet_name+'' )._pick_callback( info+'', id+'' );
 };
 
-function jmol_hover_callback (applet_name, info, id, x, y, z){
-    //console.log( applet_name+'', info+'', id+'', x+'', y+'', z+'' );
-    Provi.Jmol.get_applet_by_id( applet_name+'' )._hover_callback( info+'', id+'', x+'', y+'', z+'' );
+function jmol_hover_callback (applet_name, text, foo, id, x, y, z){
+    //console.log( applet_name+'', text+'', id+'', x+'', y+'', z+'' );
+    Provi.Jmol.get_applet_by_id( applet_name+'' )._hover_callback( text+'', id+'', x+'', y+'', z+'' );
 };
 
 /**
@@ -708,7 +708,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         if (s == "" && !isNaN(parseFloat(result))) return parseFloat(result);
         return result;
     },
-    atoms_property_map: function( format, selection, first ){
+    atoms_property_map: function( format, selection, first, sort_column ){
         //this.script_wait('show SELECTED;'); // needed, otherwise 'evaluate' sometimes chokes on the 'selected' variable
         //console.log(this.applet.evaluate('"[" + {' + 'selected' + '}.label("[' + format + ']").join(",") + "]"'));
         if(first){
