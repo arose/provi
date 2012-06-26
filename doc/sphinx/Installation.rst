@@ -12,7 +12,7 @@ mind the order, numpy is best installed before biopython
 
     argparse unipath numpy biopython
 
-::
+python setup.py develop::
     
     MembraneProtein
 
@@ -20,6 +20,10 @@ mind the order, numpy is best installed before biopython
 
     Paste PasteScript webob weberror Routes Beaker simplejson Pygments poster
     
+for python 2.5::
+
+    easy_install webob==1.1.1
+
 for a clustering script::
 
     hcluster

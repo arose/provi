@@ -182,7 +182,9 @@ Provi.Data.Controller.AtomPropertyMixin = {
                 'name = "property_" + c;' +
                 'names = names + name;' +
                 's = "DATA \\"" + name + " 0 " + i + " @d\\";";' + 
+                's2 = "{selected and " + name + " = 9}." + name + " = NaN;";' + 
                 'script INLINE @s;' +
+                'script INLINE @s2;' +
                 'print "provi property: " + name;' +
             '}' +
             'select none;' +
@@ -210,8 +212,8 @@ Provi.Data.Controller.AtomSelectionMixin = {
         var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
         var url = '../../data/get/';
         var s = '' +
-            'while(true){' +
-                'try{' +
+            // 'while(true){' +
+            //     'try{' +
                     'x = load("' + url + get_params + '");' +
                     'lines = x.split();' +
                     'names = [];' +
@@ -229,15 +231,15 @@ Provi.Data.Controller.AtomSelectionMixin = {
                         'print "provi selection: " + name;' +
                     '}' +
                     'print "provi selection ds ' + this.id + ': " + names.join(" ");' +
-                '}catch(e){' +
-                    //'print "provi dataset: ' + this.id + ' error " + e;' +
-                    'var log_error = "console.error(\'provi dataset: ' + this.id + ' error " + e + "\')";' +
-                    'javascript @log_error;' +
-                    'break;' +
-                '}' +
+                // '}catch(e){' +
+                //     'print "provi dataset: ' + this.id + ' error " + e;' +
+                //     'var log_error = "console.error(\'provi dataset: ' + this.id + ' error " + e + "\')";' +
+                //     'javascript @log_error;' +
+                //     'break;' +
+                // '}' +
                 'print "provi dataset: ' + this.id + ' loaded";' +
-                'break;' +
-            '}' +
+            //     'break;' +
+            // '}' +
         '';
         console.log(s);
         applet.script_wait(s, true);

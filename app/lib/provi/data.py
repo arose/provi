@@ -16,13 +16,13 @@ from MembraneProtein.AndreanTools import membran_neu
 from MembraneProtein.AndreanTools import membran_plane
 from MembraneProtein import HBexplore
 
-from Bio.PDB.PDBParser import PDBParser
+# from Bio.PDB.PDBParser import PDBParser
 from provi.framework import expose
 
-try:
-    from voronoia import VolParser, Voronoia
-except:
-    from Voronoia import VolParser, Voronoia
+# try:
+#     from voronoia import VolParser, Voronoia
+# except:
+#     from Voronoia import VolParser, Voronoia
 
 logging.basicConfig( level=logging.DEBUG )
 LOG = logging.getLogger('provi')
@@ -152,11 +152,11 @@ class AtomSelection( Text ):
 class Pdb( Text ):
     """PDB"""
     file_ext = 'pdb'
-    def get_structure( self, dataset ):
-        tmp_file = named_tmp_file( dataset.data )
-        parser = PDBParser()
-        struc = parser.get_structure( 'structure', tmp_file.name )
-        return struc
+    # def get_structure( self, dataset ):
+    #     tmp_file = named_tmp_file( dataset.data )
+    #     parser = PDBParser()
+    #     struc = parser.get_structure( 'structure', tmp_file.name )
+    #     return struc
     
     @expose
     def get_tree( self, dataset, **kwargs ):
