@@ -753,7 +753,7 @@ Provi.Bio.AtomSelection.VariableSelectionType.prototype = Utils.extend(Provi.Bio
                 'return [ sele_l.average, displayed_l.average ];' +
             '};' +
         '');
-        var s = 'provi_sele_test(["' + ids.join('","') + '"]).join(",")';
+        var s = 'provi_sele_test( ["' + ids.join('","') + '"] ).join(",")';
         var a = this.applet.evaluate(s).split(",");
         var selected = a[0];
         return [ selected ];
