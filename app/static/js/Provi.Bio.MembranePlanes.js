@@ -72,7 +72,6 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
             '<span id="${eids.distance}"></span>&nbsp;&#8491;' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="${eids.size}">membrane plane size</label>' +
             '<select id="${eids.size}" class="ui-state-default">' +
                 '<option value="0">hide</option>' +
                 '<option value="-2" selected="selected">boundbox</option>' +
@@ -88,19 +87,20 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
                 '<option value="1000">1000</option>' +
                 '<option value="1200">1200</option>' +
                 '<option value="1400">1400</option>' +
-            '</select>' +
+            '</select>&nbsp;' +
+            '<label for="${eids.size}">membrane plane size</label>' +
         '</div>' +
         '<div class="control_row">' +
             '<input id="${eids.visibility}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
             '<div id="${eids.size_slider}"></div>' +
         '</div>' +
         '<div class="control_row">' +
-            '<input id="${eids.color}" type="text" value="${params.color}"/> ' +
-            '<label for="${eids.color}" >color</label>' +
+            '<input id="${eids.modelbased}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>&nbsp;' +
+            '<label for="${eids.modelbased}" >modelbased</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<input id="${eids.modelbased}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="${eids.modelbased}" >modelbased</label>' +
+            '<input id="${eids.color}" type="text" value="${params.color}"/>&nbsp;' +
+            '<label for="${eids.color}" >color</label>' +
         '</div>' +
         '<div class="control_row">' +
             '<button id="${eids.orient}">orient along membrane normal</button>' +
@@ -111,6 +111,7 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
 }
 Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.MembranePlanes.MplaneWidget.prototype */ {
     default_params: {
+        heading: 'Membrane planes',
         size: -2,
         color: '#3366FF',
         translucency: 0.6,

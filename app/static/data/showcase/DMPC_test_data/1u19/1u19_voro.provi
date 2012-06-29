@@ -1,0 +1,42 @@
+[
+	{
+		"dir": "showcase",
+		"filename": "DMPC_test_data/1u19/1u19.pdb",
+		"type": "pdb",
+		"applet": "default"
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19.vol.atmsele",
+		"type": "atmsele",
+		"applet": 0,
+		"when": 0
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19.vol.atmprop",
+		"type": "atmprop",
+		"applet": 0,
+		"when": 0
+	},
+	{
+		"type": "function",
+		"funcname": "Provi.Bio.Voronoia.register",
+		"when": 1,
+		"params": {
+			"holes_ds": "DATASET_1"
+		}
+	},
+	{
+		"type": "widget",
+		"widgetname": "Provi.Bio.AtomSelection.GridWidget",
+		"applet": 0,
+		"when": 1,
+		"params": {
+			"type": "voronoia",
+			"heading": "Voronoia",
+			"hide_eids": ["filter", "sort", "type", "property"],
+			"parent_id": "tab_widgets" 
+		}
+	}
+]

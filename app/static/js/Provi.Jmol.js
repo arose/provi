@@ -52,7 +52,7 @@ var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, mo
  * @memberOf Provi.Jmol
  */
 var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
-    //console.log( 'MESSAGE CALLBACK', applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
+    // console.log( 'MESSAGE CALLBACK', applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
     Provi.Jmol.get_applet_by_id( applet_name+'' )._message_callback( msg1+'', msg2+'', msg3+'', msg4+'' );
 };
 
@@ -793,28 +793,31 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
                     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
                 });
 
-            }else if( msg1.search(/provi property:/) != -1 && msg1.search(/__no_widget__/) == -1 ){
+            }
+            if( msg1.search(/provi property:/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
-                var property_name = msg1.match(/^provi property: ([\w\.]+)/)[1];
+                var property_name = msg1.match(/provi property: ([\w\.]+)/)[1];
                 //console.log(property_name);
 
-                new Provi.Bio.AtomProperty.AtomPropertyWidget({
-                    property_name: property_name,
-                    applet: self,
-                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
-                });
+                // new Provi.Bio.AtomProperty.AtomPropertyWidget({
+                //     property_name: property_name,
+                //     applet: self,
+                //     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
+                // });
 
-            }else if( msg1.search(/provi property ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
+            }
+            if( msg1.search(/provi property ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
-                var m = msg1.match(/^provi property ds ([\w]+): ([\w\. ]+)/);
+                var m = msg1.match(/provi property ds ([\w]+): ([\w\. ]+)/);
                 var dataset_id = m[1];
                 var property_names = m[2].split(" ");
                 var ds = Provi.Data.DatasetManager.get( dataset_id );
                 ds.set_data( new Provi.Bio.AtomProperty.AtomPropertyGroup(property_names) );
 
-            }else if( msg1.search(/provi selection:/) != -1 && msg1.search(/__no_widget__/) == -1 ){
+            }
+            if( msg1.search(/provi selection:/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
-                var selection_name = msg1.match(/^provi selection: ([\w]+)/)[1];
+                var selection_name = msg1.match(/provi selection: ([\w]+)/)[1];
                 //console.log(selection_name);
 
                 // new Provi.Bio.AtomSelection.AtomSelectionWidget({
@@ -823,49 +826,62 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
                 //     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
                 // });
 
-            }else if( msg1.search(/provi selection ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
+            }
+            if( msg1.search(/provi selection ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
-                var m = msg1.match(/^provi selection ds ([\w]+): ([\w ]+)/);
+                var m = msg1.match(/provi selection ds ([\w]+): ([\w ]+)/);
                 var dataset_id = m[1];
                 var sele_names = m[2].split(" ");
                 var ds = Provi.Data.DatasetManager.get( dataset_id );
                 ds.set_data( new Provi.Bio.AtomSelection.AtomSelectionGroup(sele_names) );
-
-            }else if( msg1.search(/provi dataset:/) != -1 ){
+            }
+            if( msg1.search(/provi bonds ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
-                var m = msg1.match(/^provi dataset: ([\w]+) ([\w]+)/);
+                var m = msg1.match(/provi bonds ds ([\w]+): ([\w]+) ([\w]+)/);
+                console.log('BONDS', m);
+                var dataset_id = m[1];
+                var bonds_before = m[2];
+                var bonds_after = m[3];
+                var bondset = '[{' + (bonds_before) + ':' + (parseInt(bonds_after)-1) + '}]'
+                var ds = Provi.Data.DatasetManager.get( dataset_id );
+                ds.set_data( new Provi.Bio.HydrogenBonds.BondSet(bondset) );
+            }
+            // needs to be last!
+            if( msg1.search(/provi dataset:/) != -1 ){
+                //console.log(msg1, msg2, msg3);
+                var m = msg1.match(/provi dataset: ([\w]+) ([\w]+)/);
                 var dataset_id = m[1];
                 var status = m[2];
-                //console.log(dataset_id, status);
+                //console.log('DS', dataset_id, status);
                 var ds = Provi.Data.DatasetManager.get( dataset_id );
                 ds.set_status('local', status);
             }
         });
 
-        $(this).bind('load_struct', function(e, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
+        // $(this).bind('load_struct', function(e, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
 
-            if( fullPathName && fileName!='zapped' ){
-                console.log(fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted);
+        //     if( fullPathName && fileName!='zapped' ){
+        //         console.log(fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted);
 
-                var model_info = self.get_property_as_array('modelInfo');
-                models = [];
-                title = '';
-                _.each( model_info.models, function(m, i){
-                    if(m.file==fullPathName){
-                        models.push( m.file_model );
-                        title = m.title;
-                    }
-                });
+        //         var model_info = self.get_property_as_array('modelInfo');
+        //         models = [];
+        //         title = '';
+        //         _.each( model_info.models, function(m, i){
+        //             if(m.file==fullPathName){
+        //                 models.push( m.file_model );
+        //                 title = m.title;
+        //             }
+        //         });
 
-                new Provi.Bio.Structure.StructureWidget({
-                    name: modelName,
-                    file_model: models,
-                    title: title,
-                    applet: self,
-                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
-                });
-            }
-        });
+        //         new Provi.Bio.Structure.StructureWidget({
+        //             name: modelName,
+        //             file_model: models,
+        //             title: title,
+        //             applet: self,
+        //             parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
+        //         });
+        //     }
+        // });
     }
 };
 

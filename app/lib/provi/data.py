@@ -11,18 +11,21 @@ from utils.odict import odict
 import threading
 import csv
 
+import math
+import numpy
+
 from MembraneProtein.AndreanTools import contact
 from MembraneProtein.AndreanTools import membran_neu
-from MembraneProtein.AndreanTools import membran_plane
+# from MembraneProtein.AndreanTools import membran_plane
 from MembraneProtein import HBexplore
 
 # from Bio.PDB.PDBParser import PDBParser
 from provi.framework import expose
 
-# try:
-#     from voronoia import VolParser, Voronoia
-# except:
-#     from Voronoia import VolParser, Voronoia
+try:
+    from voronoia import VolParser, Voronoia
+except:
+    from Voronoia import VolParser, Voronoia
 
 logging.basicConfig( level=logging.DEBUG )
 LOG = logging.getLogger('provi')
@@ -251,13 +254,35 @@ class Mbn( ScoBase ):
 
 class Mplane( Text ):
     file_ext = 'mplane'
+    def distance(self, planes):
+        p1 = map( numpy.array, planes[0] )
+        p2 = map( numpy.array, planes[1] )
+        # http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
+        # http://mathworld.wolfram.com/Point-PlaneDistance.html
+        n = numpy.cross( p1[1]-p1[0], p1[2]-p1[0] )
+        p0 = p2[0]
+        v0 = p1[0]
+        dist = numpy.abs( numpy.dot( (p0-v0), n )/self.vec_mag(n) )
+        return dist
+    def vec_mag( self, v ):
+        return math.sqrt( v[0]**2 + v[1]**2 + v[2]**2 )
     @expose
     def get_planes( self, dataset, **kwargs ):
-        tmp_file = named_tmp_file( dataset.data )
-        mp = membran_plane.Mplanes(tmp_file.name)
-        def f(p):
-            return map( list, (p.a, p.b, p.c) )
-        return json.dumps( ( f(mp.plane1), f(mp.plane2), mp.distance() ) )
+        line = dataset.data.splitlines()[0]
+        planes = []
+        for plane in line[ line.find(": {")+2: ].split(":::"):
+            points = []
+            for point in plane.strip(" {}").split("} {"):
+                points.append([ float( p.strip() ) for p in point.split(",") ])
+            planes.append( points )
+        return json.dumps( planes + [ self.distance(planes) ] )
+    # def get_planes_OLD( self, dataset, **kwargs ):
+    #     tmp_file = named_tmp_file( dataset.data )
+
+    #     mp = membran_plane.Mplanes(tmp_file.name)
+    #     def f(p):
+    #         return map( list, (p.a, p.b, p.c) )
+    #     return json.dumps( ( f(mp.plane1), f(mp.plane2), mp.distance() ) )
 
 class Gromacs( Text ):
     file_ext = 'gro'
@@ -408,6 +433,10 @@ class Provi( Json ):
     file_ext = 'provi'
 
 
+class Bonds( Text ):
+    file_ext = 'bonds'
+
+
 
 
 extension_to_datatype_dict = {
@@ -415,6 +444,7 @@ extension_to_datatype_dict = {
     'atmprop': AtomProperty(),
     'atmsele': AtomSelection(),
     'bin': Binary(),
+    'bonds': Bonds(),
     'ccp4': Ccp4(),
     'cif': Cif(),
     'csv': Csv(),

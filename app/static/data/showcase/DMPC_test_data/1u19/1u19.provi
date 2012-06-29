@@ -1,0 +1,108 @@
+[
+	{
+		"dir": "showcase",
+		"filename": "DMPC_test_data/1u19/1u19.pdb",
+		"type": "pdb",
+		"applet": "default"
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19_1_mod_1.4.mbn.atmsele",
+		"type": "atmsele",
+		"applet": 0,
+		"when": 0
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19_1_mod_1.4.mbn.atmprop",
+		"type": "atmprop",
+		"applet": 0,
+		"when": 1
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19.vol.atmsele",
+		"type": "atmsele",
+		"applet": 0,
+		"when": 0
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19.vol.atmprop",
+		"type": "atmprop",
+		"applet": 0,
+		"when": 0
+	},
+	{
+		"type": "function",
+		"funcname": "Provi.Bio.Voronoia.register",
+		"when": 3,
+		"params": {
+			"holes_ds": "DATASET_3"
+		}
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19_1.tmhelix.atmsele",
+		"type": "atmsele",
+		"applet": 0,
+		"when": 0
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19_1_hbx.anal.bonds",
+		"type": "bonds",
+		"applet": 0,
+		"when": 6
+	},
+	{
+		"type": "widget",
+		"widgetname": "Provi.Bio.HydrogenBonds.HbondsWidget2",
+		"applet": 0,
+		"when": 7,
+		"params": {
+			"dataset": "DATASET_7",
+			"tmhelix_atmsele_ds": "DATASET_6",
+			"parent_id": "tab_widgets" 
+		}
+	},
+	{
+		"type": "widget",
+		"widgetname": "Provi.Bio.AtomSelection.GridWidget",
+		"applet": 0,
+		"when": 3,
+		"params": {
+			"type": "voronoia",
+			"heading": "Voronoia",
+			"hide_eids": ["filter", "sort", "type", "property"],
+			"parent_id": "tab_widgets" 
+		}
+	},
+	{
+		"type": "function",
+		"funcname": "Provi.Bio.InterfaceContacts.register",
+		"when": 2,
+		"params": {
+			"contacts_ds": "DATASET_1"
+		}
+	},
+	{
+		"type": "widget",
+		"widgetname": "Provi.Bio.AtomSelection.GridWidget",
+		"applet": 0,
+		"when": 2,
+		"params": {
+			"type": "interface_contacts",
+			"heading": "Interface contacts",
+			"hide_eids": ["filter", "sort", "type", "property"],
+			"parent_id": "tab_widgets" 
+		}
+	},
+	{
+		"dir": "showcase", 
+		"filename": "DMPC_test_data/1u19/1u19_1_mod.mplane",
+		"type": "mplane",
+		"applet": 0,
+		"when": 0
+	}
+]

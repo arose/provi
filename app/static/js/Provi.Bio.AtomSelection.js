@@ -142,11 +142,12 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
     );
     console.log('ATOMSELECTION GRID', params);
     params.persist_on_applet_delete = true;
-    params.heading = 'Selection Grid';
-    params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 'grid', 'update', 'type', 'filter', 'sort', 'property' ]);
     
+    this.type = params.type;
+    this.hide_eids = params.hide_eids;
+
     this.dataset = params.dataset;
     this.applet = params.applet;
     
@@ -158,7 +159,6 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
                 '<option value="chainlabel">Chains</option>' +
                 '<option value="modelindex">Models</option>' +
                 '<option value="variable">Selections</option>' +
-                '<option value="voronoia">Voronoia</option>' +
             '</select>' +
             '&nbsp;' +
             '<button id="${eids.update}">update</button>' +
@@ -218,7 +218,10 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
 }
 Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.AtomSelection.GridWidget.prototype */ {
     default_params: {
-        
+        heading: 'Selection Grid',
+        collapsed: false,
+        type: 'atomindex',
+        hide_eids: []
     },
     _init: function(){
         var self = this;
@@ -227,6 +230,10 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         this.update_type();
         // this.update_grid();
         
+        _.each( this.hide_eids, function(eid){
+            self.elm( eid ).parent().hide();
+        })
+
         if( this.applet ){
             $(this.applet).bind('load_struct', function(e, fullPathName, fileName){
                 if(fullPathName && fileName!='zapped'){
@@ -249,6 +256,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         });
 
         this.elm('type').bind('change', function(){
+            self.type = self.elm('type').children("option:selected").val();
             self.update_type();
         });
 
@@ -307,6 +315,30 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             console.log("neighbours");
             self.invalidate();
         });
+
+        $( this.eid('grid', true) + ' input[title="contacts"]' ).live( 'click', function(e, data){
+            var elm = $(this);
+            var id = elm.data("id");
+            self.sele_type.show_contacts( id, !elm.prop('checked') );
+            console.log("contacts");
+            self.invalidate();
+        });
+
+        $( this.eid('grid', true) + ' input[title="consurf"]' ).live( 'click', function(e, data){
+            var elm = $(this);
+            var id = elm.data("id");
+            self.sele_type.show_consurf( id, !elm.prop('checked') );
+            console.log("consurf");
+            self.invalidate();
+        });
+
+        $( this.eid('grid', true) + ' input[title="intersurf"]' ).live( 'click', function(e, data){
+            var elm = $(this);
+            var id = elm.data("id");
+            self.sele_type.show_intersurf( id, !elm.prop('checked') );
+            console.log("intersurf");
+            self.invalidate();
+        });
         
         Provi.Widget.Widget.prototype.init.call(this);
     },
@@ -349,7 +381,6 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         this.grid = new Slick.Grid( this.eid('grid', true), data, columns, options);
         //this.grid = new Slick.Grid( $('#grid'), data, columns, options);
         //console.log( this.grid );
-        
     },
     invalidate: function(){
         console.log('invalidate');
@@ -365,7 +396,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         // $(header).css('padding', '1px');
     },
     update_type: function(){
-        var type = this.elm('type').children("option:selected").val() || 'atomindex';
+        var type = this.type || 'atomindex';
         this.sele_type = new (Provi.Bio.AtomSelection.SelectionTypeRegistry.get( type ))({ 
             applet: this.applet,
             sele: '*',
