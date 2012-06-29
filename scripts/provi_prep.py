@@ -355,6 +355,8 @@ def main():
     # parse the command line
     args = parser.parse_args()
 
+    if args.pdb:
+        prep_pdb( args.pdb )
 
     if args.vol and args.pdb:
         prep_volume( args.vol, args.pdb )

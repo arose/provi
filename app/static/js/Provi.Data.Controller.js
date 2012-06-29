@@ -184,10 +184,11 @@ Provi.Data.Controller.AtomPropertyMixin = {
             'names = [];' +
             'for(c in columns){' +
                 'i = i+1;' +
-                'name = "property_" + c;' +
+                'c2 = c.split("#");' +
+                'name = "property_" + c2[1];' +
                 'names = names + name;' +
                 's = "DATA \\"" + name + " 0 " + i + " @d\\";";' + 
-                's2 = "{selected and " + name + " = 9}." + name + " = NaN;";' + 
+                's2 = "{selected and " + name + " = " + c2[2] + "}." + name + " = NaN;";' + 
                 'script INLINE @s;' +
                 'script INLINE @s2;' +
                 'print "provi property: " + name;' +
