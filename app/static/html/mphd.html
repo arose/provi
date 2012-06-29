@@ -210,7 +210,7 @@
 			'<li>PDB ID: <a target="_blank" href="http://www.rcsb.org/pdb/explore/explore.do?structureId=${params.pdb_id}">${params.pdb_id}</a></li>' +
 			'<li>Probe radius: ${params.probe_radius}</li>' +
 			'<li>Family: ${params.family}</li>' +
-			'<li><a target="_blank" href="${params.mphd_url}">MPHD entry</a></li>' +
+			'<li><a target="_blank" href="${params.mphd_url}">DMPC entry</a></li>' +
 		    '</ul>' +
 		    '';
 		
@@ -286,8 +286,8 @@
 	    	
 	    	Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
                 //sort_key: 2,
-                heading: 'MPHD Propensities',
-                description: 'Propensity data from curated MPHD data set',
+                heading: 'DMPC Propensities',
+                description: 'Propensity data from curated DMPC data set',
                 show_dataset_info: false,
                 parent_id: 'tab_tree',
                 collapsed: true,

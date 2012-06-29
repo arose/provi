@@ -1,4 +1,4 @@
-volume_vdw volume_vdw_1_4 buried_flag packing_density
+volume_vdw#-1 volume_vdw_1_4#-1 buried_flag#-1 packing_density#-1
  13.68  14.66 0 0.48
   7.03  29.83 0 0.19
  21.83  73.99 0 0.23
