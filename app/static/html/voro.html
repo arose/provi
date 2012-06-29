@@ -187,13 +187,14 @@
                 no_sequence_view_widget: true,
                 no_selection_manager_widget: true,
                 no_tree_view_widget: true,
-                no_grid_widget: false,
+                no_grid_widget: true,
                 no_plot_widget: true
             });
             $(Provi.Jmol).bind('applet_list_change', layout_main);
         
             new Provi.Jmol.Controls.JmolDisplayWidget({
-                parent_id: 'tab_widgets'
+                parent_id: 'tab_widgets',
+                collapsed: true
             });
         
             
@@ -228,37 +229,15 @@
             $('#tabs_panel a[title]').tipsy({ gravity: 'n' });
 
 
+            // when in test mode, load some data for development purposes
             if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
-                var pdb = '165D';
-                var applet = Provi.Jmol.get_default_applet( true );    
-                var ds = Provi.Data.Io.import_example(
-                    'showcase', 'voronoia/test_data/' + pdb + '_modified.pdb', 'pdb', 
-                    { applet: applet, load_as: 'new' }
-                );
-                $(ds).bind('loaded2', function(){
-                    // var vol_widget = new Provi.Bio.Voronoia.Voronoia2Widget( $.extend( params, {
-                    //     parent_id: 'tab_widgets',
-                    //     applet: applet,
-                    //     dataset: self
-                    // }));
-                    var ds_vol = Provi.Data.Io.import_example(
-                        'showcase', 'voronoia/test_data/' + pdb + '_modified.atmprop', 'atmprop',
-                        { applet: applet }
-                    );
-                    var ds_holes = Provi.Data.Io.import_example(
-                        'showcase', 'voronoia/test_data/' + pdb + '_modified.atmsele', 'atmsele',
-                        { applet: applet }
-                    );
-                    $(ds_holes).bind('loaded2', function(){
-                        // vol_widget.holes_selections = ds_holes.get();
-                        // vol_widget.tree_view();
-                        Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-                            'voronoia', Provi.Bio.Voronoia.VoronoiaSelectionTypeFactory(
-                                _.pluck( ds_holes.get().get_list(), 'name' )
-                            )
-                        )
-                    });
+
+                var applet = Provi.Jmol.get_default_applet( true );
+
+                Provi.Data.Io.import_example( 'showcase', 'DMPC_test_data/1u19/1u19_voro.provi', 'provi', {
+                    applet: applet
                 });
+            }else{
 
             }
 

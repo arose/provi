@@ -14,8 +14,8 @@
 	},
 	{
 		"dir": "showcase", 
-		"filename": "DMPC_test_data/1u19/1u19_1_mod_1.4.mbn.atmprop",
-		"type": "atmprop",
+		"filename": "DMPC_test_data/1u19/1u19_1_mod_1.4.mbn_contact.atmsele",
+		"type": "atmsele",
 		"applet": 0,
 		"when": 1
 	},

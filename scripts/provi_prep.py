@@ -31,7 +31,7 @@ def get_pdb_coord_dict(pdb_file):
         if l.startswith('ATOM') or l.startswith('HETATM'):
             key = ( float(l[30:38]), float(l[38:46]), float(l[46:54]) )
             if key in coord_dict:
-                LOG.error( "coords already in dict. %s" % key )
+                LOG.error( "coords already in dict. %s" % str(key) )
             else:
                 coord_dict[ key ] = i
                 i += 1
@@ -57,6 +57,7 @@ def prep_contact(contact_file, pdb_file):
     name, ext = os.path.splitext(contact_file)
     elms_out_fp = open( "%s.atmsele" % (contact_file), "w")
     contact_out_fp = open( "%s.atmprop" % (contact_file), "w")
+    contact2_out_fp = open( "%s_contact.atmsele" % (contact_file), "w")
 
     pdb_coord_dict = get_pdb_coord_dict(pdb_file)
     pdb_index_dict = get_pdb_index_dict(pdb_file)
@@ -99,6 +100,7 @@ def prep_contact(contact_file, pdb_file):
         elms_list_dict[e] = i
 
     structure_elms_dict = defaultdict(list)
+    contacts_cutoff_dict = defaultdict(list)
 
     contact_out_fp.write('%s\n' % " ".join([ "%s#9" % e for e in elms_list ]))
     for i, l in enumerate(contact_lines):
@@ -112,6 +114,8 @@ def prep_contact(contact_file, pdb_file):
                 if elm_id in structure_elms_index:
                     elm_name = structure_elms_index[ int(elm_id) ]
                     elms_out_list[ elms_list_dict[ elm_name ] ] = cutoff
+                    # zero based atomindex
+                    contacts_cutoff_dict[ "%s_%s" % (elm_name, cutoff) ].append( i )
                 else:
                     LOG.warning( "structure element not known. %s" % elm_id )
             structure_elms_dict[ l[0:5] ].append( i+1 )
@@ -123,10 +127,15 @@ def prep_contact(contact_file, pdb_file):
         # zero based atomindex
         struc = " ".join([ str(a-1) for a in atoms ])
         elms_out_fp.write( "%s %s\n" % (name, struc) )
+
+    for name, atoms in contacts_cutoff_dict.iteritems():
+        contacts = " ".join([ str(a) for a in atoms ])
+        contact2_out_fp.write( "%s %s\n" % (name, contacts) )
         
     contact_fp.close()
     elms_out_fp.close()
     contact_out_fp.close()
+    contact2_out_fp.close()
 
 
 
