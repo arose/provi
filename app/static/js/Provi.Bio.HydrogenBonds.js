@@ -18,6 +18,20 @@ var Widget = Provi.Widget.Widget;
 
 
 /**
+ * Represents a bond set
+ * @constructor
+ */
+Provi.Bio.HydrogenBonds.BondSet = function(bondset){
+    this.bondset = bondset;
+};
+Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.BondSet.prototype */ {
+    sele: function(){
+        return this.bondset;
+    }
+}
+
+
+/**
  * Represents hydrogen bonds
  * @constructor
  */
@@ -59,6 +73,136 @@ Provi.Bio.HydrogenBonds.Hbonds.prototype = Provi.Utils.extend(Provi.Bio.Smcra.Ab
 	    Provi.Utils.array_cmp( id, own_id[1].slice(0, len) );
     }
 });
+
+
+
+/**
+ * A widget to view hydrogen bonds data
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ * @param {Provi.Jmol.Applet} params.applet The applet the widget will be bound to
+ * @param {Provi.Data.Dataset} params.dataset The dataset the widget will be bond to
+ */
+Provi.Bio.HydrogenBonds.HbondsWidget2 = function(params){
+    params = _.defaults(
+        params,
+        Provi.Bio.HydrogenBonds.HbondsWidget2.prototype.default_params
+    );
+    
+    /** Color in which the hydrogen bonds are drawn */
+    this.color = params.color;
+    this.filter = params.filter;
+    this.show_hbonds = params.show_hbonds;
+    this.bond_mode_or = params.bond_mode_or;
+    this.tmhelix_atmsele_ds = params.tmhelix_atmsele_ds;
+
+    this.applet = params.applet;
+    this.dataset = params.dataset;
+    
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+        'grid', 'show_hbonds', 'filter', 'bond_mode_or'
+    ]);
+
+    var template = '' +
+        '<div class="control_row">' +
+            '<input id="${eids.show_hbonds}" type="checkbox" />' +
+            '<label for="${eids.show_hbonds}">show hydrogen bonds</label>&nbsp;' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="${eids.bond_mode_or}" type="checkbox" />' +
+            '<label for="${eids.bond_mode_or}">bond mode "OR"</label>&nbsp;' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="${eids.filter}">filter</label>' +
+            '&nbsp;' +
+            '<select id="${eids.filter}" class="ui-state-default">' +
+                '<option value="all">all</option>' +
+                '<option value="backbone">backbone</option>' +
+                '<option value="sidechain">sidechain</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<i>The hydrogen bonds are shown as dashed lines.</i>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<div id="${eids.grid}"></div>' +
+        '</div>' +
+    '';
+    this.add_content( template, params );
+    this._init();
+}
+Provi.Bio.HydrogenBonds.HbondsWidget2.prototype = Utils.extend(Widget, /** @lends Provi.Bio.HydrogenBonds.HbondsWidget2.prototype */ {
+    /** initialisation */
+    default_params: {
+        heading: 'Hydrogen bonds',
+        show_hbonds: false,
+        // color: 'blue',
+        color: 'cpk',
+        filter: 'all',
+        bond_mode_or: false
+    },
+    _init: function(){
+        var self = this;
+
+        this.elm('show_hbonds').change( function() {
+            self.show_hbonds = self.elm("show_hbonds").is(":checked");
+            self.show();
+        });
+
+        this.elm('bond_mode_or').change( function() {
+            self.bond_mode_or = self.elm("bond_mode_or").is(":checked");
+            self.show();
+        });
+
+        this.elm('filter').change( function() {
+            self.filter = self.elm('filter').children("option:selected").val();
+            self.show();
+        });
+        
+        if( this.tmhelix_atmsele_ds ){
+            this.elm('filter').children().first().after(
+                '<option value="interhelical">interhelical (TODO: not working)</option>'
+            );
+        }
+        
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    get_filter: function(){
+        if( !this.filter ) return '*';
+
+        if( this.filter==='interhelical' ){
+            return 'helix and sidechain';
+        }else{
+            return this.filter;
+        }
+    },
+    show: function(){
+        var sele = this.dataset.data.sele();
+        var filter_sele = this.get_filter();;
+        var bond_mode_or = this.bond_mode_or;
+        console.log(this, sele, filter_sele);
+        var s = '' +
+            'var bs = ' + sele + ';' +
+            'color @bs ' + this.color + ';' +
+            'connect @bs hbonds;' +
+            'hide add @bs;' +
+            'set bondModeOr ' + bond_mode_or + ';' +
+        '';
+        if( this.show_hbonds ){
+            s += '' +
+                'var atms = bs.atoms.all;' +
+                'var filter = {atms and ' + filter_sele + '};' +
+                'var filtered_bs = filter.bonds and bs;' +
+                'display add @filtered_bs;' +
+            '';
+        }
+        s += 'set bondModeOr false;';
+        this.applet.script( s, true );
+    }
+});
+
 
 
 /**

@@ -84,11 +84,12 @@ Provi.Data.Controller.ProviMixin = {
             var func;
             if( data.params ){
                 _.each( data.params , function(value, key){
-                    console.log();
-                    var m = value.match(/DATASET_(\d+)/i);
-                    if( m ){
-                        console.log(m, m[1], ds_dict, ds_dict[ m[1] ]);
-                        data.params[key] = ds_dict[ m[1] ];
+                    if( _.isString(value) ){
+                        var m = value.match(/DATASET_(\d+)/i);
+                        if( m ){
+                            console.log(m, m[1], ds_dict, ds_dict[ m[1] ]);
+                            data.params[key] = ds_dict[ m[1] ];
+                        }
                     }
                 });
             }
@@ -97,13 +98,17 @@ Provi.Data.Controller.ProviMixin = {
                 ds_dict[i] = ( new Provi.Data.Dataset({type:'story'}) ).init( data.params );
 
             }else if( data.type=='widget' ){
+                var params = $.extend( (data.params || {}), {
+                    applet: jw_dict[data.applet].applet
+                });
                 func = function(){
                     var widget = eval( data.widgetname );
-                    wg_dict[i] = new widget( data.params );
+                    wg_dict[i] = new widget( params );
                 }
             }else if( data.type=='function' ){
                 console.log("FUNCTION", data);
                 func = function(){
+                    console.log("FUNCTION called", data.funcname, data);
                     eval( data.funcname )( data.params );
                 }
             }else{
@@ -121,7 +126,7 @@ Provi.Data.Controller.ProviMixin = {
                     load_as: (data.load_as || 'new')
                 });
                 ds_dict[i] = Provi.Data.Io.import_example( 
-                    data.dir, data.filename, data.type, params, function(ds){console.log('LOADED', ds)}, true 
+                    data.dir, data.filename, data.type, params, function(ds){console.log('LOADED', i, ds)}, true 
                 );
                 func = function(){
                     var ds = ds_dict[i];
@@ -188,7 +193,8 @@ Provi.Data.Controller.AtomPropertyMixin = {
                 'print "provi property: " + name;' +
             '}' +
             'select none;' +
-            'print "provi property ds ' + this.id + ': " + names.join(" ");' +
+            'print "provi dataset: ' + this.id + ' loaded | " + ' +
+                '"provi property ds ' + this.id + ': " + names.join(" ");' +
         '';
         console.log(s);
         applet.script_wait(s, true);
@@ -220,26 +226,65 @@ Provi.Data.Controller.AtomSelectionMixin = {
                     'if(!provi_selection){ provi_selection = {} }' +
                     'for(l in lines){' +
                         'fields = l.split(" ");' +
-                        'print fields;' +
-                        'print fields.join(" - ");' +
+                        // 'print fields;' +
+                        // 'print fields.join(" - ");' +
                         'name = fields[1];' +
                         'names = names + name;' +
+                        // 'if( fields[2] == "ZB" ){' +
+                        //     'd = fields[3][0];' +
+                        // '}else{' +
+                        //     'd = fields[2][0];' +
+                        //     'd = d.sub(1);' +
+                        // '}' +
                         'd = fields[2][0];' +
-                        'd = d.sub(1);' +
                         'sele = "({" + d.join(" ") + "})";' +
                         'provi_selection[name] = sele;' + 
                         'print "provi selection: " + name;' +
                     '}' +
-                    'print "provi selection ds ' + this.id + ': " + names.join(" ");' +
+                    'print "provi dataset: ' + this.id + ' loaded | " + ' +
+                        '"provi selection ds ' + this.id + ': " + names.join(" ");' +
                 // '}catch(e){' +
                 //     'print "provi dataset: ' + this.id + ' error " + e;' +
                 //     'var log_error = "console.error(\'provi dataset: ' + this.id + ' error " + e + "\')";' +
                 //     'javascript @log_error;' +
                 //     'break;' +
                 // '}' +
-                'print "provi dataset: ' + this.id + ' loaded";' +
+                // 'print "provi dataset: ' + this.id + ' loaded";' +
             //     'break;' +
             // '}' +
+        '';
+        console.log(s);
+        applet.script(s, true);
+    }
+}
+
+
+
+/**
+ * @class
+ */
+Provi.Data.Controller.BondsMixin = {
+    available_widgets: {},
+    init: function(params){
+        var self = this;
+        if( params.applet ){
+            this.load( params.applet );
+        }
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    },
+    load: function( applet ){
+        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
+        var url = '../../data/get/';
+        // applet.script_wait('load DATA '"" + url + get_params + '";');
+        var s = '' +
+            'x = load("' + url + get_params + '");' +
+            'bond_count_before = {*}.bonds.size;' +
+            'script INLINE @x;' +
+            'bond_count_after = {*}.bonds.size;' +
+            'bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";' +
+            'hide add @bs;' +
+            'print "provi dataset: ' + this.id + ' loaded | " + ' +
+                '"provi bonds ds ' + this.id + ': " + bond_count_before + " " + bond_count_after;' +
         '';
         console.log(s);
         applet.script_wait(s, true);
@@ -282,6 +327,8 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.AtomPropertyMixin );
     }else if( type === 'atmsele' ){
         $.extend( obj, Ctrl.AtomSelectionMixin );
+    }else if( type === 'bonds' ){
+        $.extend( obj, Ctrl.BondsMixin );
     }else if( type === 'provi' ){
         $.extend( obj, Ctrl.ProviMixin );
     }else{

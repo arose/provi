@@ -36,6 +36,7 @@ var Widget = Provi.Widget.Widget;
 
 Provi.Bio.Voronoia.register = function( params ){
     var holes_ds = params.holes_ds;
+    console.log( holes_ds );
     Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
         'voronoia', Provi.Bio.Voronoia.VoronoiaSelectionTypeFactory(
             _.pluck( holes_ds.get().get_list(), 'name' )

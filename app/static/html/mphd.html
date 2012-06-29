@@ -30,6 +30,7 @@
     <script type="text/javascript" src="../js/lib/jquery.jlayout.js"></script>
     
     <script type="text/javascript" src="../js/lib/sylvester.js"></script>
+    <script type="text/javascript" src="../js/lib/numeric.js"></script>
     
     <!--<script type="text/javascript" src="../js/lib/protovis-r.js"></script>
     <script type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>-->
@@ -48,6 +49,8 @@
     
     <script type="text/javascript" src="../js/Provi.Bio.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Smcra.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.AtomProperty.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.AtomSelection.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Structure.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Voronoia.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Rotamers.js"></script>
@@ -86,6 +89,12 @@
     
     <link rel="stylesheet" media="screen" type="text/css" href="../js/lib/jquery-colorPicker/colorPicker.css" />
     <script type="text/javascript" src="../js/lib/jquery-colorPicker/jquery.colorPicker.js"></script>
+
+    <link rel="stylesheet" href="../js/lib/slickgrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+    <script language="JavaScript" src="../js/lib/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.core.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.editors.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.grid.js"></script>
     
     <link type="text/css" href="../js/lib/jquery-ui/css/mphd/jquery-ui.css" rel="stylesheet" />
     <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
@@ -137,6 +146,15 @@
 		    }
 		);
 		
+		Provi.Bio.AtomSelection.GridWidget.prototype.default_params = $.extend(
+		    Provi.Bio.AtomSelection.GridWidget.prototype.default_params,
+		    {
+				sort_key: 2,
+				show_dataset_info: false,
+				collapsed: true
+		    }
+		);
+
 		Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params = $.extend(
 		    Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params,
 		    {
@@ -159,6 +177,16 @@
 		
 		Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params = $.extend(
 		    Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params,
+		    {
+				sort_key: 4,
+				heading: 'Hydrogen Bonds',
+				show_dataset_info: false,
+				collapsed: true
+		    }
+		);
+
+		Provi.Bio.HydrogenBonds.HbondsWidget2.prototype.default_params = $.extend(
+		    Provi.Bio.HydrogenBonds.HbondsWidget2.prototype.default_params,
 		    {
 				sort_key: 4,
 				heading: 'Hydrogen Bonds',
@@ -257,12 +285,14 @@
             });
 	    	
 	    	Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
-				sort_key: 2,
-				heading: 'Propensities',
-				description: 'Propensity data from curated MPHD data set',
-				show_dataset_info: false,
-				collapsed: true
-		    });
+                //sort_key: 2,
+                heading: 'MPHD Propensities',
+                description: 'Propensity data from curated MPHD data set',
+                show_dataset_info: false,
+                parent_id: 'tab_tree',
+                collapsed: true,
+                mphd: true
+            });
             
             $('#tab_scrollbox').scroll(function (event, ui) {
                 $(this).data('scrollTop-tab-' + tabs_panel.tabs('option', 'selected'), $(this).scrollTop());
@@ -299,34 +329,12 @@
 	    
 		    // when in test mode, load some data for development purposes
 		    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
-				var applet = Provi.Jmol.get_default_applet( true );
-				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mbn', 'mbn', {
-				    applet: applet
-				});
-				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.mplane', 'mplane', {
-				    applet: applet
-				});
-				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.tmhelix', 'tmhelix', {
-				    applet: applet
-				});
-				Provi.Data.Io.import_example( 'showcase', 'mplot/3dqb.anal', 'anal', {
-				    applet: applet
-				});
-				( new Provi.Data.Dataset({type:'story'}) ).init({
-				    data: {
-					pdb_id: "3dqb",
-					probe_radius: 1.4,
-					family: "GPCR",
-					mphd_url: "http://proteinformatics.charite.de/mphd/"
-				    }
-				});
-				Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
-					sort_key: 2,
-					heading: 'Propensities',
-					applet: applet,
-					description: '',
-					show_dataset_info: true
-			    });
+
+		    	var applet = Provi.Jmol.get_default_applet( true );
+
+				Provi.Data.Io.import_example( 'showcase', 'DMPC_test_data/1u19/1u19.provi', 'provi', {
+                    applet: applet
+                });
 		    }else{
 
 		    }
