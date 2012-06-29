@@ -79,6 +79,14 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
 }
 Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableSelectionType, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype */ {
+    tmp_prop_cmd: function(id){
+        var tmp_prop = '{*}.property_tmp = NaN;';
+        _.each(this.atm_cutoff, function(d){
+            tmp_prop += '{ @provi_selection["' + id + '_' + d[0] + '"] }' +
+                '.property_tmp = ' + d[0] + ';';
+        });
+        return tmp_prop;
+    },
     get_ids: function(sele){
         return this.ids;
     },
@@ -170,9 +178,12 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                 });
                 return 'set drawHover true;' +
                     'set isosurfacePropertySmoothing false;' +
+                    self.tmp_prop_cmd(id) +
                     'var sele = {' + 
-                        'property_' + id + '>=-0.5 and ' +
-                        'property_' + id + '<=2.8' +
+                        'property_tmp>=-0.5 and ' +
+                        'property_tmp<=2.8' +
+                        // 'property_' + id + '>=-0.5 and ' +
+                        // 'property_' + id + '<=2.8' +
                     '};' +
                     'isosurface id "' + id + '_consurf__no_widget__" ' +
                         'select { @sele } ' +
@@ -188,10 +199,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                     'select *; ' +
                     'color "ic=[xFFFF00] [xFFA500] [xEB8900] [xD86E00] [xC55200] [xB13700] [x9E1B00] [x8B0000]";' +
                     'isosurface ID "' + id + '_consurf__no_widget__" ' + 
-                        'MAP property_' + id + ';' +
+                        'MAP property_tmp;' +
+                        // 'MAP property_' + id + ';' +
                     'color $' + id + '_consurf__no_widget__ "ic" ' +
                         ' RANGE -0.5 2.8;' +
-                    
                 '';
             }).join(' ');
         }
@@ -231,21 +242,25 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         this.applet.script( s, true );
     },
     _show_contacts: function(id, flag){
-        if( flag ){
+        if( flag || id =="all" ){
             return 'color {*} cpk;';
         }
-        var color_cmd = '';
-        _.each(this.atm_cutoff, function(d){
-            color_cmd += 'color {property_' + id + '=' + d[0] + '} ' + d[1] + ';';
-        });
+        // var color_cmd = '';
+        // _.each(this.atm_cutoff, function(d){
+        //     color_cmd += 'color {property_' + id + '=' + d[0] + '} ' + d[1] + ';';
+        // });
         return '' +
             'color {*} cpk;' +
             //color_cmd +
+            this.tmp_prop_cmd(id) +
             'select ' + 
-                'property_' + id + '>=-0.5 and ' +
-                'property_' + id + '<=2.8;' +
+                'property_tmp>=-0.5 and ' +
+                'property_tmp<=2.8;' +
+                // 'property_' + id + '>=-0.5 and ' +
+                // 'property_' + id + '<=2.8;' +
             'color "ic=[xFFFF00] [xFFA500] [xEB8900] [xD86E00] [xC55200] [xB13700] [x9E1B00] [x8B0000]";' +
-            'color atoms property_' + id + ' "ic" ' +
+            // 'color atoms property_' + id + ' "ic" ' +
+            'color atoms property_tmp "ic" ' +
                 ' RANGE -0.5 2.8;' +
             'select ' + this.selection(id) + ';' +
             'color atoms pink;' +
@@ -292,7 +307,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         return $intersurf;
     },
     contacts_cell: function(id, contacts){
-        if( id==="all" ) return '';
+        // if( id==="all" ) return '';
 
         var $contacts = $('<span style="background:lightgreen; float:right; width:22px;">' +
             '<input title="contacts" type="radio" ' + 
