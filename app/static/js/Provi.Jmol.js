@@ -781,6 +781,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         var self = this;
 
         $(this).bind('message', function(e, msg1, msg2, msg3){
+            if( msg1.search(/^ERROR:/) != -1 ){
+                console.error(msg1, msg2, msg3);
+            }
+
             if( msg1.search(/isosurface count/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
                 var iso_id = msg1.match(/^([\w]+) created .* isosurface count/)[1];
@@ -829,9 +833,12 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             }
             if( msg1.search(/provi selection ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
-                var m = msg1.match(/provi selection ds ([\w]+): ([\w ]+)/);
+                var m = msg1.match(/provi selection ds ([\w]+): ([\w ]*)/);
                 var dataset_id = m[1];
-                var sele_names = m[2].split(" ");
+                var sele_names = [];
+                if( m[2].trim() ){
+                    sele_names = m[2].split(" ");
+                }
                 var ds = Provi.Data.DatasetManager.get( dataset_id );
                 ds.set_data( new Provi.Bio.AtomSelection.AtomSelectionGroup(sele_names) );
             }

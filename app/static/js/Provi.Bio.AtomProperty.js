@@ -174,5 +174,68 @@ Provi.Bio.AtomProperty.AtomPropertyWidget.prototype = Utils.extend(Provi.Widget.
 });
 
 
+/**
+ * widget class
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Bio.AtomProperty.AtomPropertyGroupWidget = function(params){
+    params = _.defaults(
+        params,
+        Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype.default_params
+    );
+    params.persist_on_applet_delete = false;
+
+    this.filter_properties = params.filter_properties;
+
+    this.dataset = params.dataset;
+    this.applet = params.applet;
+    
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+        'list'
+    ]);
+
+    var template = '<div>' +
+        '<div id="${eids.list}"></div>' +
+    '</div>';
+    this.add_content( template, params );
+    this.init();
+}
+Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype */ {
+    default_params: {
+        heading: 'Atom property group',
+        collapsed: false,
+        filter_properties: false
+    },
+    init: function(){
+        var self = this;
+        
+        var props = _.map( this.dataset.data.get_list(), function(p){
+            return p.name.substr(9); // remove 'property_' prefix
+        });
+        if( this.filter_properties ){
+            props = _.intersection( props, this.filter_properties )
+        }
+
+        _.each( props, function( property_name ){
+            self.add( property_name );
+            console.log(property_name);
+        });
+
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    add: function( property_name ){
+        new Provi.Bio.AtomProperty.AtomPropertyWidget({
+            parent_id: this.eid('list'),
+            applet: this.applet,
+            property_name: 'property_' + property_name,
+            heading: false,
+            collapsed: false
+        });
+    }
+});
+
 
 })();

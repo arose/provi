@@ -73,7 +73,7 @@
 		"when": 3,
 		"params": {
 			"type": "voronoia",
-			"heading": "Voronoia",
+			"heading": "Holes",
 			"hide_eids": ["filter", "sort", "type", "property"],
 			"parent_id": "tab_widgets" 
 		}
@@ -95,6 +95,18 @@
 			"type": "interface_contacts",
 			"heading": "Interface contacts",
 			"hide_eids": ["filter", "sort", "type", "property"],
+			"parent_id": "tab_widgets" 
+		}
+	},
+	{
+		"type": "widget",
+		"widgetname": "Provi.Bio.AtomProperty.AtomPropertyGroupWidget",
+		"applet": 0,
+		"when": 4,
+		"params": {
+			"heading": "Packing",
+			"dataset": "DATASET_4",
+			"filter_properties": ["packing_density", "z_score"],
 			"parent_id": "tab_widgets" 
 		}
 	},

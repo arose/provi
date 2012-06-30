@@ -426,6 +426,9 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
     },
     make_row: function(id){
         if(id==='all'){
+            if( !this.ids || !this.ids.length ){
+                return 'No holes';
+            }
             var label = 'Holes'
         }else{
             var label = 'Hole ' + id.split('_')[2];
@@ -461,11 +464,15 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
                 var hole_id = id;
                 return 'sele = ' + self.selection(id, true) + ';' +
                     'set drawHover true;' +
-                    'dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;' +
-                    'draw ID ' + hole_id + '_draw__no_widget__ "Hole ' + hole_id.split('_')[2] + '" ' +
-                        'DIAMETER @dia ' +
-                        'COLOR skyblue ' +
-                        '@sele;';
+                    'try{' +
+                        'dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;' +
+                        'draw ID ' + hole_id + '_draw__no_widget__ "Hole ' + hole_id.split('_')[2] + '" ' +
+                            'DIAMETER @dia ' +
+                            'COLOR skyblue ' +
+                            '@sele;' +
+                    '}catch(e){' +
+                        'print "ERROR: " + e' +
+                    '}';
             }).join(' ');
         }
     },

@@ -141,7 +141,6 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
         Provi.Bio.AtomSelection.GridWidget.prototype.default_params
     );
     console.log('ATOMSELECTION GRID', params);
-    params.persist_on_applet_delete = true;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 'grid', 'update', 'type', 'filter', 'sort', 'property' ]);
     
@@ -221,7 +220,8 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         heading: 'Selection Grid',
         collapsed: false,
         type: 'atomindex',
-        hide_eids: []
+        hide_eids: [],
+        persist_on_applet_delete: false
     },
     _init: function(){
         var self = this;
