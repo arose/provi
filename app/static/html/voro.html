@@ -152,6 +152,23 @@
             }
         );
 
+        Provi.Bio.AtomSelection.GridWidget.prototype.default_params = $.extend(
+            Provi.Bio.AtomSelection.GridWidget.prototype.default_params,
+            {
+                show_dataset_info: false,
+                collapsed: true,
+                persist_on_applet_delete: false
+            }
+        );
+
+        Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype.default_params = $.extend(
+            Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype.default_params,
+            {
+                show_dataset_info: false,
+                collapsed: true
+            }
+        );
+
         function layout_main() {
             var n = Provi.Jmol.get_applet_list().length;
             var i = Math.round( Math.sqrt(n) );

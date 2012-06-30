@@ -179,6 +179,7 @@ def prep_volume(vol_file, pdb_file):
                 neighbours.append( vol_index_dict[nb] )
             else:
                 LOG.error( "hole neighbour index not found. %s" % nb )
+        neighbours.sort()
         # zero based atomindex
         neighbours = " ".join([ str(nb-1) for nb in neighbours ])
         holes_out_fp.write( "HOLE_NUMBER_%s %s\n" % (ls[0], neighbours) )

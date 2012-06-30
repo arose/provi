@@ -38,5 +38,17 @@
 			"hide_eids": ["filter", "sort", "type", "property"],
 			"parent_id": "tab_widgets" 
 		}
+	},
+	{
+		"type": "widget",
+		"widgetname": "Provi.Bio.AtomProperty.AtomPropertyGroupWidget",
+		"applet": 0,
+		"when": 2,
+		"params": {
+			"heading": "Packing",
+			"dataset": "DATASET_2",
+			"filter_properties": ["packing_density", "z_score"],
+			"parent_id": "tab_widgets" 
+		}
 	}
 ]
