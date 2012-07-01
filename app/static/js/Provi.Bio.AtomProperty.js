@@ -70,7 +70,10 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
 
     this.dataset = params.dataset;
     this.applet = params.applet;
+
     this.property_name = params.property_name;
+    this.color_scheme = params.color_scheme;
+    this.colorize_on_init = params.colorize_on_init;
     
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
@@ -91,8 +94,7 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
             '<span id="${eids.observed_max}"></span>' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="${eids.color_scheme}">color scheme</label>&nbsp;' +
-            '<select id="${eids.color_scheme}" class="ui-state-default">' +
+            '<select style="width:1.5em;" id="${eids.color_scheme}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="rwb">red-white-blue</option>' +
                 '<option value="bwr">blue-white-red</option>' +
@@ -102,6 +104,8 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
                 '<option value="bw">black-white</option>' +
                 '<option value="wb">white-black</option>' +
             '</select>' +
+            '&nbsp;' +
+            '<label for="${eids.color_scheme}">color scheme</label>' +
         '</div>' +
         '<div class="control_row">' +
             '<label for="${eids.min}">color scheme min</label>&nbsp;' +
@@ -117,6 +121,7 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
 Provi.Bio.AtomProperty.AtomPropertyWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.AtomProperty.AtomPropertyWidget.prototype */ {
     default_params: {
         heading: 'Atom property',
+        color_scheme: 'rwb',
         collapsed: false
     },
     _init: function () {
@@ -133,6 +138,10 @@ Provi.Bio.AtomProperty.AtomPropertyWidget.prototype = Utils.extend(Provi.Widget.
         this.elm('set').button().bind( 'click', function(){
             self.set_range();
         }).hide();
+
+        if( this.colorize_on_init ){
+            this.colorize();
+        }
 
         Provi.Widget.Widget.prototype.init.call(this);
     },
@@ -158,12 +167,16 @@ Provi.Bio.AtomProperty.AtomPropertyWidget.prototype = Utils.extend(Provi.Widget.
         this.max = parseFloat( this.elm('max').val() );
     },
     set_color_scheme: function(){
-        if(!this.applet) return;
-
-        var range = _.isFinite( this.min ) && _.isFinite( this.max );
         this.color_scheme = this.elm('color_scheme').children("option:selected").val();
         console.log(this.color_scheme);
         this.elm('color_scheme').val('');
+        this.colorize();
+    },
+    colorize: function( scheme ){
+        if(!this.applet) return;
+        scheme = scheme || this.color_scheme;
+
+        var range = _.isFinite( this.min ) && _.isFinite( this.max );
         this.applet.script('' +
             'select *;' +
             'color atoms "' + this.property_name + '" "' + this.color_scheme + '" ' +
@@ -188,6 +201,7 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget = function(params){
     params.persist_on_applet_delete = false;
 
     this.filter_properties = params.filter_properties;
+    this.colorize_on_init = params.colorize_on_init;
 
     this.dataset = params.dataset;
     this.applet = params.applet;
@@ -232,7 +246,8 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, 
             applet: this.applet,
             property_name: 'property_' + property_name,
             heading: false,
-            collapsed: false
+            collapsed: false,
+            colorize_on_init: this.colorize_on_init
         });
     }
 });

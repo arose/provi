@@ -427,11 +427,11 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
     make_row: function(id){
         if(id==='all'){
             if( !this.ids || !this.ids.length ){
-                return 'No holes';
+                return 'No cavities';
             }
-            var label = 'Holes'
+            var label = 'Cavities'
         }else{
-            var label = 'Hole ' + id.split('_')[2];
+            var label = 'Cavity ' + id.split('_')[2];
         }
         var a = this.get_data(id);
         var selected = a[0];
@@ -522,33 +522,39 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
     },
     hole_cell: function(id, hole){
         var $hole = $('<span style="background:skyblue; float:right; width:22px;">' +
-            '<input title="hole" type="checkbox" ' + 
+            '<input cell="hole" type="checkbox" ' + 
                 ( hole ? 'checked="checked" ' : '' ) + 
             '/>' +
         '</span>');
         $hole.children().prop( 'indeterminate', hole > 0.0 && hole < 1.0 );
         $hole.children().data( 'id', id );
+        var tt = (hole ? 'Hide' : 'Show') + (id==='all' ? ' all spheres' : ' sphere');
+        $hole.tipsy({gravity: 'n', fallback: tt});
         return $hole;
     },
     cavity_cell: function(id, cavity){
         var $cavity = $('<span style="background:tomato; float:right; width:22px;">' +
-            '<input title="cavity" type="checkbox" ' + 
+            '<input cell="cavity" type="checkbox" ' + 
                 ( cavity ? 'checked="checked" ' : '' ) + 
             '/>' +
         '</span>');
         $cavity.children().prop( 'indeterminate', cavity > 0.0 && cavity < 1.0 );
         $cavity.children().data( 'id', id );
+        var tt = (cavity ? 'Hide' : 'Show') + (id==='all' ? ' all cavities' : ' cavity');
+        $cavity.tipsy({gravity: 'n', fallback: tt});
         return $cavity;
     },
     neighbours_cell: function(id, neighbours){
         neighbours = parseFloat(neighbours);
         var $neighbours = $('<span style="background:lightgreen; float:right; width:22px;">' +
-            '<input title="neighbours" type="checkbox" ' + 
+            '<input cell="neighbours" type="checkbox" ' + 
                 ( neighbours ? 'checked="checked" ' : '' ) + 
             '/>' +
         '</span>');
         $neighbours.children().prop( 'indeterminate', neighbours > 0.0 && neighbours < 0.2 );
         $neighbours.children().data( 'id', id );
+        var tt = (neighbours ? 'Hide' : 'Show') + (id==='all' ? ' all neighbours' : ' neighbours');
+        $neighbours.tipsy({gravity: 'n', fallback: tt});
         return $neighbours;
     }
 });

@@ -237,8 +237,8 @@
 	        $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
 	    }
 		
-		//Provi.Jmol.init("../../jmol/current/14/", !$.query.get('unsigned'));
-		Provi.Jmol.init("../../jmol/current/16/", $.query.get('signed'));
+		Provi.Jmol.init("../../jmol/current/14/", !$.query.get('unsigned'));
+		//Provi.Jmol.init("../../jmol/current/16/", $.query.get('signed'));
 		
 	    $(document).ready(function(){
 	    
@@ -280,7 +280,8 @@
 				    no_selection_manager_widget: true,
 				    no_tree_view_widget: true,
 				    no_grid_widget: true,
-				    no_plot_widget: true
+				    no_plot_widget: true,
+				    no_data_info: true
 				}
 		    );
             $(Provi.Jmol).bind('applet_list_change', layout_main);

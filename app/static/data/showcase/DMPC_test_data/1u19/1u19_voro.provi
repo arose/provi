@@ -34,7 +34,7 @@
 		"when": 1,
 		"params": {
 			"type": "voronoia",
-			"heading": "Voronoia",
+			"heading": "Cavities",
 			"hide_eids": ["filter", "sort", "type", "property"],
 			"parent_id": "tab_widgets" 
 		}
@@ -48,7 +48,8 @@
 			"heading": "Packing",
 			"dataset": "DATASET_2",
 			"filter_properties": ["packing_density", "z_score"],
-			"parent_id": "tab_widgets" 
+			"parent_id": "tab_widgets",
+			"colorize_on_init": true
 		}
 	}
 ]
