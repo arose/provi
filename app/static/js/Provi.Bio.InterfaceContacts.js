@@ -41,7 +41,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
     this.ids = params.ids;
     this.ids.sort();
 
-    // this.ids = [  ] + this.ids;
+    this.ids = [ 'Membrane', 'Water' ].concat( this.ids );
 
     var type_count = { 'H': 1, 'C': 1, 'E': 1, 'W': 1, 'O': 1 };
     var type_names = {
@@ -59,7 +59,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
         if( type_names[ c ] && /[0-9]/.test(id.charAt(1)) ){
             self.id_names[id] = '' + 
                 type_names[ c ] + ' ' + 
-                type_count[ c ] + ' (' + id + ')';
+                type_count[ c ] + 
+                // ' (' + id + ')' +
+            '';
             type_count[ c ] += 1;
         }
     })
@@ -87,6 +89,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         });
         return tmp_prop;
     },
+    is_virtual: function(id){
+        return _.include( ['Membrane', 'Water'], id );
+    },
     get_ids: function(sele){
         return this.ids;
     },
@@ -99,8 +104,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                 'var intersurf_l = [];' +
                 'var displayed_l = [];' +
                 'for(id in ids){' +
-                    'sele_l += provi_selection[id].selected.join("");' +
-                    'var p = provi_selection[id];' +
+                    'if(id!="Water" & id!="Membrane"){' +
+                        'sele_l += provi_selection[id].selected.join("");' +
+                    '}' +
+                    //'var p = provi_selection[id];' +
                     'tmp = 0;' +
                     'var s = "tmp = ($"+id+"_consurf__no_widget__ & true)+0";' +
                     'script INLINE @s;' +
@@ -126,7 +133,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
     },
     make_row: function(id){
         if(id==='all'){
-            var label = 'Interfaces'
+            var label = 'Interface elements'
         }else{
             var label = this.id_names[ id ] || id;
         }
@@ -142,7 +149,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
 
         var $row = $('<div></div>');
         $row.append(
-            this.selected_cell( id, selected ),
+            this.selected_cell( id, selected, this.is_virtual(id) ),
             this.label_cell( label ),
             this.contacts_cell( id, contacts ),
             this.consurf_cell( id, consurf ),
@@ -185,15 +192,19 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                         // 'property_' + id + '>=-0.5 and ' +
                         // 'property_' + id + '<=2.8' +
                     '};' +
+                    'var sele2 = ' + 
+                        (self.is_virtual(id) ? 'none' : self.selection(id, true)) + ';' +
+                    'var sele3 = ' + 
+                        (self.is_virtual(id) ? 'sele' : self.selection(id, true)) + ';' +
                     'isosurface id "' + id + '_consurf__no_widget__" ' +
                         'select { @sele } ' +
-                        'ignore { ' + self.selection(id) + ' } ' +
+                        'ignore { @sele2 } ' +
                         'resolution ' + resolution + ' ' +
                         'color orange ' +
                         'solvent 1.4 ' +
                     ';' +
                     'isosurface id "' + id + '_consurf__no_widget__" ' +
-                        'slab within 5.0 { ' + self.selection(id) + ' };' +
+                        'slab within 5.0 { @sele3 };' +
                     // 'isosurface id "' + id + '_consurf__no_widget__"; ' +
                     //     color_cmd +
                     'select *; ' +
@@ -288,35 +299,55 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         if( id==="all" ) return '';
 
         var $consurf = $('<span style="background:tomato; float:right; width:22px;">' +
-            '<input title="consurf" type="checkbox" ' + 
+            '<input cell="consurf" type="checkbox" ' + 
                 ( consurf ? 'checked="checked" ' : '' ) + 
             '/>' +
         '</span>');
         $consurf.children().data( 'id', id );
+        var tt = (consurf ? 'Hide' : 'Show') + ' contact surface';
+        $consurf.tipsy({gravity: 'n', fallback: tt});
         return $consurf;
     },
     intersurf_cell: function(id, intersurf){
-        if( id==="all" ) return '';
+        if( _.include([ 'all', 'Membrane', 'Water' ], id ) ) return '';
 
         var $intersurf = $('<span style="background:skyblue; float:right; width:22px;">' +
-            '<input title="intersurf" type="checkbox" ' + 
+            '<input cell="intersurf" type="checkbox" ' + 
                 ( intersurf ? 'checked="checked" ' : '' ) + 
             '/>' +
         '</span>');
         $intersurf.children().data( 'id', id );
+        var tt = (intersurf ? 'Hide' : 'Show') + ' element surface';
+        $intersurf.tipsy({gravity: 'n', fallback: tt});
         return $intersurf;
     },
     contacts_cell: function(id, contacts){
         // if( id==="all" ) return '';
 
         var $contacts = $('<span style="background:lightgreen; float:right; width:22px;">' +
-            '<input title="contacts" type="radio" ' + 
+            '<input cell="contacts" type="radio" ' + 
                 ( contacts ? 'checked="checked" ' : '' ) + 
             '/>' +
         '</span>');
         $contacts.children().data( 'id', id );
+
+        if( !contacts && id!=='all' ){
+            var tt = 'Show contacts';
+            $contacts.tipsy({gravity: 'n', fallback: tt});
+        }else if( !contacts && id==='all' ){
+            var tt = 'Hide all contacts';
+            $contacts.tipsy({gravity: 'n', fallback: tt});
+        }
+        
         return $contacts;
     }
+    // selection: function(id, flag){
+    //     if( _.include([ 'Membrane', 'Water' ], id ) ){
+    //         ''
+    //     }else{
+    //         return Provi.Bio.AtomSelection.VariableSelectionType.selection.call(this, id, flag);
+    //     }
+    // },
 });
 
 

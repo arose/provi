@@ -898,7 +898,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
  * @constructor
  */
 Provi.Jmol.JmolWidget = function(params){
-    params = $.extend( Provi.Jmol.JmolWidget.prototype.default_params, params );
+    params = _.defaults( params, Provi.Jmol.JmolWidget.prototype.default_params );
     Widget.call( this, params );
     this.applet = new Provi.Jmol.Applet(params);
     this.applet.widget = this;
@@ -977,6 +977,10 @@ Provi.Jmol.JmolWidget = function(params){
         $('#' + this.more_id).remove();
     }
     
+    if( params.no_data_info ){
+        $('#' + this.data_id).parent().hide();
+    }
+
     if( !params.no_selection_manager_widget ){
         this.selection_manager = new Provi.Selection.SelectionManagerWidget({
             parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
@@ -1017,7 +1021,8 @@ Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Jmo
         parent_id: null,
         no_sequence_view_widget: false,
         no_selection_manager_widget: false,
-        no_tree_view_widget: false
+        no_tree_view_widget: false,
+        no_data_info: false
     },
     toggle_sequence_view: function(){
         $('#' + this.more_id).toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-n');

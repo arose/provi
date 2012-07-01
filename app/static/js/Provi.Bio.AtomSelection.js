@@ -142,7 +142,9 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
     );
     console.log('ATOMSELECTION GRID', params);
     Provi.Widget.Widget.call( this, params );
-    this._init_eid_manager([ 'grid', 'update', 'type', 'filter', 'sort', 'property' ]);
+    this._init_eid_manager([ 
+        'grid', 'update', 'type', 'filter', 'sort', 'property', 'contact_color_code'
+    ]);
     
     this.type = params.type;
     this.hide_eids = params.hide_eids;
@@ -207,6 +209,17 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
                 'sidechain<br/>' +
             '</div>' +    
         '</div>' +
+        '<div class="control_row" id="${eids.contact_color_code}">' +
+            '<span style="background-color:#FFFF00; padding: 1px 3px;">&#8209;0.5</span>' +
+            '<span style="background-color:#FFA500; padding: 1px 3px;">0.0</span>' +
+            '<span style="background-color:#EB8900; padding: 1px 3px;">0.5</span>' +
+            '<span style="background-color:#D86E00; padding: 1px 3px;">1.0</span>' +
+            '<span style="background-color:#C55200; padding: 1px 3px;">1.5</span>' +
+            '<span style="background-color:#B13700; padding: 1px 3px; color: white;">2.0</span>' +
+            '<span style="background-color:#9E1B00; padding: 1px 3px; color: white;">2.5</span>' +
+            '<span style="background-color:#8B0000; padding: 1px 3px; color: white;">2.8</span>' +
+            '&nbsp;contact cutoff' +
+        '</div>' +
         '<div class="control_row">' +
             '<div style="height:500px;" id="${eids.grid}"></div>' +
         '</div>' +
@@ -229,10 +242,22 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         this.create_grid();
         this.update_type();
         // this.update_grid();
-        
+
         _.each( this.hide_eids, function(eid){
             self.elm( eid ).parent().hide();
-        })
+        });
+
+        if( this.type==="voronoia" ){
+            this.sele_type.show_hole( 'all' );
+            this.invalidate();
+        }
+        if( this.type==="interface_contacts" ){
+            this.sele_type.show_contacts( 'Membrane' );
+            this.invalidate();
+            this.elm('contact_color_code').show();
+        }else{
+            this.elm('contact_color_code').hide();
+        }
 
         if( this.applet ){
             $(this.applet).bind('load_struct', function(e, fullPathName, fileName){
@@ -276,8 +301,9 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             }
         });
 
-        $( this.eid('grid', true) + ' input[title="selected"]' ).live( 'click', function(e, data){
+        $( this.eid('grid', true) + ' input[cell="selected"]' ).live( 'click', function(e, data){
             var elm = $(this);
+            elm.parent().tipsy('hide');
             var id = elm.data("id");
             self.sele_type.select( id, !elm.prop('checked') );
             console.log("selected");
@@ -286,54 +312,61 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
 
         $( this.eid('grid', true) + ' input[title="displayed"]' ).live( 'click', function(e, data){
             var elm = $(this);
+            elm.parent().tipsy('hide');
             var id = elm.data("id");
             self.sele_type.display( id, !elm.prop('checked') );
             console.log("displayed");
             self.invalidate();
         });
 
-        $( this.eid('grid', true) + ' input[title="hole"]' ).live( 'click', function(e, data){
+        $( this.eid('grid', true) + ' input[cell="hole"]' ).live( 'click', function(e, data){
             var elm = $(this);
+            elm.parent().tipsy('hide');
             var id = elm.data("id");
             self.sele_type.show_hole( id, !elm.prop('checked') );
             console.log("hole");
             self.invalidate();
         });
 
-        $( this.eid('grid', true) + ' input[title="cavity"]' ).live( 'click', function(e, data){
+        $( this.eid('grid', true) + ' input[cell="cavity"]' ).live( 'click', function(e, data){
             var elm = $(this);
+            elm.parent().tipsy('hide');
             var id = elm.data("id");
             self.sele_type.show_cavity( id, !elm.prop('checked') );
             console.log("checked");
             self.invalidate();
         });
 
-        $( this.eid('grid', true) + ' input[title="neighbours"]' ).live( 'click', function(e, data){
+        $( this.eid('grid', true) + ' input[cell="neighbours"]' ).live( 'click', function(e, data){
             var elm = $(this);
+            elm.parent().tipsy('hide');
             var id = elm.data("id");
             self.sele_type.show_neighbours( id, !elm.prop('checked') );
             console.log("neighbours");
             self.invalidate();
         });
 
-        $( this.eid('grid', true) + ' input[title="contacts"]' ).live( 'click', function(e, data){
+        $( this.eid('grid', true) + ' input[cell="contacts"]' ).live( 'click', function(e, data){
             var elm = $(this);
+            elm.parent().tipsy('hide');
             var id = elm.data("id");
             self.sele_type.show_contacts( id, !elm.prop('checked') );
             console.log("contacts");
             self.invalidate();
         });
 
-        $( this.eid('grid', true) + ' input[title="consurf"]' ).live( 'click', function(e, data){
+        $( this.eid('grid', true) + ' input[cell="consurf"]' ).live( 'click', function(e, data){
             var elm = $(this);
+            elm.parent().tipsy('hide');
             var id = elm.data("id");
             self.sele_type.show_consurf( id, !elm.prop('checked') );
             console.log("consurf");
             self.invalidate();
         });
 
-        $( this.eid('grid', true) + ' input[title="intersurf"]' ).live( 'click', function(e, data){
+        $( this.eid('grid', true) + ' input[cell="intersurf"]' ).live( 'click', function(e, data){
             var elm = $(this);
+            elm.parent().tipsy('hide');
             var id = elm.data("id");
             self.sele_type.show_intersurf( id, !elm.prop('checked') );
             console.log("intersurf");
@@ -475,15 +508,18 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
         '</span>');
         return $label;
     },
-    selected_cell: function(id, selected){
+    selected_cell: function(id, selected, disabled){
         selected = parseFloat(selected);
         var $selected = $('<span style="float:left; width:25px;">' +
-            '<input title="selected" type="checkbox"' + 
+            '<input cell="selected" type="checkbox"' + 
+                ( disabled ? 'disabled="disabled" ' : '') +
                 ( selected ? 'checked="checked" ' : '' ) + 
             '/>' +
         '</span>');
         $selected.children().prop( 'indeterminate', selected > 0.0 && selected < 1.0 );
         $selected.children().data( 'id', id );
+        var tt = (selected ? 'Deselect' : 'Select') + (id==='all' ? ' all' : '');
+        $selected.tipsy({gravity: 'n', fallback: tt});
         return $selected;
     },
     displayed_cell: function(id, displayed){

@@ -246,8 +246,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row">' +
-            '<label for="${eids.style}">style</label>' +
-            '<select id="${eids.style}" class="ui-state-default">' +
+            '<select style="width:1.5em;" id="${eids.style}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="default">default</option>' +
                 '<option value="lines">lines</option>' +
@@ -266,12 +265,14 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
                 '<option value="cartoon+aromatic">cartoon & aromatic</option>' +
             '</select>' +
             '&nbsp;' +
-            '<label for="${eids.style_sele}">selection only</label>' +
+            '<label for="${eids.style}">style</label>' +
+            '&nbsp;&nbsp;&nbsp;' +
             '<input id="${eids.style_sele}" type="checkbox" style="margin-top: 0.5em;">' +
+            '&nbsp;' +
+            '<label for="${eids.style_sele}">selection only</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="${eids.color_scheme}">color scheme</label>' +
-            '<select id="${eids.color_scheme}" class="ui-state-default">' +
+            '<select style="width:1.5em;" id="${eids.color_scheme}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="structure">secondary structure</option>' +
                 '<option value="chain">by chain</option>' +
@@ -283,19 +284,21 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
                 '<option value="altloc">altloc</option>' +
                 '<option value="formalcharge">formalcharge</option>' +
             '</select>' +
+            '&nbsp;' +
+            '<label for="${eids.color_scheme}">color scheme</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="${eids.quality}">quality</label>' +
-            '<select id="${eids.quality}" class="ui-state-default">' +
+            '<select style="width:1.5em;" id="${eids.quality}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="0">normal</option>' +
                 '<option value="1">better cartoons</option>' +
                 '<option value="2">highest (print)</option>' +
             '</select>' +
+            '&nbsp;' +
+            '<label for="${eids.quality}">quality</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<label for="${eids.color_models}">color models</label>' +
-            '<select id="${eids.color_models}" class="ui-state-default">' +
+            '<select style="width:1.5em;" id="${eids.color_models}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="roygb">red, orange, yellow, green, blue</option>' +
                 '<option value="bgyor">blue, green, yellow, orange, red</option>' +
@@ -306,19 +309,20 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
                 '<option value="bw">black, white</option>' +
                 '<option value="wb">white, black</option>' +
             '</select>' +
+            '&nbsp;' +
+            '<label for="${eids.color_models}">color models</label>' +
         '</div>' +
-        
         '<div class="control_row">' +
             'center:&nbsp;' +
             '<button id="${eids.center_all}">all</button>' +
-            '<button id="${eids.center_protein}">protein</button>' +
+            '<button id="${eids.center_protein}">polymer</button>' +
             '<button id="${eids.center_selected}">selected</button>' +
         '</div>' +
         '<div class="control_row">' +
             'select:&nbsp;' +
             '<button id="${eids.select_all}">all</button>' +
             '<button id="${eids.select_none}">none</button>' +
-            '<button id="${eids.select_protein}">protein</button>' +
+            '<button id="${eids.select_protein}">polymer</button>' +
             '<button id="${eids.select_invert}">invert</button>' +
         '</div>' +
     '';

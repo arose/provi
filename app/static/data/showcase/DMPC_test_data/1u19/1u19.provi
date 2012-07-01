@@ -73,7 +73,7 @@
 		"when": 3,
 		"params": {
 			"type": "voronoia",
-			"heading": "Holes",
+			"heading": "Cavities",
 			"hide_eids": ["filter", "sort", "type", "property"],
 			"parent_id": "tab_widgets" 
 		}
