@@ -32,25 +32,31 @@ Provi.Data.Io.Jmol.CalculateWidget = function(params){
         Provi.Data.Io.Jmol.CalculateWidget.prototype.default_params
     );
     params.persist_on_applet_delete = false;
-    params.heading = 'Jmol Calculate On Server';
-    //params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
-    this._init_eid_manager( ['applet_selector', 'form', 'iframe', 'calculate'] );
+    this._init_eid_manager( ['applet_selector', 'calculate', 'download', 'size'] );
     
     var template = '' +
-	'<div id="${eids.applet_selector}"></div>' +
-	'<div class="control_row">' +
-	    '<button id="${eids.calculate}" >Calculate</button>' +
-	    
-	'</div>' +
-	'<form id="${eids.form}" style="display:hidden;" method="post" action="${params.form_action}" target="${eids.iframe}">' +
-            '<input type="hidden" name="data" value=""></input>' +
-        '</form>' +
-        '<iframe id="${eids.iframe}" name="${eids.iframe}" style="display:none;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
-	'';
+        '<div id="${eids.applet_selector}"></div>' +
+        '<div class="control_row">' +
+            '<label for="${eids.size}">size</label>' +
+            '&nbsp;' +
+            '<select id="${eids.size}" class="ui-state-default">' +
+                '<option value="1">same (x1)</option>' +
+                '<option value="2">large (x2)</option>' +
+                '<option value="4">very large (x4)</option>' +
+                // '<option value="8">huge (x8)</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<button id="${eids.calculate}" >Calculate</button>' +
+
+            '&nbsp;' +
+            '<span id="${eids.download}"></span>' +
+        '</div>' +
+    '';
     
     params = $.extend({
-	form_action: '../../calculate/jmol/'
+        form_action: '../../calculate/jmol/'
     }, params);
     
     this.add_content( template, params );
@@ -63,23 +69,59 @@ Provi.Data.Io.Jmol.CalculateWidget = function(params){
 }
 Provi.Data.Io.Jmol.CalculateWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Data.Io.Jmol.CalculateWidget.prototype */ {
     default_params: {
-        
+        heading: 'Jmol Calculate On Server',
+        collapsed: true
     },
     _init: function(){
         var self = this;
         
-        this.elm( 'calculate' ).button().click( function(e){
+        this.elm('calculate').button().click( function(e){
             console.log('jmol calculate on server');
-	    self.calculate();
+            self.elm('download').empty();
+            self.elm('download').append( 'calculating...' );
+            self.calculate();
+        });
+
+        this._init_calculate_callback();
+        $( this.applet_selector ).bind('change_selected', function(event, applet){
+            _.each( Provi.Jmol.get_applet_list(), function(applet, i){
+                $(applet).unbind( '.' + self.id );
+            });
+            self._init_calculate_callback();
         });
         
-	Provi.Widget.Widget.prototype.init.call(this);
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    _init_calculate_callback: function(){
+        var self = this;
+        var applet = this.applet_selector.get_value();
+        if(applet){
+            $(applet).bind( 'message.' + this.id, function(e, msg1, msg2, msg3){
+                if( msg1.search(/provi calculate:/) != -1 ){
+                    console.log(msg1, msg2, msg3, msg1.search(/provi calculate:/));
+                    var path = msg1.match(/provi calculate: (.+)/)[1];
+                    console.log( path );
+                    self.elm('download').empty();
+                    self.elm('download').append(
+                        '<a target="_blank" href="../tmp/' + path + '">download</a>'
+                    );
+                }
+            });
+        }
     },
     calculate: function(){
-	var data = this.applet_selector.get_value().get_property_as_string("stateInfo", '');
-	var $form = this.elm('form');
-	$form.children('input[name=data]').val( data );
-	$form.submit();
+        var applet = this.applet_selector.get_value();
+        var size = this.elm('size').children(':selected').val();
+        var s = '' +
+            'print "provi calculate: " + ' +
+                'load(' +
+                    '"/../../../calculate/jmol/?POST?_PNGJBIN_&' +
+                    'width=" + _width*' + size + ' + "&' +
+                    'height=" + _height*' + size +
+                ');' +
+        '';
+        console.log(s);
+        applet.applet.script( s );
     }
 });
 

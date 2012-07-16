@@ -221,7 +221,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
     show_consurf: function(id, flag, params){
         var s = this._show_consurf(id, flag, params);
         console.log(s);
-        this.applet.script( s, true );
+        this.applet.script_wait( s, true );
     },
     _show_intersurf: function(id, flag, params){
         params = params || {};
@@ -250,7 +250,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
     },
     show_intersurf: function(id, flag, params){
         var s = this._show_intersurf(id, flag, params);
-        this.applet.script( s, true );
+        this.applet.script_wait( s, true );
     },
     _show_contacts: function(id, flag){
         if( flag || id =="all" ){
@@ -283,17 +283,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         }else{
             this.shown_contact_id = id;
         }
-        this.applet.script( this._show_contacts(id, flag), true );
-    },
-    hole_cell: function(id, hole){
-        var $hole = $('<span style="background:skyblue; float:right; width:22px;">' +
-            '<input title="hole" type="checkbox" ' + 
-                ( hole ? 'checked="checked" ' : '' ) + 
-            '/>' +
-        '</span>');
-        $hole.children().prop( 'indeterminate', hole > 0.0 && hole < 1.0 );
-        $hole.children().data( 'id', id );
-        return $hole;
+        this.applet.script_wait( this._show_contacts(id, flag), true );
     },
     consurf_cell: function(id, consurf){
         if( id==="all" ) return '';

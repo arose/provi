@@ -365,6 +365,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     _delete: function(){
            $('#' + this.widget.data_id).empty();
+           this.script_wait('provi_selection = {};');
            $(this).triggerHandler('delete');
     },
     _create_html: function(){
@@ -529,16 +530,20 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         return script;
     },
     _script: function(script, maintain_selection, message){
+        var self = this;
         script = this._prepare_script( script, maintain_selection, message );
         //console.log(script);
         try{
-            if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
-                        //console.log( 'SAFARI' );
-                        this.applet.script( script );
-            }else{
-                        //console.log( 'NOT SAFARI' );
-                        var tmp = this.applet.scriptWait( script );
-            }
+            setTimeout( function(){
+                self.applet.scriptWait( script );
+            }, 0);
+            // if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
+            //             //console.log( 'SAFARI' );
+            //             this.applet.script( script );
+            // }else{
+            //             //console.log( 'NOT SAFARI' );
+            //             var tmp = this.applet.scriptWait( script );
+            // }
         }catch(e){
             console.error(e, script);
         }
@@ -867,6 +872,15 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 
         // $(this).bind('load_struct', function(e, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
 
+        //     console.error(fileName);
+
+        //     if( fileName=='zapped' ){
+        //         console.error(fileName);
+        //     }
+        // });
+
+        // $(this).bind('load_struct', function(e, fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted){
+
         //     if( fullPathName && fileName!='zapped' ){
         //         console.log(fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted);
 
@@ -999,7 +1013,8 @@ Provi.Jmol.JmolWidget = function(params){
     if( !params.no_grid_widget ){
         this.grid_widget = new Provi.Bio.AtomSelection.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-            applet: this.applet
+            applet: this.applet,
+            persist_on_applet_delete: true
         });
     }
     

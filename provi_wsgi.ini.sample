@@ -38,6 +38,9 @@ static_favicon_dir =  %(here)s/app/static/favicon.ico
 # serving jmol applet
 jmol_dir =  %(here)s/app/static/applet/jmol/
 
+# tmp dir accessible from web
+web_tmp_dir =  %(here)s/app/static/tmp/
+
 # serving app html files
 app_dir =  %(here)s/app/static/html/
 

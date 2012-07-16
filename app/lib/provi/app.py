@@ -24,8 +24,6 @@ logging.basicConfig( level=logging.DEBUG )
 LOG = logging.getLogger('provi')
 LOG.setLevel( logging.DEBUG )
 
-JMOL_PATH = "/Users/alexrose/Documents/uni/charite/development/contrib/Jmol/"
-
 import threading
 
 class DataStorage(object):
@@ -200,8 +198,12 @@ class SaveController( BaseController ):
         return 'foo'
     def decode( self, data, encoding ):
         if encoding == 'base64':
-            from base64 import b64decode
-            data = b64decode( data )
+            from base64 import b64decode, decodestring
+            try:
+                # data = b64decode( data )
+                data = decodestring( data )
+            except Exception, e:
+                print str(e)
         return data
     @expose
     def download( self, trans, name, data, type='application/download', encoding=None ):
@@ -256,6 +258,14 @@ class SaveController( BaseController ):
         fh = open( os.path.join( filepath, name ), mode )
         fh.write( data )
         fh.close()
+    @expose
+    def jmol( self, trans, name, directory_name, **kwargs ):
+        # receives the PNGJBIN send by Jmol
+        filepath = trans.app.config.example_directories[ directory_name ]
+        data = trans.environ['wsgi.input'].read()
+        with open( os.path.join( filepath, name ), 'w' ) as fh:
+            fh.write( data )
+        return 'OK'
 
 
 class PluploadController( BaseController ):
@@ -388,48 +398,53 @@ class AppController( BaseController ):
 
 
 class JmolCalculateController( BaseController ):
-    def __init__( self, app, tmp_dir ):
+    def __init__( self, app, tmp_dir, jmol_dir ):
         """"""
         self.app = app
         self.tmp_dir = tmp_dir
+        self.jmol_dir = jmol_dir
     def session_id( self, trans ):
         cookie_dict = {}
         for cookie in trans.environ['HTTP_COOKIE'].split('\n'):
-            name, value = cookie.split('=')
+            name, value = cookie.split('=', 1)
             cookie_dict[name] = value
         LOG.debug( cookie_dict )
         return cookie_dict[ 'provisessions' ]
         #return cookie_dict[ self.app.config.session_key ]
-    def prepare( self, data, session_id ):
-        base_url = 'http://127.0.0.1:7272/data/get/?'
-        data = data.replace( base_url, '%ssession_id=%s&' % (base_url, session_id) )
-        data = data.replace( 'resolution 1.0', 'resolution 3.0' )
-        return data
-    def calculate( self, state, session_id ):
-        session_dir = os.path.join( self.tmp_dir, session_id )
+    def calculate( self, trans, width, height ):
+        session_dir = os.path.join( self.tmp_dir, self.session_id( trans ) )
         if not os.path.isdir( session_dir ):
             os.mkdir( session_dir )
-        state_file = os.path.join( session_dir, 'state.jspt' )
-        with open( state_file, 'w' ) as state_fh:
-            state_fh.write( state )
+        jmol_file = os.path.join( session_dir, 'jmol.png' )
         image_file = os.path.join( session_dir, 'image.jpg' )
-        self.jmol( state_file, image_file )
-    def jmol( self, state_file, image_file ):
+        script_file = os.path.join( session_dir, 'script.spt' )
+        log_file = os.path.join( session_dir, 'log.txt' )
+        with open( jmol_file, 'w' ) as fh:
+            fh.write( trans.environ['wsgi.input'].read() )
+        self.jmol( jmol_file, image_file, script_file, log_file, width, height )
+        return image_file[ len(self.tmp_dir): ]
+    def jmol( self, jmol_file, image_file, script_file, log_file, width, height ):
         template = '' + \
-            'script "%(state_file)s";' + \
-            'write image jpg "%(image_file)s";' + \
+            'load "%(jmol_file)s";' + \
+            'select none; frank off;' + \
+            'write image jpg 100 "%(image_file)s";' + \
             ''
-        tpl_fh = self._template_file( template, {
-            "state_file": state_file,
-            "image_file": image_file
-        })
+        # tpl_fh = self._template_file( template, {
+        #     "jmol_file": jmol_file,
+        #     "image_file": image_file
+        # })
+        with open( script_file, 'w' ) as fh:
+            fh.write( template % {
+                "jmol_file": jmol_file,
+                "image_file": image_file
+            })
         cmd_string = [
-            'java', '-jar', '-Xmx2048M',
-            JMOL_PATH + 'JmolPre.jar', '-ionxLt',
-            '-s', tpl_fh.name,
-            '-g', '2048x2048'
+            'java', '-jar', '-Xmx4096M',
+            os.path.join( self.jmol_dir, 'current', 'Jmol.jar' ),
+            '-ionxLt', '-g %sx%s' % ( width, height ),
+            '-s', script_file
         ]
-        self._run( ' '.join(cmd_string) )
+        self._run( ' '.join(cmd_string), log_file )
     def _template_file( self, template, values, suffix='' ):
         import tempfile
         fh = tempfile.NamedTemporaryFile(suffix=suffix)
@@ -448,14 +463,12 @@ class JmolCalculateController( BaseController ):
                 f.write( '\n'.join(out) )
         words = out[-1].split()
         exec_time = float( words[0] )
+        LOG.debug( program )
         LOG.debug( exec_time )
         return exec_time, out
     @expose
-    def index( self, trans, data ):
-        session_id = self.session_id( trans )
-        state = self.prepare( data, session_id )
-        LOG.debug( 'JMOL PREPARED DATA: %s' % data )
-        self.calculate( state, session_id )
+    def index( self, trans, width=500, height=500, **kwargs ):
+        return self.calculate( trans, int(width), int(height) )
 
 
 class ProteinViewerApplication( object ):
@@ -531,7 +544,7 @@ def app_factory( global_conf, **kwargs ):
     webapp.add_controller( 'Jmol', JmolController(webapp, conf.get('jmol_dir') ) )
     webapp.add_route('/jmol/:version/:flag/:filename', controller='Jmol', action='index', version='current', flag=None, filename='')
     
-    webapp.add_controller( 'JmolCalculate', JmolCalculateController(webapp, conf.get('web_tmp_dir')) )
+    webapp.add_controller( 'JmolCalculate', JmolCalculateController(webapp, conf.get('web_tmp_dir'), conf.get('jmol_dir')) )
     webapp.add_route('/calculate/jmol/', controller='JmolCalculate', action='index')
     
     webapp = wrap_in_middleware( webapp, global_conf, **kwargs )

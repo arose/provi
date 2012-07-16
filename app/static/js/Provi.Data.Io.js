@@ -29,6 +29,7 @@ var Widget = Provi.Widget.Widget;
  */
 Provi.Data.Io.PluploadLoadWidget = function(params){
     params.heading = 'File Upload';
+    params.collapsed = true;
     Widget.call( this, params );
     this.input_id = this.id + '_input';
     this.container_id = this.id + '_container';
@@ -286,6 +287,7 @@ Provi.Data.Io.ExampleDirectorySelectorWidget.prototype = Utils.extend(Widget, /*
  */
 Provi.Data.Io.ExampleLoadWidget = function(params){
     params.heading = 'Example/Local Data';
+    params.collapsed = true;
     this.directory_name = '';
     this.opened_dirs = {};
     Widget.call( this, params );
@@ -635,10 +637,11 @@ Provi.Data.Io.PdbLoadWidget.prototype = Utils.extend(Provi.Data.Io.UrlLoadWidget
  */
 Provi.Data.Io.SaveDataWidget = function(params){
     params.heading = params.heading || 'Download data';
-    params.collapsed = false;
+    params.collapsed = true;
     Widget.call( this, params );
     this._build_element_ids([
-        'save_structure', 'save_structure_selected', 'save_image', 'save_state', 'save_isosurface', 'save_ndx',
+        'save_structure', 'save_structure_selected', 'save_image', 
+        'save_state', 'save_isosurface', 'save_ndx', 'save_jmol',
         'ndx_group', 'applet_selector_widget', 'form', 'iframe'
     ]);
     var content = '<div  class="control_group">' +
@@ -661,6 +664,9 @@ Provi.Data.Io.SaveDataWidget = function(params){
             '<button id="' + this.save_ndx_id + '">save ndx</button>&nbsp;' +
             'Group name: ' +
             '<input id="' + this.ndx_group_id + '" type="text"/>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<button id="' + this.save_jmol_id + '">save jmol</button>' +
         '</div>' +
         '<form id="' + this.form_id + '" style="display:hidden;" method="post" action="../../save/' + this.backend_type + '/" target="' + this.iframe_id + '">' +
             '<input type="hidden" name="name" value=""></input>' +
@@ -721,6 +727,13 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
             }, 3000);
             self.save_ndx();
         });
+        $("#" + this.save_jmol_id).button().click(function() {
+            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
+            setTimeout(function(){
+                $("#" + self.save_jmol_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save jmol" );
+            }, 3000);
+            self.save_jmol();
+        });
         Widget.prototype.init.call(this);
     },
     save_data: function( data, name, encoding, type ){
@@ -765,6 +778,14 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
             '\n\n';
         console.log(data);
         this.save_data( data, 'index.ndx' );
+    },
+    save_jmol: function(){
+        var s = '' +
+            'write PNGJ ?.png' +
+        '';
+        console.log(s);
+        var applet = this.applet_selector.get_value();
+        applet.applet.script( s );
     }
 });
 
@@ -813,6 +834,21 @@ Provi.Data.Io.SaveExampleWidget.prototype = Utils.extend(Provi.Data.Io.SaveDataW
     },
     get_directory_name: function(){
         return this.directory_selector.get_value();
+    },
+    save_jmol: function(){
+        var applet = this.applet_selector.get_value();
+        var name = $('#' + this.filename_id).val();
+        var directory_name = this.get_directory_name();
+        path = '/../../../save/jmol/' +
+            '?POST?_PNGJBIN_&' +
+            'name=' + name + '&' +
+            'directory_name=' + directory_name +
+        '';
+        var s = '' +
+            'print load("' + path + '");' +
+        '';
+        console.log(s);
+        applet.script( s );
     }
 });
 
