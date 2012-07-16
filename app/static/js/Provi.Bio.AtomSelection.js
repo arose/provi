@@ -264,7 +264,8 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
                 if(fullPathName && fileName!='zapped'){
                     console.log( fullPathName, fileName );
                     setTimeout(function(){
-                        self.update_grid();
+                        self.create_grid();
+                        self.update_type();
                     }, 10);
                 }
             });
@@ -305,8 +306,9 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
+            // id = elm.attr('cid');
             self.sele_type.select( id, !elm.prop('checked') );
-            console.log("selected");
+            console.log("selected", id, elm, elm.attr('cid'), elm.attr('checked'), elm.prop('checked'));
             self.invalidate();
         });
 
@@ -386,16 +388,17 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
 
         var format_cell = function(row, cell, value, columnDef, dataContext){
             // console.log( dataContext.id );
-            // var row = self.sele_type.make_row( dataContext.id );
+            var row = self.sele_type.make_row( dataContext.id );
             // $(cell).empty().append( row );
-            return '...';
+            // return '...';
+            return row.html();
         }
         
         var columns = [
             { 
                 id:"id", name:"Id", field:"id", width:280,
                 rerenderOnResize: true,
-                //formatter: format_cell,
+                //formatter: format_cell
                 asyncPostRender: render_row
             }
         ];
@@ -411,6 +414,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         
         // data = [ { resno: "1", chain: "A", atomno: 1, group:"Lys", selected:1.0 } ];
         var data = [];
+        delete this.grid;
         this.grid = new Slick.Grid( this.eid('grid', true), data, columns, options);
         //this.grid = new Slick.Grid( $('#grid'), data, columns, options);
         //console.log( this.grid );
@@ -442,8 +446,6 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
     update_grid: function(){
         var self = this;
         if( this.applet ){
-            console.log("update grid");
-            
             var ids = this.sele_type.get_ids();
             var data = _.map( ids, function(val, i){
                 return { id: val }
@@ -495,12 +497,12 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
     select: function(id, flag){
         var selection = this.selection( id );
         var s = 'select ' + (flag ? 'remove' : 'add') + ' ' + selection;
-        this.applet.script( s );
+        this.applet.script_wait( s );
     },
     display: function(id, flag){
         var selection = this.selection( id );
         var s = 'display ' + (flag ? 'remove' : 'add') + ' ' + selection;
-        this.applet.script( s );
+        this.applet.script_wait( s );
     },
     label_cell: function(label){
         var $label = $('<span style="float:left; width:120px;">' +
@@ -511,7 +513,7 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
     selected_cell: function(id, selected, disabled){
         selected = parseFloat(selected);
         var $selected = $('<span style="float:left; width:25px;">' +
-            '<input cell="selected" type="checkbox"' + 
+            '<input cid="' + id + '" cell="selected" type="checkbox"' + 
                 ( disabled ? 'disabled="disabled" ' : '') +
                 ( selected ? 'checked="checked" ' : '' ) + 
             '/>' +
@@ -531,16 +533,22 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
         '</span>');
         $displayed.children().prop( 'indeterminate', displayed > 0.0 && displayed < 1.0 );
         $displayed.children().data( 'id', id );
+        var tt = (displayed ? 'Hide' : 'Display') + (id==='all' ? ' all' : '');
+        $displayed.tipsy({gravity: 'n', fallback: tt});
         return $displayed;
     },
     color_cell: function(color){
-        color = color || '';
-        color = color.replace(/\.00/g, ' ').trim();
-        var c = "0,0,0";
-        if( color ){ c = color.split(/\s+/g).join(','); }
+        if( color ){
+            color = color || '';
+            color = color.replace(/[\.,]00/g, ' ').trim();
+            var c = "0,0,0";
+            if( color ){ c = color.split(/\s+/g).join(','); }
+            var bg = "background-color:rgb(" + c + ");";
+        }else{
+            var bg = '';
+        }
         var $color = $("<span " +
-            "style='float:right; width:30px; " +
-            "background-color:rgb(" + c + ");'>&nbsp;" +
+            "style='float:right; width:30px; " + bg + "'>&nbsp;" +
         "</span>");
         return $color;
     },
@@ -584,7 +592,6 @@ Provi.Bio.AtomSelection.AtomindexSelectionType.prototype = Utils.extend(Provi.Bi
             console.log(a, this.filtered());
             return a;
         }else{
-
             var format = '%[atomIndex]';
             var data = this.applet.atoms_property_map( format, this.filtered() );
             //console.error('get_ids');
@@ -719,7 +726,6 @@ Provi.Bio.AtomSelection.ChainlabelSelectionType.prototype = Utils.extend(Provi.B
         );
         return $row;
     },
-    
     selection: function(id){
         if(id==="all"){
             return 'within(CHAIN, ' + this.filtered() + ')';
@@ -757,7 +763,8 @@ Provi.Bio.AtomSelection.ModelindexSelectionType.prototype = Utils.extend(Provi.B
         if(id==="all"){
             var label = "Models";
         }else{
-            var label = '/' + a[0] + '.' + a[1];
+            // var label = '/' + a[0] + '.' + a[1];
+            var label = '/' + a[1];
         }
 
         var $row = $('<div></div>');

@@ -131,7 +131,8 @@
             DATASET_WIDGET: 'tab_widgets',
             CANVAS_WIDGET: 'main',
             SELECTION_WIDGET: 'tab_tree',
-            BUILDER_WIDGET: 'tab_tree'
+            BUILDER_WIDGET: 'tab_tree',
+            SETTINGS_WIDGET: 'tab_settings'
         });
     
         function layout_main() {
@@ -155,7 +156,7 @@
         //Provi.Jmol.init("../applet/jmol/12.1.42/", true);
         //Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
         //Provi.Jmol.init("../applet/jmol/versions/12.3.9/", true);
-        Provi.Jmol.init("../../jmol/current/25/", $.query.get('signed'));
+        Provi.Jmol.init("../../jmol/current/25/", !$.query.get('unsigned'));
     
         $(document).ready(function(){
         
@@ -212,31 +213,31 @@
             });
         
             new Provi.Jmol.Settings.LightingManagerWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_settings'
             });
         
             new Provi.Jmol.Settings.ClippingManagerWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_settings'
             });
         
             new Provi.Jmol.Settings.QualityManagerWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_settings'
             });
 
             new Provi.Jmol.Settings.BindManagerWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_settings'
             });
         
             new Provi.Jmol.Settings.PickingManagerWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_settings'
             });
         
             new Provi.Jmol.Settings.StyleManagerWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_settings'
             });
 
             new Provi.Jmol.Settings.MiscManagerWidget({
-                parent_id: 'tab_controls'
+                parent_id: 'tab_settings'
             });
         
             new Provi.Jmol.Modeling.JmolModelingWidget({
@@ -313,45 +314,45 @@
             // load
             
             var plupload = new Provi.Data.Io.PluploadLoadWidget({
-                parent_id: 'tab_load'
+                parent_id: 'tab_io'
             });
         
             new Provi.Data.Io.UrlLoadWidget({
-                parent_id: 'tab_load'
+                parent_id: 'tab_io'
             });
         
             new Provi.Data.Io.PdbLoadWidget({
-                parent_id: 'tab_load'
+                parent_id: 'tab_io'
             });
         
             new Provi.Data.Io.ExampleLoadWidget({
-                parent_id: 'tab_load'
+                parent_id: 'tab_io'
             });
             
             // new Provi.Data.Io.Galaxy.GalaxyLoadWidget({
-            //     parent_id: 'tab_load'
+            //     parent_id: 'tab_io'
             // });
         
         
             // calculate
         
             new Provi.Data.Io.Jmol.CalculateWidget({
-                parent_id: 'tab_save'
+                parent_id: 'tab_io'
             });
             
         
             // save
             
             new Provi.Data.Io.SaveDataWidget({
-                parent_id: 'tab_save'
+                parent_id: 'tab_io'
             });
             
             //new Provi.Data.Io.Galaxy.SaveGalaxyWidget({
-            //    parent_id: 'tab_save'
+            //    parent_id: 'tab_io'
             //});
             
             new Provi.Data.Io.SaveExampleWidget({
-                parent_id: 'tab_save'
+                parent_id: 'tab_io'
             });
             
             
@@ -390,7 +391,6 @@
             $('#tabs_panel a[title]:last').tipsy({ gravity: 'ne' });
             $('#tabs_panel a[title]:first').tipsy({ gravity: 'nw' });
             $('#tabs_panel a[title]').tipsy({ gravity: 'n' });
-        
         
             // when in test mode, load some data for development purposes
             if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
@@ -589,51 +589,66 @@
             <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
                 <div id="tabs_panel" style="height:100%; width:100%;">
                     <ul>
-                        <li><a title="Infos about the protein viewer" href="#tab_about">About</a></li>
-                        <li><a title="General controls" href="#tab_controls">Controls</a></li>
-                        <li><a href="#tab_tree">Tree</a></li>
-                        <li><a title="Load from various datasources" href="#tab_load">Load</a></li>
-                        <li><a title="Save data" href="#tab_save">Save</a></li>
-                        <li><a title="A list of all imported data" href="#tab_data">Data</a></li>
-                        <li><a title="A collection of control elements" href="#tab_widgets">Widgets</a></li>
+                        <li><a title="Infos about the protein viewer" href="#tab_about">
+                            <span class="ui-icon ui-icon-help"></span>
+                            <!--<span style="height:19px; display:block;">About</span>-->
+                        </a></li>
+                        <li><a title="General controls" href="#tab_controls">
+                            <span style="height:19px; display:block;">Controls</span>
+                        </a></li>
+                        <li><a href="#tab_tree">
+                            <span style="height:19px; display:block;">Tree</span>
+                        </a></li>
+                        <li><a title="Save/Load data" href="#tab_io">
+                            <span style="height:19px; display:block;">I/O</span>
+                        </a></li>
+                        <li><a title="A list of all imported data" href="#tab_data">
+                            <span style="height:19px; display:block;">Data</span>
+                        </a></li>
+                        <li><a title="A collection of control elements" href="#tab_widgets">
+                            <span style="height:19px; display:block;">Widgets</span>
+                        </a></li>
+                        <li><a title="Settings" href="#tab_settings">
+                            <span class="ui-icon ui-icon-gear"></span>
+                        </a></li>
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
                         <div id="tab_about">
                 
-                <h4><i>Provi</i> integrates the display of protein structures and related data into a convenient graphical user interface (GUI).</h4>
-                <div class="accordion">
-                <h3 class="ui-widget-header">For users</h3>
-                <div>
-                    <p>Click on the following examples to see for yourself. The <i>Widgets</i> tab provides GUI controls tailored to the displayed data. More general controls are found in the <i>Controls</i> and the <i>Tree</i> tab.</p>
-                    <ul id="showcase_examples"></ul>
-                </div>
-                <div>
-                    <p>If you experience problems with the Jmol Java Applet, there are several helpful resources available.</p>
-                    <ul>
-                    <li><a href="http://www.java.com/en/download/testjava.jsp">Java Applets</a></li>
-                    <li><a href="http://jmol.sourceforge.net/browsercheck/">Jmol browser check</a></li>
-                    <li><a href="http://support.microsoft.com/kb/2506617">IE9 and Java 6 Update 22/23</a></li>
-                    <li><a href="http://www.mydigitallife.info/ie9-java-applet-not-loading-nor-working-blank-fix/">IE9, Java & ActiveX</a></li>
-                    </ul>
-                </div>
-                <h3 class="ui-widget-header">For developers</h3>
-                <div>
-                    <p>Some documentation is available</p>
-                    <ul>
-                    <li><a href="../doc/sphinx/_build/index.html" target="_new">Documentation</a></li>
-                    <li><a href="../doc/jsdoc/index.html" target="_new">JavaScript API</a></li>
-                    </ul>
-                </div>
-                </div>
-            </div>
+                            <h4><i>Provi</i> integrates the display of protein structures and related data into a convenient graphical user interface (GUI).</h4>
+                            <div class="accordion">
+                                <h3 class="ui-widget-header">For users</h3>
+                                <div>
+                                    <p>Click on the following examples to see for yourself. The <i>Widgets</i> tab provides GUI controls tailored to the displayed data. More general controls are found in the <i>Controls</i> and the <i>Tree</i> tab.</p>
+                                    <ul id="showcase_examples"></ul>
+                                </div>
+                                <div>
+                                    <p>If you experience problems with the Jmol Java Applet, there are several helpful resources available.</p>
+                                    <ul>
+                                    <li><a href="http://www.java.com/en/download/testjava.jsp">Java Applets</a></li>
+                                    <li><a href="http://jmol.sourceforge.net/browsercheck/">Jmol browser check</a></li>
+                                    <li><a href="http://support.microsoft.com/kb/2506617">IE9 and Java 6 Update 22/23</a></li>
+                                    <li><a href="http://www.mydigitallife.info/ie9-java-applet-not-loading-nor-working-blank-fix/">IE9, Java & ActiveX</a></li>
+                                    </ul>
+                                </div>
+                                <h3 class="ui-widget-header">For developers</h3>
+                                <div>
+                                    <p>Some documentation is available</p>
+                                    <ul>
+                                    <li><a href="../doc/sphinx/_build/index.html" target="_new">Documentation</a></li>
+                                    <li><a href="../doc/jsdoc/index.html" target="_new">JavaScript API</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                         <div id="tab_controls"></div>
                         <div id="tab_tree">
                             <!-- <div id="grid" style="height:400px;"></div> -->
                         </div>
-                        <div id="tab_load"></div>
-                        <div id="tab_save"></div>
-            <div id="tab_data"></div>
-            <div id="tab_widgets"></div>
+                        <div id="tab_io"></div>
+                        <div id="tab_data"></div>
+                        <div id="tab_widgets"></div>
+                        <div id="tab_settings"></div>
                     </div>
                 </div>
             </div>

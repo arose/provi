@@ -495,12 +495,16 @@ Provi.Jmol.Settings.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Se
             this.elm('z_shade_slider').slider("values", 0, params.z_depth);
             this.elm('z_shade_slider').slider("values", 1, params.z_slab);
             this.elm('z_shade_power').val( params.z_shade_power );
-            this.elm('background_color').val( params.background_color.substring(3,9) );
+            this.elm('background_color').val( params.background_color.substr(2,7) );
         }
     },
     set: function(){
         var applet = this.applet_selector.get_value();
         if(applet){
+            bg = applet.lighting_manager.default_params.background_color;
+            if( this.elm('background_color').val() ){
+                bg = '"[x' + this.elm('background_color').val().substring(1) + ']"';
+            }
             applet.lighting_manager.set({
                 ambient_percent: this.elm('ambient_percent').slider("value"),
                 diffuse_percent: this.elm('diffuse_percent').slider("value"),
@@ -513,7 +517,8 @@ Provi.Jmol.Settings.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Se
                 z_shade_power: this.elm('z_shade_power').children("option:selected").val(),
                 z_depth: this.elm('z_shade_slider').slider("values", 0),
                 z_slab: this.elm('z_shade_slider').slider("values", 1),
-                background_color: '"[x' + this.elm('background_color').val().substring(1) + ']"'
+                // background_color: bg                
+                background_color: '"[x' + this.elm('background_color').val().substr(1) + ']"'
             });
         }
     }

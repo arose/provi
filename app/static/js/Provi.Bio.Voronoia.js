@@ -446,7 +446,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
             //this.displayed_cell( id, displayed ),
             this.label_cell( label ),
             this.hole_cell( id, hole ),
-            this.cavity_cell( id, cavity ),
+            this.cavity_cell( id, cavity, this.ids.length>50 && id==="all" ),
             this.neighbours_cell( id, neighbours )
         );
         return $row;
@@ -466,7 +466,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
                     'set drawHover true;' +
                     'try{' +
                         'dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;' +
-                        'draw ID ' + hole_id + '_draw__no_widget__ "Hole ' + hole_id.split('_')[2] + '" ' +
+                        'draw ID ' + hole_id + '_draw__no_widget__ "Cavity ' + hole_id.split('_')[2] + '" ' +
                             'DIAMETER @dia ' +
                             'COLOR skyblue ' +
                             '@sele;' +
@@ -477,7 +477,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         }
     },
     show_hole: function(id, flag){
-        this.applet.script( this._show_hole(id, flag), true );
+        this.applet.script_wait( this._show_hole(id, flag), true );
     },
     _show_cavity: function(id, flag, params){
         params = params || {};
@@ -510,7 +510,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         }
     },
     show_cavity: function(id, flag, params){
-        this.applet.script( this._show_cavity(id, flag, params), true );
+        this.applet.script_wait( this._show_cavity(id, flag, params), true );
     },
     _show_neighbours: function(id, flag){
         return 'select ' + this.selection(id) + ';' +
@@ -518,7 +518,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
             'cpk ' + (flag ? 'off' : '0.2') + ';';
     },
     show_neighbours: function(id, flag){
-        this.applet.script( this._show_neighbours(id, flag), true );
+        this.applet.script_wait( this._show_neighbours(id, flag), true );
     },
     hole_cell: function(id, hole){
         var $hole = $('<span style="background:skyblue; float:right; width:22px;">' +
@@ -532,10 +532,11 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         $hole.tipsy({gravity: 'n', fallback: tt});
         return $hole;
     },
-    cavity_cell: function(id, cavity){
+    cavity_cell: function(id, cavity, disabled){
         var $cavity = $('<span style="background:tomato; float:right; width:22px;">' +
             '<input cell="cavity" type="checkbox" ' + 
                 ( cavity ? 'checked="checked" ' : '' ) + 
+                ( disabled ? 'disabled="disabled" ' : '') +
             '/>' +
         '</span>');
         $cavity.children().prop( 'indeterminate', cavity > 0.0 && cavity < 1.0 );

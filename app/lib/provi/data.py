@@ -144,6 +144,10 @@ class Jmol( Binary ):
     """Jmol datatype"""
     file_ext = 'jmol'
 
+class Png( Binary ):
+    """Png with Jmol datatype"""
+    file_ext = 'png'
+
 class AtomProperty( Text ):
     """Atom property datatype"""
     file_ext = 'atmprop'
@@ -467,6 +471,7 @@ extension_to_datatype_dict = {
     'ndx': Ndx(),
     'obj': Obj(),
     'pdb': Pdb(),
+    'png': Png(),
     'pqr': Pqr(),
     'prop': Prop(),
     'provi': Provi(),

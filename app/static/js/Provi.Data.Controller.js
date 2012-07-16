@@ -53,6 +53,28 @@ Provi.Data.Controller.JmolMixin = {
     load: function( applet ){
         var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
         var url = '../../data/get/'
+        applet._delete();
+        applet.script('load ' + url + get_params + ';', true);
+    }
+}
+
+
+/**
+ * @class
+ */
+Provi.Data.Controller.PngMixin = {
+    available_widgets: {},
+    init: function( params ){
+        var self = this;
+        if(params.applet){
+            this.load( params.applet );
+        }
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    },
+    load: function( applet ){
+        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
+        var url = '../../data/get/'
+        applet._delete();
         applet.script('load ' + url + get_params + ';', true);
     }
 }
@@ -324,6 +346,8 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.PropensitiesMixin );
     }else if( type === 'jmol' ){
         $.extend( obj, Ctrl.JmolMixin );
+    }else if( type === 'png' ){
+        $.extend( obj, Ctrl.PngMixin );
     }else if( type === 'atmprop' ){
         $.extend( obj, Ctrl.AtomPropertyMixin );
     }else if( type === 'atmsele' ){

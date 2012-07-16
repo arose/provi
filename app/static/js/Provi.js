@@ -20,7 +20,8 @@ var Provi = {};
         DATASET_WIDGET: '',
         CANVAS_WIDGET: '',
         SELECTION_WIDGET: '',
-        BUILDER_WIDGET: ''
+        BUILDER_WIDGET: '',
+        SETTINGS_WIDGET: ''
     };
     
     //Provi.defaults.jmol = {};
