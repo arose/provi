@@ -367,10 +367,24 @@ Provi.Bio.Voronoia.VoronoiaSelectionTypeFactory = function(ids){
 }
 
 Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
+    params = _.defaults(
+        params,
+        Provi.Bio.Voronoia.VoronoiaSelectionType.prototype.default_params
+    );
+    this.resolution = params.resolution;
+    this.cavity_probe_radius = params.cavity_probe_radius;
+    this.exterior_probe_radius = params.exterior_probe_radius;
+    this.cavity_color = params.cavity_color;
     this.ids = params.ids;
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
 }
 Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableSelectionType, /** @lends Provi.Bio.Voronoia.VoronoiaSelectionType.prototype */ {
+    default_params: {
+        resolution: 2.0,
+        cavity_probe_radius: 0.6,
+        exterior_probe_radius: 5.0,
+        cavity_color: 'skyblue'
+    },
     get_ids: function(sele){
         return this.ids;
     },
@@ -453,6 +467,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
     },
     _show_hole: function(id, flag){
         var self = this;
+        var color = this.cavity_color;
         var ids = (id==='all') ? this.get_ids() : [ id ];
         if(flag){
             return _.map( ids, function(id){
@@ -468,7 +483,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
                         'dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;' +
                         'draw ID ' + hole_id + '_draw__no_widget__ "Cavity ' + hole_id.split('_')[2] + '" ' +
                             'DIAMETER @dia ' +
-                            'COLOR skyblue ' +
+                            'COLOR ' + color + ' ' +
                             '@sele;' +
                     '}catch(e){' +
                         'print "ERROR: " + e' +
@@ -481,9 +496,10 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
     },
     _show_cavity: function(id, flag, params){
         params = params || {};
-        var resolution = params.resolution || 2.0;
-        var cavity_probe_radius = params.cavity_probe_radius || 0.6;
-        var exterior_probe_radius = params.exterior_probe_radius || 5.0;
+        var resolution = params.resolution || this.resolution;
+        var cavity_probe_radius = params.cavity_probe_radius || this.cavity_probe_radius;
+        var exterior_probe_radius = params.exterior_probe_radius || this.exterior_probe_radius;
+        var color = params.cavity_color || this.cavity_color;
         var self = this;
         var ids = (id==='all') ? this.get_ids() : [ id ];
         if(flag){
@@ -500,7 +516,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
                     'select {' + self.selection(id) + '} ' +
                     'ignore { not ' + self.selection(id) + '} ' +
                     'resolution ' + resolution + ' ' +
-                    'color skyblue ' +
+                    'color ' + color + ' ' +
                     'cavity ' + cavity_probe_radius + ' ' + 
                         exterior_probe_radius + ';' +
                     // 'isosurface id "' + hole_id + '_iso__no_widget__" ' +

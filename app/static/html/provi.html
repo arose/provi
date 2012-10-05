@@ -134,6 +134,13 @@
             BUILDER_WIDGET: 'tab_tree',
             SETTINGS_WIDGET: 'tab_settings'
         });
+
+        Provi.Bio.Voronoia.VoronoiaSelectionType.prototype.default_params = $.extend(
+            Provi.Bio.Voronoia.VoronoiaSelectionType.prototype.default_params,
+            {
+                cavity_color: 'gold'
+            }
+        );
     
         function layout_main() {
             var n = Provi.Jmol.get_applet_list().length;
@@ -156,7 +163,7 @@
         //Provi.Jmol.init("../applet/jmol/12.1.42/", true);
         //Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
         //Provi.Jmol.init("../applet/jmol/versions/12.3.9/", true);
-        Provi.Jmol.init("../../jmol/current/25/", !$.query.get('unsigned'));
+        Provi.Jmol.init("../../jmol/current/45/", !$.query.get('unsigned'));
     
         $(document).ready(function(){
         

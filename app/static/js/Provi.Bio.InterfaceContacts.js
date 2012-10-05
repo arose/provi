@@ -162,8 +162,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
     _show_consurf: function(id, flag, params){
         params = params || {};
         var resolution = params.resolution || 2.0;
-        var cavity_probe_radius = params.cavity_probe_radius || 0.6;
-        var exterior_probe_radius = params.exterior_probe_radius || 5.0;
+        var probe_radius = params.probe_radius || 1.4;
         var self = this;
         var ids = (id==='all') ? this.get_ids() : [ id ];
         if(flag){
@@ -201,7 +200,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                         'ignore { @sele2 } ' +
                         'resolution ' + resolution + ' ' +
                         'color orange ' +
-                        'solvent 1.4 ' +
+                        'solvent ' + probe_radius + ' ' +
                     ';' +
                     'isosurface id "' + id + '_consurf__no_widget__" ' +
                         'slab within 5.0 { @sele3 };' +
@@ -226,8 +225,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
     _show_intersurf: function(id, flag, params){
         params = params || {};
         var resolution = params.resolution || 2.0;
-        var cavity_probe_radius = params.cavity_probe_radius || 0.6;
-        var exterior_probe_radius = params.exterior_probe_radius || 5.0;
+        var probe_radius = params.probe_radius || 1.4;
         var self = this;
         var ids = (id==='all') ? this.get_ids() : [ id ];
         if(flag){
@@ -242,7 +240,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                         'ignore { not ' + self.selection(id) + ' } ' +
                         'resolution ' + resolution + ' ' +
                         'color pink ' +
-                        'solvent 1.4 ' +
+                        'solvent ' + probe_radius + ' ' +
                     ';' +
                 '';
             }).join(' ');

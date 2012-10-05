@@ -199,7 +199,8 @@ Provi.Jmol.Settings.MiscManager.prototype = Utils.extend( Provi.Jmol.Settings.Se
     default_params: {
         default_vdw: 'babel',
         vdw: 'JMOL',
-        isosurface_property_smoothing: true
+        isosurface_property_smoothing: true,
+        large_atom_count: 30000
     },
     jmol_param_names: {
         default_vdw: "defaultVDW",
@@ -255,7 +256,7 @@ Provi.Jmol.Settings.MiscManagerWidget = function(params){
     Provi.Jmol.Settings.SettingsManagerWidget.call( this, params );
     
     this._init_eid_manager([
-        'default_vdw', 'isosurface_property_smoothing'
+        'default_vdw', 'isosurface_property_smoothing', 'large_atom_count'
     ]);
     
     var template = '' +
@@ -273,7 +274,11 @@ Provi.Jmol.Settings.MiscManagerWidget = function(params){
             '<div class="control_row">' +
                 '<input id="${eids.isosurface_property_smoothing}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
                 '<label for="${eids.isosurface_property_smoothing}" style="display:block;">isosurface property smoothing</label>' +
-        '</div>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<input id="${eids.large_atom_count}" type="text" />' +
+                '<label for="${eids.large_atom_count}" style="display:block;">large atom count</label>' +
+            '</div>' +
         '</div>' +
     '';
     
@@ -290,6 +295,7 @@ Provi.Jmol.Settings.MiscManagerWidget.prototype = Utils.extend(Provi.Jmol.Settin
     
         this.elm('default_vdw').bind('click change', $.proxy( this.set, this )).parent().hide();
         this.elm('isosurface_property_smoothing').bind('click', $.proxy( this.set, this ));
+        this.elm('large_atom_count').bind('change', $.proxy( this.set, this ));
 
         Provi.Jmol.Settings.SettingsManagerWidget.prototype._init.call(this);
     },
@@ -299,6 +305,7 @@ Provi.Jmol.Settings.MiscManagerWidget.prototype = Utils.extend(Provi.Jmol.Settin
             var params = applet.misc_manager.get();
             this.elm('default_vdw').val( params.default_vdw );
             this.elm('isosurface_property_smoothing').attr('checked', params.isosurface_property_smoothing);
+            this.elm('large_atom_count').val( params.large_atom_count );
         }
     },
     set: function(){
@@ -307,6 +314,7 @@ Provi.Jmol.Settings.MiscManagerWidget.prototype = Utils.extend(Provi.Jmol.Settin
             applet.misc_manager.set({
                 default_vdw: this.elm('default_vdw').children("option:selected").val(),
                 isosurface_property_smoothing: this.elm('isosurface_property_smoothing').is(':checked'),
+                large_atom_count: this.elm('large_atom_count').val()
             });
         }
     }
@@ -1123,7 +1131,8 @@ Provi.Jmol.Settings.StyleManager.prototype = Utils.extend( Provi.Jmol.Settings.S
         _sidechain_helper_sele_on: '(protein or nucleic) and (sidechain or *.CA)',
         _sidechain_helper_sele_off: '(protein or nucleic)',
         cartoon_base_edges: false,
-        nucleic_cartoon_style: 'cartoon only'
+        nucleic_cartoon_style: 'cartoon only',
+        large_structure_style: 'select protein or nucleic; cartoon off; backbone ${backbone};'
     },
     jmol_param_names: {
         hermite_level: "hermiteLevel",
@@ -1135,16 +1144,27 @@ Provi.Jmol.Settings.StyleManager.prototype = Utils.extend( Provi.Jmol.Settings.S
         trace_alpha: "traceAlpha",
         cartoon_base_edges: "cartoonBaseEdges"
     },
-    get_default_style: function(){
-        return this.get_style( this.style );
+    get_default_style: function(inline){
+        var style = this.get_style( this.style );
+        var large_structure_style = $.tmpl( this.large_structure_style || '', this).text();
+        if( inline ){
+            large_atom_count = this.applet.misc_manager.large_atom_count;
+            style += 'if( {*}.count >= ' + large_atom_count + ' ){' + 
+                large_structure_style + 
+            '}';
+        }else if( this.applet.large_atom_count() ){
+            style += large_structure_style;
+        }
+        return style + 'select none;';
     },
     get_style: function( style ){
         this.sidechain_helper_sele = this.sidechain_helper ? this._sidechain_helper_sele_on : this._sidechain_helper_sele_off;
-        return $.tmpl( style || '', this ).text();
+        return $.tmpl( style || '', this ).text() + 'select none;';
     },
     _command: function( names ){
         var trace = this['trace'];
         if( this['trace']=='0.333' ){
+            // try with help of a temporary property! AR
             trace = '0.333; for( var a in {*.CA and trace=0.333} ){ {a}.trace = 4*{a}.temperature; };';
         }
         return '' +
@@ -1180,75 +1200,86 @@ Provi.Jmol.Settings.StyleManagerWidget = function(params){
     var template = '' +
     '<div class="control_group">' +
         '<div class="control_row">' +
-        '<label for="${eids.cartoon}">cartoon</label>' +
-        '<select id="${eids.cartoon}" class="ui-state-default">' +
-            '<option value="0.1">0.1</option><option value="0.2">0.2</option>' +
-            '<option value="0.3">0.3</option><option value="0.4">0.4</option>' +
-            '<option value="0.5">0.5</option><option value="0.6">0.6</option>' +
-            '<option value="0.7">0.7</option><option value="0.8">0.8</option>' +
-            '<option value="0.9">0.9</option>' +
-            '<option value="1.0">1.0</option><option value="1.3">1.3</option>' +
-            '<option value="1.5">1.5</option><option value="1.7">1.7</option>' +
-            '<option value="2.0">2.0</option><option value="2.5">2.5</option>' +
-            '<option value="3.0">3.0</option><option value="3.5">3.5</option>' +
-        '</select>' +
-        '</div>' +
-        
-        '<div class="control_row">' +
-        '<label for="${eids.trace}">trace</label>' +
-        '<select id="${eids.trace}" class="ui-state-default">' +
-            '<option value="0.01">0.01</option><option value="0.05">0.05</option>' +
-            '<option value="0.1">0.1</option><option value="0.15">0.15</option>' +
-            '<option value="0.2">0.2</option><option value="0.3">0.3</option>' +
-            '<option value="0.4">0.4</option><option value="0.5">0.5</option>' +
-            '<option value="0.7">0.7</option><option value="1.0">1.0</option>' +
-            '<option value="0.333">b-factor</option>' +
-        '</select>' +
-        '</div>' +
-        
-        '<div class="control_row">' +
-        '<label for="${eids.line}">line</label>' +
-        '<select id="${eids.line}" class="ui-state-default">' +
-            '<option value="0.001">0.001</option><option value="0.005">0.005</option>' +
-            '<option value="0.01">0.01</option><option value="0.02">0.02</option>' +
-            '<option value="0.03">0.03</option><option value="0.05">0.05</option>' +
-        '</select>' +
-        '</div>' +
-        
-        '<div class="control_row">' +
-        '<label for="${eids.hermite_level}">hermite level</label>' +
-        '<select id="${eids.hermite_level}" class="ui-state-default">' +
-            '<option value="-4">-4</option><option value="-3">-3</option>' +
-            '<option value="-2">-2</option><option value="-1">-1</option>' +
-            '<option value="0">0</option>' +
-            '<option value="1">1</option><option value="2">2</option>' +
-            '<option value="3">3</option><option value="4">4</option>' +
-        '</select>' +
+            '<label for="${eids.cartoon}">cartoon</label>' +
+            '<select id="${eids.cartoon}" class="ui-state-default">' +
+                '<option value="0.1">0.1</option><option value="0.2">0.2</option>' +
+                '<option value="0.3">0.3</option><option value="0.4">0.4</option>' +
+                '<option value="0.5">0.5</option><option value="0.6">0.6</option>' +
+                '<option value="0.7">0.7</option><option value="0.8">0.8</option>' +
+                '<option value="0.9">0.9</option>' +
+                '<option value="1.0">1.0</option><option value="1.3">1.3</option>' +
+                '<option value="1.5">1.5</option><option value="1.7">1.7</option>' +
+                '<option value="2.0">2.0</option><option value="2.5">2.5</option>' +
+                '<option value="3.0">3.0</option><option value="3.5">3.5</option>' +
+            '</select>' +
         '</div>' +
         '<div class="control_row">' +
-        '<input id="${eids.cartoon_rockets}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-        '<label for="${eids.cartoon_rockets}" style="display:block;">cartoon rockets</label>' +
+            '<label for="${eids.trace}">trace</label>' +
+            '<select id="${eids.trace}" class="ui-state-default">' +
+                '<option value="0.01">0.01</option><option value="0.05">0.05</option>' +
+                '<option value="0.1">0.1</option><option value="0.15">0.15</option>' +
+                '<option value="0.2">0.2</option><option value="0.3">0.3</option>' +
+                '<option value="0.4">0.4</option><option value="0.5">0.5</option>' +
+                '<option value="0.7">0.7</option><option value="1.0">1.0</option>' +
+                '<option value="0.333">b-factor</option>' +
+            '</select>' +
         '</div>' +
         '<div class="control_row">' +
-        '<label for="${eids.ribbon_aspect_ratio}">ribbon aspect ratio</label>' +
-        '<select id="${eids.ribbon_aspect_ratio}" class="ui-state-default">' +
-            '<option value="2">2</option><option value="3">3</option>' +
-            '<option value="4">4</option><option value="5">5</option>' +
-            '<option value="6">6</option><option value="7">7</option>' +
-            '<option value="8">8</option><option value="9">9</option>' +
-            '<option value="10">10</option><option value="11">11</option>' +
-            '<option value="12">12</option><option value="13">13</option>' +
-            '<option value="14">14</option><option value="15">15</option>' +
-            '<option value="16">16</option><option value="17">17</option>' +
-        '</select>' +
+            '<label for="${eids.backbone}">backbone</label>' +
+            '<select id="${eids.backbone}" class="ui-state-default">' +
+                '<option value="0.1">0.1</option><option value="0.2">0.2</option>' +
+                '<option value="0.3">0.3</option><option value="0.4">0.4</option>' +
+                '<option value="0.5">0.5</option><option value="0.6">0.6</option>' +
+                '<option value="0.7">0.7</option><option value="0.8">0.8</option>' +
+                '<option value="0.9">0.9</option>' +
+                '<option value="1.0">1.0</option><option value="1.3">1.3</option>' +
+                '<option value="1.5">1.5</option><option value="1.7">1.7</option>' +
+                '<option value="2.0">2.0</option><option value="2.5">2.5</option>' +
+                '<option value="3.0">3.0</option><option value="3.5">3.5</option>' +
+            '</select>' +
         '</div>' +
         '<div class="control_row">' +
-        '<input id="${eids.ribbon_border}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-        '<label for="${eids.ribbon_border}" style="display:block;">ribbon border</label>' +
+            '<label for="${eids.line}">line</label>' +
+            '<select id="${eids.line}" class="ui-state-default">' +
+                '<option value="0.001">0.001</option><option value="0.005">0.005</option>' +
+                '<option value="0.01">0.01</option><option value="0.02">0.02</option>' +
+                '<option value="0.03">0.03</option><option value="0.05">0.05</option>' +
+            '</select>' +
         '</div>' +
         '<div class="control_row">' +
-        '<input id="${eids.rocket_barrels}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-        '<label for="${eids.rocket_barrels}" style="display:block;">rocket barrels</label>' +
+            '<label for="${eids.hermite_level}">hermite level</label>' +
+            '<select id="${eids.hermite_level}" class="ui-state-default">' +
+                '<option value="-4">-4</option><option value="-3">-3</option>' +
+                '<option value="-2">-2</option><option value="-1">-1</option>' +
+                '<option value="0">0</option>' +
+                '<option value="1">1</option><option value="2">2</option>' +
+                '<option value="3">3</option><option value="4">4</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="${eids.cartoon_rockets}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="${eids.cartoon_rockets}" style="display:block;">cartoon rockets</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="${eids.ribbon_aspect_ratio}">ribbon aspect ratio</label>' +
+            '<select id="${eids.ribbon_aspect_ratio}" class="ui-state-default">' +
+                '<option value="2">2</option><option value="3">3</option>' +
+                '<option value="4">4</option><option value="5">5</option>' +
+                '<option value="6">6</option><option value="7">7</option>' +
+                '<option value="8">8</option><option value="9">9</option>' +
+                '<option value="10">10</option><option value="11">11</option>' +
+                '<option value="12">12</option><option value="13">13</option>' +
+                '<option value="14">14</option><option value="15">15</option>' +
+                '<option value="16">16</option><option value="17">17</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="${eids.ribbon_border}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="${eids.ribbon_border}" style="display:block;">ribbon border</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="${eids.rocket_barrels}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<label for="${eids.rocket_barrels}" style="display:block;">rocket barrels</label>' +
         '</div>' +
         '<div class="control_row">' +
             '<label for="${eids.sheet_smoothing}">sheet smoothing</label>' +
@@ -1297,6 +1328,7 @@ Provi.Jmol.Settings.StyleManagerWidget.prototype = Utils.extend(Provi.Jmol.Setti
     
         this.elm('cartoon').bind('click change', $.proxy( this.set, this ));
         this.elm('trace').bind('click change', $.proxy( this.set, this ));
+        this.elm('backbone').bind('click change', $.proxy( this.set, this ));
         this.elm('line').bind('click change', $.proxy( this.set, this ));
             
         this.elm('hermite_level').bind('click change', $.proxy( this.set, this ));
@@ -1318,6 +1350,7 @@ Provi.Jmol.Settings.StyleManagerWidget.prototype = Utils.extend(Provi.Jmol.Setti
             var params = applet.style_manager.get();
             this.elm('cartoon').val( params.cartoon );
             this.elm('trace').val( params.trace );
+            this.elm('backbone').val( params.backbone );
             this.elm('line').val( params.line );
             
             this.elm('hermite_level').val( params.hermite_level );
@@ -1338,6 +1371,7 @@ Provi.Jmol.Settings.StyleManagerWidget.prototype = Utils.extend(Provi.Jmol.Setti
             applet.style_manager.set({
                 cartoon: this.elm('cartoon').children("option:selected").val(),
                 trace: this.elm('trace').children("option:selected").val(),
+                backbone: this.elm('backbone').children("option:selected").val(),
                 line: this.elm('line').children("option:selected").val(),
                 
                 hermite_level: this.elm('hermite_level').children("option:selected").val(),

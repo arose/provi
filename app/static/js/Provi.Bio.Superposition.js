@@ -224,11 +224,12 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
         _.each(nw.ali1.split(''), function(c1, i){
             var c2 = nw.ali2.split('')[i];
             if( c1!='-' && c2!='-'){
-                pairs += ' {' + apm1[ i - gap1[i] ][1] + '} {' + apm2[ i - gap2[i] ][1] + '} ';
+                // pairs += ' {' + apm1[ i - gap1[i] ][1] + '} {' + apm2[ i - gap2[i] ][1] + '} ';
+                pairs += ' {@' + apm1[ i - gap1[i] ][0] + '} {@' + apm2[ i - gap2[i] ][0] + '} ';
             }
         });
 
-        // console.log(pairs);
+        console.log(pairs);
 
         var s = '' +
             'center {' + sele2 + '};' +

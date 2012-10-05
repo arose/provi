@@ -408,7 +408,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
             ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
             ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) +
             ( this.insideout ? 'INSIDEOUT ' : '' ) + 
-            ( this.frontonly ? 'FRONTONLY ' : 'NOTFRONTONLY ' ) + 
+            ( this.frontonly ? 'FRONTONLY ' : '' ) + 
             '"' + file_url + '" ' +
             ( this.style ? this.style : '' ) + 
             ';'
