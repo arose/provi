@@ -134,6 +134,13 @@
             BUILDER_WIDGET: 'tab_widgets'
         });
         
+        Provi.Bio.Voronoia.VoronoiaSelectionType.prototype.default_params = $.extend(
+            Provi.Bio.Voronoia.VoronoiaSelectionType.prototype.default_params,
+            {
+                cavity_color: 'gold'
+            }
+        );
+        
         Provi.Jmol.Settings.QualityManager.prototype.default_params = $.extend(
             Provi.Jmol.Settings.QualityManager.prototype.default_params,
             {
@@ -252,7 +259,7 @@
 
                 var applet = Provi.Jmol.get_default_applet( true );
 
-                Provi.Data.Io.import_example( 'showcase', 'DMPC_test_data/1u19/1u19_voro.provi', 'provi', {
+                Provi.Data.Io.import_example( 'various', 'DMPC_test_data/1u19/1u19_voro.provi', 'provi', {
                     applet: applet
                 });
             }else{
@@ -265,7 +272,7 @@
                         
                         var applet = Provi.Jmol.get_default_applet( true );    
                         var ds = Provi.Data.Io.import_example(
-                            'showcase', 'voronoia/test_data/' + pdb_id + '_modified.pdb', 'pdb', 
+                            'various', 'voronoia/test_data/' + pdb_id + '_modified.pdb', 'pdb', 
                             { applet: applet, load_as: 'new' }
                         );
                         $(ds).bind('loaded2', function(){
@@ -275,11 +282,11 @@
                             //     dataset: self
                             // }));
                             var ds_vol = Provi.Data.Io.import_example(
-                                'showcase', 'voronoia/test_data/' + pdb_id + '_modified.atmprop', 'atmprop',
+                                'various', 'voronoia/test_data/' + pdb_id + '_modified.atmprop', 'atmprop',
                                 { applet: applet }
                             );
                             var ds_holes = Provi.Data.Io.import_example(
-                                'showcase', 'voronoia/test_data/' + pdb_id + '_modified.atmsele', 'atmsele',
+                                'various', 'voronoia/test_data/' + pdb_id + '_modified.atmsele', 'atmsele',
                                 { applet: applet }
                             );
                             $(ds_holes).bind('loaded2', function(){
