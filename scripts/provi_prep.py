@@ -10,7 +10,9 @@ import logging
 
 logging.basicConfig()
 LOG = logging.getLogger('prep')
-LOG.setLevel( logging.ERROR )
+# LOG.setLevel( logging.ERROR )
+LOG.setLevel( logging.WARNING )
+# LOG.setLevel( logging.DEBUG )
 
 
 def memoize(f):
@@ -117,10 +119,11 @@ def prep_contact(contact_file, pdb_file):
                     # zero based atomindex
                     contacts_cutoff_dict[ "%s_%s" % (elm_name, cutoff) ].append( i )
                 else:
-                    LOG.warning( "structure element not known. %s" % elm_id )
+                    # LOG.warning( "structure element not known. %s" % elm_id )
+                    LOG.debug( "structure element not known. %s" % elm_id )
             structure_elms_dict[ l[0:5] ].append( i+1 )
         else:
-            LOG.warning( "no contact data for line: %s" % pdb_index_dict[ i+1 ].strip('\n') )
+            LOG.warning( "no contact data for line (@%s): %s" % (i, pdb_index_dict[ i+1 ].strip('\n')) )
         contact_out_fp.write( '%s\n' % " ".join( elms_out_list ) )
 
     for name, atoms in structure_elms_dict.iteritems():

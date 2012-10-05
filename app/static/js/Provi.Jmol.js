@@ -534,9 +534,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         script = this._prepare_script( script, maintain_selection, message );
         //console.log(script);
         try{
-            setTimeout( function(){
-                self.applet.scriptWait( script );
-            }, 0);
+            self.applet.scriptWait( script );
+            // setTimeout( function(){
+            //     self.applet.scriptWait( script );
+            // }, 0);
             // if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
             //             //console.log( 'SAFARI' );
             //             this.applet.script( script );
@@ -781,6 +782,13 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     get_smcra: function(selection){
            return Provi.Bio.Sequence.jmol_to_smcra( this, selection );
+    },
+    large_atom_count: function(){
+        if( !this.misc_manager ) return false;
+        var large_atom_count = this.misc_manager.large_atom_count || 1000000;
+        var atom_count = this.evaluate( '{*}.count;' );
+        console.log(this, this.misc_manager, this.misc_manager.large_atom_count, atom_count);
+        return atom_count >= large_atom_count;
     },
     init_listeners: function(){
         var self = this;

@@ -74,6 +74,7 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
     this.property_name = params.property_name;
     this.color_scheme = params.color_scheme;
     this.colorize_on_init = params.colorize_on_init;
+    this.fixed_range = params.fixed_range;
     
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
@@ -157,8 +158,15 @@ Provi.Bio.AtomProperty.AtomPropertyWidget.prototype = Utils.extend(Provi.Widget.
         this.observed_max = parseFloat(obs[1]);
         this.elm('observed_min').text( this.observed_min );
         this.elm('observed_max').text( this.observed_max );
-        this.elm('min').val( this.observed_min );
-        this.elm('max').val( this.observed_max );
+        var min = this.observed_min;
+        var max = this.observed_max;
+        if(this.fixed_range){ 
+            min = this.fixed_range[0];
+            max = this.fixed_range[1];
+        }
+        this.elm('min').val( min.toFixed(2) );
+        this.elm('max').val( max.toFixed(2) );
+        this.set_range();
     },
     set_range: function(){
         if(!this.applet) return;
@@ -202,6 +210,7 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget = function(params){
 
     this.filter_properties = params.filter_properties;
     this.colorize_on_init = params.colorize_on_init;
+    this.property_ranges = params.property_ranges;
 
     this.dataset = params.dataset;
     this.applet = params.applet;
@@ -234,20 +243,25 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, 
         }
 
         _.each( props, function( property_name ){
-            self.add( property_name );
-            console.log(property_name);
+            var range = undefined;
+            if( self.property_ranges ){
+                range = self.property_ranges[ property_name ];
+            }
+            self.add( property_name, range );
+            console.log(property_name, range);
         });
 
         Provi.Widget.Widget.prototype.init.call(this);
     },
-    add: function( property_name ){
+    add: function( property_name, range ){
         new Provi.Bio.AtomProperty.AtomPropertyWidget({
             parent_id: this.eid('list'),
             applet: this.applet,
             property_name: 'property_' + property_name,
             heading: false,
             collapsed: false,
-            colorize_on_init: this.colorize_on_init
+            colorize_on_init: this.colorize_on_init,
+            fixed_range: range
         });
     }
 });

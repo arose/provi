@@ -77,7 +77,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         type = type ? (type + '::') : '';
         type = '';
         if( !style ){
-            style = applet.style_manager.get_default_style();
+            style = applet.style_manager.get_default_style(true);
         }else{
             style = 'select all; ' + style;
         }
