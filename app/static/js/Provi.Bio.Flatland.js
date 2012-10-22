@@ -57,6 +57,24 @@ var principal_axes = function(m){
     return axes;
 };
 
+
+    // // apply gravity forces
+    // if (k = alpha * gravity) {
+    //   x = size[0] / 2;
+    //   y = size[1] / 2;
+    //   i = -1; if (k) while (++i < n) {
+    //     o = nodes[i];
+    //     if(o.resno && force.axes){
+    //       o.x -= (force.axes[0].x - o.x) * k * 5;
+    //       o.y -= (force.axes[0].y - o.y) * k * 5;
+    //     }else{
+    //       o.x += (x - o.x) * k;
+    //       o.y += (y - o.y) * k;
+    //     }
+    //   }
+    // }
+
+
 /**
  * A widget
  * @constructor
@@ -77,26 +95,66 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     //params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
-        'applet_selector_widget', 'chart', 'render', 'selection', 'helper_links'
+        'applet_selector_widget', 'chart', 'render', 'resume', 'selection', 'current_alpha',
+        'alpha', 'gravity', 'friction', 'theta',
+        'show_helper_links', 'show_center', 'show_axes'
     ]);
     
     this.dataset = params.dataset;
     this.applet = params.applet;
+    this.sele = params.sele;
     this.show_helper_links = params.show_helper_links;
+    this.show_center = params.show_center;
+    this.show_axes = params.show_axes;
+    this.alpha = params.alpha;
+    this.gravity = params.gravity;
+    this.friction =params.friction;
+    this.theta = params.theta
     
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
-        '<div class="control_row" id="${eids.chart}" style="width:570px; height:570px;"></div>' +
+        '<div class="control_row" id="${eids.chart}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
         '<div class="control_row">' +
             '<span id="${eids.selection}"></span>' +
         '</div>' +
         '<div class="control_row">' +
-            '<input id="${eids.helper_links}" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="${eids.helper_links}" style="display:block;">show helper links</label>' +
+            '<div>' +
+                '<input id="${eids.alpha}" type="text" style="width: 3em;"/>&nbsp;' +
+                '<label for="${eids.alpha}">alpha</label>' +
+                '&nbsp;&nbsp;&nbsp;' +
+                '<input id="${eids.gravity}" type="text" style="width: 3em;"/>&nbsp;' +
+                '<label for="${eids.gravity}">gravity</label>' +
+            '</div>' +
+            '<div>' +
+                '<input id="${eids.friction}" type="text" style="width: 3em;"/>&nbsp;' +
+                '<label for="${eids.friction}">friction</label>' +
+                '&nbsp;&nbsp;&nbsp;' +
+                '<input id="${eids.theta}" type="text" style="width: 3em;"/>&nbsp;' +
+                '<label for="${eids.theta}">theta</label>' +
+            '</div>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<div>' +
+                '<input id="${eids.show_helper_links}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.show_helper_links}">show helper links</label>' +
+            '</div>' +
+            '<div>' +
+                '<input id="${eids.show_center}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.show_center}">show center</label>' +
+            '</div>' +
+            '<div>' +
+                '<input id="${eids.show_axes}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.show_axes}"">show axes</label>' +
+            '</div>' +        
+        '</div>' +
+        '<div class="control_row">' +
+            'alpha: <span id="${eids.current_alpha}"></span>' +
         '</div>' +
         '<div class="control_row">' +
             '<button id="${eids.render}">render</button>' +
+            '&nbsp;&nbsp;&nbsp;' +
+            '<button id="${eids.resume}">resume</button>' +
         '</div>' +
 	'';
     this.add_content( template, params );
@@ -117,7 +175,14 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
 Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Structure.StructureWidget.prototype */ {
     default_params: {
         heading: 'Flatland',
-        show_helper_links: true
+        sele: 'RET',
+        show_helper_links: true,
+        show_center: true,
+        show_axes: true,
+        alpha: 0.06,
+        gravity: 0.0,
+        friction: 0.3,
+        theta: 1.0
     },
     get_applet: function(){
         if( this.applet ){
@@ -141,6 +206,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             });
         }
         this.selection.set_applet( this.get_applet() );
+        this.selection.set_input( this.sele );
 
         // $( this.get_applet() ).bind('load_struct.'+self.id, function(){
         //     self.example();
@@ -152,15 +218,31 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             }
         });
 
+        _.each(['alpha', 'gravity', 'friction', 'theta'], function(name){
+            self.elm( name ).val( self[ name ]);
+            self.elm( name ).bind('keypress', function(event) {
+                if (event.which == 13 && this.value) {
+                    self[ name ] = self.elm( name ).val();
+                    self.render();
+                }
+            });
+        });
+
         this.elm('render').button().click( function(){
             self.render();
         });
 
-        this.elm('helper_links').attr('checked', this.show_helper_links);
-        this.elm('helper_links').bind('click', function(e){
-                self.show_helper_links = self.elm('helper_links').is(':checked');
+        this.elm('resume').button().click( function(){
+            self.resume();
+        });
+
+        _.each(['show_helper_links', 'show_center', 'show_axes'], function(name){
+            self.elm( name ).attr('checked', self[ name ]);
+            self.elm( name ).bind('click', function(e){
+                self[ name ] = self.elm( name ).is(':checked');
                 self.render(true);
             });
+        });
 
         Provi.Widget.Widget.prototype.init.call(this);
     },
@@ -310,6 +392,12 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             }
         });
     },
+    resume: function(){
+        if( this.force ){
+            this.force.start();
+            //this.force.alpha(0.1);
+        }
+    },
     render: function(preserve){
         if(preserve){
             //this._render();
@@ -325,7 +413,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
         var w = 550;
         var h = 550;
-        var p = 30;
+        var p = 0;
         var fill = d3.scale.category10();
         //var nodes = d3.range(70).map(Object);
         //var nodes = this.focus_data.concat( this.vdw_data );
@@ -443,18 +531,40 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         this.elm('chart').empty();
         //if(!this.vis){
         
-            var vis = d3.select( this.eid('chart', 1) ).append("svg")
+            var svg = d3.select( this.eid('chart', 1) ).append("svg")
                 .attr("width", w)
                 .attr("height", h)
-              .append("g")
-                .attr("transform", "translate(" + p + "," + p + ")");
+                //.attr("transform", "translate(" + p + "," + p + ")");
+                //.attr("transform", "scale(0.5)")
+                // .call(d3.behavior.zoom().on("zoom", function(){
+                //     console.log( d3.event, vis );
+                //     // d3.event.transform(vis);
+                //     vis.attr("transform", "scale(" + d3.event.scale + ")");
+                // }));;
         //}
+
+        var zoom = d3.behavior.zoom();
+        zoom.x(x);
+        zoom.y(y);
+
+        svg.append("svg:rect")
+            .attr("style", "fill:rgba(255,255,255,100)")
+            .attr("width", '100%')
+            .attr("height", '100%')
+            .call(zoom.on("zoom", function(){
+                //console.log( d3.event, vis, d3.event.scale, d3.event.translate, zoom.scale(), zoom.translate(), vis.attr("transform") );
+                vis.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ")scale(" + d3.event.scale + ")");
+            }));
+
+        vis = svg.append("g");
+        //vis.attr("transform","scale()");
+
         this.vis = vis;
         this.nodes = nodes;
 
         var force = d3.layout.force()
             .charge(function(d){
-                return d.resno ? -600 : -90;
+                return d.resno ? -600 : -120;
             })
             // .gravity(function(d){
             //     console.log('GRAVITY');
@@ -463,9 +573,9 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             // TODO: use code from d3.layout that implements the gravity
             // force and use it to get a repulsive force from the center
             // applied onto the vdw nodes
-            .gravity(0.0)
-            .friction(0.3)
-            .theta(1.0)
+            .gravity( this.gravity )
+            .friction( this.friction )
+            .theta( this.theta )
             //.distance(10)
             .linkDistance(function(d){
                 return (d.hidden ? d.dist : 1.6) * 25.5;
@@ -495,14 +605,18 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .attr("cy", function(d) { return d.y; })
             .attr("r", 6)
             .style("fill", 'blue')
-            .style("visibility", 'hidden')
+            .style("visibility", function(d){
+                return (d.hidden && !self.show_center) ? 'hidden' : 'visible';
+            })
             .style("fill-opacity", 0.3);
 
         var axes = vis.selectAll("line.axis")
             .data([ {i: 0}, {i: 1} ])
           .enter().append("line")
             .attr("class", "axis")
-            //.style("visibility", function(d){ return d.hidden ? 'hidden' : 'visible'; })
+            .style("visibility", function(d){
+                return (d.hidden && !self.show_axes) ? 'hidden' : 'visible';
+            })
             .style("stroke-width", 10)
             .style("stroke", "blue")
             .style("stroke-opacity", 0.1)
@@ -573,11 +687,11 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
         force.on("tick", function(e) {
             force.axes = self.get_center();
-            //self.update();
-            if( force.alpha() < 0.03 ){
+            if( force.alpha() < self.alpha ){
                 force.alpha(0);
             }
-            console.log( 'alpha', force.alpha() );
+            self.elm('current_alpha').text( force.alpha() );
+            self.update();
         });
 
         force.on("end", function(e) {
@@ -590,6 +704,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         // });
 
         force.start();
+        this.force = force;
     },
     get_center: function(){
         var fnodes = _.filter(this.nodes, function(d){ return !d.resno; });
@@ -602,18 +717,24 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var n = fnodes.length;
         var x = c.x/n;
         var y = c.y/n;
-        //var axes = principal_axes( _.map(fnodes, function(d){ return [d.x, d.y]; }) );
-        return [
-            { x: x, y: y },
-            { x: x, y: y },
-            { x: x, y: y },
-            { x: x, y: y },
-            { x: x, y: y }
-            // { x: x + axes[0][0]/2, y: y + axes[0][1]/2 },
-            // { x: x + axes[1][0]/2, y: y + axes[1][1]/2 },
-            // { x: x - axes[0][0]/2, y: y - axes[0][1]/2 },
-            // { x: x - axes[1][0]/2, y: y - axes[1][1]/2 }
-        ];
+        if(this.show_axes){
+            var axes = principal_axes( _.map(fnodes, function(d){ return [d.x, d.y]; }) );
+            return [
+                { x: x, y: y },
+                { x: x + axes[0][0]/2, y: y + axes[0][1]/2 },
+                { x: x + axes[1][0]/2, y: y + axes[1][1]/2 },
+                { x: x - axes[0][0]/2, y: y - axes[0][1]/2 },
+                { x: x - axes[1][0]/2, y: y - axes[1][1]/2 }
+            ];
+        }else{
+            return [
+                { x: x, y: y },
+                { x: x, y: y },
+                { x: x, y: y },
+                { x: x, y: y },
+                { x: x, y: y }
+            ];
+        }
     },
     update: function(){
         var self = this;
@@ -630,14 +751,19 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .attr("cy", function(d) { return d.y; });
 
         paxes = this.get_center();
-        this.center.data( paxes );
-        this.center.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
+        
+        if( this.show_center){
+            this.center.data( paxes );
+            this.center.attr("cx", function(d) { return d.x; })
+                .attr("cy", function(d) { return d.y; });
+        }
 
-        this.axes.attr("x1", function(d) { return paxes[d.i+1].x; })
-            .attr("y1", function(d) { return paxes[d.i+1].y; })
-            .attr("x2", function(d) { return paxes[d.i+3].x; })
-            .attr("y2", function(d) { return paxes[d.i+3].y; });
+        if( this.show_axes){
+            this.axes.attr("x1", function(d) { return paxes[d.i+1].x; })
+                .attr("y1", function(d) { return paxes[d.i+1].y; })
+                .attr("x2", function(d) { return paxes[d.i+3].x; })
+                .attr("y2", function(d) { return paxes[d.i+3].y; });
+        }
     }
 });
 
