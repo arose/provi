@@ -258,6 +258,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
                 '<option value="backbone+sticks">backbone & sticks</option>' +
                 '<option value="backbone+cpk">backbone & cpk</option>' +
                 '<option value="trace">trace</option>' +
+                '<option value="ribbon">ribbon</option>' +
                 '<option value="cartoon">cartoon</option>' +
                 '<option value="cartoon+lines">cartoon & lines</option>' +
                 '<option value="cartoon+sticks">cartoon & sticks</option>' +
@@ -499,6 +500,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             'backbone+sticks': 'select protein or nucleic; backbone -${backbone}; select ${sidechain_helper_sele}; wireframe ${stick};',
             'backbone+cpk': 'select protein or nucleic; backbone -${backbone}; cpk ${cpk}; select ${sidechain_helper_sele}; wireframe ${stick};',
             'trace': 'select protein or nucleic; trace only; {protein or nucleic}.trace = ${trace};',
+            'ribbon': 'select protein; ribbon only; select helix or sheet; ribbon ${cartoon}; select nucleic; ${nucleic_cartoon_style} only;',
             'cartoon': 'select protein; cartoon only; select helix or sheet; cartoon ${cartoon}; select nucleic; ${nucleic_cartoon_style} only;',
             'cartoon+lines': 'select protein; cartoon only; select nucleic; ${nucleic_cartoon_style}; select ${sidechain_helper_sele}; wireframe ${line}; select helix or sheet; cartoon ${cartoon};',
             'cartoon+sticks': 'select protein; cartoon only; select nucleic; ${nucleic_cartoon_style}; select ${sidechain_helper_sele}; wireframe ${stick}; select helix or sheet; cartoon ${cartoon};',
