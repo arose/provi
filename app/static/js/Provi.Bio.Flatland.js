@@ -97,7 +97,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this._init_eid_manager([
         'applet_selector_widget', 'chart', 'render', 'resume', 'selection', 'current_alpha',
         'alpha', 'gravity', 'friction', 'theta',
-        'show_helper_links', 'show_center', 'show_axes'
+        'show_helper_links', 'show_center', 'show_axes', 'show_hull'
     ]);
     
     this.dataset = params.dataset;
@@ -106,6 +106,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this.show_helper_links = params.show_helper_links;
     this.show_center = params.show_center;
     this.show_axes = params.show_axes;
+    this.show_hull = params.show_hull;
     this.alpha = params.alpha;
     this.gravity = params.gravity;
     this.friction =params.friction;
@@ -146,6 +147,10 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
             '<div>' +
                 '<input id="${eids.show_axes}" type="checkbox" style="margin-top: 0.5em;"/>' +
                 '<label for="${eids.show_axes}"">show axes</label>' +
+            '</div>' +     
+            '<div>' +
+                '<input id="${eids.show_hull}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.show_hull}"">show hull</label>' +
             '</div>' +        
         '</div>' +
         '<div class="control_row">' +
@@ -179,6 +184,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         show_helper_links: true,
         show_center: true,
         show_axes: true,
+        show_hull: true,
         alpha: 0.06,
         gravity: 0.0,
         friction: 0.3,
@@ -236,7 +242,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             self.resume();
         });
 
-        _.each(['show_helper_links', 'show_center', 'show_axes'], function(name){
+        _.each(['show_helper_links', 'show_center', 'show_axes', 'show_hull'], function(name){
             self.elm( name ).attr('checked', self[ name ]);
             self.elm( name ).bind('click', function(e){
                 self[ name ] = self.elm( name ).is(':checked');
@@ -528,19 +534,14 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             nodes[i].y = y(d.y);
         });
 
+        var groups = [nodes];//d3.nest().key(function(d) { return d & 3; }).entries(nodes);
+
         this.elm('chart').empty();
         //if(!this.vis){
         
             var svg = d3.select( this.eid('chart', 1) ).append("svg")
                 .attr("width", w)
-                .attr("height", h)
-                //.attr("transform", "translate(" + p + "," + p + ")");
-                //.attr("transform", "scale(0.5)")
-                // .call(d3.behavior.zoom().on("zoom", function(){
-                //     console.log( d3.event, vis );
-                //     // d3.event.transform(vis);
-                //     vis.attr("transform", "scale(" + d3.event.scale + ")");
-                // }));;
+                .attr("height", h);
         //}
 
         var zoom = d3.behavior.zoom();
@@ -552,7 +553,6 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .attr("width", '100%')
             .attr("height", '100%')
             .call(zoom.on("zoom", function(){
-                //console.log( d3.event, vis, d3.event.scale, d3.event.translate, zoom.scale(), zoom.translate(), vis.attr("transform") );
                 vis.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ")scale(" + d3.event.scale + ")");
             }));
 
@@ -682,6 +682,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
         this.link = link;
         this.node = node;
+        this.groups = groups;
         this.center = center;
         this.axes = axes;
 
@@ -706,6 +707,17 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         force.start();
         this.force = force;
     },
+    group_path: function(d) {
+        console.log(d);
+        if(!d) return;
+        var gp = "M" + 
+          d3.geom.hull(d.map(function(i) { return [i.x, i.y]; }))
+            .join("L")
+        + "Z";
+        console.log(gp);
+        return gp;
+    },
+    _group_fill: d3.scale.category10(),
     get_center: function(){
         var fnodes = _.filter(this.nodes, function(d){ return !d.resno; });
         var c = _.reduce(fnodes, function(memo,d){
@@ -752,17 +764,34 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
         paxes = this.get_center();
         
-        if( this.show_center){
+        if( this.show_center ){
             this.center.data( paxes );
             this.center.attr("cx", function(d) { return d.x; })
                 .attr("cy", function(d) { return d.y; });
         }
 
-        if( this.show_axes){
+        if( this.show_axes ){
             this.axes.attr("x1", function(d) { return paxes[d.i+1].x; })
                 .attr("y1", function(d) { return paxes[d.i+1].y; })
                 .attr("x2", function(d) { return paxes[d.i+3].x; })
                 .attr("y2", function(d) { return paxes[d.i+3].y; });
+        }
+
+        var group_fill = function(d, i) { 
+            return self._group_fill(i & 3); 
+        }
+
+        if( this.show_hull ){
+            vis.selectAll("path")
+                .data(this.groups)
+                  .attr("d", this.group_path)
+                .enter().insert("path", "circle")
+                  .style("fill", 'green')//group_fill)
+                  .style("stroke", 'green')//group_fill)
+                  .style("stroke-width", 40)
+                  .style("stroke-linejoin", "round")
+                  .style("opacity", .2)
+                  .attr("d", this.group_path);
         }
     }
 });
