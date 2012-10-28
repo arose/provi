@@ -97,7 +97,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this._init_eid_manager([
         'applet_selector_widget', 'chart', 'render', 'resume', 'selection', 'current_alpha',
         'alpha', 'gravity', 'friction', 'theta',
-        'show_helper_links', 'show_center', 'show_axes', 'show_hull'
+        'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension'
     ]);
     
     this.dataset = params.dataset;
@@ -107,6 +107,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this.show_center = params.show_center;
     this.show_axes = params.show_axes;
     this.show_hull = params.show_hull;
+    this.color_tension = params.color_tension;
     this.alpha = params.alpha;
     this.gravity = params.gravity;
     this.friction =params.friction;
@@ -152,6 +153,10 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
                 '<input id="${eids.show_hull}" type="checkbox" style="margin-top: 0.5em;"/>' +
                 '<label for="${eids.show_hull}"">show hull</label>' +
             '</div>' +        
+            '<div>' +
+                '<input id="${eids.color_tension}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.color_tension}"">color links by tension</label>' +
+            '</div>' +        
         '</div>' +
         '<div class="control_row">' +
             'alpha: <span id="${eids.current_alpha}"></span>' +
@@ -185,6 +190,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         show_center: true,
         show_axes: true,
         show_hull: true,
+        color_tension: true,
         alpha: 0.06,
         gravity: 0.0,
         friction: 0.3,
@@ -242,7 +248,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             self.resume();
         });
 
-        _.each(['show_helper_links', 'show_center', 'show_axes', 'show_hull'], function(name){
+        _.each(['show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension'], function(name){
             self.elm( name ).attr('checked', self[ name ]);
             self.elm( name ).bind('click', function(e){
                 self[ name ] = self.elm( name ).is(':checked');
@@ -421,6 +427,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var h = 550;
         var p = 0;
         var fill = d3.scale.category10();
+        var alpha = 150;
+        self.alpha_asq = alpha*alpha;
         //var nodes = d3.range(70).map(Object);
         //var nodes = this.focus_data.concat( this.vdw_data );
         var nodes = this.focus_data;
@@ -708,16 +716,20 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         this.force = force;
     },
     group_path: function(d) {
-        console.log(d);
+        //console.log(d);
         if(!d) return;
         var gp = "M" + 
           d3.geom.hull(d.map(function(i) { return [i.x, i.y]; }))
             .join("L")
         + "Z";
-        console.log(gp);
+        //console.log(gp);
         return gp;
     },
     _group_fill: d3.scale.category10(),
+    alpha_dsq: function(a,b) {
+        var dx = a[0]-b[0], dy = a[1]-b[1];
+        return dx*dx+dy*dy;
+    },
     get_center: function(){
         var fnodes = _.filter(this.nodes, function(d){ return !d.resno; });
         var c = _.reduce(fnodes, function(memo,d){
@@ -755,6 +767,22 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; })
+            .style("stroke", function(d){
+                var color = d3.scale.linear()
+                    .domain([-d.dist, 0, d.dist])
+                    .range(["red", "green", "blue"]);
+                var dist = Math.sqrt( Math.pow(d.source.x - d.target.x, 2) + Math.pow(d.source.y - d.target.y, 2) ) / 25.5;
+                //console.log( color( d.dist-dist ), dist, d.dist, d.source.x, d.target.x, d.source.y, d.target.y, d.source.px, d.target.px, d.source.py, d.target.py );
+                if(!self.color_tension){
+                    if( d.lone || d.vdw ){
+                        return d.nb ? 'yellow' : 'orange';
+                    }else{
+                        return d.hidden ? 'red' : 'black';
+                    }
+                }else{
+                    return color( d.dist-dist );
+                }
+            })
             .style("visibility", function(d){
                 return (d.hidden && !self.show_helper_links) ? 'hidden' : 'visible';
             });
@@ -781,18 +809,48 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             return self._group_fill(i & 3); 
         }
 
-        if( this.show_hull ){
-            vis.selectAll("path")
-                .data(this.groups)
-                  .attr("d", this.group_path)
-                .enter().insert("path", "circle")
-                  .style("fill", 'green')//group_fill)
-                  .style("stroke", 'green')//group_fill)
-                  .style("stroke-width", 40)
-                  .style("stroke-linejoin", "round")
-                  .style("opacity", .2)
-                  .attr("d", this.group_path);
-        }
+        vis.selectAll("path.hull")
+            .data(this.groups)
+                .attr("d", this.group_path)
+                .style("visibility", function(d){
+                    return (!self.show_hull) ? 'hidden' : 'visible';
+                })
+            .enter().insert("path", "circle")
+                .attr("class", "hull")
+                .style("fill", 'green')//group_fill)
+                .style("stroke", 'green')//group_fill)
+                .style("stroke-width", 40)
+                .style("stroke-linejoin", "round")
+                .style("opacity", .2)
+                .attr("d", this.group_path);
+
+        var mesh = d3.geom.delaunay(_.map(this.nodes, function(i) { return [i.x, i.y]; })).filter(function(t) {
+            var ret = self.alpha_dsq(t[0],t[1]) < self.alpha_asq && self.alpha_dsq(t[0],t[2]) < self.alpha_asq && self.alpha_dsq(t[1],t[2]) < self.alpha_asq;
+            //console.log(ret, self.alpha_asq, self.alpha_dsq(t[0],t[1]));
+            return ret;
+        });
+        //console.log(mesh);
+
+        vis.selectAll("path.shape")
+            .data(mesh)
+                .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
+                .style("visibility", function(d){
+                    return (!self.show_hull) ? 'hidden' : 'visible';
+                })
+            .enter().insert("path", "circle")
+                .attr("class", "shape")
+                .style("fill", 'lightgrey')
+                .style("stroke", 'lightgrey')
+                .style("stroke-width", 20)
+                .style("stroke-linejoin", "round")
+                //.style("opacity", .2)
+                .attr("d", function(d) { return "M" + d.join("L") + "Z"; });
+            
+        vis.selectAll("path.shape")
+            .data(mesh)
+                .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
+            .exit().remove();
+
     }
 });
 
