@@ -96,7 +96,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
         'applet_selector_widget', 'chart', 'render', 'resume', 'selection', 'current_alpha',
-        'alpha', 'gravity', 'friction', 'theta',
+        'alpha', 'gravity', 'friction', 'theta', 'hull_alpha',
         'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension'
     ]);
     
@@ -111,7 +111,8 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this.alpha = params.alpha;
     this.gravity = params.gravity;
     this.friction =params.friction;
-    this.theta = params.theta
+    this.theta = params.theta;
+    this.hull_alpha = params.hull_alpha;
     
     
     var template = '' +
@@ -134,6 +135,11 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
                 '&nbsp;&nbsp;&nbsp;' +
                 '<input id="${eids.theta}" type="text" style="width: 3em;"/>&nbsp;' +
                 '<label for="${eids.theta}">theta</label>' +
+            '</div>' +
+            '<div>' +
+                '<input id="${eids.hull_alpha}" type="text" style="width: 3em;"/>&nbsp;' +
+                '<label for="${eids.hull_alpha}">hull alpha</label>' +
+                '&nbsp;&nbsp;&nbsp;' +
             '</div>' +
         '</div>' +
         '<div class="control_row">' +
@@ -194,7 +200,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         alpha: 0.06,
         gravity: 0.0,
         friction: 0.3,
-        theta: 1.0
+        theta: 1.0,
+        hull_alpha: 120
     },
     get_applet: function(){
         if( this.applet ){
@@ -230,7 +237,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             }
         });
 
-        _.each(['alpha', 'gravity', 'friction', 'theta'], function(name){
+        _.each(['alpha', 'gravity', 'friction', 'theta', 'hull_alpha'], function(name){
             self.elm( name ).val( self[ name ]);
             self.elm( name ).bind('keypress', function(event) {
                 if (event.which == 13 && this.value) {
@@ -427,7 +434,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var h = 550;
         var p = 0;
         var fill = d3.scale.category10();
-        var alpha = 150;
+        var alpha = this.hull_alpha;
         self.alpha_asq = alpha*alpha;
         //var nodes = d3.range(70).map(Object);
         //var nodes = this.focus_data.concat( this.vdw_data );
@@ -556,15 +563,19 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         zoom.x(x);
         zoom.y(y);
 
+        vis2 = svg.append("g");
+
         svg.append("svg:rect")
-            .attr("style", "fill:rgba(255,255,255,100)")
+            .attr("style", "fill:rgba(255,255,255,0)")
             .attr("width", '100%')
             .attr("height", '100%')
             .call(zoom.on("zoom", function(){
                 vis.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ")scale(" + d3.event.scale + ")");
+                vis2.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ")scale(" + d3.event.scale + ")");
             }));
 
         vis = svg.append("g");
+        
         //vis.attr("transform","scale()");
 
         this.vis = vis;
@@ -809,7 +820,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             return self._group_fill(i & 3); 
         }
 
-        vis.selectAll("path.hull")
+        vis2.selectAll("path.hull")
             .data(this.groups)
                 .attr("d", this.group_path)
                 .style("visibility", function(d){
@@ -831,7 +842,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         });
         //console.log(mesh);
 
-        vis.selectAll("path.shape")
+        vis2.selectAll("path.shape")
             .data(mesh)
                 .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
                 .style("visibility", function(d){
@@ -846,7 +857,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 //.style("opacity", .2)
                 .attr("d", function(d) { return "M" + d.join("L") + "Z"; });
             
-        vis.selectAll("path.shape")
+        vis2.selectAll("path.shape")
             .data(mesh)
                 .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
             .exit().remove();
