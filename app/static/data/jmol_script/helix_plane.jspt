@@ -98,7 +98,7 @@ var pn = p%4;
 
 
 select @f; cpk 20%; wireframe 0.2;
-select search("[R]"); color pink;
+select search("[R]"); #color pink;
 #select *;
 
 var uv = point( -pn.x, -pn.y, -pn.z );
@@ -216,6 +216,7 @@ for(a in f){
     atomdata += [bondlist5];
     atomdata += ring+"";
     atomdata += bbone+"";
+    atomdata += '"'+a.atomname+'"';
     #atomdata += [ get_bonds( a, f, 4 ) ];
     focusdata += [atomdata];
 }
@@ -235,11 +236,12 @@ for(a in hi){
     var mda1 = { atomno = md1 };
     var mda2 = { atomno = md2 };
     var v = { atomno = md2 }.XYZ - { atomno = md1 }.XYZ;
-    #draw id @{uid()} vector @mda1 @v color @{ color("low", 30, 90, ang(v,pn)) };
-    #draw id @{uid()} vector @mda1 @{pn*-4} color white;
+    draw id @{uid()} vector @mda1 @v color @{ color("low", 30, 90, ang(v,pn)) };
+    draw id @{uid()} vector @mda1 @{pn*-4} color white;
     
     var i = draw_intersection( p, mda1.XYZ, 'orange' );
     var i0 = point(0, i*av, i*bv);
+    
     var plist = [];
     for(ba in hi){
         if( a.resno != ba.resno ){
@@ -249,6 +251,15 @@ for(a in hi){
             plist += [pdata];
         }
     }
+
+    var alist = [];
+    for(aag in ag){
+        var md_aag = mindist( aag, f );
+        var adata = [];
+        adata += [md_aag];
+        alist += [adata];
+    }
+
     var nbdata = [];
     nbdata += a.resno
     nbdata += [md]
@@ -256,6 +267,9 @@ for(a in hi){
     nbdata += [[ i0.x, i0.y, i0.z ]];
     nbdata += [plist];
     nbdata += ang( v, pn );
+    nbdata += '"'+a.group1+'"';
+    nbdata += [alist];
+
     vdwdata += [nbdata];
 }
 

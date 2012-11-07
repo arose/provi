@@ -198,7 +198,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         show_hull: true,
         color_tension: true,
         alpha: 0.06,
-        gravity: 0.0,
+        gravity: 0.05,
         friction: 0.3,
         theta: 1.0,
         hull_alpha: 120
@@ -286,7 +286,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var coords = _.map(apm, function(d,i){
             return _.map([d[5], d[6], d[7]], function(x){ return parseFloat(x); });
         });
-        console.log(coords);
+        //console.log(coords);
         
         var axes = principal_axes(coords);
         // var axes = [[2, 1, 1], [1, 2, 1], [1, 1, 2]];
@@ -330,7 +330,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 // console.log( $.parseJSON( foo2 ) );
 
                 var data = applet.script_wait_output( script );
-                console.log(data);
+                //console.log(data);
                 data = data.split('\n').slice(0,-1).join('\n');
                 data = $.parseJSON(data);
 
@@ -360,6 +360,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                         bonds5: bonds5,
                         ring: d[9]==1 ? true : false,
                         backbone: d[10]==1 ? true : false,
+                        atomname: d[11],
                         original_coords: d[2],
                         projected_coords: d[3],
                         color: _.map( d[4], function(c){ return parseInt(c, 10); }),
@@ -384,11 +385,14 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                         x: d[3][1],
                         y: d[3][2],
                         nbs: nbs,
-                        angle: d[5]
+                        vdw: true,
+                        angle: d[5],
+                        group1: d[6],
+                        contacts: d[7]
                     };
                 });
 
-                console.log(data);
+                //console.log(data);
 
                 focus_data_dict = {};
                 _.each( focus_data, function(d,i){
@@ -437,8 +441,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var alpha = this.hull_alpha;
         self.alpha_asq = alpha*alpha;
         //var nodes = d3.range(70).map(Object);
-        //var nodes = this.focus_data.concat( this.vdw_data );
-        var nodes = this.focus_data;
+        var nodes = this.focus_data.concat( this.vdw_data );
+        //var nodes = this.focus_data;
         var links = [];
         _.each( this.focus_data, function(d,i){
             _.each( d.bonds, function(b,j){
@@ -502,25 +506,39 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             // });
         });
         _.each( this.vdw_data, function(d,i){
-            // links.push({
-            //     source: d,
-            //     target: self.focus_data_dict[ d.mindist[2] ],
-            //     dist: d.mindist[0],
-            //     vdw: true,
-            //     hidden: true
-            // });
-            // _.each( d.nbs, function(nb,i){
-            //     if(nb.dist < 5 ){
-            //         links.push({
-            //             source: d,
-            //             target: self.vdw_data_dict[ nb.resno ],
-            //             dist: nb.dist,
-            //             nb: true,
-            //             vdw: true,
-            //             hidden: true
-            //         });
-            //     }
-            // });
+            links.push({
+                source: d,
+                target: self.focus_data_dict[ d.mindist[2] ],
+                dist: d.mindist[0],
+                vdw: true,
+                hidden: true
+            });
+            _.each( d.nbs, function(nb,i){
+                if(nb.dist < 5 ){
+                    links.push({
+                        source: d,
+                        target: self.vdw_data_dict[ nb.resno ],
+                        dist: nb.dist,
+                        nb: true,
+                        vdw: true,
+                        hidden: true
+                    });
+                }
+            });
+            console.log(d.contacts);
+            _.each( d.contacts, function(co,i){
+                console.log(co, co[0][0]);
+                if(co[0][0] < 4 ){
+                    links.push({
+                        source: d,
+                        target: self.focus_data_dict[ co[0][2] ],
+                        dist: co[0][0],
+                        co: true,
+                        vdw: true,
+                        hidden: true
+                    });
+                }
+            });
         });
         console.log(nodes);
         console.log(links);
@@ -549,7 +567,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             nodes[i].y = y(d.y);
         });
 
-        var groups = [nodes];//d3.nest().key(function(d) { return d & 3; }).entries(nodes);
+        var groups = [_.filter(nodes, function(n){ return !n.vdw })];//d3.nest().key(function(d) { return d & 3; }).entries(nodes);
 
         this.elm('chart').empty();
         //if(!this.vis){
@@ -583,7 +601,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
         var force = d3.layout.force()
             .charge(function(d){
-                return d.resno ? -600 : -120;
+                return d.resno ? -800 : -120;
             })
             // .gravity(function(d){
             //     console.log('GRAVITY');
@@ -597,7 +615,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .theta( this.theta )
             //.distance(10)
             .linkDistance(function(d){
-                return (d.hidden ? d.dist : 1.6) * 25.5;
+                //return (d.hidden ? d.dist : 1.6) * 25.5;
+                return d.dist * 25.5;
             })
             .linkStrength(function(d){
                 if(d.source.ring && d.target.ring){
@@ -614,35 +633,35 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .links(links)
             .size([w, h]);
 
-        var paxes = this.get_center();
+        // var paxes = this.get_center();
 
-        var center = vis.selectAll("circle.center")
-            .data( paxes )
-          .enter().append("circle")
-            .attr("class", "center")
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; })
-            .attr("r", 6)
-            .style("fill", 'blue')
-            .style("visibility", function(d){
-                return (d.hidden && !self.show_center) ? 'hidden' : 'visible';
-            })
-            .style("fill-opacity", 0.3);
+        // var center = vis.selectAll("circle.center")
+        //     .data( paxes )
+        //   .enter().append("circle")
+        //     .attr("class", "center")
+        //     .attr("cx", function(d) { return d.x; })
+        //     .attr("cy", function(d) { return d.y; })
+        //     .attr("r", 6)
+        //     .style("fill", 'blue')
+        //     .style("visibility", function(d){
+        //         return (d.hidden && !self.show_center) ? 'hidden' : 'visible';
+        //     })
+        //     .style("fill-opacity", 0.3);
 
-        var axes = vis.selectAll("line.axis")
-            .data([ {i: 0}, {i: 1} ])
-          .enter().append("line")
-            .attr("class", "axis")
-            .style("visibility", function(d){
-                return (d.hidden && !self.show_axes) ? 'hidden' : 'visible';
-            })
-            .style("stroke-width", 10)
-            .style("stroke", "blue")
-            .style("stroke-opacity", 0.1)
-            .attr("x1", function(d) { return paxes[d.i+1].x; })
-            .attr("y1", function(d) { return paxes[d.i+1].y; })
-            .attr("x2", function(d) { return paxes[d.i+3].x; })
-            .attr("y2", function(d) { return paxes[d.i+3].y; });
+        // var axes = vis.selectAll("line.axis")
+        //     .data([ {i: 0}, {i: 1} ])
+        //   .enter().append("line")
+        //     .attr("class", "axis")
+        //     .style("visibility", function(d){
+        //         return (d.hidden && !self.show_axes) ? 'hidden' : 'visible';
+        //     })
+        //     .style("stroke-width", 10)
+        //     .style("stroke", "blue")
+        //     .style("stroke-opacity", 0.1)
+        //     .attr("x1", function(d) { return paxes[d.i+1].x; })
+        //     .attr("y1", function(d) { return paxes[d.i+1].y; })
+        //     .attr("x2", function(d) { return paxes[d.i+3].x; })
+        //     .attr("y2", function(d) { return paxes[d.i+3].y; });
 
         var link = vis.selectAll("line.link")
             .data(links)
@@ -659,30 +678,49 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 }
             })
             .style("stroke", function(d){
-                if( d.lone || d.vdw ){
-                    return d.nb ? 'yellow' : 'orange';
-                }else{
-                    return d.hidden ? 'red' : 'black';
-                }
+                return d.vdw ? "orange" : "black";
             })
             .attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
 
-        var node = vis.selectAll("circle.node")
+        var node = vis.selectAll(".node")
             .data(nodes)
-          .enter().append("circle")
+          .enter().append("g")
             .attr("class", "node")
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; })
+            .call(force.drag);
+
+        node.append("circle")
+            // .attr("cx", function(d) { return d.x; })
+            // .attr("cy", function(d) { return d.y; })
             .attr("r", 4)
             .style("fill", function(d){
                 var c = d3.rgb(d.color[0], d.color[1], d.color[2]);
                 return c.toString();
             })
             .style("stroke-width", 1.5)
-            .call(force.drag);
+
+        var text_bg = node.append("rect")
+            .attr("rx", 3)
+            .attr("ry", 3)
+            .attr("opacity", 0.5)
+            .attr("fill", "white");
+
+        var text = node.append("text")
+            .attr("dx", 6)
+            .attr("dy", ".35em")
+            .style("font", function(d) { return d.resno ? "12px sans-serif" : "8px sans-serif" })
+            .text(function(d) { return d.resno ? (d.group1 + d.resno) : d.atomname });
+
+        _.each(text[0], function(d, i){
+            var bb = d.getBBox();
+            d3.select(text_bg[0][i])
+                .attr("x", bb.x-2)
+                .attr("y", bb.y)
+                .attr("width", bb.width+4)
+                .attr("height", bb.height);
+        });
 
         vis.style("opacity", 1e-6)
           .transition()
@@ -695,18 +733,15 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
 
-        vis.selectAll("circle.node")
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
 
         this.link = link;
         this.node = node;
         this.groups = groups;
-        this.center = center;
-        this.axes = axes;
+        //this.center = center;
+        //this.axes = axes;
 
         force.on("tick", function(e) {
-            force.axes = self.get_center();
+            //force.axes = self.get_center();
             if( force.alpha() < self.alpha ){
                 force.alpha(0);
             }
@@ -715,7 +750,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         });
 
         force.on("end", function(e) {
-            force.axes = self.get_center();
+            //force.axes = self.get_center();
             self.update();
         });
 
@@ -741,36 +776,36 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var dx = a[0]-b[0], dy = a[1]-b[1];
         return dx*dx+dy*dy;
     },
-    get_center: function(){
-        var fnodes = _.filter(this.nodes, function(d){ return !d.resno; });
-        var c = _.reduce(fnodes, function(memo,d){
-            return {
-                x: memo.x + d.x,
-                y: memo.y + d.y
-            };
-        }, {x:0, y:0});
-        var n = fnodes.length;
-        var x = c.x/n;
-        var y = c.y/n;
-        if(this.show_axes){
-            var axes = principal_axes( _.map(fnodes, function(d){ return [d.x, d.y]; }) );
-            return [
-                { x: x, y: y },
-                { x: x + axes[0][0]/2, y: y + axes[0][1]/2 },
-                { x: x + axes[1][0]/2, y: y + axes[1][1]/2 },
-                { x: x - axes[0][0]/2, y: y - axes[0][1]/2 },
-                { x: x - axes[1][0]/2, y: y - axes[1][1]/2 }
-            ];
-        }else{
-            return [
-                { x: x, y: y },
-                { x: x, y: y },
-                { x: x, y: y },
-                { x: x, y: y },
-                { x: x, y: y }
-            ];
-        }
-    },
+    // get_center: function(){
+    //     var fnodes = _.filter(this.nodes, function(d){ return !d.resno; });
+    //     var c = _.reduce(fnodes, function(memo,d){
+    //         return {
+    //             x: memo.x + d.x,
+    //             y: memo.y + d.y
+    //         };
+    //     }, {x:0, y:0});
+    //     var n = fnodes.length;
+    //     var x = c.x/n;
+    //     var y = c.y/n;
+    //     if(this.show_axes){
+    //         var axes = principal_axes( _.map(fnodes, function(d){ return [d.x, d.y]; }) );
+    //         return [
+    //             { x: x, y: y },
+    //             { x: x + axes[0][0]/2, y: y + axes[0][1]/2 },
+    //             { x: x + axes[1][0]/2, y: y + axes[1][1]/2 },
+    //             { x: x - axes[0][0]/2, y: y - axes[0][1]/2 },
+    //             { x: x - axes[1][0]/2, y: y - axes[1][1]/2 }
+    //         ];
+    //     }else{
+    //         return [
+    //             { x: x, y: y },
+    //             { x: x, y: y },
+    //             { x: x, y: y },
+    //             { x: x, y: y },
+    //             { x: x, y: y }
+    //         ];
+    //     }
+    // },
     update: function(){
         var self = this;
 
@@ -785,36 +820,34 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 var dist = Math.sqrt( Math.pow(d.source.x - d.target.x, 2) + Math.pow(d.source.y - d.target.y, 2) ) / 25.5;
                 //console.log( color( d.dist-dist ), dist, d.dist, d.source.x, d.target.x, d.source.y, d.target.y, d.source.px, d.target.px, d.source.py, d.target.py );
                 if(!self.color_tension){
-                    if( d.lone || d.vdw ){
-                        return d.nb ? 'yellow' : 'orange';
-                    }else{
-                        return d.hidden ? 'red' : 'black';
-                    }
+                    return d.vdw ? "orange" : "black";
                 }else{
                     return color( d.dist-dist );
                 }
             })
             .style("visibility", function(d){
-                return (d.hidden && !self.show_helper_links) ? 'hidden' : 'visible';
+                return (d.hidden && !self.show_helper_links && (!d.vdw || d.nb)) ? 'hidden' : 'visible';
             });
 
-        this.node.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
+        // this.node.attr("cx", function(d) { return d.x; })
+        //     .attr("cy", function(d) { return d.y; });
 
-        paxes = this.get_center();
+        this.node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+        // paxes = this.get_center();
         
-        if( this.show_center ){
-            this.center.data( paxes );
-            this.center.attr("cx", function(d) { return d.x; })
-                .attr("cy", function(d) { return d.y; });
-        }
+        // if( this.show_center ){
+        //     this.center.data( paxes );
+        //     this.center.attr("cx", function(d) { return d.x; })
+        //         .attr("cy", function(d) { return d.y; });
+        // }
 
-        if( this.show_axes ){
-            this.axes.attr("x1", function(d) { return paxes[d.i+1].x; })
-                .attr("y1", function(d) { return paxes[d.i+1].y; })
-                .attr("x2", function(d) { return paxes[d.i+3].x; })
-                .attr("y2", function(d) { return paxes[d.i+3].y; });
-        }
+        // if( this.show_axes ){
+        //     this.axes.attr("x1", function(d) { return paxes[d.i+1].x; })
+        //         .attr("y1", function(d) { return paxes[d.i+1].y; })
+        //         .attr("x2", function(d) { return paxes[d.i+3].x; })
+        //         .attr("y2", function(d) { return paxes[d.i+3].y; });
+        // }
 
         var group_fill = function(d, i) { 
             return self._group_fill(i & 3); 
@@ -835,7 +868,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 .style("opacity", .2)
                 .attr("d", this.group_path);
 
-        var mesh = d3.geom.delaunay(_.map(this.nodes, function(i) { return [i.x, i.y]; })).filter(function(t) {
+        var mesh = d3.geom.delaunay(_.map(this.groups[0], function(i) { return [i.x, i.y]; })).filter(function(t) {
             var ret = self.alpha_dsq(t[0],t[1]) < self.alpha_asq && self.alpha_dsq(t[0],t[2]) < self.alpha_asq && self.alpha_dsq(t[1],t[2]) < self.alpha_asq;
             //console.log(ret, self.alpha_asq, self.alpha_dsq(t[0],t[1]));
             return ret;
