@@ -330,7 +330,9 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 // console.log( $.parseJSON( foo2 ) );
 
                 var data = applet.script_wait_output( script );
-                //console.log(data);
+                console.log(data);
+                // remove first 3 lines with hbond calc output
+                //data = data.split('\n').slice(3,-1).join('\n');
                 data = data.split('\n').slice(0,-1).join('\n');
                 data = $.parseJSON(data);
 
@@ -514,7 +516,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 hidden: true
             });
             _.each( d.nbs, function(nb,i){
-                if(nb.dist < 5 ){
+                if(nb.dist < 10 ){
                     links.push({
                         source: d,
                         target: self.vdw_data_dict[ nb.resno ],
@@ -525,9 +527,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     });
                 }
             });
-            console.log(d.contacts);
             _.each( d.contacts, function(co,i){
-                console.log(co, co[0][0]);
                 if(co[0][0] < 4 ){
                     links.push({
                         source: d,
@@ -621,6 +621,14 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .linkStrength(function(d){
                 if(d.source.ring && d.target.ring){
                     return 10;
+                }else if(d.co){
+                    console.log(Math.exp(35-10*d.dist), d.dist);
+                    //return Math.exp(7-2*d.dist)+1.5;
+                    if(d.dist<3.5){
+                        return 0.5;
+                    }else{
+                        return Math.exp(35-10*d.dist);
+                    }
                 }else if(d.nb){
                     return 0.01;
                 }else if(d.lone && d.neighbour){

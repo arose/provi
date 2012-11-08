@@ -1,7 +1,8 @@
 
+
 select none;
 selectionHalos off;
-#draw off;
+draw off;
 
 uid_counter = 0;
 function uid(){
@@ -97,6 +98,16 @@ var f = {###sele###};
 var pn = p%4;
 
 
+select none;
+#hbonds delete;
+#select not hydrogen and @f;
+#set hbondsRasmol TRUE;
+#set hbondsAngleMinimum 60;
+#set hbondsDistanceMaximum 3.0;
+#calculate hbonds;
+select none;
+
+
 select @f; cpk 20%; wireframe 0.2;
 select search("[R]"); #color pink;
 #select *;
@@ -137,11 +148,10 @@ function get_bonds( a, f, depth ){
     return _get_bonds( a, f, depth, a, 1, bond_acc );
 }
 
-
 var focusdata = [];
 
 for(a in f){
-    var bonds = connected(a, f);
+    var bonds = connected(a, f);# and (not connected("hbond"));
     var ab = bonds.atoms;
     var bondlist = [];
     var bondlist2 = [];
@@ -251,6 +261,7 @@ for(a in hi){
             plist += [pdata];
         }
     }
+    #plist = [];
 
     var alist = [];
     for(aag in ag){
@@ -259,6 +270,7 @@ for(a in hi){
         adata += [md_aag];
         alist += [adata];
     }
+    #alist = [];
 
     var nbdata = [];
     nbdata += a.resno
