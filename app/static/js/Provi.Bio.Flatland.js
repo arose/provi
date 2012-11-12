@@ -371,6 +371,11 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     };
                 });
 
+                var center = _.reduce(focus_data, function(memo,d){
+                    return [ memo[0] + d.x, memo[1] + d.y ];
+                }, [0, 0]);
+                center = numeric.div(center, focus_data.length);
+                console.log(center);
                 vdw_data = _.map( data[2], function(d,i){
                     var nbs = _.map(d[4], function(b,j){
                         return {
@@ -378,14 +383,21 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                             dist: b[1]
                         };
                     });
+                    var vdw_pos = [d[3][1], d[3][2]];
+                    var v = numeric.sub(center, vdw_pos);
+                    var v = numeric.sub(vdw_pos, center);
+                    var vn = numeric.div(v, numeric.norm2(v));
+                    var pc = numeric.add( vdw_pos, numeric.mul( vn, 1 ) );
+                    console.log(v, vn, vdw_pos, pc);
                     return {
                         resno: d[0],
                         mindist: d[1],
                         original_coords: d[2],
-                        projected_coords: d[3],
+                        projected_coords_unadjusted: d[3],
+                        projected_coords: pc,
                         color: (d[5]<60) ? [128, 0, 0] : [0, 200, 0],
-                        x: d[3][1],
-                        y: d[3][2],
+                        x: pc[0],
+                        y: pc[1],
                         nbs: nbs,
                         vdw: true,
                         angle: d[5],
