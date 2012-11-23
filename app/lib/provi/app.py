@@ -462,7 +462,11 @@ class JmolCalculateController( BaseController ):
             with open( stdout, 'w' ) as f:
                 f.write( '\n'.join(out) )
         words = out[-1].split()
-        exec_time = float( words[0] )
+        exec_time = 0.0
+        try:
+            exec_time = float( words[0] )
+        except:
+            pass
         LOG.debug( program )
         LOG.debug( exec_time )
         return exec_time, out
