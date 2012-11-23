@@ -6,6 +6,12 @@
 Python packages
 ===============
 
+first create a virtual environment::
+
+    virtualenv --no-site-packages provi
+    source provi/bin/activate
+
+
 mind the order, numpy is best installed before biopython
 
 ::
