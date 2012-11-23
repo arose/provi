@@ -456,12 +456,18 @@ Provi.Bio.Isosurface.VolumeWidget = function(params){
         '' +
     '</div>';
     
-    if( this.dataset && $.inArray( this.dataset.type, ['cube', 'ccp4', 'mrc', 'map']) >= 0 ){
-    this.style = 'MESH NOFILL';
-    this.downsample = null;
-    this.focus = true;
-    this.sele = params.sele || 'atomno=1';
-    this.sigma = params.sigma || 1;
+    if( this.dataset && $.inArray( this.dataset.type, ['ccp4', 'mrc', 'map']) >= 0 ){
+        this.style = 'MESH NOFILL';
+        this.downsample = null;
+        this.focus = true;
+        this.sele = params.sele || 'atomno=1';
+        this.sigma = params.sigma || 1;
+    }
+    if( this.dataset && $.inArray( this.dataset.type, ['cube']) >= 0 ){
+        this.style = 'MESH NOFILL';
+        this.downsample = null;
+        this.cutoff = params.cutoff || 9;
+        this.sigma = null;
     }
     
     //$(this.dom).append( content );
@@ -475,38 +481,38 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
     init_isosurface: function(){
     if( this.color_density ){
         if( !this.cutoff ){
-        this.cutoff = '[-1000,1000]';
+            this.cutoff = '[-1000,1000]';
         }
         this.applet.script(
-        'isosurface id "' + this.isosurface_name + '" ' +
-        ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
-        ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
-        (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
-        (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
-        (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
-        'color density ' +
-        '"../../data/get/?id=' + this.dataset.server_id + '&session_id=' + $.cookie('provisessions') + '" ' +
-        ';' +
-        'color $' + this.isosurface_name + ' "rwb" range -20 20;' +
+            'isosurface id "' + this.isosurface_name + '" ' +
+            ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
+            ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
+            (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
+            (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
+            (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
+            'color density ' +
+            '"../../data/get/?id=' + this.dataset.server_id + '&session_id=' + $.cookie('provisessions') + '" ' +
+            ';' +
+            'color $' + this.isosurface_name + ' "rwb" range -20 20;' +
         '', true);
     }else{
         this.applet.script(
-        'isosurface id "' + this.isosurface_name + '" ' +
-        ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
-        ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
-        (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
-        (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
-        (this.sign ? 'SIGN blue red ' : '') +
-        (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
-        (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
-        (this.select ? 'select {' + this.select + '} ' : '') +
-        (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
-        //'colorscheme "rwb" color absolute -20 20 ' +
-        (this.type ? this.type + ' ' : '') +
-        (this.type ? 'MAP ' : '') +
-        ( (!this.type && this.insideout) ? 'INSIDEOUT ' : '' ) + 
-        '"../../data/get/?id=' + this.dataset.server_id + '" ' +
-        (this.style ? this.style + ' ' : '') +
+            'isosurface id "' + this.isosurface_name + '" ' +
+            ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
+            ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
+            (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
+            (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
+            (this.sign ? 'SIGN blue red ' : '') +
+            (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
+            (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
+            (this.select ? 'select {' + this.select + '} ' : '') +
+            (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
+            //'colorscheme "rwb" color absolute -20 20 ' +
+            (this.type ? this.type + ' ' : '') +
+            (this.type ? 'MAP ' : '') +
+            ( (!this.type && this.insideout) ? 'INSIDEOUT ' : '' ) + 
+            '"../../data/get/?id=' + this.dataset.server_id + '" ' +
+            (this.style ? this.style + ' ' : '') +
         ';', true);
     }
     }
@@ -662,13 +668,17 @@ Provi.Bio.Isosurface.VolumeParamsWidget = function(params){
     $(this.dom).append( content );
     
     if( this.dataset && $.inArray( this.dataset.type, ['cube', 'ccp4', 'mrc', 'map']) == -1 ){
-    $('#' + this.sigma_id).parent().hide();
+        $('#' + this.sigma_id).parent().hide();
     }else{
-    $('#' + this.sigma_id).val('1');
-    $('#' + this.downsample_id).parent().hide();
-    $('#' + this.cutoff_id).parent().hide();
-    $('#' + this.sign_id).parent().hide();
-    $('#' + this.as_map_id).parent().hide();
+        $('#' + this.sigma_id).val('1');
+        $('#' + this.downsample_id).parent().hide();
+        $('#' + this.cutoff_id).parent().hide();
+        $('#' + this.sign_id).parent().hide();
+        $('#' + this.as_map_id).parent().hide();
+    }
+    if( this.dataset && $.inArray( this.dataset.type, ['cube']) != -1 ){
+        $('#' + this.sigma_id).parent().hide();
+        $('#' + this.cutoff_id).parent().show();
     }
 }
 Provi.Bio.Isosurface.VolumeParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Isosurface.VolumeParamsWidget.prototype */ {
