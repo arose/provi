@@ -21,7 +21,7 @@ Provi.Jmol = {};
  * @see Provi.Jmol
  */
 var _jmol = {
-    java_arguments: "-Xmx512M"
+    java_arguments: "-Xmx1024M"
 };
 
 /**
@@ -420,7 +420,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             progressbar: "true",
             syncId: this.default_params.sync_id,
             boxmessage: "Downloading JmolApplet ...",
-            java_arguments: "-Xmx512m"
+            java_arguments: "-Xmx1024m"
         };
         var t = "";
         for (var i in params){
