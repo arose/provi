@@ -97,7 +97,8 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this._init_eid_manager([
         'applet_selector_widget', 'chart', 'render', 'resume', 'selection', 'current_alpha',
         'alpha', 'gravity', 'friction', 'theta', 'hull_alpha',
-        'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension'
+        'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
+        'canvas', 'image'
     ]);
     
     this.dataset = params.dataset;
@@ -118,6 +119,8 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row" id="${eids.chart}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
+        '<canvas class="control_row" id="${eids.canvas}" style="width:1100px; height:1100px; border:solid grey 2px"></canvas>' +
+        '<div class="control_row" id="${eids.image}" style="width:1100px; height:1100px; border:solid grey 2px"></div>' +
         '<div class="control_row">' +
             '<span id="${eids.selection}"></span>' +
         '</div>' +
@@ -593,22 +596,26 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         zoom.x(x);
         zoom.y(y);
 
-        vis2 = svg.append("g");
+        
 
         svg.append("svg:rect")
-            .attr("style", "fill:rgba(255,255,255,0)")
+            .attr("style", "fill:white")
+            .attr("opacity", 1)
             .attr("width", '100%')
             .attr("height", '100%')
             .call(zoom.on("zoom", function(){
-                vis.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ")scale(" + d3.event.scale + ")");
-                vis2.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ")scale(" + d3.event.scale + ")");
+                vis.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ") scale(" + d3.event.scale + ")");
+                vis2.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ") scale(" + d3.event.scale + ")");
+                self.to_image();
             }));
 
-        vis = svg.append("g");
+        var vis2 = svg.append("g");
+        var vis = svg.append("g");
         
         //vis.attr("transform","scale()");
 
         this.vis = vis;
+        this.vis2 = vis2;
         this.nodes = nodes;
 
         var force = d3.layout.force()
@@ -687,7 +694,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .data(links)
           .enter().append("line")
             .attr("class", "link")
-            .style("visibility", function(d){
+            .attr("visibility", function(d){
                 return (d.hidden && !self.show_helper_links) ? 'hidden' : 'visible';
             })
             .style("stroke-width", function(d){
@@ -728,8 +735,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .attr("fill", "white");
 
         var text = node.append("text")
-            .attr("dx", 6)
-            .attr("dy", ".35em")
+            // .attr("dx", 3)
+            // .attr("dy", 3)
             .style("font", function(d) { return d.resno ? "12px sans-serif" : "8px sans-serif" })
             .text(function(d) { return d.resno ? (d.group1 + d.resno) : d.atomname });
 
@@ -764,6 +771,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             //force.axes = self.get_center();
             if( force.alpha() < self.alpha ){
                 force.alpha(0);
+                self.to_image();
             }
             self.elm('current_alpha').text( force.alpha() );
             self.update();
@@ -845,7 +853,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     return color( d.dist-dist );
                 }
             })
-            .style("visibility", function(d){
+            .attr("visibility", function(d){
                 return (d.hidden && !self.show_helper_links && (!d.vdw || d.nb)) ? 'hidden' : 'visible';
             });
 
@@ -873,19 +881,21 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             return self._group_fill(i & 3); 
         }
 
-        vis2.selectAll("path.hull")
+        this.vis2.selectAll("path.hull")
             .data(this.groups)
                 .attr("d", this.group_path)
-                .style("visibility", function(d){
+                .attr("visibility", function(d){
                     return (!self.show_hull) ? 'hidden' : 'visible';
                 })
             .enter().insert("path", "circle")
                 .attr("class", "hull")
-                .style("fill", 'green')//group_fill)
-                .style("stroke", 'green')//group_fill)
+                .style("fill", '#b5e8bf')//group_fill)
+                .style("stroke", '#b5e8bf')//group_fill)
                 .style("stroke-width", 40)
                 .style("stroke-linejoin", "round")
-                .style("opacity", .2)
+                // .style("opacity", .2)
+                // .style("fill-opacity", 1)
+                // .style("stroke-opacity", 1)
                 .attr("d", this.group_path);
 
         var mesh = d3.geom.delaunay(_.map(this.groups[0], function(i) { return [i.x, i.y]; })).filter(function(t) {
@@ -895,10 +905,10 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         });
         //console.log(mesh);
 
-        vis2.selectAll("path.shape")
+        this.vis2.selectAll("path.shape")
             .data(mesh)
                 .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
-                .style("visibility", function(d){
+                .attr("visibility", function(d){
                     return (!self.show_hull) ? 'hidden' : 'visible';
                 })
             .enter().insert("path", "circle")
@@ -910,12 +920,34 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 //.style("opacity", .2)
                 .attr("d", function(d) { return "M" + d.join("L") + "Z"; });
             
-        vis2.selectAll("path.shape")
+        this.vis2.selectAll("path.shape")
             .data(mesh)
                 .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
             .exit().remove();
 
-    }
+    },
+    to_image: function(){
+        var self = this;
+        var svg = this.elm("chart").first().html().replace(/>\s+/g, ">").replace(/\s+</g, "<");
+        var canvas = this.elm("canvas")[0];
+        // console.log(svg, canvas);
+        console.log( svgfix(svg) );
+        canvg(canvas, svgfix(svg), {
+            renderCallback : function(){
+                var imgData = canvas.toDataURL('image/jpg');
+                var img = new Image();
+                $(img).load(function(){
+                    self.elm("image").html("");
+                    $(img).appendTo( self.elm("image") );
+                });
+                img.src = imgData;
+            },
+            // scaleWidth: 1100,
+            // scaleHeight: 1100,
+            ignoreAnimation: true,
+            ignoreMouse: true
+        });           
+     }
 });
 
 
