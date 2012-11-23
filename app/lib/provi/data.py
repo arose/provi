@@ -11,21 +11,21 @@ from utils.odict import odict
 import threading
 import csv
 
-import math
-import numpy
+# import math
+# import numpy
 
-from MembraneProtein.AndreanTools import contact
-from MembraneProtein.AndreanTools import membran_neu
-# from MembraneProtein.AndreanTools import membran_plane
-from MembraneProtein import HBexplore
+# from MembraneProtein.AndreanTools import contact
+# from MembraneProtein.AndreanTools import membran_neu
+# # from MembraneProtein.AndreanTools import membran_plane
+# from MembraneProtein import HBexplore
 
 # from Bio.PDB.PDBParser import PDBParser
 from provi.framework import expose
 
-try:
-    from voronoia import VolParser, Voronoia
-except:
-    from Voronoia import VolParser, Voronoia
+# try:
+#     from voronoia import VolParser, Voronoia
+# except:
+#     from Voronoia import VolParser, Voronoia
 
 logging.basicConfig( level=logging.DEBUG )
 LOG = logging.getLogger('provi')
@@ -209,84 +209,84 @@ class Ent( Pdb ):
     """PDB with another file extension"""
     file_ext = 'ent'
 
-class ScoBase( Text ):
-    file_ext = None
-    data_class = None
-    @expose
-    def get_pdb( self, dataset, **kwargs ):
-        tmp_file = named_tmp_file( dataset.data )
-        return self.data_class(tmp_file.name).get_pdb()
-        #return self.data_class(tmp_file.name).getPdb()
-    @expose
-    def get_helix_interface_names( self, dataset, **kwargs ):
-        tmp_file = named_tmp_file( dataset.data )
-        data = self.data_class(tmp_file.name)
-        #return json.dumps( data.getInterfaceNames('helix') )
-        return json.dumps( data.getInterfaceNames() )
-    @expose
-    def get_helix_interface_atoms( self, dataset, cutoff=1.5, interface_ids='', interface_names='', **kwargs ):
-        if interface_ids:
-            interface_ids = [int(x) for x in interface_ids.split(',')]
-        else:
-            interface_ids = []
-        tmp_file = named_tmp_file( dataset.data )
-        data = self.data_class(tmp_file.name)
-        if interface_names:
-            interface_names = [ x.strip() for x in interface_names.split(',') if len(x.strip()) < 30 ]
-            # flatten
-            interface_ids.extend( itertools.chain( * [ data.getInterfaceIdByName(name) for name in interface_names ] ) )
-        atoms = data.getAtoms( cutoff=cutoff,interfaceIds=interface_ids )
-        return json.dumps( atoms )
-    @expose
-    def get_structure_atoms( self, dataset, structure_name, **kwargs ):
-        tmp_file = named_tmp_file( dataset.data )
-        data = self.data_class(tmp_file.name)
-        return json.dumps( data.getStructureAtoms( structure_name ) )
-    @expose
-    def get_probe_radius( self, dataset, structure_name, **kwargs ):
-        tmp_file = named_tmp_file( dataset.data )
-        data = self.data_class(tmp_file.name)
-        return data.probeRadius
+# class ScoBase( Text ):
+#     file_ext = None
+#     data_class = None
+#     @expose
+#     def get_pdb( self, dataset, **kwargs ):
+#         tmp_file = named_tmp_file( dataset.data )
+#         return self.data_class(tmp_file.name).get_pdb()
+#         #return self.data_class(tmp_file.name).getPdb()
+#     @expose
+#     def get_helix_interface_names( self, dataset, **kwargs ):
+#         tmp_file = named_tmp_file( dataset.data )
+#         data = self.data_class(tmp_file.name)
+#         #return json.dumps( data.getInterfaceNames('helix') )
+#         return json.dumps( data.getInterfaceNames() )
+#     @expose
+#     def get_helix_interface_atoms( self, dataset, cutoff=1.5, interface_ids='', interface_names='', **kwargs ):
+#         if interface_ids:
+#             interface_ids = [int(x) for x in interface_ids.split(',')]
+#         else:
+#             interface_ids = []
+#         tmp_file = named_tmp_file( dataset.data )
+#         data = self.data_class(tmp_file.name)
+#         if interface_names:
+#             interface_names = [ x.strip() for x in interface_names.split(',') if len(x.strip()) < 30 ]
+#             # flatten
+#             interface_ids.extend( itertools.chain( * [ data.getInterfaceIdByName(name) for name in interface_names ] ) )
+#         atoms = data.getAtoms( cutoff=cutoff,interfaceIds=interface_ids )
+#         return json.dumps( atoms )
+#     @expose
+#     def get_structure_atoms( self, dataset, structure_name, **kwargs ):
+#         tmp_file = named_tmp_file( dataset.data )
+#         data = self.data_class(tmp_file.name)
+#         return json.dumps( data.getStructureAtoms( structure_name ) )
+#     @expose
+#     def get_probe_radius( self, dataset, structure_name, **kwargs ):
+#         tmp_file = named_tmp_file( dataset.data )
+#         data = self.data_class(tmp_file.name)
+#         return data.probeRadius
 
-class Sco ( ScoBase ):
-    file_ext = 'sco'
-    data_class = contact.sco
+# class Sco ( ScoBase ):
+#     file_ext = 'sco'
+#     data_class = contact.sco
 
-class Mbn( ScoBase ):
-    file_ext = 'mbn'
-    data_class = membran_neu.mbn
+# class Mbn( ScoBase ):
+#     file_ext = 'mbn'
+#     data_class = membran_neu.mbn
 
-class Mplane( Text ):
-    file_ext = 'mplane'
-    def distance(self, planes):
-        p1 = map( numpy.array, planes[0] )
-        p2 = map( numpy.array, planes[1] )
-        # http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
-        # http://mathworld.wolfram.com/Point-PlaneDistance.html
-        n = numpy.cross( p1[1]-p1[0], p1[2]-p1[0] )
-        p0 = p2[0]
-        v0 = p1[0]
-        dist = numpy.abs( numpy.dot( (p0-v0), n )/self.vec_mag(n) )
-        return dist
-    def vec_mag( self, v ):
-        return math.sqrt( v[0]**2 + v[1]**2 + v[2]**2 )
-    @expose
-    def get_planes( self, dataset, **kwargs ):
-        line = dataset.data.splitlines()[0]
-        planes = []
-        for plane in line[ line.find(": {")+2: ].split(":::"):
-            points = []
-            for point in plane.strip(" {}").split("} {"):
-                points.append([ float( p.strip() ) for p in point.split(",") ])
-            planes.append( points )
-        return json.dumps( planes + [ self.distance(planes) ] )
-    # def get_planes_OLD( self, dataset, **kwargs ):
-    #     tmp_file = named_tmp_file( dataset.data )
+# class Mplane( Text ):
+#     file_ext = 'mplane'
+#     def distance(self, planes):
+#         p1 = map( numpy.array, planes[0] )
+#         p2 = map( numpy.array, planes[1] )
+#         # http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
+#         # http://mathworld.wolfram.com/Point-PlaneDistance.html
+#         n = numpy.cross( p1[1]-p1[0], p1[2]-p1[0] )
+#         p0 = p2[0]
+#         v0 = p1[0]
+#         dist = numpy.abs( numpy.dot( (p0-v0), n )/self.vec_mag(n) )
+#         return dist
+#     def vec_mag( self, v ):
+#         return math.sqrt( v[0]**2 + v[1]**2 + v[2]**2 )
+#     @expose
+#     def get_planes( self, dataset, **kwargs ):
+#         line = dataset.data.splitlines()[0]
+#         planes = []
+#         for plane in line[ line.find(": {")+2: ].split(":::"):
+#             points = []
+#             for point in plane.strip(" {}").split("} {"):
+#                 points.append([ float( p.strip() ) for p in point.split(",") ])
+#             planes.append( points )
+#         return json.dumps( planes + [ self.distance(planes) ] )
+#     # def get_planes_OLD( self, dataset, **kwargs ):
+#     #     tmp_file = named_tmp_file( dataset.data )
 
-    #     mp = membran_plane.Mplanes(tmp_file.name)
-    #     def f(p):
-    #         return map( list, (p.a, p.b, p.c) )
-    #     return json.dumps( ( f(mp.plane1), f(mp.plane2), mp.distance() ) )
+#     #     mp = membran_plane.Mplanes(tmp_file.name)
+#     #     def f(p):
+#     #         return map( list, (p.a, p.b, p.c) )
+#     #     return json.dumps( ( f(mp.plane1), f(mp.plane2), mp.distance() ) )
 
 class Gromacs( Text ):
     file_ext = 'gro'
@@ -462,11 +462,11 @@ extension_to_datatype_dict = {
     'jspt': JmolScript(),
     'jvxl': JmolVoxel(),
     'map': Map(),
-    'mbn': Mbn(),
+    #'mbn': Mbn(),
     'mmcif': MmCif(),
     'mol': Mol(),
     'mol2': Mol(),
-    'mplane': Mplane(),
+    #'mplane': Mplane(),
     'mrc': MrcDensityMap(),
     'ndx': Ndx(),
     'obj': Obj(),
@@ -475,12 +475,12 @@ extension_to_datatype_dict = {
     'pqr': Pqr(),
     'prop': Prop(),
     'provi': Provi(),
-    'sco': Sco(),
+    #'sco': Sco(),
     'sdf': Sdf(),
     'tmhelix': Tmhelix(),
     'txt': Text(),
     'vert': Msms(),
-    'vol': VoronoiaVolume(),
+    #'vol': VoronoiaVolume(),
     'xplor': Xplor(),
     'xyzr': Xyzr(),
     'xyzrn': Xyzrn()
