@@ -99,12 +99,12 @@ var pn = p%4;
 
 
 select none;
-#hbonds delete;
-#select not hydrogen and @f;
-#set hbondsRasmol TRUE;
-#set hbondsAngleMinimum 60;
-#set hbondsDistanceMaximum 3.0;
-#calculate hbonds;
+hbonds delete;
+select not hydrogen and @f or within(4, @f);
+set hbondsRasmol TRUE;
+set hbondsAngleMinimum 60;
+set hbondsDistanceMaximum 4.0;
+calculate hbonds;
 select none;
 
 
@@ -231,8 +231,15 @@ for(a in f){
     focusdata += [atomdata];
 }
 
+select @f;
 var polardata = [];
-var pi = {};
+var hbonds = connected("hbond");
+var pi = hbonds.atoms;
+for(a in pi){
+    var podata = [];
+    podata += a.resno;
+    polardata += podata;
+}
 
 var vdwdata = [];
 var hi = { within(GROUP, within(4.0, @f)) and *.CA and not @f };
