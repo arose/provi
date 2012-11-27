@@ -98,7 +98,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
         'applet_selector_widget', 'chart', 'render', 'resume', 'selection', 'current_alpha',
         'alpha', 'gravity', 'friction', 'theta', 'hull_alpha',
         'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
-        'canvas', 'image'
+        'canvas', 'image', 'auto_update', 'use_viewplane'
     ]);
     
     this.dataset = params.dataset;
@@ -114,13 +114,14 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this.friction =params.friction;
     this.theta = params.theta;
     this.hull_alpha = params.hull_alpha;
+    this.auto_update = params.auto_update;
     
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row" id="${eids.chart}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
-        '<canvas class="control_row" id="${eids.canvas}" style="width:1100px; height:1100px; border:solid grey 2px"></canvas>' +
-        '<div class="control_row" id="${eids.image}" style="width:1100px; height:1100px; border:solid grey 2px"></div>' +
+        '<canvas class="control_row" id="${eids.canvas}" style="width:550px; height:550px; border:solid grey 2px"></canvas>' +
+        '<div class="control_row" id="${eids.image}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
         '<div class="control_row">' +
             '<span id="${eids.selection}"></span>' +
         '</div>' +
@@ -165,7 +166,15 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
             '<div>' +
                 '<input id="${eids.color_tension}" type="checkbox" style="margin-top: 0.5em;"/>' +
                 '<label for="${eids.color_tension}"">color links by tension</label>' +
-            '</div>' +        
+            '</div>' +  
+            '<div>' +
+                '<input id="${eids.auto_update}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.auto_update}"">update each minimization step</label>' +
+            '</div>' +
+            '<div>' +
+                '<input id="${eids.use_viewplane}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.use_viewplane}"">use viewing plane for projection</label>' +
+            '</div>' +
         '</div>' +
         '<div class="control_row">' +
             'alpha: <span id="${eids.current_alpha}"></span>' +
@@ -194,17 +203,19 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
 Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Structure.StructureWidget.prototype */ {
     default_params: {
         heading: 'Flatland',
-        sele: 'RET',
-        show_helper_links: true,
+        sele: 'RET or 296',
+        show_helper_links: false,
         show_center: true,
         show_axes: true,
         show_hull: true,
-        color_tension: true,
+        color_tension: false,
         alpha: 0.06,
         gravity: 0.05,
         friction: 0.3,
         theta: 1.0,
-        hull_alpha: 120
+        hull_alpha: 120,
+        auto_update: false,
+        use_viewplane: false
     },
     get_applet: function(){
         if( this.applet ){
@@ -258,7 +269,10 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             self.resume();
         });
 
-        _.each(['show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension'], function(name){
+        _.each([
+            'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
+            'auto_update', 'use_viewplane'
+        ], function(name){
             self.elm( name ).attr('checked', self[ name ]);
             self.elm( name ).bind('click', function(e){
                 self[ name ] = self.elm( name ).is(':checked');
@@ -316,7 +330,12 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 //console.log(script);
                 console.log('../data/jmol_script/helix_plane.jspt');
                 script = script.replace('###plane###',
-                    'p = plane({' + sele + '}.XYZ, @{{' + sele + '}.XYZ + point(' + axes[0].join(', ') + ')}, @{{' + sele + '}.XYZ + point(' + axes[1].join(', ') + ')});');
+                    self.use_viewplane ? '' :
+                    'p = plane({' + sele + '}' +
+                        '.XYZ, @{{' + sele + '}' +
+                        '.XYZ + point(' + axes[0].join(', ') + ')}, @{{' + sele + '}' +
+                        '.XYZ + point(' + axes[1].join(', ') + ')});'
+                );
                 script = script.replace('###sele###', sele);
 
                 //script = "selectionHalos off; function foo(){ select *; color green; }; foo(); print 111;";
@@ -334,9 +353,9 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
                 var data = applet.script_wait_output( script );
                 console.log(data);
-                // remove first 3 lines with hbond calc output
-                //data = data.split('\n').slice(3,-1).join('\n');
-                data = data.split('\n').slice(0,-1).join('\n');
+                // remove first 5 lines with hbond calc output
+                data = data.split('\n').slice(5,-1).join('\n');
+                //data = data.split('\n').slice(0,-1).join('\n');
                 data = $.parseJSON(data);
 
                 focus_data = _.map( data[0], function(d,i){
@@ -378,7 +397,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     return [ memo[0] + d.x, memo[1] + d.y ];
                 }, [0, 0]);
                 center = numeric.div(center, focus_data.length);
-                console.log(center);
+                //console.log(center);
                 vdw_data = _.map( data[2], function(d,i){
                     var nbs = _.map(d[4], function(b,j){
                         return {
@@ -391,7 +410,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     var v = numeric.sub(vdw_pos, center);
                     var vn = numeric.div(v, numeric.norm2(v));
                     var pc = numeric.add( vdw_pos, numeric.mul( vn, 1 ) );
-                    console.log(v, vn, vdw_pos, pc);
+                    //console.log(v, vn, vdw_pos, pc);
                     return {
                         resno: d[0],
                         mindist: d[1],
@@ -409,6 +428,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     };
                 });
 
+                console.log( data[1] );
                 //console.log(data);
 
                 focus_data_dict = {};
@@ -426,7 +446,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
                 self.vdw_data = vdw_data;
                 self.vdw_data_dict = vdw_data_dict;
-                console.log(vdw_data,vdw_data_dict);
+                //console.log(vdw_data,vdw_data_dict);
 
                 self._render();
             }
@@ -555,8 +575,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 }
             });
         });
-        console.log(nodes);
-        console.log(links);
+        //console.log(nodes);
+        //console.log(links);
         
         var max_x = _.max(nodes, function(d){ return d.x; }).x;
         var min_x = _.min(nodes, function(d){ return d.x; }).x;
@@ -567,7 +587,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var range_max = _.max([range_x, range_y]);
         var ratio_x = range_x/range_max;
         var ratio_y = range_y/range_max;
-        console.log( max_x, min_x, range_x, max_y, min_y, range_y, range_max, ratio_x, ratio_y );
+        //console.log( max_x, min_x, range_x, max_y, min_y, range_y, range_max, ratio_x, ratio_y );
 
         var x = d3.scale.linear()
             .domain([ min_x, max_x ])
@@ -641,7 +661,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 if(d.source.ring && d.target.ring){
                     return 10;
                 }else if(d.co){
-                    console.log(Math.exp(35-10*d.dist), d.dist);
+                    //console.log(Math.exp(35-10*d.dist), d.dist);
                     //return Math.exp(7-2*d.dist)+1.5;
                     if(d.dist<3.5){
                         return 0.5;
@@ -771,10 +791,14 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             //force.axes = self.get_center();
             if( force.alpha() < self.alpha ){
                 force.alpha(0);
+                self.timer.stop();
+                self.update();
                 self.to_image();
             }
             self.elm('current_alpha').text( force.alpha() );
-            self.update();
+            if( self.auto_update ){
+                self.update();
+            }
         });
 
         force.on("end", function(e) {
@@ -786,6 +810,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         //     force.resume();
         // });
 
+        this.timer = new Provi.Debug.timer({name: "force"});
+        this.timer.start();
         force.start();
         this.force = force;
     },
@@ -877,53 +903,55 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         //         .attr("y2", function(d) { return paxes[d.i+3].y; });
         // }
 
-        var group_fill = function(d, i) { 
-            return self._group_fill(i & 3); 
+        if( self.show_hull ){
+            var group_fill = function(d, i) { 
+                return self._group_fill(i & 3); 
+            }
+
+            this.vis2.selectAll("path.hull")
+                .data(this.groups)
+                    .attr("d", this.group_path)
+                    .attr("visibility", function(d){
+                        return (!self.show_hull) ? 'hidden' : 'visible';
+                    })
+                .enter().insert("path", "circle")
+                    .attr("class", "hull")
+                    .style("fill", '#b5e8bf')//group_fill)
+                    .style("stroke", '#b5e8bf')//group_fill)
+                    .style("stroke-width", 40)
+                    .style("stroke-linejoin", "round")
+                    // .style("opacity", .2)
+                    // .style("fill-opacity", 1)
+                    // .style("stroke-opacity", 1)
+                    .attr("d", this.group_path);
+
+            var mesh = d3.geom.delaunay(_.map(this.groups[0], function(i) { return [i.x, i.y]; })).filter(function(t) {
+                var ret = self.alpha_dsq(t[0],t[1]) < self.alpha_asq && self.alpha_dsq(t[0],t[2]) < self.alpha_asq && self.alpha_dsq(t[1],t[2]) < self.alpha_asq;
+                //console.log(ret, self.alpha_asq, self.alpha_dsq(t[0],t[1]));
+                return ret;
+            });
+            //console.log(mesh);
+
+            this.vis2.selectAll("path.shape")
+                .data(mesh)
+                    .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
+                    .attr("visibility", function(d){
+                        return (!self.show_hull) ? 'hidden' : 'visible';
+                    })
+                .enter().insert("path", "circle")
+                    .attr("class", "shape")
+                    .style("fill", 'lightgrey')
+                    .style("stroke", 'lightgrey')
+                    .style("stroke-width", 20)
+                    .style("stroke-linejoin", "round")
+                    //.style("opacity", .2)
+                    .attr("d", function(d) { return "M" + d.join("L") + "Z"; });
+                
+            this.vis2.selectAll("path.shape")
+                .data(mesh)
+                    .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
+                .exit().remove();
         }
-
-        this.vis2.selectAll("path.hull")
-            .data(this.groups)
-                .attr("d", this.group_path)
-                .attr("visibility", function(d){
-                    return (!self.show_hull) ? 'hidden' : 'visible';
-                })
-            .enter().insert("path", "circle")
-                .attr("class", "hull")
-                .style("fill", '#b5e8bf')//group_fill)
-                .style("stroke", '#b5e8bf')//group_fill)
-                .style("stroke-width", 40)
-                .style("stroke-linejoin", "round")
-                // .style("opacity", .2)
-                // .style("fill-opacity", 1)
-                // .style("stroke-opacity", 1)
-                .attr("d", this.group_path);
-
-        var mesh = d3.geom.delaunay(_.map(this.groups[0], function(i) { return [i.x, i.y]; })).filter(function(t) {
-            var ret = self.alpha_dsq(t[0],t[1]) < self.alpha_asq && self.alpha_dsq(t[0],t[2]) < self.alpha_asq && self.alpha_dsq(t[1],t[2]) < self.alpha_asq;
-            //console.log(ret, self.alpha_asq, self.alpha_dsq(t[0],t[1]));
-            return ret;
-        });
-        //console.log(mesh);
-
-        this.vis2.selectAll("path.shape")
-            .data(mesh)
-                .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
-                .attr("visibility", function(d){
-                    return (!self.show_hull) ? 'hidden' : 'visible';
-                })
-            .enter().insert("path", "circle")
-                .attr("class", "shape")
-                .style("fill", 'lightgrey')
-                .style("stroke", 'lightgrey')
-                .style("stroke-width", 20)
-                .style("stroke-linejoin", "round")
-                //.style("opacity", .2)
-                .attr("d", function(d) { return "M" + d.join("L") + "Z"; });
-            
-        this.vis2.selectAll("path.shape")
-            .data(mesh)
-                .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
-            .exit().remove();
 
     },
     to_image: function(){
@@ -931,7 +959,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var svg = this.elm("chart").first().html().replace(/>\s+/g, ">").replace(/\s+</g, "<");
         var canvas = this.elm("canvas")[0];
         // console.log(svg, canvas);
-        console.log( svgfix(svg) );
+        //console.log( svgfix(svg) );
         canvg(canvas, svgfix(svg), {
             renderCallback : function(){
                 var imgData = canvas.toDataURL('image/jpg');
