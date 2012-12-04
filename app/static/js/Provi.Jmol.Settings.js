@@ -1159,17 +1159,19 @@ Provi.Jmol.Settings.StyleManager.prototype = Utils.extend( Provi.Jmol.Settings.S
     },
     get_style: function( style ){
         this.sidechain_helper_sele = this.sidechain_helper ? this._sidechain_helper_sele_on : this._sidechain_helper_sele_off;
-        return $.tmpl( style || '', this ).text() + 'select none;';
+        var tpl = $.tmpl( style || '', this );
+        console.log(tpl, tpl.length);
+        return ( (tpl && tpl.length) ? tpl.text() : '') + 'select none;';
     },
     _command: function( names ){
-        var trace = this['trace'];
-        if( this['trace']=='0.333' ){
-            // try with help of a temporary property! AR
-            trace = '0.333; for( var a in {*.CA and trace=0.333} ){ {a}.trace = 4*{a}.temperature; };';
-        }
+        // var trace = this['trace'];
+        // if( this['trace']=='0.333' ){
+        //     // try with help of a temporary property! AR
+        //     trace = '0.333; for( var a in {*.CA and trace=0.333} ){ {a}.trace = 4*{a}.temperature; };';
+        // }
         return '' +
-            'select cartoon>0 and (helix or sheet); cartoon ' + this['cartoon'] + '; select none; ' +
-            'select trace>0; trace ' + trace + '; select none; ' +
+            // 'select cartoon>0 and (helix or sheet); cartoon ' + this['cartoon'] + '; select none; ' +
+            //'select trace>0; trace ' + trace + '; select none; ' +
             Provi.Jmol.Settings.SettingsManager.prototype._command.call( this, names );
     }
 });

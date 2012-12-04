@@ -239,8 +239,8 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
         'style', 'quality', 'color_scheme', 'color_models', 'center', 
-        'applet_selector_widget', 'style_sele',
-        'center_all', 'center_protein', 'center_selected',
+        'applet_selector_widget', 'style_sele', 'color_models_sele',
+        'center_all', 'center_protein', 'center_selected', 'center_displayed',
         'select_all', 'select_none', 'select_protein', 'select_invert'
     ]);
     var template = '' +
@@ -258,6 +258,8 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
                 '<option value="backbone+sticks">backbone & sticks</option>' +
                 '<option value="backbone+cpk">backbone & cpk</option>' +
                 '<option value="trace">trace</option>' +
+                '<option value="tube">tube</option>' +
+                '<option value="tube2">tube2</option>' +
                 '<option value="ribbon">ribbon</option>' +
                 '<option value="cartoon">cartoon</option>' +
                 '<option value="cartoon+lines">cartoon & lines</option>' +
@@ -312,12 +314,17 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
             '</select>' +
             '&nbsp;' +
             '<label for="${eids.color_models}">color models</label>' +
+            '&nbsp;&nbsp;&nbsp;' +
+            '<input id="${eids.color_models_sele}" type="checkbox" style="margin-top: 0.5em;">' +
+            '&nbsp;' +
+            '<label for="${eids.color_models_sele}">selection only</label>' +
         '</div>' +
         '<div class="control_row">' +
             'center:&nbsp;' +
             '<button id="${eids.center_all}">all</button>' +
             '<button id="${eids.center_protein}">polymer</button>' +
             '<button id="${eids.center_selected}">selected</button>' +
+            '<button id="${eids.center_displayed}">displayed</button>' +
         '</div>' +
         '<div class="control_row">' +
             'select:&nbsp;' +
@@ -371,20 +378,20 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         this.elm('color_models').bind('click change', function(){
             var applet = self.applet_selector.get_value();
             var cs = self.elm('color_models').children("option:selected").val();
+            var sele = self.elm('color_models_sele').is(':checked') ? 'selected' : '*';
             if(applet && cs){
                 var s = '' +
-                    'var modelInfo = getProperty("modelInfo");' +
-                    'var count = modelInfo["modelCount"];' +
-                    'var models = modelInfo["models"];' +
-                    'var file_model_array = [];' +
-                    'for (var i = 0; i < count; i++){' +
-                        'var m = models[i];' +
-                        'file_model_array += m["file_model"];' +
+                    'var mi = {' + sele + '}.modelindex.all.count().join("").split("\t");' +
+                    'var mi2 = [];' +
+                    'for (var i=mi.length; i>0; --i){' +
+                        'if(i%2==0){ mi2 += mi[i]; }' +
                     '}' +
-                    'file_model_array.sort();' +
+                    'var count = mi2.length;' +
+                    'mi2.sort;' +
                     'for( var i = 1; i <= count; i++ ){' +
-                        'var c = color("' + cs + '", 1-0.5, count+0.5, i);' +
-                        'select @{ file_model_array[i] }; color @c;' +
+                        'var c = color("' + cs + '", 1-0.5, count+1.5, i);' +
+                        'select @{ "modelindex=" + mi2[i] };' +
+                        'color @c;' +
                     '}' +
                 '';
                 applet.script_wait( s, true );
@@ -393,33 +400,21 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         });
     
         // init centering
-        this.elm('center').button().click(function(){
-            var applet = self.applet_selector.get_value();
-            if(applet){
-                applet.script_wait('center *; zoom(*) 100;');
-                applet.clipping_manager.sync();
-            }
-        });
-        this.elm('center_all').button().click(function(){
-            var applet = self.applet_selector.get_value();
-            if(applet){
-                applet.script_wait('center *; zoom(*) 100;');
-                applet.clipping_manager.sync();
-            }
-        });
-        this.elm('center_protein').button().click(function(){
-            var applet = self.applet_selector.get_value();
-            if(applet){
-                applet.script_wait('center protein; zoom(protein) 100;');
-                applet.clipping_manager.sync();
-            }
-        });
-        this.elm('center_selected').button().click(function(){
-            var applet = self.applet_selector.get_value();
-            if(applet){
-                applet.script_wait('center selected; zoom(selected) 100;');
-                applet.clipping_manager.sync();
-            }
+        var centering_button_data = [
+            { eid:"center", sele:"*" },
+            { eid:"center_all", sele:"*" },
+            { eid:"center_protein", sele:"protein" },
+            { eid:"center_selected", sele:"selected" },
+            { eid:"center_displayed", sele:"displayed" }
+        ];
+        _.each(centering_button_data, function(d){
+            self.elm( d.eid ).button().click(function(){
+                var applet = self.applet_selector.get_value();
+                if(applet){
+                    applet.script_wait('center ' + d.sele + '; zoom(' + d.sele + ') 100;');
+                    applet.clipping_manager.sync();
+                }
+            });
         });
 
         // init select
@@ -487,6 +482,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         var default_style = applet.style_manager.get_default_style();
         
         var selected_style = this.elm('style').children("option:selected").val();
+        if( !selected_style ) return;
         this.elm('style').val('');
         
         var styles = {
@@ -500,6 +496,8 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             'backbone+sticks': 'select protein or nucleic; backbone -${backbone}; select ${sidechain_helper_sele}; wireframe ${stick};',
             'backbone+cpk': 'select protein or nucleic; backbone -${backbone}; cpk ${cpk}; select ${sidechain_helper_sele}; wireframe ${stick};',
             'trace': 'select protein or nucleic; trace only; {protein or nucleic}.trace = ${trace};',
+            'tube': 'select protein or nucleic; trace only; {protein or nucleic}.trace = for(x;{protein or nucleic};x.temperature/100);',
+            'tube2': 'select *; trace only; {*}.trace = for(x;{*};x.temperature*10);',
             'ribbon': 'select protein; ribbon only; select helix or sheet; ribbon ${cartoon}; select nucleic; ${nucleic_cartoon_style} only;',
             'cartoon': 'select protein; cartoon only; select helix or sheet; cartoon ${cartoon}; select nucleic; ${nucleic_cartoon_style} only;',
             'cartoon+lines': 'select protein; cartoon only; select nucleic; ${nucleic_cartoon_style}; select ${sidechain_helper_sele}; wireframe ${line}; select helix or sheet; cartoon ${cartoon};',
@@ -515,7 +513,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             if( this.elm('style_sele').is(':checked') ){
                 s = 'subset selected; ' + s + 'subset;';
             }
-            applet.script( s, true);
+            applet.script( 'try{' + s + '}catch(e){}', true);
         }
     },
     set_color_scheme: function (){
