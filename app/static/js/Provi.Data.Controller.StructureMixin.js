@@ -14,7 +14,8 @@ Provi.Data.Controller.StructureMixin = {
     load_params_widget: [{
         params: [
             { name: 'load_as', getter: 'get_load_as' },
-            { name: 'filter', getter: 'get_filter' }
+            { name: 'filter', getter: 'get_filter' },
+            { name: 'lattice', getter: 'get_lattice' }
         ],
         obj: Provi.Bio.Structure.StructureParamsWidget
     }],
