@@ -479,9 +479,9 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
     },
     filtered: function(){
         if( this.filter ){
-            return '(' + this.sele + ') and (' + this.filter + ')';
+            return '(' + this.sele + ') and (' + this.filter + ') and (not symmetry)';
         }else{
-            return this.sele;
+            return this.sele + ' and (not symmetry)';
         }
     },
     displayed: function(id){
