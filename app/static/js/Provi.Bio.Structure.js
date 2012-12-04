@@ -35,6 +35,7 @@ Provi.Bio.Structure.Structure = function(params){
     this.style = params.style;
     this.script = params.script;
     this.filter = params.filter;
+    this.lattice = params.lattice;
     this.type = params.type;
 
     this.load();
@@ -44,7 +45,8 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         style: '',
         load_as: undefined,
         script: false,
-        filter: ''
+        filter: '',
+        lattice: ''
     },
     init: function(){
 
@@ -63,9 +65,10 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         var style = this.style;
         var script = this.script;
         var filter = this.filter;
+        var lattice = this.lattice;
         var type = this.type;
         
-        if( $.inArray(type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol']) >= 0 ){
+        if( $.inArray(type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol', 'cif']) >= 0 ){
             type = 'pdb';
         }
         var jmol_types = {
@@ -89,6 +92,10 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
 
         if(filter){
             path += ' FILTER "' + filter + '"';
+        }
+
+        if(lattice){
+            path += ' ' + lattice + '';
         }
         
         // load structural data into the jmol applet
@@ -225,7 +232,7 @@ Provi.Bio.Structure.StructureParamsWidget = function(params){
     Provi.Widget.Widget.call( this, params );
 
     this._init_eid_manager([
-        'load_as', 'filter'
+        'load_as', 'filter', 'lattice'
     ]);
 
     var template = '' +
@@ -248,6 +255,17 @@ Provi.Bio.Structure.StructureParamsWidget = function(params){
                 '<option value="*.P,*.CA|HETATM">P, CA only + HETATM</option>' +
             '</select>' +
         '</div>' +
+        '<div class="control_row">' +
+            '<label for="${eids.lattice}">Symmetry lattice:</label>' +
+            '<select id="${eids.lattice}" class="ui-state-default">' +
+                '<option value=""></option>' +
+                '<option value="{1 1 1}">{1 1 1}</option>' +
+                '<option value="{2 2 1}">{2 2 1}</option>' +
+                '<option value="{2 2 2}">{2 2 2}</option>' +
+                '<option value="{3 3 1}">{3 3 1}</option>' +
+                '<option value="{3 3 3}">{3 3 3}</option>' +
+            '</select>' +
+        '</div>' +
     '';
     this.add_content( template, params );
 }
@@ -260,6 +278,9 @@ Provi.Bio.Structure.StructureParamsWidget.prototype = Utils.extend(Widget, /** @
     },
     get_filter: function(){
         return this.elm("filter").children("option:selected").val();
+    },
+    get_lattice: function(){
+        return this.elm("lattice").children("option:selected").val();
     }
 });
 

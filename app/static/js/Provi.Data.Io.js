@@ -137,7 +137,8 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
             file.dataset.init({
                 applet: self.applet_selector.get_value(),
                 load_as: self.load_as_selector.get_load_as(),
-                filter: self.load_as_selector.get_filter()
+                filter: self.load_as_selector.get_filter(),
+                lattice: self.load_as_selector.get_lattice()
             });
             up.refresh();
         });
@@ -592,7 +593,8 @@ Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Da
         var params = {
             applet: this.applet_selector.get_value(),
             load_as: this.load_as_selector.get_load_as(),
-            filter: this.load_as_selector.get_filter()
+            filter: this.load_as_selector.get_filter(),
+            lattice: this.load_as_selector.get_lattice()
         }
         Provi.Data.Io.import_url( url, name, type, params, function(dataset){
             $('#' + self.load_button_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
