@@ -81,6 +81,43 @@ var principal_axes = function(m){
  * @extends Provi.Widget.Widget
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
+Provi.Bio.Flatland.SketchWidget = function(params){
+    params = _.defaults(
+        params,
+        Provi.Bio.Flatland.SketchWidget.prototype.default_params
+    );
+    
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+        'drawing'
+    ]);
+    
+    this.flatland = params.flatland;
+
+    var template = '' +
+        '<div id="${eids.drawing}" style=""></div>' +
+    '';
+    this.add_content( template, params );
+    $(this.dom).removeClass( 'ui-container ui-widget' );
+    $(this.dom).children().eq(1).removeClass( 'my-content' );
+
+    this._init();
+};
+Provi.Bio.Flatland.SketchWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Flatland.SketchWidget.prototype */ {
+    default_params: {
+        
+    },
+    _init: function(){
+
+    }
+});
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
 Provi.Bio.Flatland.FlatlandWidget = function(params){
     params = _.defaults(
         params,
@@ -95,7 +132,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     //params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
-        'applet_selector_widget', 'chart', 'render', 'resume', 'selection', 'current_alpha',
+        'applet_selector_widget', 'sketch_widget', 'render', 'resume', 'selection', 'current_alpha',
         'alpha', 'gravity', 'friction', 'theta', 'hull_alpha',
         'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
         'canvas', 'image', 'auto_update', 'use_viewplane'
@@ -115,11 +152,12 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this.theta = params.theta;
     this.hull_alpha = params.hull_alpha;
     this.auto_update = params.auto_update;
+    this.external_sketch_widget = params.external_sketch_widget;
     
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
-        '<div class="control_row" id="${eids.chart}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
+        '<div class="control_row" id="${eids.sketch_widget}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
         '<canvas class="control_row" id="${eids.canvas}" style="width:550px; height:550px; border:solid grey 2px"></canvas>' +
         '<div class="control_row" id="${eids.image}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
         '<div class="control_row">' +
@@ -198,9 +236,17 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
         applet: this.applet
     });
 
+
+    this.sketch_widget = new Provi.Bio.Flatland.SketchWidget({
+        parent_id: this.external_sketch_widget ? 'main' : this.eid('sketch_widget')
+    });
+    if( this.external_sketch_widget ){
+        this.elm('sketch_widget').hide();
+    }
+
     this._init();
 };
-Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Structure.StructureWidget.prototype */ {
+Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Flatland.FlatlandWidget.prototype */ {
     default_params: {
         heading: 'Flatland',
         sele: 'RET or 296',
@@ -215,7 +261,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         theta: 1.0,
         hull_alpha: 120,
         auto_update: false,
-        use_viewplane: false
+        use_viewplane: false,
+        external_sketch_widget: false
     },
     get_applet: function(){
         if( this.applet ){
@@ -604,12 +651,12 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
         var groups = [_.filter(nodes, function(n){ return !n.vdw })];//d3.nest().key(function(d) { return d & 3; }).entries(nodes);
 
-        this.elm('chart').empty();
+        this.sketch_widget.elm('drawing').empty();
         //if(!this.vis){
         
-            var svg = d3.select( this.eid('chart', 1) ).append("svg")
-                .attr("width", w)
-                .attr("height", h);
+            var svg = d3.select( this.sketch_widget.eid('drawing', 1) ).append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%");
         //}
 
         var zoom = d3.behavior.zoom();
@@ -955,8 +1002,9 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
     },
     to_image: function(){
+        return;
         var self = this;
-        var svg = this.elm("chart").first().html().replace(/>\s+/g, ">").replace(/\s+</g, "<");
+        var svg = this.sketch_widget.elm("drawing").first().html().replace(/>\s+/g, ">").replace(/\s+</g, "<");
         var canvas = this.elm("canvas")[0];
         // console.log(svg, canvas);
         //console.log( svgfix(svg) );
