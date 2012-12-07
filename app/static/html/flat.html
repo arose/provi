@@ -46,7 +46,7 @@
     <!--<script type="text/javascript" src="../js/lib/protovis.min.js"></script>-->
     <script type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>
     
-    <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.min.js"></script>
+    <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.js"></script>
     
     <script type="text/javascript" src="../js/lib/base64.js"></script>
     
@@ -132,11 +132,11 @@
         Provi.Debug.auto();
         
         _.extend( Provi.defaults.dom_parent_ids, {
-            DATASET_WIDGET: 'tab_widgets',
+            DATASET_WIDGET: 'tab_controls',
             CANVAS_WIDGET: 'main',
-            SELECTION_WIDGET: 'tab_tree',
-            BUILDER_WIDGET: 'tab_tree',
-            SETTINGS_WIDGET: 'tab_settings'
+            SELECTION_WIDGET: 'tab_controls',
+            BUILDER_WIDGET: 'tab_controls',
+            SETTINGS_WIDGET: 'tab_controls'
         });
 
         Provi.Bio.Voronoia.VoronoiaSelectionType.prototype.default_params = $.extend(
@@ -153,39 +153,9 @@
             $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
         }
     
-        //Provi.Jmol.init("../applet/jmol/11.8.25/");
-        //Provi.Jmol.init("../applet/jmol/11.8.26/");
-        //Provi.Jmol.init("../applet/jmol/12.0.8/");
-        //Provi.Jmol.init("../applet/jmol/12.0.40/", true);
-        //Provi.Jmol.init("../applet/jmol/12.1.10/");
-        //Provi.Jmol.init("../applet/jmol/12.1.23/");
-        //Provi.Jmol.init("../applet/jmol/2010-11-23/", true);
-        //Provi.Jmol.init("../applet/jmol/12.1.28/", true);
-        //Provi.Jmol.init("../applet/jmol/2011-01-06/");
-        //Provi.Jmol.init("../applet/jmol/12.1.35/", true);
-        //Provi.Jmol.init("../applet/jmol/12.1.41/", true);
-        //Provi.Jmol.init("../applet/jmol/12.1.42/", true);
-        //Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
-        //Provi.Jmol.init("../applet/jmol/versions/12.3.9/", true);
         Provi.Jmol.init("../../jmol/current/45/", !$.query.get('unsigned'));
     
         $(document).ready(function(){
-        
-            //    $.blockUI({
-            //  message: 'loading...',
-            //  forceIframe: true
-            //    });
-                
-            //    // hack to get session cookie
-            //    $.ajax({
-            //  url: '../../data/index/',
-            //  async: false,
-            //  dataType: 'text',
-            //  cache: false,
-            //  success: function(response){
-            //      console.log( response );
-            //  }
-            //    });
         
             Provi.Utils.event.init();
         
@@ -209,107 +179,34 @@
             _.extend( Provi.Jmol.JmolWidget.prototype.default_params, {
                 parent_id: "main",
                 no_sequence_view_widget: true,
-                no_selection_manager_widget: false,
+                no_selection_manager_widget: true,
                 no_tree_view_widget: true,
-                no_grid_widget: false
+                no_grid_widget: true,
+                no_plot_widget: true
             });
             $(Provi.Jmol).bind('applet_list_change', layout_main);
             
-            new Provi.Jmol.Controls.JmolGlobalControlWidget({
-                parent_id: 'tab_controls'
-            });
-        
+            Provi.Jmol.get_default_applet( true );
+
             new Provi.Jmol.Controls.JmolDisplayWidget({
-                parent_id: 'tab_controls'
-            });
-        
-            new Provi.Jmol.Settings.LightingManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Settings.ClippingManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Settings.QualityManagerWidget({
-                parent_id: 'tab_settings'
+                parent_id: 'tab_controls',
+                collapsed: true
             });
 
-            new Provi.Jmol.Settings.BindManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Settings.PickingManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Settings.StyleManagerWidget({
-                parent_id: 'tab_settings'
-            });
-
-            new Provi.Jmol.Settings.MiscManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Modeling.JmolModelingWidget({
-                parent_id: 'tab_controls'
-            });
-            
-            new Provi.Bio.Rotamers.RotamersWidget({
-                parent_id: 'tab_controls'
-            });
-        
-            // new Provi.Jmol.Analysis.RamachandranPlotWidget({
-            //     parent_id: 'tab_widgets'
-            // });
-        
-            new Provi.Jmol.Analysis.HbondsWidget({
-                parent_id: 'tab_widgets'
-            });
-
-            new Provi.Bio.Superposition.SuperposeWidget({
-                parent_id: 'tab_widgets'
-            });
-
-
-            new Provi.Bio.Flatland.FlatlandWidget({
-                parent_id: 'tab_widgets',
-                collapsed: false,
-                external_sketch_widget: true
-            });
-        
-            new Provi.Jmol.Controls.JmolConsoleWidget({
-                parent_id: 'tab_controls'
-            });
-        
-            
-            // load
-            
             var plupload = new Provi.Data.Io.PluploadLoadWidget({
-                parent_id: 'tab_io'
-            });
-        
-            new Provi.Data.Io.UrlLoadWidget({
-                parent_id: 'tab_io'
+                parent_id: 'tab_controls',
+                collapsed: true
             });
         
             new Provi.Data.Io.PdbLoadWidget({
-                parent_id: 'tab_io'
+                parent_id: 'tab_controls',
+                collapsed: false
             });
 
-        
-            // calculate
-        
-            new Provi.Data.Io.Jmol.CalculateWidget({
-                parent_id: 'tab_io'
-            });
-            
-            
-            
-            // data
-            
-            new Provi.Data.DatasetManagerWidget({
-                parent_id: 'tab_data'
+            new Provi.Bio.Flatland.FlatlandWidget({
+                parent_id: 'tab_controls',
+                collapsed: false,
+                external_sketch_widget: true
             });
             
             $('#tab_scrollbox').scroll(function (event, ui) {
@@ -344,112 +241,112 @@
         
             // when in test mode, load some data for development purposes
             if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
-            var applet = Provi.Jmol.get_default_applet( true );
-            
-            if( $.query.get('test') == '2rdd' ){
+                var applet = Provi.Jmol.get_default_applet( true );
                 
-                Provi.Data.Io.import_example( 'showcase', 'test/2rdd.mbn', 'mbn', {
-                    sort_key: 1,
-                    heading: 'Interface Contacts',
-                    info: 'Infotext',
-                    description: 'Description',
-                    applet: applet,
-                    load_as: 'new'
-                });
-            
-            }else if( $.query.get('test') == 'voro' ){
+                if( $.query.get('test') == '2rdd' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'test/2rdd.mbn', 'mbn', {
+                        sort_key: 1,
+                        heading: 'Interface Contacts',
+                        info: 'Infotext',
+                        description: 'Description',
+                        applet: applet,
+                        load_as: 'new'
+                    });
                 
-                Provi.Data.Io.import_example( 'showcase', 'voronoia/1u19.vol', 'vol', {
-                // Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.vol', 'vol', {
-                    applet: applet,
-                    load_as: 'new'
-                });
+                }else if( $.query.get('test') == 'voro' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'voronoia/1u19.vol', 'vol', {
+                    // Provi.Data.Io.import_example( 'showcase', 'voronoia/2xc2.vol', 'vol', {
+                        applet: applet,
+                        load_as: 'new'
+                    });
 
-            }else if( $.query.get('test') == '2a65' ){
+                }else if( $.query.get('test') == '2a65' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'test/2a65.mbn', 'mbn', {
+                        sort_key: 1,
+                        heading: 'Interface Contacts',
+                        info: 'Infotext',
+                        description: 'Description',
+                        applet: applet,
+                        load_as: 'new'
+                    });
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'test/2a65.anal', 'anal', {
+                        sort_key: 4,
+                        heading: 'Hydrogen Bonds',
+                        applet: applet
+                    });
                 
-                Provi.Data.Io.import_example( 'showcase', 'test/2a65.mbn', 'mbn', {
-                    sort_key: 1,
-                    heading: 'Interface Contacts',
-                    info: 'Infotext',
-                    description: 'Description',
-                    applet: applet,
-                    load_as: 'new'
-                });
-                
-                Provi.Data.Io.import_example( 'showcase', 'test/2a65.anal', 'anal', {
-                    sort_key: 4,
-                    heading: 'Hydrogen Bonds',
-                    applet: applet
-                });
-            
-            }else if( $.query.get('test') == '3dqb' ){
-                
-                Provi.Data.Io.import_example( 'showcase', 'rhodopsin/3dqb.pdb', 'pdb', {
-                    applet: applet,
-                    load_as: 'new'
-                });
+                }else if( $.query.get('test') == '3dqb' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'rhodopsin/3dqb.pdb', 'pdb', {
+                        applet: applet,
+                        load_as: 'new'
+                    });
 
-            }else if( $.query.get('test') == '1gzm' ){
-                
-                Provi.Data.Io.import_example( 'showcase', 'mplot/1gzm_mod.pdb', 'pdb', {
-                    applet: applet,
-                    load_as: 'new'
-                });
+                }else if( $.query.get('test') == '1gzm' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'mplot/1gzm_mod.pdb', 'pdb', {
+                        applet: applet,
+                        load_as: 'new'
+                    });
 
-            }else if( $.query.get('test') == '1ar1' ){
+                }else if( $.query.get('test') == '1ar1' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'test/1ar1.mbn', 'mbn', {
+                        sort_key: 1,
+                        heading: 'Interface Contacts',
+                        info: 'Infotext',
+                        description: 'Description',
+                        applet: applet,
+                        load_as: 'new'
+                    });
                 
-                Provi.Data.Io.import_example( 'showcase', 'test/1ar1.mbn', 'mbn', {
-                    sort_key: 1,
-                    heading: 'Interface Contacts',
-                    info: 'Infotext',
-                    description: 'Description',
-                    applet: applet,
-                    load_as: 'new'
-                });
-            
-            }else if( $.query.get('test') == '1xio' ){
-                
-                Provi.Data.Io.import_example( 'showcase', 'test/1xio.mbn', 'mbn', {
-                    sort_key: 1,
-                    heading: 'Interface Contacts',
-                    info: 'Infotext',
-                    description: 'Description',
-                    applet: applet,
-                    load_as: 'new'
-                });
-                        
-                Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
-                    sort_key: 2,
-                    heading: 'Propensities',
-                    applet: applet
-                });
+                }else if( $.query.get('test') == '1xio' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'test/1xio.mbn', 'mbn', {
+                        sort_key: 1,
+                        heading: 'Interface Contacts',
+                        info: 'Infotext',
+                        description: 'Description',
+                        applet: applet,
+                        load_as: 'new'
+                    });
+                            
+                    Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
+                        sort_key: 2,
+                        heading: 'Propensities',
+                        applet: applet
+                    });
 
-            }else if( $.query.get('test') == 'ali' ){
-                
-                Provi.Data.Io.import_example( 'showcase', 'test/3cap_a.pdb', 'pdb', {
-                    applet: applet,
-                    load_as: 'new'
-                });
-                Provi.Utils.pause(100); // dirty workaround...
-                Provi.Data.Io.import_example( 'showcase', 'test/3p0g.pdb', 'pdb', {
-                    applet: applet,
-                    load_as: 'append',
-                    script: 'center *;'
-                });
+                }else if( $.query.get('test') == 'ali' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'test/3cap_a.pdb', 'pdb', {
+                        applet: applet,
+                        load_as: 'new'
+                    });
+                    Provi.Utils.pause(100); // dirty workaround...
+                    Provi.Data.Io.import_example( 'showcase', 'test/3p0g.pdb', 'pdb', {
+                        applet: applet,
+                        load_as: 'append',
+                        script: 'center *;'
+                    });
 
-            }else if( $.query.get('test') == 'jmol' ){
+                }else if( $.query.get('test') == 'jmol' ){
+                    
+                    Provi.Data.Io.import_example( 'showcase', 'test/test2.jmol', 'jmol', {
+                        applet: applet
+                    });
+                    
+                }else{
                 
-                Provi.Data.Io.import_example( 'showcase', 'test/test2.jmol', 'jmol', {
-                    applet: applet
-                });
-                
-            }else{
-            
-                Provi.Data.Io.import_example( 'showcase', 'DMPC_test_data/1u19/1u19.provi', 'provi', {
-                    applet: applet
-                });
-                
-            }
+                    Provi.Data.Io.import_example( 'showcase', 'DMPC_test_data/1u19/1u19.provi', 'provi', {
+                        applet: applet
+                    });
+                    
+                }
             }
             
             // add some showcase examples
@@ -543,23 +440,8 @@
                             <span class="ui-icon ui-icon-help"></span>
                             <!--<span style="height:19px; display:block;">About</span>-->
                         </a></li>
-                        <li><a title="General controls" href="#tab_controls">
+                        <li><a title="A collection of control elements" href="#tab_controls">
                             <span style="height:19px; display:block;">Controls</span>
-                        </a></li>
-                        <li><a href="#tab_tree">
-                            <span style="height:19px; display:block;">Tree</span>
-                        </a></li>
-                        <li><a title="Save/Load data" href="#tab_io">
-                            <span style="height:19px; display:block;">I/O</span>
-                        </a></li>
-                        <li><a title="A list of all imported data" href="#tab_data">
-                            <span style="height:19px; display:block;">Data</span>
-                        </a></li>
-                        <li><a title="A collection of control elements" href="#tab_widgets">
-                            <span style="height:19px; display:block;">Widgets</span>
-                        </a></li>
-                        <li><a title="Settings" href="#tab_settings">
-                            <span class="ui-icon ui-icon-gear"></span>
                         </a></li>
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
@@ -592,12 +474,6 @@
                             </div>
                         </div>
                         <div id="tab_controls"></div>
-                        <div id="tab_tree">
-                            <!-- <div id="grid" style="height:400px;"></div> -->
-                        </div>
-                        <div id="tab_io"></div>
-                        <div id="tab_data"></div>
-                        <div id="tab_widgets"></div>
                         <div id="tab_settings"></div>
                     </div>
                 </div>
