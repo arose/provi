@@ -135,7 +135,8 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
         'applet_selector_widget', 'sketch_widget', 'render', 'resume', 'selection', 'current_alpha',
         'alpha', 'gravity', 'friction', 'theta', 'hull_alpha',
         'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
-        'canvas', 'image', 'auto_update', 'use_viewplane'
+        'canvas', 'image', 'auto_update', 'use_viewplane', 'download', 'download_svg',
+        'hide_vdw', 'fix_all'
     ]);
     
     this.dataset = params.dataset;
@@ -153,13 +154,16 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this.hull_alpha = params.hull_alpha;
     this.auto_update = params.auto_update;
     this.external_sketch_widget = params.external_sketch_widget;
+    this.show_image = params.show_image;
+    this.hide_vdw = params.hide_vdw;
+    this.fix_all = params.fix_all;
     
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row" id="${eids.sketch_widget}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
-        '<canvas class="control_row" id="${eids.canvas}" style="width:550px; height:550px; border:solid grey 2px"></canvas>' +
-        '<div class="control_row" id="${eids.image}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
+        '<canvas class="control_row" id="${eids.canvas}" style="position:fixed; top:-1000000; left:-1000000; width:550px; height:550px; border:solid grey 2px; background-color: white;"></canvas>' +
+        '<div class="control_row" id="${eids.image}" style="width:250px; height:250px; border:solid grey 2px"></div>' +
         '<div class="control_row">' +
             '<span id="${eids.selection}"></span>' +
         '</div>' +
@@ -213,14 +217,27 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
                 '<input id="${eids.use_viewplane}" type="checkbox" style="margin-top: 0.5em;"/>' +
                 '<label for="${eids.use_viewplane}"">use viewing plane for projection</label>' +
             '</div>' +
-        '</div>' +
-        '<div class="control_row">' +
-            'alpha: <span id="${eids.current_alpha}"></span>' +
+            '<div>' +
+                '<input id="${eids.hide_vdw}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.hide_vdw}"">hide vdw</label>' +
+            '</div>' +
+            '<div>' +
+                '<input id="${eids.fix_all}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.fix_all}"">fix all</label>' +
+            '</div>' +
         '</div>' +
         '<div class="control_row">' +
             '<button id="${eids.render}">render</button>' +
-            '&nbsp;&nbsp;&nbsp;' +
+            '&nbsp;&nbsp;' +
             '<button id="${eids.resume}">resume</button>' +
+            '&nbsp;&nbsp;' +
+            'alpha: <span id="${eids.current_alpha}"></span>' +
+        '</div>' +
+        '<div class="control_row">' +
+            'download:&nbsp;' +
+            '<a download="image.png" id="${eids.download}">image</a>' +
+            '&nbsp;&nbsp;' +
+            '<a download="image.svg" id="${eids.download_svg}">svg</a>' +
         '</div>' +
 	'';
     this.add_content( template, params );
@@ -251,9 +268,9 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         heading: 'Flatland',
         sele: 'RET or 296',
         show_helper_links: false,
-        show_center: true,
-        show_axes: true,
-        show_hull: true,
+        show_center: false,
+        show_axes: false,
+        show_hull: false,
         color_tension: false,
         alpha: 0.06,
         gravity: 0.05,
@@ -262,7 +279,10 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         hull_alpha: 120,
         auto_update: false,
         use_viewplane: false,
-        external_sketch_widget: false
+        external_sketch_widget: false,
+        show_image: false,
+        hide_vdw: false,
+        fix_all: false
     },
     get_applet: function(){
         if( this.applet ){
@@ -308,6 +328,12 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             });
         });
 
+        this.elm('canvas').hide();
+
+        if( !this.show_image ){
+            this.elm('image').hide();
+        }
+
         this.elm('render').button().click( function(){
             self.render();
         });
@@ -316,15 +342,31 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             self.resume();
         });
 
+        this.elm('download').button().click( function(){
+            //
+        });
+
+        this.elm('download_svg').button().click( function(){
+            //
+        });
+
         _.each([
             'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
-            'auto_update', 'use_viewplane'
+            'auto_update', 'use_viewplane', 'hide_vdw', 'fix_all'
         ], function(name){
             self.elm( name ).attr('checked', self[ name ]);
             self.elm( name ).bind('click', function(e){
                 self[ name ] = self.elm( name ).is(':checked');
                 self.render(true);
             });
+        });
+
+        this.elm( 'fix_all' ).bind('click', function(e){
+            self.fix_all = self.elm('fix_all').is(':checked');
+            _.each( self.nodes, function(d,i){
+                d.fixed = self.fix_all;
+            });
+            self.render(true);
         });
 
         Provi.Widget.Widget.prototype.init.call(this);
@@ -399,9 +441,9 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 // console.log( $.parseJSON( foo2 ) );
 
                 var data = applet.script_wait_output( script );
-                console.log(data);
+                //console.log(data);
                 // remove first 5 lines with hbond calc output
-                data = data.split('\n').slice(5,-1).join('\n');
+                data = data.split('\n').slice(11,-1).join('\n');
                 //data = data.split('\n').slice(0,-1).join('\n');
                 data = $.parseJSON(data);
 
@@ -440,6 +482,11 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     };
                 });
 
+                polar_data = _.map( data[1], function(d,i){
+                    console.log(d);
+                    return d;
+                });
+
                 var center = _.reduce(focus_data, function(memo,d){
                     return [ memo[0] + d.x, memo[1] + d.y ];
                 }, [0, 0]);
@@ -475,7 +522,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     };
                 });
 
-                console.log( data[1] );
+                console.log( "HB data", data[1] );
                 //console.log(data);
 
                 focus_data_dict = {};
@@ -490,6 +537,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
                 self.focus_data = focus_data;
                 self.focus_data_dict = focus_data_dict;
+
+                self.polar_data = polar_data;
 
                 self.vdw_data = vdw_data;
                 self.vdw_data_dict = vdw_data_dict;
@@ -526,6 +575,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         self.alpha_asq = alpha*alpha;
         //var nodes = d3.range(70).map(Object);
         var nodes = this.focus_data.concat( this.vdw_data );
+        this.nodes = nodes;
         //var nodes = this.focus_data;
         var links = [];
         _.each( this.focus_data, function(d,i){
@@ -588,6 +638,18 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             //         lone: true
             //     });
             // });
+        });
+        _.each( this.polar_data, function(d,i){
+            console.log( d, self.focus_data_dict[ d[1] ], self.focus_data_dict[ d[2] ] );
+            if( self.focus_data_dict[ d[1] ] && self.focus_data_dict[ d[2] ] ){
+                links.push({
+                    source: self.focus_data_dict[ d[1] ],
+                    target: self.focus_data_dict[ d[2] ],
+                    dist: d[3],
+                    hidden: false,
+                    hbond: true
+                });
+            }
         });
         _.each( this.vdw_data, function(d,i){
             links.push({
@@ -663,18 +725,37 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         zoom.x(x);
         zoom.y(y);
 
-        
+        var zoom_flag = false;
+        var zoom_timeout = false;
 
-        svg.append("svg:rect")
+        this.rect = svg.append("svg:rect")
             .attr("style", "fill:white")
             .attr("opacity", 1)
             .attr("width", '100%')
             .attr("height", '100%')
-            .call(zoom.on("zoom", function(){
+            .call(zoom.on("zoom", function(e){
                 vis.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ") scale(" + d3.event.scale + ")");
                 vis2.attr("transform", "translate(" + d3.event.translate[0] + "," + d3.event.translate[1] + ") scale(" + d3.event.scale + ")");
-                self.to_image();
+                //console.log(d3.event);
+                if( d3.event.sourceEvent.type=="mousewheel"){
+                    clearTimeout(zoom_timeout);
+                    zoom_timeout = setTimeout(function(){
+                        self.to_image();
+                    }, 500);
+                }else{
+                    zoom_flag = true;
+                }
             }));
+
+        console.log(this.rect);
+
+        this.sketch_widget.elm('drawing').mouseup(function(e){
+            console.log("mouseup", e);
+            if( zoom_flag ){
+                self.to_image();
+                zoom_flag = false;
+            }
+        })
 
         var vis2 = svg.append("g");
         var vis = svg.append("g");
@@ -779,11 +860,44 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
 
+        var node_drag = d3.behavior.drag()
+            .on("dragstart", dragstart)
+            .on("drag", dragmove)
+            .on("dragend", dragend);
+
+        function dragstart(d, i) {
+            self.auto_update = true;
+            force.stop() // stops the force auto positioning before you start dragging
+        }
+
+        function dragmove(d, i) {
+            d.px += d3.event.dx;
+            d.py += d3.event.dy;
+            d.x += d3.event.dx;
+            d.y += d3.event.dy;
+            self.update(); 
+            //tick(true); // this is the key to make it work together with updating both px,py,x,y on d !
+        }
+
+        function dragend(d, i) {
+            var fixed_bak = d.fixed;
+            d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
+            tick('foobar');
+            self.auto_update = false;
+            force.resume();
+            // hack, should better depend on tick steps
+            setTimeout(function(){
+                d.fixed = fixed_bak;
+            }, 200);
+            //d.fixed = fixed_bak;
+        }
+
         var node = vis.selectAll(".node")
             .data(nodes)
           .enter().append("g")
             .attr("class", "node")
-            .call(force.drag);
+            //.call(force.drag);
+            .call(node_drag);
 
         node.append("circle")
             // .attr("cx", function(d) { return d.x; })
@@ -796,14 +910,14 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             .style("stroke-width", 1.5)
 
         var text_bg = node.append("rect")
-            .attr("rx", 3)
-            .attr("ry", 3)
+            .attr("rx", 5)
+            .attr("ry", 5)
             .attr("opacity", 0.5)
             .attr("fill", "white");
 
         var text = node.append("text")
-            // .attr("dx", 3)
-            // .attr("dy", 3)
+            .attr("x", 6)
+            .attr("y", 0)
             .style("font", function(d) { return d.resno ? "12px sans-serif" : "8px sans-serif" })
             .text(function(d) { return d.resno ? (d.group1 + d.resno) : d.atomname });
 
@@ -834,19 +948,22 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         //this.center = center;
         //this.axes = axes;
 
-        force.on("tick", function(e) {
+        force.on("tick", tick);
+
+        function tick() {
             //force.axes = self.get_center();
             if( force.alpha() < self.alpha ){
                 force.alpha(0);
                 self.timer.stop();
                 self.update();
                 self.to_image();
+                console.log("force.alpha() < self.alpha", d3.event);
             }
-            self.elm('current_alpha').text( force.alpha() );
+            self.elm('current_alpha').text( force.alpha().toFixed(7) );
             if( self.auto_update ){
                 self.update();
             }
-        });
+        }
 
         force.on("end", function(e) {
             //force.axes = self.get_center();
@@ -910,7 +1027,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
     update: function(){
         var self = this;
 
-        this.link.attr("x1", function(d) { return d.source.x; })
+        this.link
+            .attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; })
@@ -921,19 +1039,44 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 var dist = Math.sqrt( Math.pow(d.source.x - d.target.x, 2) + Math.pow(d.source.y - d.target.y, 2) ) / 25.5;
                 //console.log( color( d.dist-dist ), dist, d.dist, d.source.x, d.target.x, d.source.y, d.target.y, d.source.px, d.target.px, d.source.py, d.target.py );
                 if(!self.color_tension){
-                    return d.vdw ? "orange" : "black";
+                    if(d.vdw){
+                        return "orange";
+                    }else if(d.hbond){
+                        return "blue";
+                    }else{
+                        return "black";
+                    }                    
                 }else{
                     return color( d.dist-dist );
                 }
             })
+            .attr("stroke-dasharray", function(d){
+                return d.hbond ? "5,5" : "";
+            })
             .attr("visibility", function(d){
-                return (d.hidden && !self.show_helper_links && (!d.vdw || d.nb)) ? 'hidden' : 'visible';
+                if(d.nb){
+                    return (d.hidden && !self.show_helper_links) ? 'hidden' : 'visible';
+                }else if(d.vdw){
+                    return self.hide_vdw ? 'hidden' : 'visible';
+                }else{
+                    return (d.hidden && !self.show_helper_links && ( (!d.vdw && !d.hbond) || d.nb)) ? 'hidden' : 'visible';
+                }
             });
 
         // this.node.attr("cx", function(d) { return d.x; })
         //     .attr("cy", function(d) { return d.y; });
 
-        this.node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+        this.node
+            .attr("transform", function(d) { 
+                return "translate(" + d.x + "," + d.y + ")"; 
+            })
+            .attr("visibility", function(d){
+                if(d.vdw){
+                    return self.hide_vdw ? 'hidden' : 'visible';
+                }else{
+                    return 'visible';
+                }
+            });
 
         // paxes = this.get_center();
         
@@ -1002,26 +1145,53 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
     },
     to_image: function(){
-        return;
+        //return;
+        console.log("CREATING IMAGE FROM SVG");
         var self = this;
-        var svg = this.sketch_widget.elm("drawing").first().html().replace(/>\s+/g, ">").replace(/\s+</g, "<");
+        var svg_elm = this.sketch_widget.elm("drawing").first();
+        var w = svg_elm.width();
+        var h = svg_elm.height();
+        //console.log( svg_elm.width(), svg_elm.height() );
+        this.elm("canvas").width( w );
+        this.elm("canvas").height( h );
+        this.elm("canvas").css( "width", w );
+        this.elm("canvas").css( "height", h );
+        this.elm("canvas")[0].width = w;
+        this.elm("canvas")[0].height = h;
+        // fix initial svg and rect elm 100% sizes
+        this.rect.attr("width", w).attr("height", h);
+        svg_elm.attr("width", w).attr("height", h);
+        var svg = svg_elm.html().replace(/>\s+/g, ">").replace(/\s+</g, "<");
+        var svg2 = svgfix(svg);
+        self.elm("download_svg")
+            .attr( "href", "data:image/octet-stream;base64," + btoa( svg2 ) );
         var canvas = this.elm("canvas")[0];
-        // console.log(svg, canvas);
+        //console.log(canvas);
         //console.log( svgfix(svg) );
-        canvg(canvas, svgfix(svg), {
+        canvg(canvas, svg2, {
             renderCallback : function(){
                 var imgData = canvas.toDataURL('image/jpg');
                 var img = new Image();
-                $(img).load(function(){
-                    self.elm("image").html("");
-                    $(img).appendTo( self.elm("image") );
-                });
+                if( self.show_image ){
+                    $(img).load(function(){
+                        self.elm("image").html("");
+                        $(img).width(250);
+                        var scale = 250/img.width;
+                        //$(img).height(200);
+                        self.elm("image").height( img.height*scale );
+                        $(img).appendTo( self.elm("image") );
+                    });
+                }
                 img.src = imgData;
+                self.elm("download")
+                    .attr( "href", imgData.replace("image/png", "image/octet-stream") );
+                // self.elm("image").click(function(){ 
+                //     window.open( imgData.replace("image/png", "image/octet-stream") );
+                // });
             },
-            // scaleWidth: 1100,
-            // scaleHeight: 1100,
             ignoreAnimation: true,
-            ignoreMouse: true
+            ignoreMouse: true,
+            ignoreDimensions: true
         });           
      }
 });

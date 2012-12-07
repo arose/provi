@@ -4,6 +4,9 @@ select none;
 selectionHalos off;
 draw off;
 
+select *;
+hbonds delete;
+
 uid_counter = 0;
 function uid(){
     uid_counter = uid_counter + 1;
@@ -98,18 +101,8 @@ var f = {###sele###};
 var pn = p%4;
 
 
-select none;
-hbonds delete;
-select not hydrogen and @f or within(4, @f);
-set hbondsRasmol TRUE;
-set hbondsAngleMinimum 60;
-set hbondsDistanceMaximum 4.0;
-calculate hbonds;
-select none;
-
-
-select @f; cpk 20%; wireframe 0.2;
-select search("[R]"); #color pink;
+#select @f; #cpk 20%; #wireframe 0.2;
+#select search("[R]"); #color pink;
 #select *;
 
 var uv = point( -pn.x, -pn.y, -pn.z );
@@ -148,10 +141,56 @@ function get_bonds( a, f, depth ){
     return _get_bonds( a, f, depth, a, 1, bond_acc );
 }
 
+
+select not hydrogen and ( @f or within(4, @f) );
+set hbondsRasmol FALSE;
+set hbondsAngleMinimum 60;
+set hbondsDistanceMaximum 3.9;
+calculate hbonds;
+select none;
+
+set bondModeOr true;
+
+select @f;
+select *;
+var polardata = [];
+var hb = { none };
+var hbonds = connected("hbond");# and not @f;
+var pi = hbonds.atoms;
+for(a in pi){
+    var x1 = connected(@a, @f).atoms;
+    var x2 = connected("hbond").atoms;
+    #var x3 = connected(@f, @a).atoms;
+    var x4 = { connected("hbond", @a) }
+    if( { @x2 and (@x1 and (sidechain or not protein)) }.count ){
+        for( hba in @x4 ){
+            if( { @hba and @f and ((@hba and (sidechain or not protein)) or (@a and (sidechain or not protein))) }.count ){
+                var podata = [];
+                podata += a.resno;
+                podata += a.atomno;
+                podata += hba.atomno;
+                podata += distance(a, hba);
+                #podata += '"'+@x4.atomno.all[1]+'"';
+                #podata += '"'+x3[1].atomno+'"';
+                podata += x1[1].atomno;
+                podata += x2[1].atomno;
+                hb = { @hb or a };
+                polardata += [podata];
+            }
+        }
+    }
+}
+
+
+select *;
+hbonds delete;
+
+var f2 = { @f or within(GROUP, @hb) };
+
 var focusdata = [];
 
-for(a in f){
-    var bonds = connected(a, f);# and (not connected("hbond"));
+for(a in f2){
+    var bonds = connected(a, f2);# and (not connected("hbond"));
     var ab = bonds.atoms;
     var bondlist = [];
     var bondlist2 = [];
@@ -165,7 +204,7 @@ for(a in f){
             bonddata += b.atomno;
             bonddata += distance(a, b);
             bondlist += [bonddata];
-            var bonds2 = connected(b, f);
+            var bonds2 = connected(b, f2);
             var ab2 = bonds2.atoms;
             for(b2 in ab2){
                 if( b.atomno != b2.atomno ){
@@ -173,7 +212,7 @@ for(a in f){
                     bonddata2 += b2.atomno;
                     bonddata2 += distance(a, b2);
                     bondlist2 += [bonddata2];
-                    var bonds3 = connected(b2, f);
+                    var bonds3 = connected(b2, f2);
                     var ab3 = bonds3.atoms;
                     for(b3 in ab3){
                         if( b2.atomno != b3.atomno ){
@@ -181,7 +220,7 @@ for(a in f){
                             bonddata3 += b3.atomno;
                             bonddata3 += distance(a, b3);
                             bondlist3 += [bonddata3];
-                            var bonds4 = connected(b3, f);
+                            var bonds4 = connected(b3, f2);
                             var ab4 = bonds4.atoms;
                             for(b4 in ab4){
                                 if( b3.atomno != b4.atomno ){
@@ -189,7 +228,7 @@ for(a in f){
                                     bonddata4 += b4.atomno;
                                     bonddata4 += distance(a, b4);
                                     bondlist4 += [bonddata4];
-                                    var bonds5 = connected(b4, f);
+                                    var bonds5 = connected(b4, f2);
                                     var ab5 = bonds5.atoms;
                                     for(b5 in ab5){
                                         if( b4.atomno != b5.atomno ){
@@ -207,7 +246,7 @@ for(a in f){
             }
         }
     }
-    var ring_members = {@f}.find("SMARTS", "[R]");
+    var ring_members = {@f2}.find("SMARTS", "[R]");
     var ring = { @a and @ring_members }.length;
     var bbone = { @a and backbone }.length;
     var i = draw_intersection( p, a );
@@ -231,18 +270,17 @@ for(a in f){
     focusdata += [atomdata];
 }
 
-select @f;
-var polardata = [];
-var hbonds = connected("hbond");
-var pi = hbonds.atoms;
-for(a in pi){
-    var podata = [];
-    podata += a.resno;
-    polardata += podata;
-}
+
+select not hydrogen and ( @f or within(4, @f) );
+set hbondsRasmol FALSE;
+set hbondsAngleMinimum 60;
+set hbondsDistanceMaximum 3.9;
+calculate hbonds;
+select none;
+
 
 var vdwdata = [];
-var hi = { within(GROUP, within(4.0, @f)) and *.CA and not @f };
+var hi = { within(GROUP, within(4.0, @f)) and *.CA and not @f2 };
 select { within(GROUP, @hi) }; wireframe 0.1; cpk off;
 for(a in hi){
     var ag = { within(GROUP, @a) };
@@ -253,8 +291,8 @@ for(a in hi){
     var mda1 = { atomno = md1 };
     var mda2 = { atomno = md2 };
     var v = { atomno = md2 }.XYZ - { atomno = md1 }.XYZ;
-    draw id @{uid()} vector @mda1 @v color @{ color("low", 30, 90, ang(v,pn)) };
-    draw id @{uid()} vector @mda1 @{pn*-4} color white;
+    #draw id @{uid()} vector @mda1 @v color @{ color("low", 30, 90, ang(v,pn)) };
+    #draw id @{uid()} vector @mda1 @{pn*-4} color white;
     
     var i = draw_intersection( p, mda1.XYZ, 'orange' );
     var i0 = point(0, i*av, i*bv);
@@ -302,10 +340,14 @@ var test = array_to_json( ret );
 print test;
 
 background black;
-display within(GROUP, (@f or @hi));
+display within(GROUP, (@f or @f2 or @hi or @hb));
+select displayed; wireframe 0.05;
+select within(GROUP, @hb); wireframe 0.12;
+select @f; cpk 20%; wireframe 0.2;
 center displayed;
 zoom (displayed) 100;
 var d = {displayed}.distance({displayed});
 set rotationRadius @{d*2};
 select *; cartoon off;
 select none;
+selectionHalos on;
