@@ -28,21 +28,22 @@ var Widget = Provi.Widget.Widget;
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.Io.PluploadLoadWidget = function(params){
-    params.heading = 'File Upload';
-    params.collapsed = true;
-    Widget.call( this, params );
-    this.input_id = this.id + '_input';
-    this.container_id = this.id + '_container';
-    this.filelist_id = this.id + '_filelist';
-    this.pickfiles_id = this.id + '_pickfiles';
-    this.uploadfiles_id = this.id + '_uploadfiles';
-    this.type_selector_id = this.id + '_type';
-    this.load_as_selector_widget_id = this.id + '_load_as';
-    this.applet_selector_widget_id = this.id + '_applet';
-    var content = '<div class="control_group">' +
+    params = _.defaults(
+        params,
+        Provi.Data.Io.PluploadLoadWidget.prototype.default_params
+    );
+    
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+        'input', 'container', 'filelist', 'picklist', 'uploadfiles',
+        'type_selector', 'load_as_selector_widget', 'applet_selector_widget'
+    ]);
+
+    var template = '' +
+        '<div class="control_group">' +
         '<div class="control_row">' +
-            '<label for="' + this.type_selector_id + '">Filetype:</label>' +
-            '<select id="' + this.type_selector_id + '" class="ui-state-default">' +
+            '<label for="${eids.type_selector}">Filetype:</label>' +
+            '<select id="${eids.type_selector}" class="ui-state-default">' +
                 '<option value="auto">determine automatically</option>' +
                 '<option value="cif">cif</option>' +
                 '<option value="cub">cube</option>' +
@@ -56,40 +57,45 @@ Provi.Data.Io.PluploadLoadWidget = function(params){
                 '<option value="sco">sco</option>' +
             '</select>' +
         '</div>' +
-        '<div id="' + this.applet_selector_widget_id + '"></div>' +
-        '<div id="' + this.load_as_selector_widget_id + '"></div>' +
-        '<div class="control_row" id="' + this.container_id + '">' +
-            //'<label for="' + this.input_id + '">Select file:</label>' +
-            //'<input type="file" id="' + this.input_id + '" />' +
-            '<div id="' + this.filelist_id + '">No runtime found.</div>' +
+        '<div id="${eids.applet_selector_widget}"></div>' +
+        '<div id="${eids.load_as_selector_widget}"></div>' +
+        '<div class="control_row" id="${eids.container}">' +
+            //'<label for="${eids.input}">Select file:</label>' +
+            //'<input type="file" id="${eids.input}" />' +
+            '<div id="${eids.filelist}">No runtime found.</div>' +
             '<br />' +
-            '<a id="' + this.pickfiles_id + '" href="#">[Select files]</a>' +
-            '<a id="' + this.uploadfiles_id + '" href="#">[Upload files]</a>' +
+            '<a id="${eids.picklist}" href="#">[Select files]</a>' +
+            '<a id="${eids.uploadfiles}" href="#">[Upload files]</a>' +
         '</div>' +
     '</div>';
-    $(this.dom).append( content );
+    this.add_content( template, params );
+
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-        parent_id: this.applet_selector_widget_id,
+        parent_id: this.eid('applet_selector_widget'),
         applet: params.applet,
         new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
         allow_new_applets: true
     });
     this.load_as_selector = new Provi.Bio.Structure.StructureParamsWidget({
-        parent_id: this.load_as_selector_widget_id
+        parent_id: this.eid('load_as_selector_widget')
     })
     this._init();
 }
 Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.Io.PluploadLoadWidget.prototype */ {
+    default_params: {
+        heading: 'File Upload',
+        collapsed: true
+    },
     _init: function(){
         this._init_file_input();
-        Widget.prototype.init.call(this);
+        Provi.Widget.Widget.prototype.init.call(this);
     },
     _init_file_input: function(){
         var self = this;
         this.uploader = new plupload.Uploader({
             runtimes : 'html5,flash,silverlight',
-            browse_button : this.pickfiles_id,
-            container : this.container_id,
+            browse_button : this.eid('picklist'),
+            container : this.eid('container'),
             max_file_size : '100mb',
             url : '../../plupload/index/?datatype=auto&provider=file',
             flash_swf_url : '../js/lib/plupload/js/plupload.flash.swf',
@@ -97,7 +103,7 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
         });
 
         this.uploader.bind('Init', function(up, params) {
-            $('#' + self.filelist_id).html("<div>Current runtime: " + params.runtime + "</div>");
+            self.elm('filelist').html("<div>Current runtime: " + params.runtime + "</div>");
         });
 
         this.uploader.bind('FilesAdded', function(up, files) {
@@ -107,9 +113,9 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
                     name: file.name,
                     status: { local: null, server: 'queued for upload' },
                     plupload_id: file.id,
-                    type: $("#" + self.type_selector_id + " option:selected").val()
+                    type: self.elm('type_selector').children("option:selected").val()
                 });
-                $('#' + self.filelist_id).append(
+                self.elm("filelist").append(
                     '<div id="' + file.id + '">' +
                         'File: ' + file.name + ' (' + plupload.formatSize(file.size) + ') <b></b>' +
                     '</div>'
@@ -124,16 +130,18 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
             $('#' + file.id + " b").html(file.percent + "%");
         });
 
-        $('#' + this.uploadfiles_id).click(function(e) {
+        this.elm("uploadfiles").click(function(e) {
             self.uploader.start();
             e.preventDefault();
         });
         
         this.uploader.bind('FileUploaded', function(up, file, res) {
             var response = $.parseJSON( res.response );
+            console.log('FileUploaded', response, file);
             file.dataset.server_id = response.id;
             file.dataset.set_type( response.type );
             file.dataset.set_status( 'server', response.status );
+            $( file.dataset ).triggerHandler( 'loaded' );
             file.dataset.init({
                 applet: self.applet_selector.get_value(),
                 load_as: self.load_as_selector.get_load_as(),
@@ -536,8 +544,10 @@ Provi.Data.Io.import_pdb = function(id, params, success, no_init){
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.Io.UrlLoadWidget = function(params){
-    params.heading = this.widget_name;
-    params.collapsed = true;
+    params = _.defaults(
+        params,
+        Provi.Data.Io.UrlLoadWidget.prototype.default_params
+    );
     Widget.call( this, params );
     this.input_id = this.id + '_input';
     this.load_as_selector_widget_id = this.id + '_load_as';
@@ -565,8 +575,11 @@ Provi.Data.Io.UrlLoadWidget = function(params){
     this.init();
 }
 Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.Io.UrlLoadWidget.prototype */ {
-    widget_name: 'Url Import',
     input_label: 'Url',
+    default_params: {
+        heading: 'Url Import',
+        collapsed: true
+    },
     init: function(){
         var self = this;
         
@@ -611,12 +624,19 @@ Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Da
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.Io.PdbLoadWidget = function(params){
+    params = _.defaults(
+        params,
+        Provi.Data.Io.PdbLoadWidget.prototype.default_params
+    );
     Provi.Data.Io.UrlLoadWidget.call( this, params );
     $('#' + this.input_id).attr('size', '4');
 }
 Provi.Data.Io.PdbLoadWidget.prototype = Utils.extend(Provi.Data.Io.UrlLoadWidget, /** @lends Provi.Data.Io.PdbLoadWidget.prototype */ {
-    widget_name: 'Pdb Import',
     input_label: 'Pdb id',
+    default_params: {
+        heading: 'PDB Import',
+        collapsed: true
+    },
     get_url: function(){
         return Provi.Data.Io.get_pdb_url( $('#' + this.input_id).val() );
     },

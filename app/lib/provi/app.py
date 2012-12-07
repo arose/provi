@@ -270,7 +270,7 @@ class SaveController( BaseController ):
 
 class PluploadController( BaseController ):
     @expose
-    def index( self, trans, datatype, provider, chunk=None, chunks=None, name="" ):
+    def index( self, trans, datatype, provider, chunk=None, chunks=None, name="", **kwargs ):
         name = re.sub('/[^\w\._]+/', '', name)
         env = trans.environ
         if 'HTTP_CONTENT_TYPE' in env:
