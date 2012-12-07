@@ -1033,14 +1033,49 @@
 					new svg.Point(this.attribute('x1').toPixels('x'), this.attribute('y1').toPixels('y')),
 					new svg.Point(this.attribute('x2').toPixels('x'), this.attribute('y2').toPixels('y'))];
 			}
-								
+			// [ASR] modified according to http://code.google.com/p/canvg/issues/detail?id=52#c6
+			this.strokeDasharray = function(ctx, points, dashProps) {
+                var x = points[0].x;
+                var y = points[0].y;
+                var x2 = points[1].x;
+                var y2 = points[1].y;
+                var da = [ new svg.Property("dashLen", dashProps[0]).toPixels(),
+                           new svg.Property("dashSpace", dashProps[1]).toPixels()];
+                
+                ctx.beginPath();
+                if (!da) da = [3, 3];
+            
+	            var dx = (x2-x), dy = (y2-y);
+	            var len = Math.sqrt(dx*dx + dy*dy);
+	            var rot = Math.atan2(dy, dx);
+	            ctx.translate(x, y);
+	            ctx.moveTo(0, 0);
+	            ctx.rotate(rot);       
+	            var dc = da.length;
+	            var di = 0, draw = true;
+	            x = 0;
+	            while (len > x) {
+	                x += da[di++ % dc];
+	                if (x > len) x = len;
+	                draw ? ctx.lineTo(x, 0): ctx.moveTo(x, 0);
+	                draw = !draw;
+	            }       
+            
+                ctx.stroke();
+            };
+
 			this.path = function(ctx) {
 				var points = this.getPoints();
 				
 				if (ctx != null) {
-					ctx.beginPath();
-					ctx.moveTo(points[0].x, points[0].y);
-					ctx.lineTo(points[1].x, points[1].y);
+					if (this.style('stroke-dasharray').hasValue()) {
+						console.log( this.style('stroke-dasharray') );
+                        this.strokeDasharray(ctx, points, this.style('stroke-dasharray').value.split(","));
+                    } else {
+						ctx.beginPath();
+						ctx.moveTo(points[0].x, points[0].y);
+						ctx.lineTo(points[1].x, points[1].y);
+					}
 				}
 				
 				return new svg.BoundingBox(points[0].x, points[0].y, points[1].x, points[1].y);
