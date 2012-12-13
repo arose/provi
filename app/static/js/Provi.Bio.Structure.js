@@ -260,6 +260,7 @@ Provi.Bio.Structure.StructureParamsWidget = function(params){
             '<select id="${eids.lattice}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="{1 1 1}">{1 1 1}</option>' +
+                '<option value="{1 1 1} RANGE -12">{1 1 1} RANGE -12</option>' +
                 '<option value="{2 2 1}">{2 2 1}</option>' +
                 '<option value="{2 2 2}">{2 2 2}</option>' +
                 '<option value="{3 3 1}">{3 3 1}</option>' +
