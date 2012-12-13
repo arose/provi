@@ -136,7 +136,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
         'alpha', 'gravity', 'friction', 'theta', 'hull_alpha',
         'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
         'canvas', 'image', 'auto_update', 'use_viewplane', 'download', 'download_svg',
-        'hide_vdw', 'fix_all'
+        'hide_vdw', 'fix_all', 'split_contact_residues'
     ]);
     
     this.dataset = params.dataset;
@@ -157,6 +157,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     this.show_image = params.show_image;
     this.hide_vdw = params.hide_vdw;
     this.fix_all = params.fix_all;
+    this.split_contact_residues = params.split_contact_residues;
     
     
     var template = '' +
@@ -225,6 +226,10 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
                 '<input id="${eids.fix_all}" type="checkbox" style="margin-top: 0.5em;"/>' +
                 '<label for="${eids.fix_all}"">fix all</label>' +
             '</div>' +
+            '<div>' +
+                '<input id="${eids.split_contact_residues}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.split_contact_residues}"">split hbond residues</label>' +
+            '</div>' +
         '</div>' +
         '<div class="control_row">' +
             '<button id="${eids.render}">render</button>' +
@@ -282,7 +287,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         external_sketch_widget: false,
         show_image: false,
         hide_vdw: false,
-        fix_all: false
+        fix_all: false,
+        split_contact_residues: true
     },
     get_applet: function(){
         if( this.applet ){
@@ -352,7 +358,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
         _.each([
             'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
-            'auto_update', 'use_viewplane', 'hide_vdw', 'fix_all'
+            'auto_update', 'use_viewplane', 'hide_vdw', 'fix_all', 'split_contact_residues'
         ], function(name){
             self.elm( name ).attr('checked', self[ name ]);
             self.elm( name ).bind('click', function(e){
@@ -426,6 +432,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                         '.XYZ + point(' + axes[1].join(', ') + ')});'
                 );
                 script = script.replace('###sele###', sele);
+                script = script.replace('###split_contact_residues###', self.split_contact_residues);
 
                 //script = "selectionHalos off; function foo(){ select *; color green; }; foo(); print 111;";
 
