@@ -241,7 +241,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
         'style', 'quality', 'color_scheme', 'color_models', 'center', 
         'applet_selector_widget', 'style_sele', 'color_models_sele',
         'center_all', 'center_protein', 'center_selected', 'center_displayed',
-        'select_all', 'select_none', 'select_protein', 'select_invert'
+        'select_all', 'select_none', 'select_protein', 'select_invert', 'presets'
     ]);
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
@@ -318,6 +318,14 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
             '<input id="${eids.color_models_sele}" type="checkbox" style="margin-top: 0.5em;">' +
             '&nbsp;' +
             '<label for="${eids.color_models_sele}">selection only</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<select style="width:1.5em;" id="${eids.presets}" class="ui-state-default">' +
+                '<option value=""></option>' +
+                '<option value="crystal_contacts">crystal contacts</option>' +
+            '</select>' +
+            '&nbsp;' +
+            '<label for="${eids.presets}">presets</label>' +
         '</div>' +
         '<div class="control_row">' +
             'center:&nbsp;' +
@@ -397,6 +405,11 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                 applet.script_wait( s, true );
             }
             self.elm('color_models').val('');
+        });
+
+        // init presets
+        this.elm('presets').bind('change', function() {
+            self.set_preset();
         });
     
         // init centering
@@ -514,6 +527,29 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                 s = 'subset selected; ' + s + 'subset;';
             }
             applet.script( 'try{' + s + '}catch(e){}', true);
+        }
+    },
+    set_preset: function (){
+        var applet = this.applet_selector.get_value(true);
+        if( !applet ) return;
+        
+        var selected_preset = this.elm('presets').children("option:selected").val();
+        if( !selected_preset ) return;
+        this.elm('presets').val('');
+        
+        var presets = {
+            'crystal_contacts': '' +
+                'display within(12.0, not symmetry); ' +
+                'contact {symmetry} {not symmetry} full vdw 110% color white; ' +
+                'color {*} molecule; ' +
+                'center displayed; '
+        }
+        
+        this.preset_cmd = presets[ selected_preset ] || '';
+        
+        if( this.preset_cmd ){
+            var s = this.preset_cmd;
+            applet.script( 'try{' + s + '}catch(e){}', true );
         }
     },
     set_color_scheme: function (){
