@@ -198,7 +198,7 @@ for(a in f2){
     var bondlist4 = [];
     var bondlist5 = [];
     for(b in ab){
-        if( a.atomno != b.atomno ){
+        if( a.atomno != b.atomno && ( {@a and @f}.count || {@b and @f}.count || a.resno == b.resno || !###split_contact_residues### ) ){
             draw_bond_intersection( p, a, b );
             var bonddata = [];
             bonddata += b.atomno;
