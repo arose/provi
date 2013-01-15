@@ -526,7 +526,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             if( this.elm('style_sele').is(':checked') ){
                 s = 'subset selected; ' + s + 'subset;';
             }
-            applet.script( 'try{' + s + '}catch(e){}', true);
+            applet.script( 'try{' + s + '}catch(e){ subset; }', true);
         }
     },
     set_preset: function (){
