@@ -1128,7 +1128,7 @@ Provi.Jmol.Settings.StyleManager.prototype = Utils.extend( Provi.Jmol.Settings.S
         trace_alpha: true,
         sidechain_helper: true,
         sidechain_helper_sele: '',
-        _sidechain_helper_sele_on: '(protein or nucleic) and (sidechain or *.CA)',
+        _sidechain_helper_sele_on: '(protein or nucleic) and (sidechain or *.CA or (pro and *.N))',
         _sidechain_helper_sele_off: '(protein or nucleic)',
         cartoon_base_edges: false,
         nucleic_cartoon_style: 'cartoon only',
