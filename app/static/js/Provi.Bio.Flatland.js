@@ -807,6 +807,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                     return 0.01;
                 }else if(d.lone && d.neighbour){
                     return 1.5;
+                }else if(d.hbond){
+                    return 2;
                 }else{
                     return d.hidden ? 2 : 20;
                 }
