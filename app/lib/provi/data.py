@@ -440,7 +440,11 @@ class Provi( Json ):
 class Bonds( Text ):
     file_ext = 'bonds'
 
+class Features( Text ):
+    file_ext = 'features'
 
+class Fasta( Text ):
+    file_ext = 'fasta'
 
 
 extension_to_datatype_dict = {
@@ -456,6 +460,9 @@ extension_to_datatype_dict = {
     'dat': Data(),
     'dx': Dx(),
     'ent': Ent(),
+    'fa': Fasta(),
+    'fasta': Fasta(),
+    'features': Features(),
     'gro': Gromacs(),
     'jmol': Jmol(),
     'json': Json(),

@@ -35,8 +35,9 @@ static_cache_time = 360
 static_dir =  %(here)s/app/static/
 static_favicon_dir =  %(here)s/app/static/favicon.ico
 
-# serving jmol applet
+# serving jmol and jalview applets
 jmol_dir =  %(here)s/app/static/applet/jmol/
+jalview_dir =  %(here)s/app/static/applet/jalview/
 
 # tmp dir accessible from web
 web_tmp_dir =  %(here)s/app/static/tmp/

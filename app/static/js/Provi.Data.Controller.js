@@ -315,6 +315,51 @@ Provi.Data.Controller.BondsMixin = {
 }
 
 
+/**
+ * @class
+ */
+Provi.Data.Controller.FastaMixin = {
+    available_widgets: {},
+    init: function( params ){
+        var self = this;
+        // params.jalview = Provi.Jalview.get_default_applet();
+        // if(params.jalview){
+            this.load( params.jalview );
+        // }
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    },
+    load: function( jalview ){
+        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
+        var url = window.location.protocol + '//' + window.location.host + '/data/get/';
+        new Provi.Jalview.JalviewWidget({ file: url + get_params });
+    }
+}
+
+
+/**
+ * @class
+ */
+Provi.Data.Controller.FeaturesMixin = {
+    available_widgets: {},
+    init: function( params ){
+        var self = this;
+        params.jalview = Provi.Jalview.get_default_applet();
+        if(params.jalview){
+            this.load( params.jalview );
+        }
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    },
+    load: function( jalview ){
+        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
+        var url = window.location.protocol + '//' + window.location.host + '/data/get/';
+        $.get( url + get_params, function(data){
+            console.log("Features loaded");
+            jalview.applet.loadAnnotation( data );
+        });
+    }
+}
+
+
 
 Provi.Data.Controller.extend_by_type = function( obj, type ){
     
@@ -356,6 +401,10 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.BondsMixin );
     }else if( type === 'provi' ){
         $.extend( obj, Ctrl.ProviMixin );
+    }else if( type === 'fasta' ){
+        $.extend( obj, Ctrl.FastaMixin );
+    }else if( type === 'features' ){
+        $.extend( obj, Ctrl.FeaturesMixin );
     }else{
         console.log('unkown file type', obj, type);
         $.extend( obj, Ctrl.DataMixin );
