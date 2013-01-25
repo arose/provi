@@ -259,7 +259,9 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
                 '<option value="backbone+cpk">backbone & cpk</option>' +
                 '<option value="trace">trace</option>' +
                 '<option value="tube">tube</option>' +
-                '<option value="tube2">tube2</option>' +
+                '<option value="tube10">tube10</option>' +
+                '<option value="tube8">tube8</option>' +
+                '<option value="tube5">tube5</option>' +
                 '<option value="ribbon">ribbon</option>' +
                 '<option value="cartoon">cartoon</option>' +
                 '<option value="cartoon+lines">cartoon & lines</option>' +
@@ -510,7 +512,9 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             'backbone+cpk': 'select protein or nucleic; backbone -${backbone}; cpk ${cpk}; select ${sidechain_helper_sele}; wireframe ${stick};',
             'trace': 'select protein or nucleic; trace only; {protein or nucleic}.trace = ${trace};',
             'tube': 'select protein or nucleic; trace only; {protein or nucleic}.trace = for(x;{protein or nucleic};x.temperature/100);',
-            'tube2': 'select *; trace only; {*}.trace = for(x;{*};x.temperature*10);',
+            'tube10': 'select *; trace only; {*}.trace = for(x;{*};x.temperature*10);',
+            'tube8': 'select *; trace only; {*}.trace = for(x;{*};x.temperature*8);',
+            'tube5': 'select *; trace only; {*}.trace = for(x;{*};x.temperature*5);',
             'ribbon': 'select protein; ribbon only; select helix or sheet; ribbon ${cartoon}; select nucleic; ${nucleic_cartoon_style} only;',
             'cartoon': 'select protein; cartoon only; select helix or sheet; cartoon ${cartoon}; select nucleic; ${nucleic_cartoon_style} only;',
             'cartoon+lines': 'select protein; cartoon only; select nucleic; ${nucleic_cartoon_style}; select ${sidechain_helper_sele}; wireframe ${line}; select helix or sheet; cartoon ${cartoon};',
