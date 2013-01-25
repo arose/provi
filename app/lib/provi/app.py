@@ -142,7 +142,7 @@ class ExampleController( BaseController ):
         dirpath = trans.app.config.example_directories[ directory_name ] + path
         l = len(dirpath)
         jstree = []
-        for file in os.listdir( dirpath ):
+        for file in sorted( os.listdir( dirpath ) ):
             if not file.startswith('.') and not (file.startswith('#') and file.endswith('#')):
                 if os.path.isfile(os.path.join(dirpath, file)):
                     jstree.append({
@@ -168,7 +168,6 @@ class ExampleController( BaseController ):
                         },
                         'state': 'closed'
                     })
-        #jstree.sort()
         return json.dumps( jstree )
     @expose
     def directory_list( self, trans ):
