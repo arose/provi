@@ -91,6 +91,8 @@
     <script type="text/javascript" src="../js/Provi.Jmol.Controls.js"></script>
     <script type="text/javascript" src="../js/Provi.Jmol.Analysis.js"></script>
     <script type="text/javascript" src="../js/Provi.Jmol.Modeling.js"></script>
+
+    <script type="text/javascript" src="../js/Provi.Jalview.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Data.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Io.js"></script>
@@ -168,6 +170,8 @@
         //Provi.Jmol.init("../applet/jmol/2011-04-22/", true);
         //Provi.Jmol.init("../applet/jmol/versions/12.3.9/", true);
         Provi.Jmol.init("../../jmol/current/46/", !$.query.get('unsigned'));
+
+        Provi.Jalview.init("../../jalview/current/0/", !$.query.get('unsigned'));
     
         $(document).ready(function(){
         
@@ -215,6 +219,13 @@
             });
             $(Provi.Jmol).bind('applet_list_change', layout_main);
             
+            Provi.Jalview.Applet.prototype.default_params.height = "100%";
+            Provi.Jalview.Applet.prototype.default_params.width = "100%";
+            _.extend( Provi.Jalview.JalviewWidget.prototype.default_params, {
+                parent_id: "main"
+            });
+            //$(Provi.Jalview).bind('applet_list_change', layout_main);
+
             new Provi.Jmol.Controls.JmolGlobalControlWidget({
                 parent_id: 'tab_controls'
             });

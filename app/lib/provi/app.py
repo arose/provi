@@ -385,6 +385,17 @@ class JmolController( BaseController ):
         return open( file_path ).read()
 
 
+class JalviewController( BaseController ):
+    def __init__( self, app, jalview_dir ):
+        """Initialize an interface for the jalview applet serving 'app'"""
+        self.app = app
+        self.jalview_dir = jalview_dir
+    @expose
+    def index( self, trans, version='current', flag=None, filename='' ):
+        file_path = os.path.join( self.jalview_dir, version, filename )
+        return open( file_path ).read()
+
+
 class AppController( BaseController ):
     def __init__( self, app, app_dir ):
         """Initialize an interface for the app serving 'app'"""
@@ -546,6 +557,9 @@ def app_factory( global_conf, **kwargs ):
     
     webapp.add_controller( 'Jmol', JmolController(webapp, conf.get('jmol_dir') ) )
     webapp.add_route('/jmol/:version/:flag/:filename', controller='Jmol', action='index', version='current', flag=None, filename='')
+
+    webapp.add_controller( 'Jalview', JalviewController(webapp, conf.get('jalview_dir') ) )
+    webapp.add_route('/jalview/:version/:flag/:filename', controller='Jalview', action='index', version='current', flag=None, filename='')
     
     webapp.add_controller( 'JmolCalculate', JmolCalculateController(webapp, conf.get('web_tmp_dir'), conf.get('jmol_dir')) )
     webapp.add_route('/calculate/jmol/', controller='JmolCalculate', action='index')
