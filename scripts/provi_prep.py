@@ -7,12 +7,25 @@ import os.path
 import json
 from collections import defaultdict
 import logging
+import re
+from string import Template
+
 
 logging.basicConfig()
 LOG = logging.getLogger('prep')
 # LOG.setLevel( logging.ERROR )
 LOG.setLevel( logging.WARNING )
 # LOG.setLevel( logging.DEBUG )
+
+
+
+def get_index(seq, index, default=None):
+    if not seq:
+        return default
+    try:
+        return seq[index]
+    except IndexError:
+        return default
 
 
 def memoize(f):
@@ -351,6 +364,14 @@ def prep_hbexplore(hbexplore_file, pdb_file):
     hbexplore_out_fp.close()
 
 
+def create_json( values_dict, out, tpl ):
+    with open( tpl, "r" ) as fp:
+        tpl_str = fp.read()
+    with open( out, "w" ) as fp:
+        fp.write( Template( tpl_str ).substitute( **values_dict ) )
+
+
+
 def main():
 
     # create the parser
@@ -364,6 +385,8 @@ def main():
     parser.add_argument('-contact', help='contact (sco, mbn) file')
     parser.add_argument('-tmhelix', help='tmhelix file')
     parser.add_argument('-hbx', help='hbexplore file')
+    parser.add_argument('-jsontpl', help='json template file')
+    parser.add_argument('-dirwalk', nargs='+', default=[], help='dir, [regex]')
 
     # parse the command line
     args = parser.parse_args()
@@ -383,8 +406,28 @@ def main():
     if args.hbx and args.pdb:
         prep_hbexplore( args.hbx, args.pdb )
 
+    if args.dirwalk:
+        print args.dirwalk
+        directory = args.dirwalk[0]
+        pattern = get_index( args.dirwalk, 1, False )
+        for pathname in os.listdir( directory ):
+            if os.path.isfile( pathname ):
+                continue
+            match = ''
+            if pattern:
+                m = re.match( pattern, pathname )
+                if m: 
+                    match = m.group(1)
+                else:
+                    continue
+            print pathname, match
+            if args.jsontpl:
+                values_dict = { "id": match }
+                out = os.path.join( directory, pathname, "json.provi" )
+                create_json( values_dict, out, args.jsontpl )
 
 
+            
 
 
 if __name__ == "__main__":
