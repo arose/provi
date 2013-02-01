@@ -11,8 +11,8 @@ from utils.odict import odict
 import threading
 import csv
 
-# import math
-# import numpy
+import math
+import numpy
 
 # from MembraneProtein.AndreanTools import contact
 # from MembraneProtein.AndreanTools import membran_neu
@@ -256,37 +256,40 @@ class Ent( Pdb ):
 #     file_ext = 'mbn'
 #     data_class = membran_neu.mbn
 
-# class Mplane( Text ):
-#     file_ext = 'mplane'
-#     def distance(self, planes):
-#         p1 = map( numpy.array, planes[0] )
-#         p2 = map( numpy.array, planes[1] )
-#         # http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
-#         # http://mathworld.wolfram.com/Point-PlaneDistance.html
-#         n = numpy.cross( p1[1]-p1[0], p1[2]-p1[0] )
-#         p0 = p2[0]
-#         v0 = p1[0]
-#         dist = numpy.abs( numpy.dot( (p0-v0), n )/self.vec_mag(n) )
-#         return dist
-#     def vec_mag( self, v ):
-#         return math.sqrt( v[0]**2 + v[1]**2 + v[2]**2 )
-#     @expose
-#     def get_planes( self, dataset, **kwargs ):
-#         line = dataset.data.splitlines()[0]
-#         planes = []
-#         for plane in line[ line.find(": {")+2: ].split(":::"):
-#             points = []
-#             for point in plane.strip(" {}").split("} {"):
-#                 points.append([ float( p.strip() ) for p in point.split(",") ])
-#             planes.append( points )
-#         return json.dumps( planes + [ self.distance(planes) ] )
-#     # def get_planes_OLD( self, dataset, **kwargs ):
-#     #     tmp_file = named_tmp_file( dataset.data )
+class Mplane( Text ):
+    file_ext = 'mplane'
+    def distance(self, planes):
+        p1 = map( numpy.array, planes[0] )
+        p2 = map( numpy.array, planes[1] )
+        # http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
+        # http://mathworld.wolfram.com/Point-PlaneDistance.html
+        n = numpy.cross( p1[1]-p1[0], p1[2]-p1[0] )
+        p0 = p2[0]
+        v0 = p1[0]
+        dist = numpy.abs( numpy.dot( (p0-v0), n )/self.vec_mag(n) )
+        if numpy.isnan(dist):
+            return 0
+        else:
+            return dist
+    def vec_mag( self, v ):
+        return math.sqrt( v[0]**2 + v[1]**2 + v[2]**2 )
+    @expose
+    def get_planes( self, dataset, **kwargs ):
+        line = dataset.data.splitlines()[0]
+        planes = []
+        for plane in line[ line.find(": {")+2: ].split(":::"):
+            points = []
+            for point in re.split( "}\s+{", plane.strip(" {}") ):
+                points.append([ float( p.strip() ) for p in point.split(",") ])
+            planes.append( points )
+        return json.dumps( planes + [ self.distance(planes) ] )
+    # def get_planes_OLD( self, dataset, **kwargs ):
+    #     tmp_file = named_tmp_file( dataset.data )
 
-#     #     mp = membran_plane.Mplanes(tmp_file.name)
-#     #     def f(p):
-#     #         return map( list, (p.a, p.b, p.c) )
-#     #     return json.dumps( ( f(mp.plane1), f(mp.plane2), mp.distance() ) )
+    #     mp = membran_plane.Mplanes(tmp_file.name)
+    #     def f(p):
+    #         return map( list, (p.a, p.b, p.c) )
+    #     return json.dumps( ( f(mp.plane1), f(mp.plane2), mp.distance() ) )
 
 class Gromacs( Text ):
     file_ext = 'gro'
@@ -446,6 +449,9 @@ class Features( Text ):
 class Fasta( Text ):
     file_ext = 'fasta'
 
+class Tmalign( Text ):
+    file_ext = 'tmalign'
+
 
 extension_to_datatype_dict = {
     'anal': Hbx(),
@@ -463,6 +469,7 @@ extension_to_datatype_dict = {
     'fa': Fasta(),
     'fasta': Fasta(),
     'features': Features(),
+    'feat': Features(),
     'gro': Gromacs(),
     'jmol': Jmol(),
     'json': Json(),
@@ -473,7 +480,7 @@ extension_to_datatype_dict = {
     'mmcif': MmCif(),
     'mol': Mol(),
     'mol2': Mol(),
-    #'mplane': Mplane(),
+    'mplane': Mplane(),
     'mrc': MrcDensityMap(),
     'ndx': Ndx(),
     'obj': Obj(),
@@ -484,6 +491,7 @@ extension_to_datatype_dict = {
     'provi': Provi(),
     #'sco': Sco(),
     'sdf': Sdf(),
+    'tmalign': Tmalign(),
     'tmhelix': Tmhelix(),
     'txt': Text(),
     'vert': Msms(),
