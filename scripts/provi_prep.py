@@ -84,9 +84,7 @@ def prep_contact(contact_file, pdb_file):
     for l in contact_fp:
         if l.startswith('OVERVW') or l.startswith('OVERV2'):
             structure_elms += l.split()[1:]
-        elif l.startswith('END'):
-            pass
-        elif l.startswith('CUTOFF'):
+        elif l.split(' ')[0] in ['END', 'CUTOFF', 'HEADER', 'COMPND', 'REMARK', 'METHOD', 'LENGTH']:
             pass
         elif l[0] in ['H', 'C', 'E', 'O', 'W']:
             key = ( float(l[27:35]), float(l[35:43]), float(l[43:51]) )
