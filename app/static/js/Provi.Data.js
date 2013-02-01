@@ -108,6 +108,7 @@ Provi.Data.Dataset = function(params){
     this.applet_list = [];
     this.server_id = params.server_id;
     this.plupload_id = params.plupload_id;
+    this.meta = params.meta;
     this.id = Provi.Data.DatasetManager.add( this );
     this._init();
 };

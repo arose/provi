@@ -95,7 +95,6 @@ Provi.Data.Controller.ProviMixin = {
         var get_params = { 'id': this.server_id+'' };
         $.getJSON( '../../data/get/', get_params, onload );
     },
-
     load: function( d ){
         var self = this;
         var jw_dict = {};
@@ -147,8 +146,18 @@ Provi.Data.Controller.ProviMixin = {
                     applet: jw.applet,
                     load_as: (data.load_as || 'new')
                 });
+                if( !data.dir || data.dir=="RELATIVE" ){
+                    console.log(self);
+                    var dir = self.meta.directory;
+                    var filename = '' + 
+                        self.meta.filename.split('/').slice(0,-1).join('/') + 
+                        '/' + data.filename;
+                }else{
+                    var dir = data.dir;
+                    var filename = data.filename
+                }
                 ds_dict[i] = Provi.Data.Io.import_example( 
-                    data.dir, data.filename, data.type, params, function(ds){console.log('LOADED', i, ds)}, true 
+                    dir, filename, data.type, params, function(ds){console.log('LOADED', i, ds)}, true 
                 );
                 func = function(){
                     var ds = ds_dict[i];
@@ -360,6 +369,53 @@ Provi.Data.Controller.FeaturesMixin = {
 }
 
 
+/**
+ * @class
+ */
+Provi.Data.Controller.TmalignMixin = {
+    available_widgets: {},
+    init: function( params ){
+        var self = this;
+        var sele = params.sele
+        if(!sele){
+            sele = "file=1";
+        }
+        if(params.applet){
+            this.load( sele, params.applet );
+        }
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    },
+    load: function( sele, applet ){
+        var self = this;
+        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
+        var url = window.location.protocol + '//' + window.location.host + '/data/get/';
+        $.get( url + get_params, function(data){
+            var t = [0, 0, 0];
+            var u = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+            var j = 0;
+            _.each(data.split(/\n/), function(line, i){
+                if( _.contains(["1", "2", "3"], line.charAt(1)) ){
+                    var x = line.trim().split(/\s+/);
+                    t[j] = x[1];
+                    u[j] = x.slice(2,5);
+                    j += 1;
+                }
+            })
+            var s = '' +
+                'select ' + sele + ';' +
+                'm = [[' + u[0] + '],[' + u[1] + '],[' + u[2] + ']];' +
+                'rotateSelected @m;' +
+                'translateSelected {' + t + '};' +
+                'center selected;' +
+                'print "provi dataset: ' + self.id + ' loaded";' +
+            '';
+            //console.log(s);
+            applet.script_wait(s, true);
+        });
+    }
+}
+
+
 
 Provi.Data.Controller.extend_by_type = function( obj, type ){
     
@@ -405,6 +461,8 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.FastaMixin );
     }else if( type === 'features' ){
         $.extend( obj, Ctrl.FeaturesMixin );
+    }else if( type === 'tmalign' ){
+        $.extend( obj, Ctrl.TmalignMixin );
     }else{
         console.log('unkown file type', obj, type);
         $.extend( obj, Ctrl.DataMixin );
