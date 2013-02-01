@@ -190,7 +190,11 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
     var self = this;
     var dataset = new Provi.Data.Dataset({
         name: filename,
-        status: { local: null, server: 'importing' }
+        status: { local: null, server: 'importing' },
+        meta: {
+            directory: directory_name,
+            filename: filename
+        }
     });
     var extra_files = '';
     console.log( 'ext: ', filename.substring( filename.lastIndexOf('.') ) );
@@ -772,7 +776,8 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
         if( !$("#" + this.save_structure_selected_id).is(':checked') ){
             applet.script_wait('select *;');
         }
-        var data = applet.evaluate('write("coords","pdb").split("\n")');
+        // x = write("PDB"); write VAR x "?";
+        var data = applet.evaluate('write("pdb").split("\n")');
         //var data = this.applet_selector.get_value().evaluate('write("ramachandran","r").split("\n")');
         //var data = this.applet_selector.get_value().get_property_as_string("fileContents", '');
         //console.log(data);
