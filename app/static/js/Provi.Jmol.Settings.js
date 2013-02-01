@@ -1107,13 +1107,13 @@ Provi.Jmol.Settings.StyleManager.prototype = Utils.extend( Provi.Jmol.Settings.S
         style: '' +
             'select protein; cartoon only; select helix or sheet; cartoon ${cartoon};' +
             'select nucleic; ${nucleic_cartoon_style};' +
-            'select (ligand or ace or ((ypl or lrt) and sidechain) ); wireframe ${stick}; spacefill ${spacefill};' +
-            'select (ypl or lrt) and (sidechain or *.CA); wireframe ${stick};' +
+            'select (ligand or ace or (gmy and (sidechain or *.N or *.CA)) or ((ypl or yfa or lrt) and sidechain) ); wireframe ${stick}; spacefill ${spacefill};' +
+            'select (ypl or yfa or lrt) and (sidechain or *.CA); wireframe ${stick};' +
             'select water; wireframe ${line};' +
             //'select group=hoh; cpk 20%;' +
             'select HOH; cpk ${cpk};' +
-            //'select (hetero or ypl or lrt or ace) or within(GROUP, connected(hetero or ypl or lrt or ace)); wireframe ${stick};' +
-            'select (hetero and not(ret or plm or ace or lrt or ypl)) or within(GROUP, connected(hetero and not(ret or plm or ace or lrt or ypl))); wireframe ${stick};' +
+            //'select (hetero or ypl or gmy or yfa or lrt or ace) or within(GROUP, connected(hetero or ypl or lrt or ace)); wireframe ${stick};' +
+            'select (hetero and not(ret or plm or ace or lrt or ypl or gmy or yfa)) or within(GROUP, connected(hetero and not(ret or plm or ace or lrt or ypl or gmy or yfa))); wireframe ${stick};' +
             'select (ace) or (within(GROUP, connected(ace)) and (*.N or *.CA)); wireframe ${stick};' +
             'select ((ret or plm) and hetero) or (within(GROUP, connected(ret or plm)) and (sidechain or *.CA)); wireframe ${stick};' +
             'select (dmpc or dmp or popc or pop); wireframe ${stick};' +
