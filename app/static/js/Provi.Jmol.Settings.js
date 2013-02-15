@@ -343,6 +343,7 @@ Provi.Jmol.Settings.LightingManager.prototype = Utils.extend( Provi.Jmol.Setting
         z_shade_power: 3,
         z_slab: 10,
         z_depth: 0,
+        cel_shading: false,
         //background_color: '"[xffffff]"'
         background_color: '"[x000000]"'
     },
@@ -358,6 +359,7 @@ Provi.Jmol.Settings.LightingManager.prototype = Utils.extend( Provi.Jmol.Setting
         z_shade_power: "zShadePower",
         z_slab: "zSlab",
         z_depth: "zDepth",
+        cel_shading: "celShading",
         background_color: "backgroundColor"
     }
 });
@@ -384,7 +386,7 @@ Provi.Jmol.Settings.LightingManagerWidget = function(params){
         'specular_state', 'specular_percent', 'specular_exponent',
         'specular_power', 'phong_exponent',
         'z_shade_state', 'z_shade_slider', 'z_shade_power',
-        'background_color'
+        'cel_shading', 'background_color'
     ]);
     
     var template = '' +
@@ -431,6 +433,10 @@ Provi.Jmol.Settings.LightingManagerWidget = function(params){
                     '<option value="1">1</option><option value="2">2</option>' +
                     '<option value="3">3</option><option value="4">4</option>' +
                 '</select>' +
+            '</div>' +
+            '<div class="control_row">' +
+                '<input id="${eids.cel_shading}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+                '<label for="${eids.cel_shading}" >cel shading</label>' +
             '</div>' +
             '<div class="control_row">' +
                 '<label for="${eids.background_color}" >background color</label>' +
@@ -482,6 +488,8 @@ Provi.Jmol.Settings.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Se
         
         this.elm('z_shade_power').bind('click change', $.proxy( this.set, this ));
         
+        this.elm('cel_shading').click( $.proxy( this.set, this ) );
+
         // init color picker
         this.elm('background_color').colorPicker();
         this.elm('background_color').bind('change', $.proxy( this.set, this ));
@@ -503,6 +511,7 @@ Provi.Jmol.Settings.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Se
             this.elm('z_shade_slider').slider("values", 0, params.z_depth);
             this.elm('z_shade_slider').slider("values", 1, params.z_slab);
             this.elm('z_shade_power').val( params.z_shade_power );
+            this.elm('cel_shading').attr('checked', params.cel_shading );
             this.elm('background_color').val( params.background_color.substr(2,7) );
         }
     },
@@ -525,6 +534,7 @@ Provi.Jmol.Settings.LightingManagerWidget.prototype = Utils.extend(Provi.Jmol.Se
                 z_shade_power: this.elm('z_shade_power').children("option:selected").val(),
                 z_depth: this.elm('z_shade_slider').slider("values", 0),
                 z_slab: this.elm('z_shade_slider').slider("values", 1),
+                cel_shading: this.elm('cel_shading').is(':checked'),
                 // background_color: bg                
                 background_color: '"[x' + this.elm('background_color').val().substr(1) + ']"'
             });
