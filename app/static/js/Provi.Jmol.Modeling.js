@@ -52,11 +52,7 @@ Provi.Jmol.Modeling.JmolModelingWidget = function(params){
         '</div>' +
         '<div class="control_row">' +
             '<input id="' + this.drag_selected_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.drag_selected_id + '" style="display:inline-block;" title="move selected atoms by pressing ALT-SHIFT-LEFT and dragging">drag selected</label>' +
-        '</div>' +
-	'<div class="control_row">' +
-            '<input id="' + this.rotate_selected_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.rotate_selected_id + '" style="display:inline-block;" title="rotate selected molecule by pressing ALT-LEFT and dragging">rotate selected molecule</label>' +
+            '<label for="' + this.drag_selected_id + '" style="display:inline-block;" title="move selected atoms: ALT-SHIFT-LEFT for translation and ALT-LEFT for rotation">move selected</label>' +
         '</div>' +
 	'<div class="control_row">' +
             '<input size="4" id="' + this.rotate_range_begin_id + '" type="text" class="ui-state-default"/>' +
@@ -90,23 +86,9 @@ Provi.Jmol.Modeling.JmolModelingWidget.prototype = Utils.extend(Widget, /** @len
             if(applet){
 		self.drag_selected = $("#" + self.drag_selected_id).is(':checked');
 		if(self.drag_selected){
-		    applet.script('set dragSelected ON');
+		    applet.script('set allowMoveAtoms true');
 		}else{
-		    applet.script('set dragSelected OFF');
-		}
-            }
-        });
-	
-	// init rotate selected (molecule)
-        this.rotate_selected = $("#" + this.rotate_selected_id).is(':checked');
-        $('#' + this.rotate_selected_id).click(function(){
-            var applet = self.applet_selector.get_value();
-            if(applet){
-		self.rotate_selected = $("#" + self.rotate_selected_id).is(':checked');
-		if(self.rotate_selected){
-		    applet.script('set allowRotateSelected ON');
-		}else{
-		    applet.script('set allowRotateSelected OFF');
+		    applet.script('set allowMoveAtoms false');
 		}
             }
         });
