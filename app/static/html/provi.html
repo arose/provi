@@ -85,6 +85,7 @@
     <script type="text/javascript" src="../js/Provi.Bio.Isosurface.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Propensities.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Flatland.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Mutate.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Jmol.js"></script>
     <script type="text/javascript" src="../js/Provi.Jmol.Settings.js"></script>
@@ -267,6 +268,10 @@
             });
             
             new Provi.Bio.Rotamers.RotamersWidget({
+                parent_id: 'tab_controls'
+            });
+
+            new Provi.Bio.Mutate.MutateWidget({
                 parent_id: 'tab_controls'
             });
         
