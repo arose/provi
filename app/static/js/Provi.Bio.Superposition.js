@@ -38,11 +38,12 @@ Provi.Bio.Superposition.SuperposeWidget = function(params){
 
     this.gap_penalty = params.gap_penalty;
     this.gap_extension = params.gap_extension;
+    this.no_alignment = false;
     
     Widget.call( this, params );
 
     this._init_eid_manager([
-        'applet_selector_widget', 
+        'applet_selector_widget', 'no_alignment',
         'gap_penalty', 'gap_extension', 'superpose',
         'sele1_selector_widget', 'sele2_selector_widget',
         'ali_sele1_selector_widget', 'ali_sele2_selector_widget',
@@ -65,6 +66,12 @@ Provi.Bio.Superposition.SuperposeWidget = function(params){
             '</div>' +
         '</div>' +
         '<div class="control_row">Alignment selection:' +
+            '<span>' +
+                '&nbsp;&nbsp;&nbsp;' +
+                '<input id="${eids.no_alignment}" type="checkbox" style="margin-top: 0.5em;">' +
+                '&nbsp;' +
+                '<label for="${eids.no_alignment}">no alignment</label>' +
+            '</span>' +
             '<div class="control_group">' +
                 '<div class="control_row" id="${eids.ali_sele1_selector_widget}"></div>' +
                 '<div class="control_row" id="${eids.ali_sele2_selector_widget}"></div>' +
@@ -142,6 +149,10 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
             self.superpose();
         });
 
+        this.elm("no_alignment").bind('change click', function() {
+            self.no_alignment = self.elm("no_alignment").is(':checked');
+        });
+
         this.sele1_selector.set_input('2.1');
         this.sele2_selector.set_input('1.1');
         this.ali_sele1_selector.set_input(':A');
@@ -163,73 +174,103 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
         var self = this;
         if (!applet ) return;
 
-        this.gap_penalty = parseInt( this.elm('gap_penalty').val() );
-        this.gap_extension = parseInt( this.elm('gap_extension').val() );
-
         var sele1 = this.sele1_selector.get().selection;
         var sele2 = this.sele2_selector.get().selection;
         var ali_sele1 = this.ali_sele1_selector.get().selection;
         var ali_sele2 = this.ali_sele2_selector.get().selection;
         var filter_sele1 = this.filter_sele1_selector.get().selection;
         var filter_sele2 = this.filter_sele2_selector.get().selection;
-        var subset = '*.CA or *.C or *.N';
 
-        var format = "'%[atomno]',%[resno],'%[chain]','%[model]','%[file]','%[group1]'";
-        var apm1 = applet.atoms_property_map( 
-            format, 
-            '(' + sele1 + ') and (' + ali_sele1 + ') and protein and *.CA'
-        );
-        var apm2 = applet.atoms_property_map( 
-            format, 
-            '(' + sele2 + ') and (' + ali_sele2 + ') and protein and *.CA' 
-        );
-        //console.log(apm1);
-        //console.log(apm2);
+        if(this.no_alignment){
+            var subset = '*';
+            var pairs = '{' + ali_sele1 + '} {' + ali_sele2 + '}';
+        }else{
+            var subset = '*.CA or *.C or *.N';
 
-        var seq1 = _.map(apm1, function(p, i){
-            return p[5] ? p[5] : ' ';
-        }).join('');
-        var seq2 = _.map(apm2, function(p, i){
-            return p[5] ? p[5] : ' ';
-        }).join('');
+            this.gap_penalty = parseInt( this.elm('gap_penalty').val() );
+            this.gap_extension = parseInt( this.elm('gap_extension').val() );
 
-        console.log(seq1);
-        console.log(seq2);
+            var format = "'%[atomno]',%[resno],'%[chain]','%[model]','%[file]','%[group1]'";
+            var apm1 = applet.atoms_property_map( 
+                format, 
+                '(' + sele1 + ') and (' + ali_sele1 + ') and protein and *.CA'
+            );
+            var apm2 = applet.atoms_property_map( 
+                format, 
+                '(' + sele2 + ') and (' + ali_sele2 + ') and protein and *.CA' 
+            );
+            //console.log(apm1);
+            //console.log(apm2);
 
-        nw = new Provi.Bio.Alignment.NeedlemanWunsch({
-            seq1: seq1, 
-            seq2: seq2,
-            gap_penalty: this.gap_penalty,
-            gap_extension_penalty: this.gap_extension
-        });
-        nw.calc();
-        nw.trace();
+            var seq1 = _.map(apm1, function(p, i){
+                return p[5] ? p[5] : ' ';
+            }).join('');
+            var seq2 = _.map(apm2, function(p, i){
+                return p[5] ? p[5] : ' ';
+            }).join('');
 
-        console.log(nw.ali1);
-        console.log(nw.ali2);
+            console.log(seq1);
+            console.log(seq2);
 
-        var g = 0
-        var gap1 = _.map(nw.ali1.split(''), function(c, i){
-            return c=='-' ? ++g : g;
-        });
-        var g = 0
-        var gap2 = _.map(nw.ali2.split(''), function(c, i){
-            return c=='-' ? ++g : g;
-        });
+            nw = new Provi.Bio.Alignment.NeedlemanWunsch({
+                seq1: seq1, 
+                seq2: seq2,
+                gap_penalty: this.gap_penalty,
+                gap_extension_penalty: this.gap_extension
+            });
+            nw.calc();
+            nw.trace();
 
-        // console.log(gap1);
-        // console.log(gap2);
+            console.log(nw.ali1);
+            console.log(nw.ali2);
 
-        var pairs = '';
-        _.each(nw.ali1.split(''), function(c1, i){
-            var c2 = nw.ali2.split('')[i];
-            if( c1!='-' && c2!='-'){
-                // pairs += ' {' + apm1[ i - gap1[i] ][1] + '} {' + apm2[ i - gap2[i] ][1] + '} ';
-                pairs += ' {@' + apm1[ i - gap1[i] ][0] + '} {@' + apm2[ i - gap2[i] ][0] + '} ';
-            }
-        });
+            var g = 0
+            var gap1 = _.map(nw.ali1.split(''), function(c, i){
+                return c=='-' ? ++g : g;
+            });
+            var g = 0
+            var gap2 = _.map(nw.ali2.split(''), function(c, i){
+                return c=='-' ? ++g : g;
+            });
 
-        console.log(pairs);
+            // console.log(gap1);
+            // console.log(gap2);
+
+            var pairs = '';
+            _.each(nw.ali1.split(''), function(c1, i){
+                var c2 = nw.ali2.split('')[i];
+                if( c1!='-' && c2!='-'){
+                    // pairs += ' {' + apm1[ i - gap1[i] ][1] + '} {' + apm2[ i - gap2[i] ][1] + '} ';
+                    pairs += ' {@' + apm1[ i - gap1[i] ][0] + '} {@' + apm2[ i - gap2[i] ][0] + '} ';
+                }
+            });
+
+            console.log(pairs);
+
+            _.each(nw.ali1.split(''), function(c1, i){
+                var c2 = nw.ali2.split('')[i];
+                s += '' + 
+                    'color {' + 
+                        ( c1=='-' ? 'none' : '(' + sele1 + ') and (' + ali_sele1 + ') and ' + apm1[ i - gap1[i] ][1] ) + 
+                        ' or ' +
+                        ( c2=='-' ? 'none' : '(' + sele2 + ') and (' + ali_sele2 + ') and ' + apm2[ i - gap2[i] ][1] ) + 
+                    '} ' +
+                    '@{ color("' + 'roygb' + '", 0, ' + (nw.ali1.length-1) + ', ' + i + ') };' +
+                '';
+            });
+
+            _.each(nw.ali1.split(''), function(c1, i){
+                var c2 = nw.ali2.split('')[i];
+                s += '' + 
+                    'color {' + 
+                        ( c2!='-' ? 'none' : '(' + sele1 + ') and (' + ali_sele1 + ') and ' + apm1[ i - gap1[i] ][1] ) + 
+                        ' or ' +
+                        ( c1!='-' ? 'none' : '(' + sele2 + ') and (' + ali_sele2 + ') and ' + apm2[ i - gap2[i] ][1] ) + 
+                    '} ' +
+                    'white;' +
+                '';
+            });
+        }
 
         var s = '' +
             'center {' + sele2 + '};' +
@@ -245,30 +286,6 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
                 'atoms ' + pairs +
                 'rotate translate;' + 
         '';
-
-        _.each(nw.ali1.split(''), function(c1, i){
-            var c2 = nw.ali2.split('')[i];
-            s += '' + 
-                'color {' + 
-                    ( c1=='-' ? 'none' : '(' + sele1 + ') and (' + ali_sele1 + ') and ' + apm1[ i - gap1[i] ][1] ) + 
-                    ' or ' +
-                    ( c2=='-' ? 'none' : '(' + sele2 + ') and (' + ali_sele2 + ') and ' + apm2[ i - gap2[i] ][1] ) + 
-                '} ' +
-                '@{ color("' + 'roygb' + '", 0, ' + (nw.ali1.length-1) + ', ' + i + ') };' +
-            '';
-        });
-
-        _.each(nw.ali1.split(''), function(c1, i){
-            var c2 = nw.ali2.split('')[i];
-            s += '' + 
-                'color {' + 
-                    ( c2!='-' ? 'none' : '(' + sele1 + ') and (' + ali_sele1 + ') and ' + apm1[ i - gap1[i] ][1] ) + 
-                    ' or ' +
-                    ( c1!='-' ? 'none' : '(' + sele2 + ') and (' + ali_sele2 + ') and ' + apm2[ i - gap2[i] ][1] ) + 
-                '} ' +
-                'white;' +
-            '';
-        });
 
         console.log('SUPERPOSE', s);
         s = 'try{' + s + '}catch(e){};';
