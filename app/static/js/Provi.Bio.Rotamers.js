@@ -36,7 +36,6 @@ Provi.Bio.Rotamers.db = {"CYS":[[56.64,-64.3],[27.42,-177.3],[15.94,63.7]],"ASP"
  */
 Provi.Bio.Rotamers.sidechain_atoms = {"CYS":[["N","CA","CB","SG"]],"ASP":[["N","CA","CB","CG"],["CA","CB","CG","OD1"]],"SER":[["N","CA","CB","OG"]],"GLN":[["N","CA","CB","CG"],["CA","CB","CG","CD"],["CB","CG","CD","OE1"]],"LYS":[["N","CA","CB","CG"],["CA","CB","CG","CD"],["CB","CG","CD","CE"],["CG","CD","CE","NZ"]],"ILE":[["N","CA","CB","CG1"],["CA","CB","CG1","CD1"]],"PRO":[["N","CA","CB","CG"],["CA","CB","CG","CD"]],"THR":[["N","CA","CB","OG1"]],"PHE":[["N","CA","CB","CG"],["CA","CB","CG","CD1"]],"ASN":[["N","CA","CB","CG"],["CA","CB","CG","OD2"]],"MET":[["N","CA","CB","CG"],["CA","CB","CG","SD"],["CB","CG","SD","CE"]],"HIS":[["N","CA","CB","CG"],["CA","CB","CG","ND1"]],"LEU":[["N","CA","CB","CG"],["CA","CB","CG","CD1"]],"ARG":[["N","CA","CB","CG"],["CA","CB","CG","CD"],["CB","CG","CD","NE"],["CG","CD","NE","CZ"]],"TRP":[["N","CA","CB","CG"],["CA","CB","CG","CD1"]],"VAL":[["N","CA","CB","CG1"]],"GLU":[["N","CA","CB","CG"],["CA","CB","CG","CD"],["CB","CG","CD","OE1"]],"TYR":[["N","CA","CB","CG"],["CA","CB","CG","CD1"]]}
 
-
 Provi.Bio.Rotamers.db["CNO"] = [
     ['{t,p,m}',-180,64,-101],
     ['{m,m,m}',-67,-64,-83],
@@ -77,50 +76,52 @@ Provi.Bio.Rotamers.RotamersWidget = function(params){
         params,
         Provi.Bio.Rotamers.RotamersWidget.prototype.default_params
     );
+
     this.picking_select = 'ATOM';
     this.drag_selected = false;
     this.selection_halos = false;
     this.show_vdw_id = false;
     this.clash_expression = '*';
+
     Widget.call( this, params );
     this._build_element_ids([ 'residue_expression', 'get_rotamers', 'rotamers', 'applet_selector_widget', 'next', 'previous', 'custom_rotamer', 'set_custom_rotamer', 'show_vdw', 'minimize', 'dihedrals', 'dihedral_slider', 'clash_expression' ]);
     var content = '<div class="control_group">' +
         '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
-	'<div class="control_row">' +
+        '<div class="control_row">' +
             '<input size="10" id="' + this.residue_expression_id + '" type="text" value="resno=7" class="ui-state-default"/>' +
             '<label for="' + this.residue_expression_id + '" >residue</label> ' +
-	    '<button id="' + this.get_rotamers_id + '">get rotamers</button>' +
+            '<button id="' + this.get_rotamers_id + '">get rotamers</button>' +
             '<span>' +
                 '<button id="' + this.previous_id + '">previous rotamer</button>' +
-		'<button id="' + this.next_id + '">next rotamer</button>' +
+                '<button id="' + this.next_id + '">next rotamer</button>' +
             '</span>' +
         '</div>' +
         '<div class="control_row">' +
             '<label for="' + this.rotamers_id + '">rotamers</label>' +
             '<select id="' + this.rotamers_id + '" class="ui-state-default"><option></option></select>' +
-	'</div>' +
-	'<div class="control_row">' +
-	    '<input size="12" id="' + this.custom_rotamer_id + '" type="text" value="" class="ui-state-default"/>' +
-	    '<label for="' + this.custom_rotamer_id + '" >custom rotamer</label> ' +
-	    '<button id="' + this.set_custom_rotamer_id + '">set</button>' +
         '</div>' +
-	'<div class="control_row">' +
-	    '<input size="12" id="' + this.clash_expression_id + '" type="text" value="*" class="ui-state-default"/>' +
-	    '<label for="' + this.clash_expression_id + '" >clash expr.</label> ' +
+        '<div class="control_row">' +
+            '<input size="12" id="' + this.custom_rotamer_id + '" type="text" value="" class="ui-state-default"/>' +
+            '<label for="' + this.custom_rotamer_id + '" >custom rotamer</label> ' +
+            '<button id="' + this.set_custom_rotamer_id + '">set</button>' +
         '</div>' +
-	'<div class="control_row">' +
+        '<div class="control_row">' +
+            '<input size="12" id="' + this.clash_expression_id + '" type="text" value="*" class="ui-state-default"/>' +
+            '<label for="' + this.clash_expression_id + '" >clash expr.</label> ' +
+        '</div>' +
+        '<div class="control_row">' +
             '<input id="' + this.show_vdw_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
             '<label for="' + this.show_vdw_id + '" style="display:inline-block;">show vdw radii</label>' +
         '</div>' +
-	'<div class="control_row">' +
+        '<div class="control_row">' +
             '<label for="' + this.dihedrals_id + '">dihedral atoms</label>' +
             '<select id="' + this.dihedrals_id + '" class="ui-state-default"><option></option></select>' +
-	'</div>' +
-	'<button id="' + this.minimize_id + '">minimize</button>' +
-	'<div class="control_row">' +
-	    '<label for="' + this.dihedral_slider_id + '" style="display:block;">dihedral angle</label>' +
-	    '<div id="' + this.dihedral_slider_id + '"></div>' +
-	'</div>' +
+        '</div>' +
+        '<button id="' + this.minimize_id + '">minimize</button>' +
+        '<div class="control_row">' +
+          '<label for="' + this.dihedral_slider_id + '" style="display:block;">dihedral angle</label>' +
+            '<div id="' + this.dihedral_slider_id + '"></div>' +
+        '</div>' +
     '</div>';
     $(this.dom).append( content );
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
@@ -135,17 +136,17 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
     },
     _init: function(){
         var self = this;
-	
-	// init get rotamers
+    
+        // init get rotamers
         $('#' + this.get_rotamers_id).button().click(function(){
             var applet = self.applet_selector.get_value();
             if(applet){
-		self.residue_expression = $('#' + self.residue_expression_id).val();
-		console.log( self.residue_expression );
+                self.residue_expression = $('#' + self.residue_expression_id).val();
+                console.log( self.residue_expression );
                 self.get_rotamers();
             }
         });
-	
+    
         $('#' + this.rotamers_id).change(function(){
             self.set_dihedral();
         });
@@ -167,93 +168,91 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
         }).click(function(){
             $("#" + self.rotamers_id + ' option:selected').next().attr('selected', true).trigger('change');
         });
-	
-	// init set custom rotamer
+    
+        // init set custom rotamer
         $('#' + this.set_custom_rotamer_id).button().click(function(){
             var applet = self.applet_selector.get_value();
             if(applet){
-		rot_str = $('#' + self.custom_rotamer_id).val();
-		console.log( rot_str );
-		var rot = $.map( rot_str.split(','), function(elm, i){
-		    return parseFloat(elm);
-		});
-		self.custom_rotamer = [0.00].concat( rot );
-		$("#" + self.rotamers_id + '>option[value="custom"]').remove();
-		$("#" + self.rotamers_id).append("<option value='custom'>custom (" + self.custom_rotamer.slice(1).join('\u00B0, ') + "\u00B0)</option>").val('custom');
+                rot_str = $('#' + self.custom_rotamer_id).val();
+                console.log( rot_str );
+                var rot = $.map( rot_str.split(','), function(elm, i){
+                    return parseFloat(elm);
+                });
+                self.custom_rotamer = [0.00].concat( rot );
+                $("#" + self.rotamers_id + '>option[value="custom"]').remove();
+                $("#" + self.rotamers_id).append("<option value='custom'>custom (" + self.custom_rotamer.slice(1).join('\u00B0, ') + "\u00B0)</option>").val('custom');
                 self.set_dihedral( self.custom_rotamer );
             }
         });
-	
-	// init show vdw
+    
+        // init show vdw
         this.show_vdw = $("#" + this.show_vdw_id).is(':checked');
         $('#' + this.show_vdw_id).click(function(){
-	    self.show_vdw = $("#" + self.show_vdw_id).is(':checked');
-	    var applet = self.applet_selector.get_value();
-	    applet.script_wait('' +
-		'function show_clashes( an1, an2 ){' + '\n' +
-		    'print "foobar";' + '\n' +
-		    'var a1 = {atomno=an1};' + '\n' +
-		    'var a2 = {atomno=an2};' + '\n' +
-		    'var p1 = a1.XYZ;' + '\n' +
-		    'var p2 = a2.XYZ;' + '\n' +
-		    'var r1 = a1.vanderwaals;' + '\n' +
-		    'var r2 = a2.vanderwaals;' + '\n' +
-		    'var r = r1+r2;' + '\n' +
-		    'var d = p1.distance(p2);' + '\n' +
-		    'var x = r-d;' + '\n' +
-		    'if( x>0 ){' + '\n' +
-			(self.show_vdw ? ('select @a1 or @a2;' + '\n' +
-			    'cpk 100%;' + '\n' +
-			    'color translucent;' + '\n') : '') +
-			'var e = 3;' + '\n' +
-			'var re = r1**e + r2**e' + '\n' +
-			'var r1p = r1**e/re;' + '\n' +
-			'var r2p = r2**e/re;' + '\n' +
-			'var v12 = p2-p1;' + '\n' +
-			'var v21 = p1-p2;' + '\n' +
-			'var h = x*r2p;' + '\n' +
-			'var m = p1+((v12/v12)*(r1-h));' + '\n' +
-			'var m1 = m+v12/v12/20;' + '\n' +
-			'var m2 = m+v21/v21/20;' + '\n' +
-			'var dia = 2*sqrt( h*(2*r1-h) );' + '\n' +
-			'var isoname = "' + self.id + '_clash_" + an1 + "_" + an2;' + '\n' +
-			'draw ID @isoname CYLINDER @m1 @m2 DIAMETER @dia;' + '\n' +
-		    '}' + '\n' +
-		'};' +
-		'',
-		true
-	    );
-	    self.set_dihedral();
+            self.show_vdw = $("#" + self.show_vdw_id).is(':checked');
+            var applet = self.applet_selector.get_value();
+            applet.script_wait('' +
+                'function show_clashes( an1, an2 ){' + '\n' +
+                    'print "foobar";' + '\n' +
+                    'var a1 = {atomno=an1};' + '\n' +
+                    'var a2 = {atomno=an2};' + '\n' +
+                    'var p1 = a1.XYZ;' + '\n' +
+                    'var p2 = a2.XYZ;' + '\n' +
+                    'var r1 = a1.vanderwaals;' + '\n' +
+                    'var r2 = a2.vanderwaals;' + '\n' +
+                    'var r = r1+r2;' + '\n' +
+                    'var d = p1.distance(p2);' + '\n' +
+                    'var x = r-d;' + '\n' +
+                    'if( x>0 ){' + '\n' +
+                        (self.show_vdw ? ('select @a1 or @a2;' + '\n' +
+                        'cpk 100%;' + '\n' +
+                        'color translucent;' + '\n') : '') +
+                        'var e = 3;' + '\n' +
+                        'var re = r1**e + r2**e' + '\n' +
+                        'var r1p = r1**e/re;' + '\n' +
+                        'var r2p = r2**e/re;' + '\n' +
+                        'var v12 = p2-p1;' + '\n' +
+                        'var v21 = p1-p2;' + '\n' +
+                        'var h = x*r2p;' + '\n' +
+                        'var m = p1+((v12/v12)*(r1-h));' + '\n' +
+                        'var m1 = m+v12/v12/20;' + '\n' +
+                        'var m2 = m+v21/v21/20;' + '\n' +
+                        'var dia = 2*sqrt( h*(2*r1-h) );' + '\n' +
+                        'var isoname = "' + self.id + '_clash_" + an1 + "_" + an2;' + '\n' +
+                        'draw ID @isoname CYLINDER @m1 @m2 DIAMETER @dia;' + '\n' +
+                    '}' + '\n' +
+                '};' +
+            '', true );
+            self.set_dihedral();
         });
-	
-	$('#' + this.minimize_id).button().click(function(){
+    
+        $('#' + this.minimize_id).button().click(function(){
             var applet = self.applet_selector.get_value();
             if(applet){
                 self.minimize();
             }
         });
-	
-	$('#' + this.dihedral_slider_id).slider({
+    
+        $('#' + this.dihedral_slider_id).slider({
             value: 0, min: -180, max: 180
-	}).bind( 'slidestop slide', function(event, ui){
-	    self.move_dihedral();
-	});
-	
-	$('#' + this.clash_expression_id).change(function(){
-            self.clash_expression = $('#' + self.clash_expression_id).val();
-	    console.log( self.clash_expression );
+        }).bind( 'slidestop slide', function(event, ui){
+            self.move_dihedral();
         });
-	
-	   Provi.Widget.Widget.prototype.init.call(this);
+        
+        $('#' + this.clash_expression_id).change(function(){
+            self.clash_expression = $('#' + self.clash_expression_id).val();
+            console.log( self.clash_expression );
+        });
+    
+        Provi.Widget.Widget.prototype.init.call(this);
     },
     get_rotamers: function(){
         var self = this;
-	var applet = this.applet_selector.get_value();
+        var applet = this.applet_selector.get_value();
         
         var s = '' +
-	    'select ' + this.residue_expression + '; center selected; wireframe 0.2;' + '\n' +
-	    'connect (within(GROUP,selected) and not *.C and not *.N) (not within(GROUP,selected)) delete;' + '\n' +
-	    'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
+            'select ' + this.residue_expression + '; center selected; wireframe 0.2;' + '\n' +
+            'connect (within(GROUP,selected) and not *.C and not *.N) (not within(GROUP,selected)) delete;' + '\n' +
+            'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
             'function set_dihedral( a, b, c, d, angle ){' + '\n' +
                 'var current_angle = angle( a, b, c, d );' + '\n' +
                 'var angle_change = @angle - @current_angle;' + '\n' +
@@ -264,41 +263,41 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
                 'rotateSelected @b @c @angle_change;' + '\n' +
                 'print angle( @a, @b, @c, @d );' + '\n' +
             '};' +
-	    'function show_clashes( an1, an2 ){' + '\n' +
-		'print "foobar";' + '\n' +
-		'var a1 = {atomno=an1};' + '\n' +
-		'var a2 = {atomno=an2};' + '\n' +
-		'var p1 = a1.XYZ;' + '\n' +
-		'var p2 = a2.XYZ;' + '\n' +
-		'var r1 = a1.vanderwaals;' + '\n' +
-		'var r2 = a2.vanderwaals;' + '\n' +
-		'var r = r1+r2;' + '\n' +
-		'var d = p1.distance(p2);' + '\n' +
-		'var x = r-d;' + '\n' +
-		'if( x>0 ){' + '\n' +
-		    (this.show_vdw ? ('select @a1 or @a2;' + '\n' +
-			'cpk 100%;' + '\n' +
-			'color translucent;' + '\n') : '') +
-		    'var e = 3;' + '\n' +
-		    'var re = r1**e + r2**e' + '\n' +
-		    'var r1p = r1**e/re;' + '\n' +
-		    'var r2p = r2**e/re;' + '\n' +
-		    'var v12 = p2-p1;' + '\n' +
-		    'var v21 = p1-p2;' + '\n' +
-		    'var h = x*r2p;' + '\n' +
-		    'var m = p1+((v12/v12)*(r1-h));' + '\n' +
-		    'var m1 = m+v12/v12/20;' + '\n' +
-		    'var m2 = m+v21/v21/20;' + '\n' +
-		    'var dia = 2*sqrt( h*(2*r1-h) );' + '\n' +
-		    'var isoname = "' + this.id + '_clash_" + an1 + "_" + an2;' + '\n' +
-		    'draw ID @isoname CYLINDER @m1 @m2 DIAMETER @dia;' + '\n' +
-		'}' + '\n' +
-	    '};' +
-	    '';
-	console.log(s);
-	applet.script_wait( s, true );
+            'function show_clashes( an1, an2 ){' + '\n' +
+                'print "foobar";' + '\n' +
+                'var a1 = {atomno=an1};' + '\n' +
+                'var a2 = {atomno=an2};' + '\n' +
+                'var p1 = a1.XYZ;' + '\n' +
+                'var p2 = a2.XYZ;' + '\n' +
+                'var r1 = a1.vanderwaals;' + '\n' +
+                'var r2 = a2.vanderwaals;' + '\n' +
+                'var r = r1+r2;' + '\n' +
+                'var d = p1.distance(p2);' + '\n' +
+                'var x = r-d;' + '\n' +
+                'if( x>0 ){' + '\n' +
+                    (this.show_vdw ? ('select @a1 or @a2;' + '\n' +
+                        'cpk 100%;' + '\n' +
+                        'color translucent;' + '\n') : '') +
+                    'var e = 3;' + '\n' +
+                    'var re = r1**e + r2**e' + '\n' +
+                    'var r1p = r1**e/re;' + '\n' +
+                    'var r2p = r2**e/re;' + '\n' +
+                    'var v12 = p2-p1;' + '\n' +
+                    'var v21 = p1-p2;' + '\n' +
+                    'var h = x*r2p;' + '\n' +
+                    'var m = p1+((v12/v12)*(r1-h));' + '\n' +
+                    'var m1 = m+v12/v12/20;' + '\n' +
+                    'var m2 = m+v21/v21/20;' + '\n' +
+                    'var dia = 2*sqrt( h*(2*r1-h) );' + '\n' +
+                    'var isoname = "' + this.id + '_clash_" + an1 + "_" + an2;' + '\n' +
+                    'draw ID @isoname CYLINDER @m1 @m2 DIAMETER @dia;' + '\n' +
+                '}' + '\n' +
+            '};' +
+        '';
+        console.log(s);
+        applet.script_wait( s, true );
         
-	this.res_name = eval( applet.evaluate('"[" + {' + this.residue_expression + '}.label("[\'%[group]\']").join(",") + "]"') )[0][0];
+        this.res_name = eval( applet.evaluate('"[" + {' + this.residue_expression + '}.label("[\'%[group]\']").join(",") + "]"') )[0][0];
         
         this.original_rotamer = [0];
         $.each(Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ], function(i){
@@ -317,42 +316,42 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
         
         $("#" + self.rotamers_id).empty();
         $("#" + self.rotamers_id)
-	    .append("<option value='original'>" +
-			"original (" + self.original_rotamer.slice(1).join('\u00B0, ') + "\u00B0)" +
-		    "</option>");
+        .append("<option value='original'>" +
+            "original (" + self.original_rotamer.slice(1).join('\u00B0, ') + "\u00B0)" +
+            "</option>");
         $.each(Provi.Bio.Rotamers.db[ this.res_name ], function(i){
             $("#" + self.rotamers_id).append(
-		"<option value='rot" + i + "'>" +
-		    this[0] + ( Provi.Utils.isNumber(this[0]) ? "%" : "" ) +
-		    " (" + this.slice(1).join('\u00B0, ') + "\u00B0)" +
-		"</option>"
-	    );
+        "<option value='rot" + i + "'>" +
+            this[0] + ( Provi.Utils.isNumber(this[0]) ? "%" : "" ) +
+            " (" + this.slice(1).join('\u00B0, ') + "\u00B0)" +
+        "</option>"
+        );
         });
-	
-	$("#" + self.dihedrals_id).empty();
+    
+        $("#" + self.dihedrals_id).empty();
         $.each(Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ], function(i){
             $("#" + self.dihedrals_id).append(
-		"<option value='dihedral_" + i + "'>" +
-		    this +
-		"</option>"
-	    );
+                "<option value='dihedral_" + i + "'>" +
+                this +
+                "</option>"
+            );
         });
     },
     set_dihedral: function( rot ){
         var self = this;
-	var applet = this.applet_selector.get_value();
+        var applet = this.applet_selector.get_value();
         
-	if( !rot ){
-	    var rot_id = $("#" + this.rotamers_id).val();
-	    if( rot_id == 'original' ){
-		rot = self.original_rotamer;
-	    }else if( rot_id == 'custom' ){
-		rot = self.custom_rotamer;
-	    }else{
-		rot_id = parseInt( rot_id.substring(3) );
-		rot = Provi.Bio.Rotamers.db[ this.res_name ][ rot_id ];
-	    }
-	}
+        if( !rot ){
+            var rot_id = $("#" + this.rotamers_id).val();
+            if( rot_id == 'original' ){
+                rot = self.original_rotamer;
+            }else if( rot_id == 'custom' ){
+                rot = self.custom_rotamer;
+            }else{
+                rot_id = parseInt( rot_id.substring(3) );
+                rot = Provi.Bio.Rotamers.db[ this.res_name ][ rot_id ];
+            }
+        }
         //console.log( rot );
         var s = ''
         $.each(Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ], function(i){
@@ -364,53 +363,53 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
             console.log( atoms_expr.join(', ') );
             s += 'set_dihedral( ' + atoms_expr.join(', ') + ', ' + rot[i+1] + ' );\n';
         });
-	s += 'draw "' + self.id + '_clash*" DELETE;' + '\n' +
-	    'set defaultVDW babel;' + '\n' +
-	    'var ma = measure( {' + this.residue_expression + ' and sidechain}, {not ' + this.residue_expression + '}, 0, 4).split("\\n");' + '\n' +
-	    'print ma;' + '\n' +
-	    'select *; cpk off;' + '\n' +
-	    'select ' + this.residue_expression + '; color wireframe opaque;' + '\n' +
-	    'for (var a IN ma) {' + '\n' +
-	    '    var pair = a.split(" ").find("(#[0-9]+)", "").replace("#", "");' + '\n' +
-	    '    print pair;' + '\n' +
-	    //'    show_clashes( pair[0], pair[1] );' + '\n' +
-	    '}' + '\n' +
-	    'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
-	    '';
-	console.log(s);
+        s += 'draw "' + self.id + '_clash*" DELETE;' + '\n' +
+            'set defaultVDW babel;' + '\n' +
+            'var ma = measure( {' + this.residue_expression + ' and sidechain}, {not ' + this.residue_expression + '}, 0, 4).split("\\n");' + '\n' +
+            'print ma;' + '\n' +
+            'select *; cpk off;' + '\n' +
+            'select ' + this.residue_expression + '; color wireframe opaque;' + '\n' +
+            'for (var a IN ma) {' + '\n' +
+                'var pair = a.split(" ").find("(#[0-9]+)", "").replace("#", "");' + '\n' +
+                'print pair;' + '\n' +
+                //'show_clashes( pair[0], pair[1] );' + '\n' +
+            '}' + '\n' +
+            'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
+        '';
+        console.log(s);
         applet.script_wait(s, true);
     },
     minimize: function(){
-	var applet = this.applet_selector.get_value();
-	var dihedral_no = $("#" + this.dihedrals_id).val().split('_')[1];
-	var dihedral_atoms = Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ][ dihedral_no ];
-	var s = '';
-	s += '' + '\n' +
-	    'var b = {' + this.residue_expression + ' and atomName="' + dihedral_atoms[1] + '"}' + '\n' +
-	    'var c = {' + this.residue_expression + ' and atomName="' + dihedral_atoms[2] + '"}' + '\n' +
-	    'select (within(BRANCH, @b, @c) and within(GROUP, @b) and not backbone) or (within(GROUP, @b) and hydrogen); '  + '\n' +
-	    'minimize select selected steps 100;' + '\n' +
-	    'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
-	    '';
-	applet.script_wait(s, true);
+        var applet = this.applet_selector.get_value();
+        var dihedral_no = $("#" + this.dihedrals_id).val().split('_')[1];
+        var dihedral_atoms = Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ][ dihedral_no ];
+        var s = '';
+        s += '' + '\n' +
+            'var b = {' + this.residue_expression + ' and atomName="' + dihedral_atoms[1] + '"}' + '\n' +
+            'var c = {' + this.residue_expression + ' and atomName="' + dihedral_atoms[2] + '"}' + '\n' +
+            'select (within(BRANCH, @b, @c) and within(GROUP, @b) and not backbone) or (within(GROUP, @b) and hydrogen); '  + '\n' +
+            'minimize select selected steps 100;' + '\n' +
+            'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
+            '';
+        applet.script_wait(s, true);
     },
     move_dihedral: function(){
-	var self = this;
-	var applet = this.applet_selector.get_value();
-	var dihedral_no = $("#" + this.dihedrals_id).val().split('_')[1];
-	var dihedral_atoms = Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ][ dihedral_no ];
-	var dihedral_angle = $("#" + this.dihedral_slider_id).slider("value");
-	
-	var s = '';
-	var atoms_expr = [];
-	$.each(dihedral_atoms, function(){
-	    atoms_expr.push('{' + self.residue_expression + ' and atomName="' + this + '"}');
-	});
-	console.log( atoms_expr.join(', ') );
-	s += 'set_dihedral( ' + atoms_expr.join(', ') + ', ' + dihedral_angle + ' );' + '\n' +
-	    'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
-	    '';
-	applet.script_wait(s, true);
+        var self = this;
+        var applet = this.applet_selector.get_value();
+        var dihedral_no = $("#" + this.dihedrals_id).val().split('_')[1];
+        var dihedral_atoms = Provi.Bio.Rotamers.sidechain_atoms[ this.res_name ][ dihedral_no ];
+        var dihedral_angle = $("#" + this.dihedral_slider_id).slider("value");
+        
+        var s = '';
+        var atoms_expr = [];
+        $.each(dihedral_atoms, function(){
+            atoms_expr.push('{' + self.residue_expression + ' and atomName="' + this + '"}');
+        });
+        console.log( atoms_expr.join(', ') );
+        s += 'set_dihedral( ' + atoms_expr.join(', ') + ', ' + dihedral_angle + ' );' + '\n' +
+            'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
+            '';
+        applet.script_wait(s, true);
     }
 });
 
