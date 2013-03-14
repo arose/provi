@@ -409,7 +409,11 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             enableAsyncPostRender: true,
             asyncPostRenderDelay: 0,
             showHeaderRow: true,
-            headerRowHeight: 30
+            headerRowHeight: 25,
+            //rowHeight: 140,
+            topPanelHeight: 25,
+            autoHeight: false,
+            asyncPostRenderDelay: 0
         };
         
         // data = [ { resno: "1", chain: "A", atomno: 1, group:"Lys", selected:1.0 } ];
@@ -423,6 +427,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         console.log('invalidate');
         this.grid.invalidate();
         this.header();
+        this.grid.resizeCanvas();
     },
     header: function(){
         var header = this.grid.getHeaderRowColumn('id');
@@ -456,6 +461,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             this.grid.render();
 
             this.header();
+            this.grid.resizeCanvas();
         }
     }
 });
