@@ -668,14 +668,18 @@ Provi.Data.Io.SaveDataWidget = function(params){
     this._build_element_ids([
         'save_structure', 'save_structure_selected', 'save_image', 
         'save_state', 'save_isosurface', 'save_ndx', 'save_jmol',
-        'ndx_group', 'applet_selector_widget', 'form', 'iframe'
+        'ndx_group', 'applet_selector_widget', 'form', 'iframe', 'process_structure'
     ]);
     var content = '<div  class="control_group">' +
         '<div id="' + this.applet_selector_widget_id + '"></div>' +
         '<div class="control_row">' +
             '<button id="' + this.save_structure_id + '">save structure</button>' +
+            '&nbsp;&nbsp;' +
             '<input id="' + this.save_structure_selected_id + '" type="checkbox"/>' +
-            '<label for="' + this.save_structure_selected_id + '">save only selected</label>' +
+            '<label for="' + this.save_structure_selected_id + '">selected</label>' +
+            '&nbsp;&nbsp;' +
+            '<input id="' + this.process_structure_id + '" type="checkbox"/>' +
+            '<label for="' + this.process_structure_id + '">process</label>' +
         '</div>' +
         '<div class="control_row">' +
             '<button id="' + this.save_image_id + '">save image</button>' +
@@ -780,7 +784,31 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
         var data = applet.evaluate('write("pdb").split("\n")');
         //var data = this.applet_selector.get_value().evaluate('write("ramachandran","r").split("\n")');
         //var data = this.applet_selector.get_value().get_property_as_string("fileContents", '');
-        //console.log(data);
+        //console.log("SAVE STRUCTURE", data, data.split("\n"));
+
+        if( $("#" + this.process_structure_id).is(':checked') ){
+            data = _.filter( data.split("\n"), function(line){
+                return (line.slice(0,4)=="ATOM" || line.slice(0,6)=="HETATM") ? true : false;
+            }).sort( function(a, b){
+                if( a[21]==b[21] ){
+                    if( parseInt(a.slice(22,26))==parseInt(b.slice(22,26)) ){
+                        if( parseInt(a.slice(6,11))==parseInt(b.slice(6,11)) ){
+                            return 0; // todo, occurs only with multiple models
+                        }else{
+                            return parseInt(a.slice(6,11))<parseInt(b.slice(6,11)) ? -1 : 1;
+                        }
+                    }else{
+                        return parseInt(a.slice(22,26))<parseInt(b.slice(22,26)) ? -1 : 1;
+                    }
+                }else{
+                    return a[21]<b[21] ? -1 : 1;
+                }
+            });
+            data = _.map( data, function(line, i){
+                return line.slice(0,6) + ("     "+(i+1)).slice(-5) + line.slice(11);
+            }).join("\n");
+        }
+
         this.save_data( data, 'structure.pdb' );
         applet.script_wait('restore selection tmp' + this.id + ';');
     },
