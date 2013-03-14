@@ -94,7 +94,7 @@ Provi.Jmol.Controls.JmolConsoleWidget = function(params){
     
     var content = '<div class="control_group">' +
     '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
-    '<div class="control_row">' +
+        '<div class="control_row">' +
             '<input id="' + this.maintain_selection_id + '" type="checkbox" style="float:left; margin-top: 0.0em;"/>' +
             '<label for="' + this.maintain_selection_id + '">maintain current selection</label>' +
         '</div>' +
