@@ -534,7 +534,9 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         script = this._prepare_script( script, maintain_selection, message );
         //console.log(script);
         try{
-            self.applet.scriptWait( script );
+            self.applet.script( script );
+            // self.applet.scriptWait( script );
+
             // setTimeout( function(){
             //     self.applet.scriptWait( script );
             // }, 0);
@@ -629,6 +631,37 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             console.warn('script_wait_output defered');
             var self = this;
             $(this).bind('load', function(){ self.script_wait_output(script, maintain_selection, message) });
+            return -1;
+        }
+    },
+    script_async: function(script, maintain_selection, message, callback){
+        var id = Provi.Utils.uuid();
+        var self = this;
+        script += '; print "provi async script: ' + id + '";';
+        var handler = function(e, msg1, msg2, msg3){
+            //if( msg1.slice(0, self.isosurface_name.length) == self.isosurface_name ){
+            if( msg1.search(/provi async script:/) != -1 ){
+                //console.log(msg1, msg2, msg3);
+                var m = msg1.match(
+                    /provi async script: ([\w-]+)/
+                );
+                if( id==m[1] ){
+                    callback();
+                    $(self).unbind('message', handler);
+                }
+            }
+        }
+        $(this).bind('message', handler);
+
+        if(this.loaded){
+            return this._script(script, maintain_selection, message);
+        }else{
+            //console.log('script DEFERED');
+            var self = this;
+            $(this).bind('load', function(){
+                  //console.log('exec defered script: "' + script + '"');
+                  self.script(script, maintain_selection, message);
+            });
             return -1;
         }
     },
@@ -800,7 +833,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
 
             if( msg1.search(/isosurface count/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
-                var iso_id = msg1.match(/^([\w]+) created .* isosurface count/)[1];
+                var iso_id = msg1.match(/^([\w-\.]+) created .* isosurface count/)[1];
                 //console.log(iso_id);
 
                 new Provi.Bio.Isosurface.SurfaceWidget({
