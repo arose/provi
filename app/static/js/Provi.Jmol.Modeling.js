@@ -276,8 +276,14 @@ Provi.Jmol.Modeling.JmolModelingWidget.prototype = Utils.extend(Widget, /** @len
         };
         this.dihedral_db = {
             alpha: [-57, -47, 180],
-            beta: [-80, 150, 180],
-            alphaL: [85, 10, 180]
+            beta: [-140, 150, 180],
+            Lalpha: [60, 60, 180],
+            tight_turnII: [50, -125, 180],
+            gamma_turn: [75, -60, 180],
+            gamma_turn_m: [-75, 60, 180],
+            pre_Pro: [-130, 80, 180],
+            poly_Pro: [-60, 160, 180],
+            three_ten: [-49, -26, 180]
         }
 
         _.each(this.dihedral_atoms, function(atoms_expr, name){
