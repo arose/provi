@@ -393,7 +393,8 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.
             var applet = self.applet_selector.get_value();
             if( applet ){
                 console.log('IsosurfaceConstructionWidget');
-                new Provi.Bio.Isosurface.SurfaceWidget({
+                // new Provi.Bio.Isosurface.SurfaceWidget({
+                Provi.Bio.Isosurface.init_isosurface({
                     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
                     dataset: self,
                     applet: applet,
