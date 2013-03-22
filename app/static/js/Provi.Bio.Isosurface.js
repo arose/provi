@@ -20,6 +20,22 @@ var Utils = Provi.Utils;
 /** @exports Widget as Provi.Widget.Widget */
 var Widget = Provi.Widget.Widget;
 
+
+Provi.Bio.Isosurface.init_isosurface = function(params){
+    if(!params.select) params.select = '*';
+    if(!params.type) params.type = 'sasurface';
+    params.applet.script(
+        'isosurface id "iso_' + Provi.Utils.uuid() + '" ' +
+        (params.resolution ? 'resolution ' + params.resolution + ' ' : '') +
+        (params.select ? 'select {' + params.select + '} ' : '') +
+        (params.ignore ? 'ignore {' + params.ignore + '} ' : '') +
+        (params.slab ? 'SLAB ' + params.slab + ' ' : '') +
+        (params.type ? params.type + ' ' : '') +
+        (params.map ? 'MAP ' + params.map + ' ' : '') +
+    ';', true);
+}
+
+
 /**
  * A widget
  * @constructor
@@ -281,9 +297,9 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
                 _.each(cpk, function(color, element){
                     s += 'color ISOSURFACE {' + element + ' ' + sele + '} ' + color + ';';
                 });
-                self.applet.script_wait(s, true);
+                self.applet.script(s, true);
             }else if(self.map){
-                self.applet.script_wait(
+                self.applet.script(
                     'select *; ' +
                     'isosurface ID "' + self.isosurface_name + '" MAP ' + self.map + ';' +
                     '', true
@@ -553,21 +569,36 @@ Provi.Bio.Isosurface.SurfaceWidget.prototype = Utils.extend(Provi.Bio.Isosurface
         var self = this;
         $(this.applet).bind('message', function(e, msg1, msg2, msg3){
             //if( msg1.slice(0, self.isosurface_name.length) == self.isosurface_name ){
-            if( msg1.startsWith( self.isosurface_name ) ){
-                console.log(msg1, msg2, msg3);
-                var area = eval( self.applet.script_wait_output('isosurface area;') );
-                var volume = eval( self.applet.script_wait_output('isosurface volume;') );
-                area = _.isArray(area) ? area[0] : area;
-                volume = _.isArray(volume) ? volume[0] : volume;
-                console.log(area, volume);
-                self.elm('content').prepend('' +
-                    '<div class="control_row">' +
-                        '<div>' + area + ' &#8491;<sup>2</sup></div>' +
-                        '<div>' + volume + ' &#8491;<sup>3</sup></div>' +
-                    '</div>' +
-                '');
+            if( msg1.search(/provi isosurface:/) != -1 ){
+                //console.log(msg1, msg2, msg3);
+                var m = msg1.match(
+                    /provi isosurface: ([\w-\.]+) \| isosurfaceArea = (.*); isosurfaceVolume = (.*);/
+                );
+                console.log(m, msg1, m[1], m[2], m[3]);
+
+                if( m[1]==self.isosurface_name ){
+                    var area = eval( m[2] );
+                    var volume = eval( m[3] );
+                    area = _.isArray(area) ? area[0] : area;
+                    volume = _.isArray(volume) ? volume[0] : volume;
+                    console.log(area, volume);
+                    self.elm('content').prepend('' +
+                        '<div class="control_row">' +
+                            '<div>' + area + ' &#8491;<sup>2</sup></div>' +
+                            '<div>' + volume + ' &#8491;<sup>3</sup></div>' +
+                        '</div>' +
+                    '');
+                }
             }
         });
+        this.applet.script(
+            'isosurface id "' + this.isosurface_name + '";' +
+            'var x = script("isosurface area");' +
+            'var y = script("isosurface volume");' +
+            'print "provi isosurface: ' + this.isosurface_name + 
+                ' | " + x.trim() + "; " + y.trim() + ";";' +
+            ''
+        )
         Provi.Bio.Isosurface.IsosurfaceWidget.prototype._init.call(this);
     },
     init_isosurface: function(){
@@ -710,67 +741,68 @@ Provi.Bio.Isosurface.SurfaceParamsWidget = function(params){
     Widget.call( this, params );
     this._build_element_ids([ 'select', 'ignore', 'negate_ignore', 'resolution', 'type', 'map', 'slab', 'opposite_slab', 'select_selector', 'ignore_selector', 'negate_select_as_ignore' ]);
     var content = '<div>' +
-    //'<div class="control_row">' +
-    //    '<label for="' + this.select_id + '">Select:</label>' +
-    //    '<input id="' + this.select_id + '" type="text" size="10" value="protein"/>' +
-    //'</div>' +
-    //'<div class="control_row">' +
-    //    '<label for="' + this.ignore_id + '">Ignore:</label>' +
-    //    '<input id="' + this.ignore_id + '" type="text" size="10" value="protein"/>' +
-    //'</div>' +
-    '<div class="control_row">' +
-        '<label for="' + this.select_selector_id + '">Select </label>' +
-        '<span id="' + this.select_selector_id + '"></span>' +
-    '</div>' +
-    '<div class="control_row">' +
-        '<input id="' + this.negate_select_as_ignore_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.negate_select_as_ignore_id + '" style="display:block;">negated select as ignore</label>' +
-    '</div>' +
-    '<div class="control_row">' +
-        '<label for="' + this.ignore_selector_id + '">Ignore </label>' +
-        '<span id="' + this.ignore_selector_id + '"></span>' +
-    '</div>' +
-    '<div class="control_row">' +
-        '<input id="' + this.negate_ignore_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.negate_ignore_id + '" style="display:block;">negate ignore</label>' +
-    '</div>' +
-    '<div class="control_row">' +
-        '<label for="' + this.resolution_id + '">Resolution:</label>' +
-        '<input id="' + this.resolution_id + '" type="text" size="4" value="1.0"/>' +
-    '</div>' +
-    '<div class="control_row">' +
+        //'<div class="control_row">' +
+        //    '<label for="' + this.select_id + '">Select:</label>' +
+        //    '<input id="' + this.select_id + '" type="text" size="10" value="protein"/>' +
+        //'</div>' +
+        //'<div class="control_row">' +
+        //    '<label for="' + this.ignore_id + '">Ignore:</label>' +
+        //    '<input id="' + this.ignore_id + '" type="text" size="10" value="protein"/>' +
+        //'</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.select_selector_id + '">Select </label>' +
+            '<span id="' + this.select_selector_id + '"></span>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="' + this.negate_select_as_ignore_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+                '<label for="' + this.negate_select_as_ignore_id + '" style="display:block;">negated select as ignore</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.ignore_selector_id + '">Ignore </label>' +
+            '<span id="' + this.ignore_selector_id + '"></span>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<input id="' + this.negate_ignore_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+                '<label for="' + this.negate_ignore_id + '" style="display:block;">negate ignore</label>' +
+        '</div>' +
+        '<div class="control_row">' +
+            '<label for="' + this.resolution_id + '">Resolution:</label>' +
+            '<input id="' + this.resolution_id + '" type="text" size="4" value="1.0"/>' +
+        '</div>' +
+        '<div class="control_row">' +
             '<label for="' + this.type_id + '">Type:</label>' +
             '<select id="' + this.type_id + '" class="ui-state-default">' +
-        '<option value=""></option>' +
+                '<option value=""></option>' +
                 '<option value="SASURFACE">SASURFACE</option>' +
                 '<option value="SOLVENT 1.4">SOLVENT 1.4</option>' +
-        '<option value="SOLVENT 1.0">SOLVENT 1.0</option>' +
-        '<option value="CAVITY 1.0 8">CAVITY 1.0 8</option>' +
-        '<option value="INTERIOR CAVITY 1.0 8">INTERIOR CAVITY 1.0 8</option>' +
-        '<option value="POCKET CAVITY 1.0 8">POCKET CAVITY 1.0 8</option>' +
+                '<option value="SOLVENT 1.0">SOLVENT 1.0</option>' +
+                '<option value="SOLVENT 0.8">SOLVENT 0.8</option>' +
+                '<option value="CAVITY 1.0 8">CAVITY 1.0 8</option>' +
+                '<option value="INTERIOR CAVITY 1.0 8">INTERIOR CAVITY 1.0 8</option>' +
+                '<option value="POCKET CAVITY 1.0 8">POCKET CAVITY 1.0 8</option>' +
             '</select>' +
         '</div>' +
-    '<div class="control_row">' +
+        '<div class="control_row">' +
             '<label for="' + this.map_id + '">Map:</label>' +
             '<select id="' + this.map_id + '" class="ui-state-default">' +
-        '<option value=""></option>' +
+                '<option value=""></option>' +
                 '<option value="PROPERTY temperature">PROPERTY temperature</option>' +
-        '<option value="PROPERTY partialCharge">PROPERTY partialCharge</option>' +
-        '<option value="MEP">[1/d] MEP</option>' +
-        '<option value="MEP 1">[e^(-d/2)] MLP?</option>' +
-        '<option value="MEP 2">[1/(1+d)] MLP</option>' +
-        '<option value="MEP 3">[e^(-d)] Hydrophobicity potential</option>' +
+                '<option value="PROPERTY partialCharge">PROPERTY partialCharge</option>' +
+                '<option value="MEP">[1/d] MEP</option>' +
+                '<option value="MEP 1">[e^(-d/2)] MLP?</option>' +
+                '<option value="MEP 2">[1/(1+d)] MLP</option>' +
+                '<option value="MEP 3">[e^(-d)] Hydrophobicity potential</option>' +
             '</select>' +
         '</div>' +
-    '<div class="control_row">' +
+        '<div class="control_row">' +
             '<label for="' + this.slab_id + '">Slab:</label>' +
             '<select id="' + this.slab_id + '" class="ui-state-default">' +
-        '<option value=""></option>' +
+                '<option value=""></option>' +
             '</select>' +
+        '</div>' +
         '<div class="control_row">' +
-        '<input id="' + this.opposite_slab_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
+            '<input id="' + this.opposite_slab_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
             '<label for="' + this.opposite_slab_id + '" style="display:block;">opposite facing plane</label>' +
-    '</div>' +
         '</div>' +
     '</div>';
     $(this.dom).append( content );
