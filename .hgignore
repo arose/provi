@@ -22,7 +22,7 @@ provi_wsgi.ini
 
 
 app/static/applet/jmol/versions
-
+app/static/applet/jmol/jmol-*
 
 paster.log
 paster.pid
