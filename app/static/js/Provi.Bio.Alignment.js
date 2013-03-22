@@ -100,8 +100,8 @@ _.each( Provi.Bio.Alignment.substitution_matrices, function(mat,name){
     });
     Provi.Bio.Alignment.substitution_matrices[name] = mat_dict;
 });
+// console.log( Provi.Bio.Alignment.substitution_matrices );
 
-console.log( Provi.Bio.Alignment.substitution_matrices );
 
 Provi.Bio.Alignment.NeedlemanWunsch = function(params){
     params = _.defaults(
@@ -175,7 +175,7 @@ Provi.Bio.Alignment.NeedlemanWunsch.prototype = /** @lends Provi.Bio.Alignment.N
                 return -4;
             }
         }else{
-            console.log('ERROR NW no value in matrix', c1, c2);
+            console.warn('WARN NW no value in matrix', c1, c2);
             return c1==c2 ? 5 : -3;
         }
     },
@@ -233,7 +233,7 @@ Provi.Bio.Alignment.NeedlemanWunsch.prototype = /** @lends Provi.Bio.Alignment.N
                 }else if(this.S[i][j]==this.H[i][j]){
                     mat = "H";
                 }else{
-                    console.log('NW ERROR S');
+                    console.error('NW ERROR S');
                     --i;
                     --j;
                 }
@@ -249,7 +249,7 @@ Provi.Bio.Alignment.NeedlemanWunsch.prototype = /** @lends Provi.Bio.Alignment.N
                     --i;
                     mat = "S";
                 }else{
-                    console.log('NW ERROR V');
+                    console.error('NW ERROR V');
                     --i;
                 }
             }else if(mat=="H"){
@@ -264,11 +264,11 @@ Provi.Bio.Alignment.NeedlemanWunsch.prototype = /** @lends Provi.Bio.Alignment.N
                     --j;
                     mat = "S";
                 }else{
-                    console.log('NW ERROR H');
+                    console.error('NW ERROR H');
                     --j;
                 }
             }else{
-                console.log('NW ERROR no matrix');
+                console.error('NW ERROR no matrix');
             }
         }
         while(i > 0){
@@ -287,8 +287,8 @@ Provi.Bio.Alignment.NeedlemanWunsch.prototype = /** @lends Provi.Bio.Alignment.N
 
 })();
 
-nw = new Provi.Bio.Alignment.NeedlemanWunsch({});
-nw.calc();
-nw.trace();
+// nw = new Provi.Bio.Alignment.NeedlemanWunsch({});
+// nw.calc();
+// nw.trace();
 
 

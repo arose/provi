@@ -841,7 +841,7 @@ Provi.Bio.Isosurface.SurfaceParamsWidget.prototype = Utils.extend(Widget, /** @l
         elm.empty();
         elm.append("<option value=''></option>");
         $.each( Provi.Data.DatasetManager.get_list(), function(i, dataset){
-            if( dataset.type == 'mplane' && dataset.data && Utils.in_array(dataset.applet_list, self.applet) ){
+            if( dataset.type == 'mplane' && dataset.data && _.contains(dataset.applet_list, self.applet) ){
                 elm.append("<option value='" + this.id + ",0'>" + this.name + ' PLANE 1 (' + this.id + ')' + "</option>");
                 elm.append("<option value='" + this.id + ",1'>" + this.name + ' PLANE 2 (' + this.id + ')' + "</option>");
                 self.mplane_list = dataset.data.tmh_list;

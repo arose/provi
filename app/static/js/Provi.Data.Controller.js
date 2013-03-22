@@ -54,7 +54,7 @@ Provi.Data.Controller.JmolMixin = {
         var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
         var url = '../../data/get/'
         applet._delete();
-        applet.script('load ' + url + get_params + ';', true);
+        applet.script('load ' + url + get_params + ';', { maintain_selection: true, try_catch: true });
     }
 }
 
@@ -75,7 +75,7 @@ Provi.Data.Controller.PngMixin = {
         var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
         var url = '../../data/get/'
         applet._delete();
-        applet.script('load ' + url + get_params + ';', true);
+        applet.script('load ' + url + get_params + ';', { maintain_selection: true, try_catch: true });
     }
 }
 
@@ -203,7 +203,6 @@ Provi.Data.Controller.AtomPropertyMixin = {
     load: function( applet ){
         var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
         var url = '../../data/get/';
-        // applet.script_wait('load DATA '"" + url + get_params + '";');
         var s = '' +
             'select *;' +
             'x = load("' + url + get_params + '");' +
@@ -229,7 +228,7 @@ Provi.Data.Controller.AtomPropertyMixin = {
                 '"provi property ds ' + this.id + ': " + names.join(" ");' +
         '';
         console.log(s);
-        applet.script_wait(s, true);
+        applet.script(s, { maintain_selection: true, try_catch: false });
     }
 }
 
@@ -286,7 +285,7 @@ Provi.Data.Controller.AtomSelectionMixin = {
             // '}' +
         '';
         console.log(s);
-        applet.script(s, true);
+        applet.script(s, { maintain_selection: true, try_catch: false });
     }
 }
 
@@ -307,7 +306,6 @@ Provi.Data.Controller.BondsMixin = {
     load: function( applet ){
         var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
         var url = '../../data/get/';
-        // applet.script_wait('load DATA '"" + url + get_params + '";');
         var s = '' +
             'x = load("' + url + get_params + '");' +
             'bond_count_before = {*}.bonds.size;' +
@@ -319,7 +317,7 @@ Provi.Data.Controller.BondsMixin = {
                 '"provi bonds ds ' + this.id + ': " + bond_count_before + " " + bond_count_after;' +
         '';
         console.log(s);
-        applet.script_wait(s, true);
+        applet.script(s, { maintain_selection: true, try_catch: false });
     }
 }
 
@@ -410,7 +408,7 @@ Provi.Data.Controller.TmalignMixin = {
                 'print "provi dataset: ' + self.id + ' loaded";' +
             '';
             //console.log(s);
-            applet.script_wait(s, true);
+            applet.script(s, { maintain_selection: true, try_catch: false });
         });
     }
 }
