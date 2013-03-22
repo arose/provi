@@ -190,7 +190,7 @@ Provi.Bio.AtomProperty.AtomPropertyWidget.prototype = Utils.extend(Provi.Widget.
             'color atoms "' + this.property_name + '" "' + this.color_scheme + '" ' +
                 (range ? ' RANGE ' + this.min + ' ' + this.max : '' ) +
             ';' +
-        '', true);
+        '', { maintain_selection: true, try_catch: true });
     }
 });
 

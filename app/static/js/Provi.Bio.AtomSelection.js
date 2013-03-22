@@ -23,6 +23,7 @@ var Widget = Provi.Widget.Widget;
 
 var AtomProperty = {};
 
+
 /**
  * @class Represents atom selection
  */
@@ -61,73 +62,6 @@ Provi.Bio.AtomSelection.AtomSelectionGroup.prototype = /** @lends Provi.Bio.Atom
 };
 
 
-/**
- * widget class
- * @constructor
- * @extends Provi.Widget.Widget
- * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
- */
-Provi.Bio.AtomSelection.AtomSelectionWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.AtomSelection.AtomSelectionWidget.prototype.default_params
-    );
-    params.persist_on_applet_delete = false;
-
-    this.dataset = params.dataset;
-    this.applet = params.applet;
-    this.selection_name = params.selection_name;
-    
-    Provi.Widget.Widget.call( this, params );
-    this._init_eid_manager([
-        'selection_name', 'show_all', 'show_none'
-    ]);
-
-    var template = '' +
-        '<div class="control_row">' + 
-            '<div id="${eids.selection_name}">' +
-                'Name: <span>${params.selection_name}</span>' +
-            '</div>' +
-        '</div>' +
-        '<div class="control_row">' +
-            'show:&nbsp;' +
-            '<button id="${eids.show_all}">all</button>' +
-            '<button id="${eids.show_none}">none</button>' +
-        '</div>' +
-    '';
-    this.add_content( template, params );
-    this._init();
-}
-Provi.Bio.AtomSelection.AtomSelectionWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.AtomSelection.AtomSelectionWidget.prototype */ {
-    default_params: {
-        heading: 'Atom selection',
-        collapsed: false
-    },
-    _init: function () {
-        var self = this;
-        
-        // init select
-        this.elm('show_all').button().click(function(){
-            if(self.applet){
-                var s = 'display add @{ provi_selection["' + self.selection_name + '"] };';
-                console.log(s);
-                self.applet.script_wait(s, true);
-            }
-        });
-        this.elm('show_none').button().click(function(){
-            if(self.applet){
-                self.applet.script_wait(
-                    'display remove @{ provi_selection["' + self.selection_name + '"] };'
-                );
-            }
-        });
-
-        Provi.Widget.Widget.prototype.init.call(this);
-    }
-});
-
-
-
 
 /**
  * A widget
@@ -136,6 +70,8 @@ Provi.Bio.AtomSelection.AtomSelectionWidget.prototype = Utils.extend(Provi.Widge
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.AtomSelection.GridWidget = function(params){
+    this.invalidate = _.throttle( this._invalidate, 100, false );
+
     params = _.defaults(
         params,
         Provi.Bio.AtomSelection.GridWidget.prototype.default_params
@@ -232,12 +168,14 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
     default_params: {
         heading: 'Selection Grid',
         collapsed: false,
-        type: 'atomindex',
+        type: 'groupindex',
         hide_eids: [],
         persist_on_applet_delete: false
     },
     _init: function(){
         var self = this;
+
+        var invalidate = _.bind( this.invalidate, this );
 
         this.create_grid();
         this.update_type();
@@ -248,12 +186,10 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         });
 
         if( this.type==="voronoia" ){
-            this.sele_type.show_hole( 'all' );
-            this.invalidate();
+            this.sele_type.show_hole( 'all', undefined, invalidate );
         }
         if( this.type==="interface_contacts" ){
-            this.sele_type.show_contacts( 'Membrane' );
-            this.invalidate();
+            this.sele_type.show_contacts( 'Membrane', undefined, invalidate );
             this.elm('contact_color_code').show();
         }else{
             this.elm('contact_color_code').hide();
@@ -271,9 +207,11 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             });
             $(this.applet).bind('script', function(){
                 //self.update_grid();
+                //self.invalidate();
             });
             $(this.applet).bind('select', function(){
                 //self.update_grid();
+                self.invalidate();
             });
         }
 
@@ -306,73 +244,62 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
-            // id = elm.attr('cid');
-            self.sele_type.select( id, !elm.prop('checked') );
-            console.log("selected", id, elm, elm.attr('cid'), elm.attr('checked'), elm.prop('checked'));
-            self.invalidate();
+            self.sele_type.select( id, !elm.prop('checked'), invalidate );
         });
 
         $( this.eid('grid', true) + ' input[title="displayed"]' ).live( 'click', function(e, data){
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
-            self.sele_type.display( id, !elm.prop('checked') );
-            console.log("displayed");
-            self.invalidate();
+            self.sele_type.display( id, !elm.prop('checked'), invalidate );
         });
 
         $( this.eid('grid', true) + ' input[cell="hole"]' ).live( 'click', function(e, data){
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
-            self.sele_type.show_hole( id, !elm.prop('checked') );
+            self.sele_type.show_hole( id, !elm.prop('checked'), invalidate );
             console.log("hole");
-            self.invalidate();
         });
 
         $( this.eid('grid', true) + ' input[cell="cavity"]' ).live( 'click', function(e, data){
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
-            self.sele_type.show_cavity( id, !elm.prop('checked') );
+            self.sele_type.show_cavity( id, !elm.prop('checked'), {}, invalidate );
             console.log("checked");
-            self.invalidate();
         });
 
         $( this.eid('grid', true) + ' input[cell="neighbours"]' ).live( 'click', function(e, data){
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
-            self.sele_type.show_neighbours( id, !elm.prop('checked') );
+            self.sele_type.show_neighbours( id, !elm.prop('checked'), invalidate );
             console.log("neighbours");
-            self.invalidate();
         });
 
         $( this.eid('grid', true) + ' input[cell="contacts"]' ).live( 'click', function(e, data){
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
-            self.sele_type.show_contacts( id, !elm.prop('checked') );
+            self.sele_type.show_contacts( id, !elm.prop('checked'), invalidate );
             console.log("contacts");
-            self.invalidate();
         });
 
         $( this.eid('grid', true) + ' input[cell="consurf"]' ).live( 'click', function(e, data){
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
-            self.sele_type.show_consurf( id, !elm.prop('checked') );
+            self.sele_type.show_consurf( id, !elm.prop('checked'), {}, invalidate );
             console.log("consurf");
-            self.invalidate();
         });
 
         $( this.eid('grid', true) + ' input[cell="intersurf"]' ).live( 'click', function(e, data){
             var elm = $(this);
             elm.parent().tipsy('hide');
             var id = elm.data("id");
-            self.sele_type.show_intersurf( id, !elm.prop('checked') );
+            self.sele_type.show_intersurf( id, !elm.prop('checked'), {}, invalidate );
             console.log("intersurf");
-            self.invalidate();
         });
         
         Provi.Widget.Widget.prototype.init.call(this);
@@ -398,7 +325,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             { 
                 id:"id", name:"Id", field:"id", width:280,
                 rerenderOnResize: true,
-                //formatter: format_cell
+                // formatter: format_cell
                 asyncPostRender: render_row
             }
         ];
@@ -407,13 +334,12 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             enableCellNavigation: false,
             enableColumnReorder: false,
             enableAsyncPostRender: true,
-            asyncPostRenderDelay: 0,
+            asyncPostRenderDelay: 0.1,
             showHeaderRow: true,
             headerRowHeight: 25,
             //rowHeight: 140,
             topPanelHeight: 25,
-            autoHeight: false,
-            asyncPostRenderDelay: 0
+            autoHeight: false
         };
         
         // data = [ { resno: "1", chain: "A", atomno: 1, group:"Lys", selected:1.0 } ];
@@ -423,7 +349,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         //this.grid = new Slick.Grid( $('#grid'), data, columns, options);
         //console.log( this.grid );
     },
-    invalidate: function(){
+    _invalidate: function(){
         console.log('invalidate');
         this.grid.invalidate();
         this.header();
@@ -500,15 +426,15 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
         var d = '{' + this.selection(id) + '}.' + this.property + '';
         return this.applet.evaluate(d);
     },
-    select: function(id, flag){
+    select: function(id, flag, callback){
         var selection = this.selection( id );
         var s = 'select ' + (flag ? 'remove' : 'add') + ' ' + selection;
-        this.applet.script_wait( s );
+        this.applet.script_callback( s, {}, callback );
     },
-    display: function(id, flag){
+    display: function(id, flag, callback){
         var selection = this.selection( id );
         var s = 'display ' + (flag ? 'remove' : 'add') + ' ' + selection;
-        this.applet.script_wait( s );
+        this.applet.script_callback( s, {}, callback );
     },
     label_cell: function(label){
         var $label = $('<span style="float:left; width:120px;">' +
@@ -577,7 +503,7 @@ Provi.Bio.AtomSelection.AtomindexSelectionType = function(params){
 Provi.Bio.AtomSelection.AtomindexSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.AtomSelection.AtomindexSelectionType.prototype */ {
     get_ids: function(){
         if( this.sort ){
-            this.applet.script_wait('' +
+            this.applet.script('' +
                 'function sort_by_prop( sele ){' +
                     'var arr = sele.atomindex.all;' +
                     'var prop = sele.' + this.sort + '.all;' +
@@ -659,7 +585,7 @@ Provi.Bio.AtomSelection.GroupindexSelectionType.prototype = Utils.extend(Provi.B
             var a = [0,0,0,0,0];
         }else{
             var format = '\'%[group]\',\'%[resno]\',\'%[chain]\',\'%[file]\',\'%[model]\'';
-            var a = this.applet.atoms_property_map( format, this.selection(id), true )[0];
+            var a = this.applet.atoms_property_map( format, this.selection(id), true )[0] || [0,0,0,0,0];
         }
         var s = '{' + this.selection(id) + '}.selected.join("")';
         var selected = this.applet.evaluate(s);
@@ -819,7 +745,7 @@ Provi.Bio.AtomSelection.VariableSelectionType.prototype = Utils.extend(Provi.Bio
     },
     get_data: function(id){
         var ids = (id=="all") ? this.get_ids() : [id];
-        this.applet.script_wait('' +
+        this.applet.script('' +
             'function provi_sele_test(ids){' +
                 'var sele_l = [];' +
                 'var displayed_l = [];' +
@@ -882,7 +808,7 @@ Provi.Bio.AtomSelection.SelectionTypeRegistry = {
         Provi.Bio.AtomSelection.SelectionTypeRegistry._dict[ name ] = obj;
     },
     get: function( name ){
-        console.log( Provi.Bio.AtomSelection.SelectionTypeRegistry._dict );
+        // console.log( Provi.Bio.AtomSelection.SelectionTypeRegistry._dict );
         return Provi.Bio.AtomSelection.SelectionTypeRegistry._dict[ name ];
     }
 };

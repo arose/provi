@@ -68,22 +68,16 @@
     <script type="text/javascript" src="../js/Provi.Selection.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Bio.js"></script>
-    <script type="text/javascript" src="../js/Provi.Bio.Smcra.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.AtomProperty.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.AtomSelection.js"></script>
-    <script type="text/javascript" src="../js/Provi.Bio.Sequence.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Alignment.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Structure.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Superposition.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Voronoia.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Rotamers.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.MembranePlanes.js"></script>
-    <script type="text/javascript" src="../js/Provi.Bio.TransmembraneHelices.js"></script>
-    <script type="text/javascript" src="../js/Provi.Bio.Indices.js"></script>
-    <script type="text/javascript" src="../js/Provi.Bio.HydrogenBonds.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.InterfaceContacts.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Isosurface.js"></script>
-    <script type="text/javascript" src="../js/Provi.Bio.Propensities.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Flatland.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Mutate.js"></script>
     
@@ -102,16 +96,10 @@
     <script type="text/javascript" src="../js/Provi.Data.Io.Jmol.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.StructureMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.InterfaceContactsMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.MplaneMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.IsosurfaceMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.ScriptMixin.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.StoryMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.TmHelicesMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.NdxMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.HbondsMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.VoronoiaMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.PropensitiesMixin.js"></script>
     
     <link rel="stylesheet" media="screen" type="text/css" href="../js/lib/jquery-colorPicker/colorPicker.css" />
     <script type="text/javascript" src="../js/lib/jquery-colorPicker/jquery.colorPicker.js"></script>
@@ -289,24 +277,24 @@
                 collapsed: true
             });
 
-            Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
-                //sort_key: 2,
-                heading: 'MPHD Propensities',
-                description: 'Propensity data from curated MPHD data set',
-                show_dataset_info: false,
-                parent_id: 'tab_tree',
-                collapsed: true,
-                mphd: true
-            });
+            // Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
+            //     //sort_key: 2,
+            //     heading: 'MPHD Propensities',
+            //     description: 'Propensity data from curated MPHD data set',
+            //     show_dataset_info: false,
+            //     parent_id: 'tab_tree',
+            //     collapsed: true,
+            //     mphd: true
+            // });
 
-            Provi.Data.Io.import_example( 'showcase', 'test/static_scales.prop', 'prop', {
-                //sort_key: 2,
-                heading: 'Various Propensities',
-                description: 'Various propensity scales, see White S and Wimley W. Membrane protein folding and stability: physical principles. Annual review of biophysics and biomolecular structure. 1999;28:319-365.',
-                show_dataset_info: false,
-                parent_id: 'tab_tree',
-                collapsed: true
-            });
+            // Provi.Data.Io.import_example( 'showcase', 'test/static_scales.prop', 'prop', {
+            //     //sort_key: 2,
+            //     heading: 'Various Propensities',
+            //     description: 'Various propensity scales, see White S and Wimley W. Membrane protein folding and stability: physical principles. Annual review of biophysics and biomolecular structure. 1999;28:319-365.',
+            //     show_dataset_info: false,
+            //     parent_id: 'tab_tree',
+            //     collapsed: true
+            // });
                 
             new Provi.Jmol.Analysis.IsosurfaceConstructionWidget({
                 parent_id: 'tab_tree'

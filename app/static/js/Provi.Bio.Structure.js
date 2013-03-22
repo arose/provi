@@ -26,9 +26,6 @@ var Widget = Provi.Widget.Widget;
  */
 Provi.Bio.Structure.Structure = function(params){
     this.filename = params.filename;
-    this.coords = params.coords;
-    
-    console.log("STRUCTURE params", params);
 
     this.applet = params.applet;
     this.load_as = params.load_as;
@@ -48,15 +45,8 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         filter: '',
         lattice: ''
     },
-    init: function(){
-
-    },
     load: function(){
-        if( this.filename ){
-            this.load_file();
-        }else if( this.coords ){
-            this.load_coords();
-        }
+        this.load_file();
     },
     load_file: function(){
         var self = this;
@@ -73,7 +63,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         }
         var jmol_types = {
             pdb: 'PDB',
-        ent: 'PDB',
+            ent: 'PDB',
             gro: 'GROMACS'
         };
         type = jmol_types[type];
@@ -114,110 +104,24 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
             s = 'load ' + path + '; ' + style;
         }
 
-        var ret = applet.script_wait( s , true );
-        console.log('load structure', s,ret);
-
-        // var model_number = applet.evaluate('_modelNumber');
-        // var file_number = applet.evaluate('_currentFileNumber');
-        // console.log( 'STRUCTURE LOAD', file_number, model_number );
-        // $(Provi.Bio.Structure).triggerHandler('load', [this, applet, load_as, file_number, model_number]);
-
-        if( load_as != 'append' && load_as != 'trajectory+append' ){
-            applet.lighting_manager.set();
-            applet.clipping_manager.set();
+        applet.script_callback( s, { maintain_selection: true, try_catch: true }, function(){
+            if( load_as != 'append' && load_as != 'trajectory+append' ){
+                applet.lighting_manager.set();
+                applet.clipping_manager.set();
+                applet.picking_manager.set();
+            }
             applet.picking_manager.set();
-        }
-        applet.picking_manager.set();
-        applet.misc_manager.set();
-        if( load_as != 'trajectory+append' && load_as != 'trajectory'  ){
-            applet.script_wait( 'frame all;', true );
-        }
-        if( script ){
-            var ret2 = applet.script_wait( script, true );
-            console.log('script structure', script, ret2);
-        }
-    },
-    load_coords: function(){
-        
+            applet.misc_manager.set();
+            if( load_as != 'trajectory+append' && load_as != 'trajectory'  ){
+                applet.script( 'frame all;', { maintain_selection: true, try_catch: true } );
+            }
+            if( script ){
+                applet.script( script, { maintain_selection: true, try_catch: true } );
+            }
+        });
     }
 };
 
-
-/**
- * A widget
- * @constructor
- * @extends Provi.Widget.Widget
- * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
- */
-Provi.Bio.Structure.StructureWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Structure.StructureWidget.prototype.default_params
-    );
-    console.log('STRUCTURE', params);
-    params.persist_on_applet_delete = false;
-    //params.collapsed = false;
-
-    Provi.Widget.Widget.call( this, params );
-    this._init_eid_manager([
-        'file_model', 'title', 'show_all', 'show_none'
-    ]);
-    
-    this.dataset = params.dataset;
-    this.applet = params.applet;
-    this.style = params.style;
-    this.script = params.script;
-    this.file_model = params.file_model;
-    this.title = params.title;
-
-    this.no_load = params.no_load;
-    
-    var template = '' +
-        '<div class="control_row">' + 
-            '<div id="${eids.file_model}">' +
-                'Jmol file model number: <span>${params.file_model[0]}</span>' +
-            '</div>' +
-            '<div id="${eids.title}">' +
-                'Title: <span>${params.title}</span>' +
-            '</div>' +
-        '</div>' +
-        '<div class="control_row">' +
-            'show:&nbsp;' +
-            '<button id="${eids.show_all}">all</button>' +
-            '<button id="${eids.show_none}">none</button>' +
-        '</div>' +
-    '';
-    this.add_content( template, params );
-
-    this._init();
-}
-Provi.Bio.Structure.StructureWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Structure.StructureWidget.prototype */ {
-    default_params: {
-        heading: 'Structure',
-        collapsed: false
-    },
-    _init: function(){
-        var self = this;
-        
-        // init select
-        this.elm('show_all').button().click(function(){
-            if(self.applet){
-                self.applet.script_wait(
-                    'display add ' + self.file_model.join(' or ') + ';'
-                );
-            }
-        });
-        this.elm('show_none').button().click(function(){
-            if(self.applet){
-                self.applet.script_wait(
-                    'display remove ' + self.file_model.join(' or ') + ';'
-                );
-            }
-        });
-        
-        Provi.Widget.Widget.prototype.init.call(this);
-    }
-});
 
 
 /**

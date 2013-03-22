@@ -66,7 +66,7 @@ Provi.Jmol.Settings.SettingsManager.prototype = /** @lends Provi.Jmol.Settings.S
     },
     set: function( params ){
         this._set( params );
-        this.applet.script_wait( this._command(), true );
+        this.applet.script( this._command(), { maintain_selection: true, try_catch: true } );
     },
     get: function(){
         var params = {};

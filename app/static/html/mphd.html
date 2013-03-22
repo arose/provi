@@ -105,160 +105,160 @@
 </head>
 <body>
     <script type="text/javascript">
-	
-		Provi.Debug.auto();
-		
-		Provi.defaults.dom_parent_ids = $.extend( Provi.defaults.dom_parent_ids, {
-		    DATASET_WIDGET: 'tab_widgets',
-		    CANVAS_WIDGET: 'main',
-		    SELECTION_WIDGET: 'tab_widgets',
-		    BUILDER_WIDGET: 'tab_widgets'
-		});
-		
-		Provi.Jmol.Settings.StyleManager.prototype.default_params = $.extend(
-			Provi.Jmol.Settings.StyleManager.prototype.default_params,
-			{
-				sidechain_helper: false
-			}
-		);
-		Provi.Jmol.Settings.StyleManager.prototype.default_params.style += '' +
-		    'select ${sidechain_helper_sele}; wireframe ${stick};';
-		
-		//Provi.Jmol.Settings.PickingManager.prototype.default_params.picking = 'center';
-		
-		Provi.Bio.Structure.StructureWidget.prototype.default_params = $.extend(
-		    Provi.Bio.Structure.StructureWidget.prototype.default_params,
-		    {
-				hidden: true
-		    }
-		);
-		
-		Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params = $.extend(
-		    Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params,
-		    {
-				sort_key: 1,
-				heading: 'Interface Contacts',
-				show_dataset_info: false,
-				load_as: 'new',
-				cutoff: 2,
-				tmh_filter: true,
-				collapsed: true
-		    }
-		);
-		
-		Provi.Bio.AtomSelection.GridWidget.prototype.default_params = $.extend(
-		    Provi.Bio.AtomSelection.GridWidget.prototype.default_params,
-		    {
-				sort_key: 2,
-				show_dataset_info: false,
-				collapsed: true,
-				persist_on_applet_delete: false
-		    }
-		);
+    
+        Provi.Debug.auto();
+        
+        Provi.defaults.dom_parent_ids = $.extend( Provi.defaults.dom_parent_ids, {
+            DATASET_WIDGET: 'tab_widgets',
+            CANVAS_WIDGET: 'main',
+            SELECTION_WIDGET: 'tab_widgets',
+            BUILDER_WIDGET: 'tab_widgets'
+        });
+        
+        Provi.Jmol.Settings.StyleManager.prototype.default_params = $.extend(
+            Provi.Jmol.Settings.StyleManager.prototype.default_params,
+            {
+                sidechain_helper: false
+            }
+        );
+        Provi.Jmol.Settings.StyleManager.prototype.default_params.style += '' +
+            'select ${sidechain_helper_sele}; wireframe ${stick};';
+        
+        //Provi.Jmol.Settings.PickingManager.prototype.default_params.picking = 'center';
+        
+        Provi.Bio.Structure.StructureWidget.prototype.default_params = $.extend(
+            Provi.Bio.Structure.StructureWidget.prototype.default_params,
+            {
+                hidden: true
+            }
+        );
+        
+        Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params = $.extend(
+            Provi.Bio.InterfaceContacts.InterfaceContactsWidget.prototype.default_params,
+            {
+                sort_key: 1,
+                heading: 'Interface Contacts',
+                show_dataset_info: false,
+                load_as: 'new',
+                cutoff: 2,
+                tmh_filter: true,
+                collapsed: true
+            }
+        );
+        
+        Provi.Bio.AtomSelection.GridWidget.prototype.default_params = $.extend(
+            Provi.Bio.AtomSelection.GridWidget.prototype.default_params,
+            {
+                sort_key: 2,
+                show_dataset_info: false,
+                collapsed: true,
+                persist_on_applet_delete: false
+            }
+        );
 
-		Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params = $.extend(
-		    Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params,
-		    {
-				sort_key: 2,
-				heading: 'Membrane Planes',
-				show_dataset_info: false,
-				collapsed: true
-		    }
-		);
-		
-		Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params = $.extend(
-		    Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params,
-		    {
-				sort_key: 3,
-				heading: 'Transmembrane Helix Segments',
-				show_dataset_info: false,
-				collapsed: true
-		    }
-		);
-		
-		Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params = $.extend(
-		    Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params,
-		    {
-				sort_key: 4,
-				heading: 'Hydrogen Bonds',
-				show_dataset_info: false,
-				collapsed: true
-		    }
-		);
+        Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params = $.extend(
+            Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params,
+            {
+                sort_key: 2,
+                heading: 'Membrane Planes',
+                show_dataset_info: false,
+                collapsed: true
+            }
+        );
+        
+        Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params = $.extend(
+            Provi.Bio.TransmembraneHelices.TmHelicesWidget.prototype.default_params,
+            {
+                sort_key: 3,
+                heading: 'Transmembrane Helix Segments',
+                show_dataset_info: false,
+                collapsed: true
+            }
+        );
+        
+        Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params = $.extend(
+            Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params,
+            {
+                sort_key: 4,
+                heading: 'Hydrogen Bonds',
+                show_dataset_info: false,
+                collapsed: true
+            }
+        );
 
-		Provi.Bio.HydrogenBonds.HbondsWidget2.prototype.default_params = $.extend(
-		    Provi.Bio.HydrogenBonds.HbondsWidget2.prototype.default_params,
-		    {
-				sort_key: 4,
-				heading: 'Hydrogen Bonds',
-				show_dataset_info: false,
-				collapsed: true
-		    }
-		);
+        Provi.Bio.HydrogenBonds.HbondsWidget2.prototype.default_params = $.extend(
+            Provi.Bio.HydrogenBonds.HbondsWidget2.prototype.default_params,
+            {
+                sort_key: 4,
+                heading: 'Hydrogen Bonds',
+                show_dataset_info: false,
+                collapsed: true
+            }
+        );
 
-		Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype.default_params = $.extend(
-		    Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype.default_params,
-		    {
-				sort_key: 5,
-				show_dataset_info: false,
-				collapsed: true
-		    }
-		);
-		
-		Provi.Widget.StoryWidget.prototype.default_params = $.extend(
-		    Provi.Widget.StoryWidget.prototype.default_params,
-		    {
-				sort_key: -1,
-				heading: 'Data info',
-				show_dataset_info: false,
-				template: 'mphd',
-				collapsed: false
-		    }
-		);
-		Provi.Widget.StoryWidget.prototype.templates[ 'mphd' ] = '' +
-		    '<ul>' +
-			'<li>PDB ID: <a target="_blank" href="http://www.rcsb.org/pdb/explore/explore.do?structureId=${params.pdb_id}">${params.pdb_id}</a></li>' +
-			'<li>Probe radius: ${params.probe_radius}</li>' +
-			'<li>Family: ${params.family}</li>' +
-			'<li><a target="_blank" href="${params.mphd_url}">DMPC entry</a></li>' +
-		    '</ul>' +
-		    '';
-		
-		Provi.Jmol.Settings.LightingManager.prototype.default_params = $.extend(
-		    Provi.Jmol.Settings.LightingManager.prototype.default_params,
-		    {
-				background_color: '[x000000]'
-		    }
-		);
-		
-		function layout_main() {
-	        var n = Provi.Jmol.get_applet_list().length;
-	        var i = Math.round( Math.sqrt(n) );
-	        $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
-	    }
-		
-		Provi.Jmol.init("../../jmol/current/14/", !$.query.get('unsigned'));
-		//Provi.Jmol.init("../../jmol/current/16/", $.query.get('signed'));
-		
-	    $(document).ready(function(){
-	    
-		//    // hack to get session cookie
-		//    $.ajax({
-		//	url: '../../data/index/',
-		//	async: false,
-		//	dataType: 'text',
-		//	cache: false,
-		//	success: function(response){
-		//	    console.log( response );
-		//	}
-		//    });
-	    
-	    	Provi.Utils.event.init();
-	    
+        Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype.default_params = $.extend(
+            Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype.default_params,
+            {
+                sort_key: 5,
+                show_dataset_info: false,
+                collapsed: true
+            }
+        );
+        
+        Provi.Widget.StoryWidget.prototype.default_params = $.extend(
+            Provi.Widget.StoryWidget.prototype.default_params,
+            {
+                sort_key: -1,
+                heading: 'Data info',
+                show_dataset_info: false,
+                template: 'mphd',
+                collapsed: false
+            }
+        );
+        Provi.Widget.StoryWidget.prototype.templates[ 'mphd' ] = '' +
+            '<ul>' +
+            '<li>PDB ID: <a target="_blank" href="http://www.rcsb.org/pdb/explore/explore.do?structureId=${params.pdb_id}">${params.pdb_id}</a></li>' +
+            '<li>Probe radius: ${params.probe_radius}</li>' +
+            '<li>Family: ${params.family}</li>' +
+            '<li><a target="_blank" href="${params.mphd_url}">DMPC entry</a></li>' +
+            '</ul>' +
+            '';
+        
+        Provi.Jmol.Settings.LightingManager.prototype.default_params = $.extend(
+            Provi.Jmol.Settings.LightingManager.prototype.default_params,
+            {
+                background_color: '[x000000]'
+            }
+        );
+        
+        function layout_main() {
+            var n = Provi.Jmol.get_applet_list().length;
+            var i = Math.round( Math.sqrt(n) );
+            $('#main').layout({resize: false, type: 'grid', columns: i, rows: i, vgap: 8, hgap: 8 });
+        }
+        
+        Provi.Jmol.init("../../jmol/current/14/", !$.query.get('unsigned'));
+        //Provi.Jmol.init("../../jmol/current/16/", $.query.get('signed'));
+        
+        $(document).ready(function(){
+        
+        //    // hack to get session cookie
+        //    $.ajax({
+        //  url: '../../data/index/',
+        //  async: false,
+        //  dataType: 'text',
+        //  cache: false,
+        //  success: function(response){
+        //      console.log( response );
+        //  }
+        //    });
+        
+            Provi.Utils.event.init();
+        
             var container = $('#container');
             var main = $('#main');
             var tabs_panel = $('#tabs_panel');
-	    
+        
             
             layout_main();
             
@@ -273,37 +273,37 @@
             Provi.Jmol.Applet.prototype.default_params.height = "99%";
             Provi.Jmol.Applet.prototype.default_params.width = "99%";
             Provi.Jmol.JmolWidget.prototype.default_params = $.extend(
-				Provi.Jmol.JmolWidget.prototype.default_params,
-				{
-				    parent_id: "main",
-				    no_sequence_view_widget: true,
-				    no_selection_manager_widget: true,
-				    no_tree_view_widget: true,
-				    no_grid_widget: true,
-				    no_plot_widget: true,
-				    no_data_info: true
-				}
-		    );
+                Provi.Jmol.JmolWidget.prototype.default_params,
+                {
+                    parent_id: "main",
+                    no_sequence_view_widget: true,
+                    no_selection_manager_widget: true,
+                    no_tree_view_widget: true,
+                    no_grid_widget: true,
+                    no_plot_widget: true,
+                    no_data_info: true
+                }
+            );
             $(Provi.Jmol).bind('applet_list_change', layout_main);
             
-	    
-	    
+        
+        
             new Provi.Jmol.Controls.JmolDisplayWidget({
                 parent_id: 'tab_widgets',
-				sort_key: 0,
-				hide_color_models: true,
-				collapsed: true
+                sort_key: 0,
+                hide_color_models: true,
+                collapsed: true
             });
-	    	
-	    	Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
-                //sort_key: 2,
-                heading: 'DMPC Propensities',
-                description: 'Propensity data from curated DMPC data set',
-                show_dataset_info: false,
-                parent_id: 'tab_tree',
-                collapsed: true,
-                mphd: true
-            });
+            
+            // Provi.Data.Io.import_example( 'showcase', 'test/complete.prop', 'prop', {
+            //     //sort_key: 2,
+            //     heading: 'DMPC Propensities',
+            //     description: 'Propensity data from curated DMPC data set',
+            //     show_dataset_info: false,
+            //     parent_id: 'tab_tree',
+            //     collapsed: true,
+            //     mphd: true
+            // });
             
             $('#tab_scrollbox').scroll(function (event, ui) {
                 $(this).data('scrollTop-tab-' + tabs_panel.tabs('option', 'selected'), $(this).scrollTop());
@@ -323,38 +323,38 @@
                 anchorToWindow: true,
                 sizeRight: true
             }).mousedown( function(edown){
-				$(edown.target).one('mouseup', function(eup){
-				    //if( edown.clientX == eup.clientX ) console.log('not moved');
-				});
-	    	});
-	    
-		    $('#tabs_panel a[title]').tipsy({ gravity: 'nw' });
-		    
-		    $('#tab_widgets').bind('Provi.widget_added', function(event, data){
-				$('#tab_widgets').children().sortElements( function(a, b){
-				    var widget_a = Provi.Widget.WidgetManager.get_widget( $(a).attr('id') );
-				    var widget_b = Provi.Widget.WidgetManager.get_widget( $(b).attr('id') );
-				    return widget_a.sort_key > widget_b.sort_key ? 1 : -1;
-				});
-	    	});
-	    
-		    // when in test mode, load some data for development purposes
-		    if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
+                $(edown.target).one('mouseup', function(eup){
+                    //if( edown.clientX == eup.clientX ) console.log('not moved');
+                });
+            });
+        
+            $('#tabs_panel a[title]').tipsy({ gravity: 'nw' });
+            
+            $('#tab_widgets').bind('Provi.widget_added', function(event, data){
+                $('#tab_widgets').children().sortElements( function(a, b){
+                    var widget_a = Provi.Widget.WidgetManager.get_widget( $(a).attr('id') );
+                    var widget_b = Provi.Widget.WidgetManager.get_widget( $(b).attr('id') );
+                    return widget_a.sort_key > widget_b.sort_key ? 1 : -1;
+                });
+            });
+        
+            // when in test mode, load some data for development purposes
+            if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
 
-		    	var applet = Provi.Jmol.get_default_applet( true );
+                var applet = Provi.Jmol.get_default_applet( true );
 
-				Provi.Data.Io.import_example( 'showcase', 'DMPC_test_data/1u19/1u19.provi', 'provi', {
+                Provi.Data.Io.import_example( 'showcase', 'DMPC_test_data/1u19/1u19.provi', 'provi', {
                     applet: applet
                 });
-		    }else{
+            }else{
 
-		    }
-	    
+            }
+        
         });
         
     </script>
     
-	<div id="container" style="height:100%; width:100%;">
+    <div id="container" style="height:100%; width:100%;">
         
         <div id="jmolWindow" class="" style="overflow:hidden; height:100% ">
             <div id="main" style="height:100%; width:100%; overflow:hidden;"></div>
@@ -364,34 +364,34 @@
             <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
                 <div id="tabs_panel" style="height:100%; width:100%;">
                     <ul>
-						<li><a title="A collection of control elements" href="#tab_widgets">Controls</a></li>
-						<li><a title="Some help" href="#tab_help">Help</a></li>
-                	</ul>
+                        <li><a title="A collection of control elements" href="#tab_widgets">Controls</a></li>
+                        <li><a title="Some help" href="#tab_help">Help</a></li>
+                    </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
-						<div id="tab_widgets"></div>
-						<div id="tab_help">
-							<h3>Keyboard/mouse commands inside the Jmol window</h3>
-							<div style="padding:0.5em 0em 1em 1.5em;">
-								<span style="font-size: 1.3em;"><kbd>Shift</kbd>+<kbd>Mouse-Left</kbd></span>
-								<br/>
-								Translate the view.
-							</div>
-							<div style="padding:0.5em 0em 1em 1.5em;">
-								<span style="font-size: 1.3em;"><kbd>Alt</kbd>+<kbd>Mouse-Wheel</kbd></span>
-								<br/>
-								Moves the front and back clipping planes towards the center.
-							</div>
-							<div style="padding:0.5em 0em 1em 1.5em;">
-								<span style="font-size: 1.3em;"><kbd>Alt</kbd>+<kbd>Ctrl</kbd>+<kbd>Mouse-Wheel</kbd></span>
-								<br/>
-								Moves the front and back clipping planes parallel to the center.
-							</div>
-							<div style="padding:0.5em 0em 1em 1.5em;">
-								<span style="font-size: 1.3em;"><kbd>Ctrl</kbd>+<kbd>Mouse-Left</kbd></span>
-								<br/>
-								Centers the view on the clicked atom/object.
-							</div>
-						</div>
+                        <div id="tab_widgets"></div>
+                        <div id="tab_help">
+                            <h3>Keyboard/mouse commands inside the Jmol window</h3>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Shift</kbd>+<kbd>Mouse-Left</kbd></span>
+                                <br/>
+                                Translate the view.
+                            </div>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Alt</kbd>+<kbd>Mouse-Wheel</kbd></span>
+                                <br/>
+                                Moves the front and back clipping planes towards the center.
+                            </div>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Alt</kbd>+<kbd>Ctrl</kbd>+<kbd>Mouse-Wheel</kbd></span>
+                                <br/>
+                                Moves the front and back clipping planes parallel to the center.
+                            </div>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Ctrl</kbd>+<kbd>Mouse-Left</kbd></span>
+                                <br/>
+                                Centers the view on the clicked atom/object.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -377,7 +377,7 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
             'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
         '';
         console.log(s);
-        applet.script_wait(s, true);
+        applet.script(s, {maintain_selection: true});
     },
     minimize: function(){
         var applet = this.applet_selector.get_value();
@@ -391,7 +391,7 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
             'minimize select selected steps 100;' + '\n' +
             'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
             '';
-        applet.script_wait(s, true);
+        applet.script(s, {maintain_selection: true});
     },
     move_dihedral: function(){
         var self = this;
@@ -409,7 +409,7 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
         s += 'set_dihedral( ' + atoms_expr.join(', ') + ', ' + dihedral_angle + ' );' + '\n' +
             'try{ contact {(' + this.residue_expression + ') and sidechain} {not (' + this.residue_expression + ') and (' + this.clash_expression + ')}; }catch(e){ print "JMOL ERROR: "+ e  };' + '\n' +
             '';
-        applet.script_wait(s, true);
+        applet.script(s, {maintain_selection: true});
     }
 });
 

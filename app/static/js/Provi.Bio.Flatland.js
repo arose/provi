@@ -403,7 +403,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var axes = principal_axes(coords);
         // var axes = [[2, 1, 1], [1, 2, 1], [1, 1, 2]];
 
-        applet.script_wait( '' +
+        applet.script( '' +
             'draw id "fc" {' + sele + '} radius 0.3 color tomato;' +
             'draw id "svd1" vector {' + sele + '} {' + axes[0].join(' ') + '} color pink;' +
             'draw id "svd2" vector {' + sele + '} {' + axes[1].join(' ') + '} color pink;' +
@@ -433,19 +433,6 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 );
                 script = script.replace('###sele###', sele);
                 script = script.replace('###split_contact_residues###', self.split_contact_residues);
-
-                //script = "selectionHalos off; function foo(){ select *; color green; }; foo(); print 111;";
-
-                // var foo = applet.script_wait( script );
-                // foo = applet.script_wait( script );
-                // foo = applet.script_wait( script );
-                // foo = applet.script_wait( script );
-
-                //return;
-                // console.log( foo );
-                // var foo2 = foo.replace("''''", '"').replace("'''", '"').replace("''", '"').replace('|', '\n');
-                // console.log( foo2 );
-                // console.log( $.parseJSON( foo2 ) );
 
                 var data = applet.script_wait_output( script );
                 //console.log(data);

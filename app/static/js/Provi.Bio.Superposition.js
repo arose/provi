@@ -289,7 +289,7 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
 
         console.log('SUPERPOSE', s);
         s = 'try{' + s + '}catch(e){};';
-        applet.script( s, true );
+        applet.script( s, { maintain_selection: true } );
     }
 });
 
