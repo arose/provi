@@ -253,7 +253,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
         });
     }
 
-    this.selection = new Provi.Selection.SelectorWidget({
+    this.selection = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('selection'),
         applet: this.applet
     });

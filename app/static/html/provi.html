@@ -62,15 +62,13 @@
     <script type="text/javascript" src="../js/Provi.js"></script>
     <script type="text/javascript" src="../js/Provi.Debug.js"></script>
     <script type="text/javascript" src="../js/Provi.Utils.js"></script>
-    <script type="text/javascript" src="../js/Provi.Utils.Protovis.js"></script>
     <script type="text/javascript" src="../js/Provi.Widget.js"></script>
-    
-    <script type="text/javascript" src="../js/Provi.Selection.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Bio.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.AtomProperty.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.AtomSelection.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Alignment.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.HydrogenBonds.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Structure.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Superposition.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Voronoia.js"></script>
@@ -91,15 +89,9 @@
     
     <script type="text/javascript" src="../js/Provi.Data.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Io.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Io.Galaxy.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Io.Get.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Io.Jmol.js"></script>
     <script type="text/javascript" src="../js/Provi.Data.Controller.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.StructureMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.MplaneMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.IsosurfaceMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.ScriptMixin.js"></script>
-    <script type="text/javascript" src="../js/Provi.Data.Controller.StoryMixin.js"></script>
     
     <link rel="stylesheet" media="screen" type="text/css" href="../js/lib/jquery-colorPicker/colorPicker.css" />
     <script type="text/javascript" src="../js/lib/jquery-colorPicker/jquery.colorPicker.js"></script>
@@ -189,9 +181,6 @@
             Provi.Jmol.Applet.prototype.default_params.width = "100%";
             _.extend( Provi.Jmol.JmolWidget.prototype.default_params, {
                 parent_id: "main",
-                no_sequence_view_widget: true,
-                no_selection_manager_widget: false,
-                no_tree_view_widget: true,
                 no_grid_widget: false
             });
             $(Provi.Jmol).bind('applet_list_change', layout_main);
