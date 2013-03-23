@@ -32,18 +32,6 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
     _exec: function(){
         //console.log( $.query.get() );
         
-        // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane
-        // http://127.0.0.1:7070/static/html/provi.html?galaxy[0][id]=110&galaxy[0][name]=3dqb.pdb&galaxy[1][id]=113&galaxy[1][name]=3dqb.mplane&galaxy[2][id]=110&galaxy[2][name]=3dqb.pdb&galaxy[2][load_as]=append
-        if( $.query.get('galaxy') ){
-            var jw = new Provi.Jmol.JmolWidget({ parent: this.parent_id });
-            jw.applet.script( 'cartoon ONLY; wireframe 0.015;' );
-            $.each( $.query.get('galaxy'), function(i, data){
-                var load_as = (data.load_as || 'new');
-                var params = $.extend( (data.params || {}), { applet: jw.applet, load_as: load_as } );
-                Provi.Data.Io.Galaxy.import_galaxy( data.id, data.name, data.filename, data.type, params );
-            });
-        }
-        
         if( $.query.get('example') ){
             var jw_dict = {};
             $.each( $.query.get('example'), function(i, data){
@@ -98,7 +86,7 @@ Provi.Data.Io.Get = $.extend(Provi.Data.Io.Get, /** @lends Provi.Data.Io.Get */ 
             });
         }
         
-        return $.query.get('galaxy') || $.query.get('example') || $.query.get('pdb');
+        return $.query.get('example') || $.query.get('pdb');
     }
 });
 

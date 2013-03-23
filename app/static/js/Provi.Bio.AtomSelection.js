@@ -813,4 +813,46 @@ Provi.Bio.AtomSelection.SelectionTypeRegistry = {
     }
 };
 
+
+/**
+ * widget class for selections
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Bio.AtomSelection.SelectorWidget = function(params){
+    params = _.defaults(
+        params,
+        Provi.Bio.AtomSelection.SelectorWidget.prototype.default_params
+    );
+    this.applet = params.applet;
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([ 'selection' ]);
+    var template = '' +
+        '<label for="${eids.selection}">${params.selection_label}:</label>&nbsp;' +
+        '<input id="${eids.selection}" type="text"/>' +
+    '';
+    this.add_content( template, params );
+    this.init();
+}
+Provi.Bio.AtomSelection.SelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi.Selection.SelectorWidget.prototype */ {
+    default_params: {
+        selection_label: "Selection"
+    },
+    init: function(){
+        
+    },
+    get: function(selection){
+        return this.elm('selection').val() || "";
+    },
+    set_input: function(sele){
+        this.elm('selection').val( sele );
+    },
+    set_applet: function( applet ){
+        this.applet = applet;
+    }
+});
+
+
+
 })();

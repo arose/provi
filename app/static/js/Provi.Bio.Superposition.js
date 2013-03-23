@@ -92,27 +92,27 @@ Provi.Bio.Superposition.SuperposeWidget = function(params){
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
         parent_id: this.eid('applet_selector_widget')
     });
-    this.sele1_selector = new Provi.Selection.SelectorWidget({
+    this.sele1_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('sele1_selector_widget'),
         applet: params.applet, tag_name: 'span'
     });
-    this.sele2_selector = new Provi.Selection.SelectorWidget({
+    this.sele2_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('sele2_selector_widget'),
         applet: params.applet, tag_name: 'span'
     });
-    this.ali_sele1_selector = new Provi.Selection.SelectorWidget({
+    this.ali_sele1_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('ali_sele1_selector_widget'),
         applet: params.applet, tag_name: 'span'
     });
-    this.ali_sele2_selector = new Provi.Selection.SelectorWidget({
+    this.ali_sele2_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('ali_sele2_selector_widget'),
         applet: params.applet, tag_name: 'span'
     });
-    this.filter_sele1_selector = new Provi.Selection.SelectorWidget({
+    this.filter_sele1_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('filter_sele1_selector_widget'),
         applet: params.applet, tag_name: 'span'
     });
-    this.filter_sele2_selector = new Provi.Selection.SelectorWidget({
+    this.filter_sele2_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('filter_sele2_selector_widget'),
         applet: params.applet, tag_name: 'span'
     });
@@ -174,12 +174,12 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
         var self = this;
         if (!applet ) return;
 
-        var sele1 = this.sele1_selector.get().selection;
-        var sele2 = this.sele2_selector.get().selection;
-        var ali_sele1 = this.ali_sele1_selector.get().selection;
-        var ali_sele2 = this.ali_sele2_selector.get().selection;
-        var filter_sele1 = this.filter_sele1_selector.get().selection;
-        var filter_sele2 = this.filter_sele2_selector.get().selection;
+        var sele1 = this.sele1_selector.get();
+        var sele2 = this.sele2_selector.get();
+        var ali_sele1 = this.ali_sele1_selector.get();
+        var ali_sele2 = this.ali_sele2_selector.get();
+        var filter_sele1 = this.filter_sele1_selector.get();
+        var filter_sele2 = this.filter_sele2_selector.get();
 
         if(this.no_alignment){
             var subset = '*';
@@ -209,8 +209,8 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
                 return p[5] ? p[5] : ' ';
             }).join('');
 
-            console.log(seq1);
-            console.log(seq2);
+            // console.log(seq1);
+            // console.log(seq2);
 
             nw = new Provi.Bio.Alignment.NeedlemanWunsch({
                 seq1: seq1, 
@@ -221,8 +221,8 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
             nw.calc();
             nw.trace();
 
-            console.log(nw.ali1);
-            console.log(nw.ali2);
+            // console.log(nw.ali1);
+            // console.log(nw.ali2);
 
             var g = 0
             var gap1 = _.map(nw.ali1.split(''), function(c, i){
@@ -245,7 +245,7 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
                 }
             });
 
-            console.log(pairs);
+            // console.log(pairs);
 
             _.each(nw.ali1.split(''), function(c1, i){
                 var c2 = nw.ali2.split('')[i];
@@ -287,7 +287,7 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
                 'rotate translate;' + 
         '';
 
-        console.log('SUPERPOSE', s);
+        // console.log('SUPERPOSE', s);
         s = 'try{' + s + '}catch(e){};';
         applet.script( s, { maintain_selection: true } );
     }

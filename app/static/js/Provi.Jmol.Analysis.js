@@ -476,10 +476,9 @@ Provi.Jmol.Analysis.PlaneConstructionWidget = function(params){
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
         parent_id: this.eid('applet_selector_widget')
     });
-    this.selection_selector = new Provi.Selection.SelectorWidget({
+    this.selection_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('selection_selector_widget'),
-        applet: params.applet,
-        tag_name: 'span'
+        applet: params.applet, tag_name: 'span'
     });
 
     this._init();
@@ -570,7 +569,8 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
     params.collapsed = true;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
-    'canvas', 'draw', 'selector', 'selector2', 'xaxis', 'yaxis', 'bgimage', 'presets', 'chart', 'color'
+        'canvas', 'draw', 'selector', 'selector2', 'xaxis', 'yaxis', 'bgimage', 
+        'presets', 'chart', 'color'
     ]);
     
     var template = '' +
@@ -637,16 +637,16 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
     
     this.add_content( template, params );
     
-    this.selector = new Provi.Selection.SelectorWidget({
+    this.selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('selector'),
-    applet: params.applet,
-    tag_name: 'span'
+        selection_label: 'Selection A',
+        applet: params.applet, tag_name: 'span'
     });
     
-    this.selector2 = new Provi.Selection.SelectorWidget({
+    this.selector2 = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('selector2'),
-    applet: params.applet,
-    tag_name: 'span'
+        selection_label: 'Selection B',
+        applet: params.applet, tag_name: 'span'
     });
     
     this._init();

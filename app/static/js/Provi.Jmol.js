@@ -329,7 +329,6 @@ Provi.Jmol.Applet = function(params){
     
     this._determining_load_status = false;
     this.bind_manager = new Provi.Jmol.Settings.BindManager({ applet: this });
-    this.selection_manager = new Provi.Selection.SelectionManager({ applet: this });
     this.clipping_manager = new Provi.Jmol.Settings.ClippingManager({ applet: this }); // needs to come before lighting manager because the lighting manager depends on the clipping manager
     this.lighting_manager = new Provi.Jmol.Settings.LightingManager({ applet: this });
     this.quality_manager = new Provi.Jmol.Settings.QualityManager({ applet: this });
@@ -360,9 +359,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         this._create_dom();
         $(this.selection_manager).bind('select', $.proxy(this.select, this));
     },
-    select: function( e, selection, applet, selection_string ){
-        applet.script_wait( 'select {' + selection_string + '};' );
-    },
     _delete: function(){
         var self = this;        
         $('#' + this.widget.data_id).empty();
@@ -385,24 +381,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         ">\n" +
             this._get_params(); +
         "</applet>\n";
-        //var child = this._get_dom_elm(html);
-        //if( typeof(this.dom_parent_id) != 'undefined' ){
-        //    var dom_parent = document.getElementById(this.dom_parent_id);
-        //}else{
-        //    var dom_parent = window;
-        //}
-        //dom_parent.appendChild(child);
     },
     _get_params: function(){
         params = {
             loadInline: '',
-            //script: 'load ../data/3dqb.pdb;cartoon on;color cartoon structure',
-            //script: 'javascript "Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ',
-                //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; unbind "_slideZoom"; set debug on;',
-            //script: 'javascript "Provi.Jmol.set_applet_loaded(\\\"' + this.name_suffix + '\\\");"; ' + (Provi.Debug.get_status() ? 'set debug on;' : ''),
-            //script: 'unbind "_slideZoom"; set debug on;',
-            //script: 'set appletReadyCallback "jmol_applet_ready_callback";',
-            //script: 'bind "ALT-WHEEL" "slab @{slab - _DELTAY}; depth @{depth + _DELTAY}";',
             script: '',
             name: "jmol_applet_" + this.name_suffix,
             archive: this.archive_path,
@@ -428,7 +410,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         for (var i in params){
             if(params[i]!=""){
                 t+="  <param name='"+i+"' value='"+params[i]+"' />\n";
-                   //console.log(t);
            }
         }
         return t;
@@ -443,49 +424,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
            return this.dom;
     },
     set_loaded: function(){
-        //Utils.pause(500);
-        //console.log('TRYING TO SET LOADED');
         if( this.loaded || this._determining_load_status  ) return;
-        //console.log('TRYING TO SET LOADED');
         this._determining_load_status = true;
         console.log('done loading');
         this._load();
-        return;
-        
-        
-        var self = this;
-        var count = 0;
-        //console.log('pause start');
-        //Utils.pause(5000);
-        //console.log('pause end');
-        Utils.wait(500,
-            function(){
-                console.log(count, ' count');
-                if(count > 10) return true;
-                ++count;
-                var applet = self.applet;
-                //console.log(typeof(applet.script), $.isFunction(applet.script), typeof(applet.isActive), applet.isActive());
-                console.log(count, applet);
-                try {
-                    if(applet &&
-                       //typeof(applet.isActive) == 'function' && applet.isActive() &&
-                       ($.isFunction(applet.script) || typeof(applet.script) == 'function' ) &&
-                       ($.isFunction(applet.scriptWait) || typeof(applet.scriptWait) == 'function' ) &&
-                       ($.isFunction(applet.getPropertyAsJSON) || typeof(applet.getPropertyAsJSON) == 'function' ) ){
-                        return true;
-                    }else{
-                        return false;
-                    }
-                } catch(e){
-                    console.log('error loading, trying some more');
-                    return false;
-                }
-            },
-            function(){
-                console.log('done loading');
-                self._load();
-            }
-        );
     },
     _evalJSON: function(s,key){
         // from Jmol.js
@@ -495,13 +437,11 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
                if(s.indexOf(" | ")>=0)s=s.replace(/\ \|\ /g, "\n");
                return s;
         }
-        
         try{
             var A = eval("("+s+")");
         }catch(e){
             console.error('evalJSON ERROR', e, s, key);
         }
-        
         if(!A){
             return undefined;
         }
@@ -509,16 +449,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             A=A[key];
         }
         return A;
-    },
-    echo: function( message ){
-        if(message){
-            this.script(
-                'set echo TOP LEFT; font echo 20 sansserif; color echo red; ' +
-                'set echo "' + message + '";'
-            );
-        }else{
-            this.script( 'set echo off;' );
-        }
     },
     _prepare_script: function( script, params ){
         params = _.defaults( params || {}, {
@@ -544,18 +474,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         script = this._prepare_script( script, params );
         try{
             self.applet.script( script );
-            // self.applet.scriptWait( script );
-
-            // setTimeout( function(){
-            //     self.applet.scriptWait( script );
-            // }, 0);
-            // if( /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ){
-            //             //console.log( 'SAFARI' );
-            //             this.applet.script( script );
-            // }else{
-            //             //console.log( 'NOT SAFARI' );
-            //             var tmp = this.applet.scriptWait( script );
-            // }
         }catch(e){
             console.error('Jmol.script ERROR', e, script);
         }
@@ -643,14 +561,9 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         var self = this;
         script += '; print "provi async script: ' + id + '";';
         var handler = function(e, msg1, msg2, msg3){
-            //if( msg1.slice(0, self.isosurface_name.length) == self.isosurface_name ){
             if( msg1.search(/provi async script:/) != -1 ){
-                //console.log(msg1, msg2, msg3);
-                var m = msg1.match(
-                    /provi async script: ([\w-]+)/
-                );
+                var m = msg1.match(/provi async script: ([\w-]+)/);
                 if( id==m[1] ){
-                    // console.log('provi callback script', script, handler);
                     if(!callback){
                         console.error('missing callback', script, params);
                     }else{
@@ -661,7 +574,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             }
         }
         $(this).bind('message', handler);
-
         if(this.loaded){
             return this._script(script, params);
         }else{
@@ -755,17 +667,12 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         return result;
     },
     atoms_property_map: function( format, selection, first, sort_column ){
-        //this.script_wait('show SELECTED;'); // needed, otherwise 'evaluate' sometimes chokes on the 'selected' variable
-        //console.log(this.applet.evaluate('"[" + {' + 'selected' + '}.label("[' + format + ']").join(",") + "]"'));
         if(first){
             var ev = '"[" + {' + selection + '}[1].label("[' + format + ']").join(",") + "]"';
         }else{
             var ev = '"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"';
         }
         var map = this.evaluate(ev);
-        // if(map.length < 100 ){
-        //     console.log(map);
-        // }
         try{
             map = eval(map);
         }catch(e){
@@ -780,8 +687,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     /** Triggers the {@link Provi.Jmol.Applet#load_struct} event. */
     _load_struct_callback: function( fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ){
-        //console.log('_load_struct_callback', 'XYZ');
-        //setTimeout( function(){ console.log(self.evaluate('_lastFrame'), self.evaluate('_modelNumber')); }, 500 );
         //console.log( fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted );
         $(this).triggerHandler('load_struct', [ fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ]);
     },
@@ -832,12 +737,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     init_listeners: function(){
         var self = this;
-
         $(this).bind('message', function(e, msg1, msg2, msg3){
             if( msg1.search(/^ERROR:/) != -1 ){
                 console.error(msg1, msg2, msg3);
             }
-
             if( msg1.search(/isosurface count/) != -1 && msg1.search(/__no_widget__/) == -1 ){
                 //console.log(msg1, msg2, msg3);
                 var iso_id = msg1.match(/^([\w-\.]+) created .* isosurface count/)[1];
@@ -909,14 +812,10 @@ Provi.Jmol.JmolWidget = function(params){
     this.data_id = this.id + '_data';
     this.picking_id = this.id + '_picking';
     this.delete_id = this.id + '_delete';
-    this.sequence_view_id = this.id + '_sequence_view';
     var content =
         '<div id="' + this.applet_parent_id + '" style="overflow:hidden; position:absolute; top:0px; bottom:32px; width:100%;"></div>' +
-        '<div id="' + this.sequence_view_id + '" class="" style="overflow:auto; background:lightblue; position:absolute; height:62px; margin-bottom:0px; padding:6px; bottom:32px; left:0px; right:0px;">' +
-            //'<span>Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;Sequence&nbsp;view&nbsp;</span>' +
-        '</div>' +
+
         '<div class="" style="overflow:hidden; background:lightyellow; position:absolute; height:20px; padding:6px; bottom:0px; left:0px; right:0px;">' +
-            '<span title="more views" class="ui-icon ui-icon-triangle-1-e" id="' + this.more_id + '"></span>&nbsp;' +
             '<span>Applet: ' + this.applet.name_suffix + '</span>' +
             '<span style="margin-left:20px; margin-right:10px; overflow:hidden;">Data: <span id="' + this.data_id + '" ></span></span>' +
             '<span style="position:absolute; right:26px; top:3px;">' +
@@ -939,9 +838,6 @@ Provi.Jmol.JmolWidget = function(params){
     $(this.dom).addClass('ui-jmol')
     $(this.dom).removeClass( 'ui-container ui-widget' );
     
-    //$(this.dom).height( typeof(params.height) != 'undefined' ? params.height : '100%' );
-    //$(this.dom).width( typeof(params.width) != 'undefined' ? params.width : '100%' );
-    //$(this.dom).css('position', 'inherit');
     $('#' + this.applet_parent_id).append( this.applet.dom );
     
     var self = this;
@@ -960,42 +856,11 @@ Provi.Jmol.JmolWidget = function(params){
         $(self.dom).hide();
         $(self.dom).appendTo('#trash');
         Provi.Jmol.remove_applet( self.applet.name_suffix );
-        
         //layout_main();
     });
     
-    //$('#' + this.sequence_view_id).hide();
-    $('#' + this.more_id).tipsy({ gravity: 'w' }).click(function(){
-           self.toggle_sequence_view();
-    });
-    
-    if( !params.no_sequence_view_widget ){
-        this.sequence_view = new Provi.Bio.Sequence.SequenceViewWidget({
-            parent_id: this.sequence_view_id,
-            applet: this.applet
-        });
-    }else{
-        self.toggle_sequence_view();
-        $('#' + this.more_id).remove();
-    }
-    
     if( params.no_data_info ){
         $('#' + this.data_id).parent().hide();
-    }
-
-    if( !params.no_selection_manager_widget ){
-        this.selection_manager = new Provi.Selection.SelectionManagerWidget({
-            parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-            selection_manager: this.applet.selection_manager,
-            applet: this.applet
-        });
-    }
-    
-    if( !params.no_tree_view_widget ){
-        this.tree_widget = new Provi.Bio.Sequence.TreeViewWidget({
-            parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-            applet: this.applet
-        });
     }
     
     if( !params.no_grid_widget ){
@@ -1012,29 +877,14 @@ Provi.Jmol.JmolWidget = function(params){
             applet: this.applet
         });
     }
-    
-    $('#' + this.more_id).trigger('click');
-//    $(this.dom).resizable({
-//      stop: layout_main
-//    });
+
     layout_main();
 };
 Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.JmolWidget.prototype */ {
     default_params: {
         parent_id: null,
-        no_sequence_view_widget: false,
-        no_selection_manager_widget: false,
-        no_tree_view_widget: false,
-        no_data_info: false
-    },
-    toggle_sequence_view: function(){
-        $('#' + this.more_id).toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-n');
-        if( $('#' + this.sequence_view_id).is(':visible') ){
-            $('#' + this.applet_parent_id).css('bottom', '32px');
-        }else{
-            $('#' + this.applet_parent_id).css('bottom', '106px');
-        }
-        $('#' + this.sequence_view_id).toggle();
+        no_grid_widget: false,
+        no_data_info: true
     }
 });
 

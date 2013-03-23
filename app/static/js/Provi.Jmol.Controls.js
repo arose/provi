@@ -40,10 +40,11 @@ Provi.Jmol.Controls.JmolConsole.prototype = /** @lends Provi.Jmol.Controls.JmolC
             if (event.which == 13 && this.value) {
                 try {
                     var cmd = this.value.trim();
-            if( cmd.charAt( cmd.length-1 ) != ';' ) cmd += ';';
+                    if( cmd.charAt( cmd.length-1 ) != ';' ) cmd += ';';
                     self.print('> ' + cmd);
-                    var out = self.applet.script_wait(cmd, self.maintain_selection);
-            self.applet.selection_manager.sync();
+                    var out = self.applet.script(
+                        cmd, { maintain_selection: self.maintain_selection, try_catch: true }
+                    );
                     if( out.search(/ERROR/) != -1 ){
                         var error = /.*ERROR: (.*)\n.*/.exec(out);
                         if(error.length){
@@ -404,7 +405,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                         'color @c;' +
                     '}' +
                 '';
-                applet.script_wait( s, true );
+                applet.script( s, { maintain_selection: true, try_catch: true } );
             }
             self.elm('color_models').val('');
         });
@@ -426,7 +427,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             self.elm( d.eid ).button().click(function(){
                 var applet = self.applet_selector.get_value();
                 if(applet){
-                    applet.script_wait('center ' + d.sele + '; zoom(' + d.sele + ') 100;');
+                    applet.script('center ' + d.sele + '; zoom(' + d.sele + ') 100;');
                     applet.clipping_manager.sync();
                 }
             });
@@ -435,19 +436,19 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         // init select
         this.elm('select_all').button().click(function(){
             var applet = self.applet_selector.get_value();
-            if(applet) applet.script_wait('select *;');
+            if(applet) applet.script('select *;');
         });
         this.elm('select_none').button().click(function(){
             var applet = self.applet_selector.get_value();
-            if(applet) applet.script_wait('select none;');
+            if(applet) applet.script('select none;');
         });
         this.elm('select_protein').button().click(function(){
             var applet = self.applet_selector.get_value();
-            if(applet) applet.script_wait('select protein;');
+            if(applet) applet.script('select protein;');
         });
         this.elm('select_invert').button().click(function(){
             var applet = self.applet_selector.get_value();
-            if(applet) applet.script_wait('select not selected;');
+            if(applet) applet.script('select not selected;');
         });
 
         Provi.Widget.Widget.prototype.init.call(this);
@@ -530,7 +531,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
             if( this.elm('style_sele').is(':checked') ){
                 s = 'subset selected; ' + s + 'subset;';
             }
-            applet.script( 'try{' + s + '}catch(e){ subset; }', true);
+            applet.script( 'try{' + s + '}catch(e){ subset; }', { maintain_selection: true });
         }
     },
     set_preset: function (){
@@ -553,7 +554,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         
         if( this.preset_cmd ){
             var s = this.preset_cmd;
-            applet.script( 'try{' + s + '}catch(e){}', true );
+            applet.script( 'try{' + s + '}catch(e){}', { maintain_selection: true } );
         }
     },
     set_color_scheme: function (){
@@ -564,7 +565,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         if( !applet || !color_scheme ) return;
 
         var s = 'select all; color ' + color_scheme + ';';
-        applet.script( s, true);
+        applet.script( s, { maintain_selection: true, try_catch: true });
     }
 });
 
@@ -738,7 +739,7 @@ Provi.Jmol.Controls.JmolAnimationWidget.prototype = Utils.extend(Widget, /** @le
             'print file_model_array;' +
         '';
 
-        var data = applet.script_wait_output( script );
+        var data = applet.script_wait_output( script, { maintain_selection: true } );
         console.log( data );
         if( data && data!==-1 ){
             data = data.split('\n').slice(0,-1);

@@ -325,6 +325,220 @@ Provi.Data.Controller.BondsMixin = {
 /**
  * @class
  */
+Provi.Data.Controller.StructureMixin = {
+    available_widgets: {
+        'StructureWidget': Provi.Bio.Structure.StructureWidget
+    },
+    load_params_widget: [{
+        params: [
+            { name: 'load_as', getter: 'get_load_as' },
+            { name: 'filter', getter: 'get_filter' },
+            { name: 'lattice', getter: 'get_lattice' }
+        ],
+        obj: Provi.Bio.Structure.StructureParamsWidget
+    }],
+    init: function(params){
+        Provi.Data.Dataset.prototype.init.call(this, params);
+        if( params.applet ){
+
+            var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
+            //var params = '?id=' + this.dataset.server_id;
+            
+            if( $.inArray(this.type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol']) >= 0 ){
+                get_params += '&data_action=get_pdb';
+            }
+
+            filename = '../../data/get/' + get_params + '"';
+
+            if( !params.script ) params.script = '';
+            params.script += 'print "provi dataset: ' + this.id + ' loaded";';
+
+            new Provi.Bio.Structure.Structure( $.extend( params, {
+                filename: filename,
+                type: this.type,
+                dataset: this
+            }));
+        }
+    }
+}
+
+
+/**
+ * @class
+ */
+Provi.Data.Controller.StoryMixin = {
+    available_widgets: {
+        'StoryWidget': Provi.Widget.StoryWidget
+    },
+    init: function( params ){
+        var self = this;
+        new Provi.Widget.StoryWidget( $.extend( params, {
+            parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+            dataset: self
+        }));
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    }
+}
+
+
+/**
+ * @class
+ */
+Provi.Data.Controller.ScriptMixin = {
+    available_widgets: {},
+    init: function( params ){
+        var self = this;
+        this.retrieve_data( function(d){
+            self.set_data( d );
+            if( params.applet ){
+                self.load( params.applet );
+            }
+        });
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    },
+    retrieve_data: function( onload ){
+        var get_params = { 'id': this.server_id+'' };
+        $.get( '../../data/get/', get_params, onload, 'text' );
+    },
+    load: function(applet){
+        applet.script( this.data );
+    }
+}
+
+
+/**
+ * @class
+ */
+Provi.Data.Controller.MplaneMixin = {
+    available_widgets: {
+        'MplaneWidget': Provi.Bio.MembranePlanes.MplaneWidget
+    },
+    init: function( params ){
+        var self = this;
+        console.log('MPLANE init');
+        this.retrieve_data( function(d){
+            console.log('MPLANE onload');
+            self.set_data( new Provi.Bio.MembranePlanes.Mplane( d[0], d[1], d[2] ) );
+            if( params.applet ){
+                console.log('MPLANEdfmgmsdpfgmsdpsd');
+                new Provi.Bio.MembranePlanes.MplaneWidget( $.extend( params, {
+                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                    dataset: self
+                }));
+            }
+        });
+        Provi.Data.Dataset.prototype.init.call(this, params);
+    },
+    retrieve_data: function( onload ){
+        console.log('MPLANE retrieve');
+        var get_params = { 'id': this.server_id+'', 'data_action': 'get_planes', 'session_id': $.cookie('provisessions') };
+        //$.getJSON( '../../data/get/', get_params, onload );
+        $.ajax({
+            dataType: "json",
+            url: '../../data/get/',
+            data: get_params,
+            success: onload,
+            error: function(e){ console.log(e); }
+        });
+    }
+}
+
+
+/**
+ * @class
+ */
+Provi.Data.Controller.IsosurfaceMixin = {
+    available_widgets: {
+        'IsosurfaceWidget': Provi.Bio.Isosurface.IsosurfaceWidget
+    },
+    load_params_widget: [
+        {
+            params: [
+                { name: 'within', getter: 'get_within' },
+                { name: 'insideout', getter: 'get_insideout' },
+                { name: 'reload_widget', getter: 'get_reload_widget' }
+            ],
+            obj: Provi.Bio.Isosurface.LoadParamsWidget
+        }
+    ],
+    init: function( params ){
+        var self = this;
+        Provi.Data.Dataset.prototype.init.call(this, params);
+        console.log( this, params );
+        if( params.reload_widget ){
+            params.reload_widget.reload(params);
+        }else if( params.applet ){
+            new Provi.Bio.Isosurface.IsosurfaceWidget({
+                parent_id: 'tab_widgets',
+                dataset: self,
+                applet: params.applet,
+                within: params.within,
+                insideout: params.insideout,
+                select: params.select,
+                ignore: params.ignore,
+                color: params.color,
+                style: params.style,
+                focus: params.focus,
+                sele: params.sele
+            });
+        }
+    }
+}
+
+
+/**
+ * @class
+ */
+Provi.Data.Controller.VolumeMixin = {
+    available_widgets: {
+        'VolumeWidget': Provi.Bio.Isosurface.VolumeWidget
+    },
+    load_params_widget: [
+        {
+            params: [
+                { name: 'within', getter: 'get_within' },
+                { name: 'insideout', getter: 'get_insideout' },
+                { name: 'reload_widget', getter: 'get_reload_widget' }
+            ],
+            obj: Provi.Bio.Isosurface.LoadParamsWidget
+        },
+        {
+            params: [
+                { name: 'sigma', getter: 'get_sigma' },
+                { name: 'cutoff', getter: 'get_cutoff' },
+                { name: 'sign', getter: 'get_sign' },
+                { name: 'color_density', getter: 'get_color_density' },
+                { name: 'downsample', getter: 'get_downsample' }
+            ],
+            obj: Provi.Bio.Isosurface.VolumeParamsWidget
+        },
+        {
+            params: [
+                { name: 'resolution', getter: 'get_resolution' },
+                { name: 'select', getter: 'get_select' },
+                { name: 'ignore', getter: 'get_ignore' },
+                { name: 'type', getter: 'get_type' }
+            ],
+            obj: Provi.Bio.Isosurface.SurfaceParamsWidget
+        }
+    ],
+    init: function( params ){
+        var self = this;
+        Provi.Data.Dataset.prototype.init.call(this, params);
+        console.log( this, params );
+        //if( params.reload_widget ){
+            new Provi.Bio.Isosurface.VolumeWidget( $.extend( params, {
+                parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                dataset: self
+            }));
+        //}
+    }
+}
+
+
+/**
+ * @class
+ */
 Provi.Data.Controller.FastaMixin = {
     available_widgets: {},
     init: function( params ){
@@ -421,8 +635,8 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
     
     if( _.include(Provi.Data.types.structure, type) ){
         $.extend( obj, Ctrl.StructureMixin );
-    }else if( _.include(Provi.Data.types.interface_contacts, type) ){
-        $.extend( obj, Ctrl.InterfaceContactsMixin );
+    // }else if( _.include(Provi.Data.types.interface_contacts, type) ){
+    //     $.extend( obj, Ctrl.InterfaceContactsMixin );
     }else if( type === 'mplane' ){
         $.extend( obj, Ctrl.MplaneMixin );
     }else if( _.include(Provi.Data.types.isosurface, type) ){
@@ -435,8 +649,8 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.TmHelicesMixin );
     }else if( type === 'anal' ){
         $.extend( obj, Ctrl.HbondsMixin );
-    }else if( type === 'vol' ){
-        $.extend( obj, Ctrl.VoronoiaMixin );
+    // }else if( type === 'vol' ){
+    //     $.extend( obj, Ctrl.VoronoiaMixin );
     }else if( type === 'ndx' ){
         $.extend( obj, Ctrl.NdxMixin );
     }else if( type === 'story' ){

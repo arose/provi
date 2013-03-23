@@ -183,10 +183,9 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
         '</div>' +
     '</div>';
     $(this.dom).append( content );
-    this.color_selection_selector = new Provi.Selection.SelectorWidget({
+    this.color_selection_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.color_sele_widget_id,
-        applet: params.applet,
-        tag_name: 'span'
+        applet: params.applet, tag_name: 'span'
     });
     if( !this.no_init ){
         this._init();
@@ -220,9 +219,9 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         $('#' + this.frontonly_id).click(function(){
             self.frontonly = $("#" + self.frontonly_id).is(':checked');
             var frontonly = self.frontonly ? 'FRONTONLY' : 'NOTFRONTONLY';
-            self.applet.script_wait(
+            self.applet.script(
                 'isosurface ID "' + self.isosurface_name + '" ' + frontonly + ';' +
-                '', true
+                '', { maintain_selection: true, try_catch: true }
             );
         });
         
@@ -230,19 +229,19 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         $('#' + this.color_id).colorPicker();
         $('#' + this.color_id).change(function(e, ignore){
             if(ignore) return;
-            var sele = self.color_selection_selector.get().selection;
+            var sele = self.color_selection_selector.get();
             self.translucent = $("#" + self.translucent_id + " option:selected").val();
-            self.applet.script_wait(
-                'color $' + self.isosurface_name + ' ' +
+            self.applet.script(
+                'color $"' + self.isosurface_name + '" ' +
                     '[x' + $('#' + self.color_id).val().substring(1) + '] ' +
                     ' translucent ' + self.translucent + ';' +
-                '', true
+                '', { maintain_selection: true, try_catch: true }
             );
             if(sele){
-                self.applet.script_wait(
+                self.applet.script(
                     'isosurface ID "' + self.isosurface_name + '"; ' +
                     'color ISOSURFACE {' + sele + '} orange;' +
-                    '', true
+                    '', { maintain_selection: true, try_catch: true }
                 );
             }
         });
@@ -262,20 +261,20 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         // init translucent
         $("#" + this.translucent_id).bind('change', function() {
             self.translucent = $("#" + self.translucent_id + " option:selected").val();
-            self.applet.script('color $' + self.isosurface_name + ' translucent ' + self.translucent + ';');
+            self.applet.script('color $"' + self.isosurface_name + '" translucent ' + self.translucent + ';');
         });
     
         // init colorscheme
         $("#" + this.colorscheme_id).bind('change', function() {
             self.colorscheme = $("#" + self.colorscheme_id + " option:selected").val();
             $("#" + self.colorscheme_id).val('');
-            self.applet.script('color $' + self.isosurface_name + ' "' + self.colorscheme + '";');
+            self.applet.script('color $"' + self.isosurface_name + '" "' + self.colorscheme + '";');
         });
     
         // init color range
         $("#" + this.color_range_id).bind('change', function() {
             self.color_range = $("#" + self.color_range_id + " option:selected").val();
-            self.applet.script('color $' + self.isosurface_name + ' "' + self.colorscheme + '" RANGE ' + self.color_range + ';');
+            self.applet.script('color $"' + self.isosurface_name + '" "' + self.colorscheme + '" RANGE ' + self.color_range + ';');
         });
 
         // init map
@@ -297,12 +296,12 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
                 _.each(cpk, function(color, element){
                     s += 'color ISOSURFACE {' + element + ' ' + sele + '} ' + color + ';';
                 });
-                self.applet.script(s, true);
+                self.applet.script(s, { maintain_selection: true, try_catch: true });
             }else if(self.map){
                 self.applet.script(
                     'select *; ' +
                     'isosurface ID "' + self.isosurface_name + '" MAP ' + self.map + ';' +
-                    '', true
+                    '', { maintain_selection: true, try_catch: true }
                 );
             }
         });
@@ -387,12 +386,12 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
     },
     set_show: function(){
         var s = $("#" + this.show_id).is(':checked') ? 'display' : 'hide';
-        this.applet.script( s + ' $' + this.isosurface_name + ';' );
+        this.applet.script( s + ' $"' + this.isosurface_name + '";' );
     },
     set_focus: function(){
         var s = '';
         if( this.focus ){
-            s = 'isosurface id "' + this.isosurface_name + '" ' +
+            s = 'isosurface ID "' + this.isosurface_name + '" ' +
                 'display within ' + this.display_within + ' {' + this.sele + '}; ' +
                 'set rotationRadius 15; zoom {' + this.sele + '} 100; ' +
                 'select *; star off; select ' + this.sele + '; color star green; star 1.0;' +
@@ -400,10 +399,10 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
                 //'slab on; set slabRange 25.0;' +
             '';
         }else{
-            s = 'isosurface id "' + this.isosurface_name + '" display all; ' +
+            s = 'isosurface ID "' + this.isosurface_name + '" display all; ' +
                 'center {all}; slab off;';
         }
-        this.applet.script(s);
+        this.applet.script(s, { maintain_selection: true, try_catch: true });
     },
     init_load_params: function( params ){
         this.within = params.within || '';
@@ -428,11 +427,11 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
             '"' + file_url + '" ' +
             ( this.style ? this.style : '' ) + 
             ';'
-        , true);
+        , { maintain_selection: true, try_catch: true });
     },
     delete_isosurface: function(){
         this.applet.script(
-            'isosurface id ' + this.isosurface_name + ' delete;' +
+            'isosurface ID ' + this.isosurface_name + ' delete;' +
         '', true);
     },
     reload: function(params){
@@ -807,15 +806,13 @@ Provi.Bio.Isosurface.SurfaceParamsWidget = function(params){
     '</div>';
     $(this.dom).append( content );
     
-    this.select_selector = new Provi.Selection.SelectorWidget({
+    this.select_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.select_selector_id,
-        applet: params.applet,
-        tag_name: 'span'
+        applet: params.applet, tag_name: 'span'
     });
-    this.ignore_selector = new Provi.Selection.SelectorWidget({
+    this.ignore_selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.ignore_selector_id,
-        applet: params.applet,
-        tag_name: 'span'
+        applet: params.applet, tag_name: 'span'
     });
     
     if( this.dataset && this.dataset.type != 'dx' ){
@@ -857,10 +854,10 @@ Provi.Bio.Isosurface.SurfaceParamsWidget.prototype = Utils.extend(Widget, /** @l
     },
     get_ignore: function(){
         if( $("#" + this.negate_select_as_ignore_id).is(':checked') ){
-            var ignore = this.select_selector.get().selection;
+            var ignore = this.select_selector.get();
             var negate = true;
         }else{
-            var ignore = this.ignore_selector.get().selection;
+            var ignore = this.ignore_selector.get();
             //var ignore = $("#" + this.ignore_id).val();
             var negate = $("#" + this.negate_ignore_id).is(':checked');
         }
