@@ -100,7 +100,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
                 'subset file = _currentFileNumber; ' + style + '; subset; ';
         //}else if(load_as == 'new'){
         }else{
-            console.log('../../data/get/' + params);
+            console.log(path);
             s = 'load ' + path + '; ' + style;
         }
 

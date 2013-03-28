@@ -546,18 +546,20 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         var presets = {
             'crystal_contacts': '' +
                 'display within(12.0, not symmetry); ' +
-                'contact {symmetry} {not symmetry} full vdw 110% color white; ' +
+                'try{ contact {symmetry} {not symmetry} full vdw 120% color white; }catch(){}' +
                 'color {*} molecule; ' +
                 'center displayed; ',
             'phi_psi_coloring': '' +
+                'var phi=0; var psi=0; var r=0; var g=0; var b=0; var colr=0;' +
                 'for(a in {protein and *.CA}){' +
-                    'var phi = {@a}.phi;' +
-                    'var psi = {@a}.psi;' +
+                    'phi = {@a}.phi;' +
+                    'psi = {@a}.psi;' +
                     'try{' +
-                        'var r = (( phi + 180 )/360 )*255;' +
-                        'var g = 256 - (( psi + 180 )/360 )*255;' +
-                        'var b = sqrt(r*r + g*g);' +
-                        'var colr = {@r, @g, @b};' +
+                        'r = (( phi + 180 )/360 )*255;' +
+                        'g = 256 - (( psi + 180 )/360 )*255;' +
+                        //'b = 1;' +
+                        'b = sqrt(r*r + g*g);' +
+                        'colr = {@r, @g, @b};' +
                         'color @a @colr;' +
                     '}catch(){' +
                         'color @a grey;' +
@@ -569,7 +571,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
         
         if( this.preset_cmd ){
             var s = this.preset_cmd;
-            applet.script( 'try{' + s + '}catch(e){}', { maintain_selection: true } );
+            applet.script( s, { maintain_selection: true, try_catch: false } );
         }
     },
     set_color_scheme: function (){
