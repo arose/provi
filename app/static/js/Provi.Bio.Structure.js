@@ -104,7 +104,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
             s = 'load ' + path + '; ' + style;
         }
 
-        applet.script_callback( s, { maintain_selection: true, try_catch: true }, function(){
+        applet.script_callback( s, { maintain_selection: true, try_catch: false }, function(){
             if( load_as != 'append' && load_as != 'trajectory+append' ){
                 applet.lighting_manager.set();
                 applet.clipping_manager.set();
@@ -113,10 +113,10 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
             applet.picking_manager.set();
             applet.misc_manager.set();
             if( load_as != 'trajectory+append' && load_as != 'trajectory'  ){
-                applet.script( 'frame all;', { maintain_selection: true, try_catch: true } );
+                applet.script( 'frame all;', { maintain_selection: true, try_catch: false } );
             }
             if( script ){
-                applet.script( script, { maintain_selection: true, try_catch: true } );
+                applet.script( script, { maintain_selection: true, try_catch: false } );
             }
         });
     }
