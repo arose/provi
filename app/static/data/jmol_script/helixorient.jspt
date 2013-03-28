@@ -1,0 +1,188 @@
+
+
+function norm(v){
+    return v/v;
+}
+
+
+function vec_mag(v){
+    return sqrt( v.X*v.X + v.Y*v.Y + v.Z*v.Z );
+}
+
+
+function vec_angle(v1, v2){
+    var ang = acos( (v1*v2) / ( vec_mag(v1)*vec_mag(v2) ) );
+    if( ang > 90 ) ang = 180-ang;
+    return ang;
+}
+
+
+function lsq(x, y) {
+    var n = x.length;
+    if (n != y.length || n == 0) return false;
+    var sum_x = x.sum;
+    var sum_y = y.sum;
+    var sum_xy = 0;
+    var sum_xx = 0;
+    for (var i = 1; i <= n; i++) {
+        sum_xx += x[i]*x[i];
+        sum_xy += x[i]*y[i];
+    }
+    # y = x * m + b
+    var m = (n*sum_xy - sum_x*sum_y) / (n*sum_xx - (sum_x**2));
+    var b = (sum_y*sum_xx - sum_x*sum_xy) / (n*sum_xx - (sum_x**2));
+    return [ x[1]*m+b, x[n]*m+b ];
+}
+
+
+function helix_axis(pointz, draw, id, colr){
+    var x = [];
+    var y = [];
+    var z = [];
+    var n = pointz.length;
+    var beg = [];
+    var ent = [];
+    var tmp = [];
+    var l = [];
+    for(var j=2; j<=n; j++){
+    	var i = j-1
+    	if(pointz[j]){
+	    	x[i] = pointz[j].X;
+	    	y[i] = pointz[j].Y;
+	    	z[i] = pointz[j].Z;
+	    	l[i] = i;
+	    }
+	    #draw ID @{name+"_pointz"+i} color skyblue @{pointz[i]};
+    }
+
+    tmp = lsq( l, x );
+    beg = beg + tmp[1];
+    ent = ent + tmp[2];
+    tmp = lsq( l, y );
+    beg += tmp[1];
+    ent += tmp[2];
+    tmp = lsq( l, z );
+    beg += tmp[1];
+    ent += tmp[2];
+    
+    beg = point( "{" + beg[1] + " " + beg[2] + " " + beg[3] + "}" );
+    ent = point( "{" + ent[1] + " " + ent[2] + " " + ent[3] + "}" );
+    var vec = ent-beg;
+
+    if(draw){
+        #draw ID @{id+"_beg"} color @colr @beg;
+        #draw ID @{id+"_end"} color @colr @ent;
+        draw ID @{id+""} color @colr VECTOR @beg @vec;
+    }
+    
+    return [beg, ent, vec, name];
+}
+
+function helix_axis2(helix, draw){
+
+    var ca = {@helix and *.CA};
+    var n = ca.length
+    var beg = [];
+    var ent = [];
+    var tmp = [];
+    var l = [];
+    for(var i=1; i<=n; ++i){
+        l[i] = i;
+    }
+    
+    tmp = lsq( l, ca.X.all );
+    beg = beg + tmp[1];
+    ent = ent + tmp[2];
+    tmp = lsq( l, ca.Y.all );
+    beg += tmp[1];
+    ent += tmp[2];
+    tmp = lsq( l, ca.Z.all );
+    beg += tmp[1];
+    ent += tmp[2];
+    print "helix_axis2";
+    print beg;
+    beg = point( "{" + beg[1] + " " + beg[2] + " " + beg[3] + "}" );
+    ent = point( "{" + ent[1] + " " + ent[2] + " " + ent[3] + "}" );
+    var vec = ent-beg;
+
+    if(draw){
+        var name = "_helix_axis2_" + vec + draw;
+        #draw ID @{name+"_beg"} color @draw @beg;
+        #draw ID @{name+"_end"} color @draw @ent;
+        draw ID @{name+""} color @draw VECTOR @beg @vec;
+    }
+    
+    return [beg, ent, vec, name];
+}
+
+
+
+function helixorient( sele, draw ){
+	sele = {@sele and *.CA};
+    var n = sele.length;
+    var r12 = [];
+    var r23 = [];
+    var r34 = [];
+    var diff13 = [];
+    var diff24 = [];
+    var helixaxis = [];
+    var resdir = [];
+    var twist = [];
+    var radius = [];
+    #var rise = [];
+    var residueorigin = [];
+    for(var i=1; i<=n-3; ++i){
+        r12[i] = sele[i+1].XYZ - sele[i].XYZ;
+        r23[i] = sele[i+2].XYZ - sele[i+1].XYZ;
+        r34[i] = sele[i+3].XYZ - sele[i+2].XYZ;
+        diff13[i] = r12[i] - r23[i];
+        diff24[i] = r23[i] - r34[i];
+        # calculate helix axis
+        helixaxis[i] = cross( diff13[i], diff24[i] );
+        helixaxis[i] = helixaxis[i] * 1/norm(helixaxis[i]);
+
+        tmp = cos( vec_angle( diff13[i], diff24[i] ) );
+        twist[i] = 180.0/3.1415 * acos( tmp );
+        #radius[i] = sqrt( abs( norm( diff13[i] ) * norm( diff24[i] ) ) ) / (2 * (1-tmp) );
+        radius[i] = sqrt( abs( norm( diff24[i] ) * norm( diff13[i] ) ) );
+        #rise[i]= fabs( iprod(r23[i], helixaxis[i]) );
+
+        var v1 = diff13[i] * radius[i]/norm(diff13[i]);
+        var v2 = diff24[i] * radius[i]/norm(diff24[i]);
+        
+        residueorigin[i+1] = sele[i+1].XYZ - v1;
+        residueorigin[i+2] = sele[i+2].XYZ - v2;
+
+        resdir[i] = sele[i].XYZ-residueorigin[i];
+    }
+    #print radius;
+    if( draw ){
+    	#helix_axis2( sele, "tomato" );
+        #helix_axis( residueorigin, "skyblue" );
+        var colr = "orange"
+        if( draw!=1) colr = draw;
+        for(var i=2; i<=n-1; ++i){
+            draw ID @{ "_ho_axis_"+sele+i } VECTOR @{residueorigin[i]} @{helixaxis[i]} SCALE 10 COLOR @colr;
+            draw ID @{ "_ho_res_"+sele+i } VECTOR @{residueorigin[i]} @{resdir[i]} COLOR @colr;
+        }
+        select @sele;
+        #cpk 20%;
+        color cartoon translucent;
+
+    }
+    select none;
+    return { "center": residueorigin,
+        "axis": helixaxis,
+        "radius": radius,
+        "twist": twist,
+        "resdir": resdir,
+        "sele": sele
+    };
+}
+
+
+function helixorient_show_axis( sele, id ){
+	d = helixorient( sele, false );
+	helix_axis( d["center"], true, id, "skyblue" );
+}
+

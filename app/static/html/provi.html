@@ -68,6 +68,7 @@
     <script type="text/javascript" src="../js/Provi.Bio.AtomProperty.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.AtomSelection.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Alignment.js"></script>
+    <script type="text/javascript" src="../js/Provi.Bio.Helix.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.HydrogenBonds.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Structure.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.Superposition.js"></script>
@@ -256,10 +257,15 @@
                 parent_id: 'tab_widgets'
             });
 
-            new Provi.Jmol.Analysis.GromacsHelixorientWidget({
-                parent_id: 'tab_widgets',
-                collapsed: true
-            });
+            // new Provi.Bio.Helix.GromacsHelixorientWidget({
+            //     parent_id: 'tab_widgets',
+            //     collapsed: true
+            // });
+
+            // new Provi.Bio.AtomSelection.GridWidget({
+            //     parent_id: 'tab_widgets',
+            //     type: "helixorient"
+            // });
 
             new Provi.Bio.Flatland.FlatlandWidget({
                 parent_id: 'tab_widgets',

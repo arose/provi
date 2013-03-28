@@ -96,6 +96,8 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
                 '<option value="chainlabel">Chains</option>' +
                 '<option value="modelindex">Models</option>' +
                 '<option value="variable">Selections</option>' +
+                '<option value="strucno">Structures</option>' +
+                '<option value="helixorient">Helixorient</option>' +
             '</select>' +
             '&nbsp;' +
             '<button id="${eids.update}">update</button>' +
@@ -300,6 +302,14 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             var id = elm.data("id");
             self.sele_type.show_intersurf( id, !elm.prop('checked'), {}, invalidate );
             console.log("intersurf");
+        });
+
+        $( this.eid('grid', true) + ' input[cell="axis"]' ).live( 'click', function(e, data){
+            var elm = $(this);
+            elm.parent().tipsy('hide');
+            var id = elm.data("id");
+            self.sele_type.show_axis( id, !elm.prop('checked'), {}, invalidate );
+            console.log("axis");
         });
         
         Provi.Widget.Widget.prototype.init.call(this);
@@ -793,6 +803,57 @@ Provi.Bio.AtomSelection.VariableSelectionType.prototype = Utils.extend(Provi.Bio
 });
 
 
+Provi.Bio.AtomSelection.StrucnoSelectionType = function(params){
+    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+}
+Provi.Bio.AtomSelection.StrucnoSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.AtomSelection.StrucnoSelectionType.prototype */ {
+    get_ids: function(){
+        var s = '{' + this.filtered() + '}.strucno.all.count().join("")';
+        var data = this.applet.evaluate(s);
+        if(data) data = data.trim().split('\t');
+        data = _.filter(data, function(val, i){
+            return i % 2 == 0;
+        });
+        return data;
+    },
+    get_data: function(id){
+        var format = '\'%[structure]\',\'%[substructure]\'';
+        var a = this.applet.atoms_property_map( format, this.selection(id), true )[0];
+        var s = '{' + this.selection(id) + '}.selected.join("")';
+        // todo: get number of substructures of the same type with a smaller strucno
+        var selected = this.applet.evaluate(s);
+        a.push( selected );
+        return a;
+    },
+    make_row: function(id){
+        var a = this.get_data(id);
+        if(id==="all"){
+            var label = "Strucno";
+        }else{
+            var label = a[0] + ' | ' + a[1];
+        }
+
+        var $row = $('<div></div>');
+        $row.append(
+            this.selected_cell( id, a[2] ),
+            this.displayed_cell( id, this.displayed(id) ),
+            this.label_cell( label )
+        );
+        return $row;
+    },
+    selection: function(id){
+        if( id==='all' ){
+            return 'within(MODEL, ' + this.filtered() + ')';
+        }else{
+            return 'strucno=' + id;
+        }
+    }
+});
+
+
+
+
+
 Provi.Bio.AtomSelection.SelectionTypeRegistry = {
     _dict: {
         'atomindex': Provi.Bio.AtomSelection.AtomindexSelectionType,
@@ -800,6 +861,7 @@ Provi.Bio.AtomSelection.SelectionTypeRegistry = {
         'chainlabel': Provi.Bio.AtomSelection.ChainlabelSelectionType,
         'modelindex': Provi.Bio.AtomSelection.ModelindexSelectionType,
         'variable': Provi.Bio.AtomSelection.VariableSelectionType,
+        'strucno': Provi.Bio.AtomSelection.StrucnoSelectionType,
         // 'filelabel': Provi.Bio.AtomSelection.FilelabelSelectionType,
         // 'strucnolabel': Provi.Bio.AtomSelection.ScrucnolabelSelectionType,
         // 'moleculelabel': Provi.Bio.AtomSelection.MoleculelabelSelectionType,
