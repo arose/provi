@@ -326,6 +326,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
             '<select style="width:1.5em;" id="${eids.presets}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="crystal_contacts">crystal contacts</option>' +
+                '<option value="phi_psi_coloring">phi/psi coloring</option>' +
             '</select>' +
             '&nbsp;' +
             '<label for="${eids.presets}">presets</label>' +
@@ -547,7 +548,21 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                 'display within(12.0, not symmetry); ' +
                 'contact {symmetry} {not symmetry} full vdw 110% color white; ' +
                 'color {*} molecule; ' +
-                'center displayed; '
+                'center displayed; ',
+            'phi_psi_coloring': '' +
+                'for(a in {protein and *.CA}){' +
+                    'var phi = {@a}.phi;' +
+                    'var psi = {@a}.psi;' +
+                    'try{' +
+                        'var r = (( phi + 180 )/360 )*255;' +
+                        'var g = 256 - (( psi + 180 )/360 )*255;' +
+                        'var b = sqrt(r*r + g*g);' +
+                        'var colr = {@r, @g, @b};' +
+                        'color @a @colr;' +
+                    '}catch(){' +
+                        'color @a grey;' +
+                    '}' +
+                '}'
         }
         
         this.preset_cmd = presets[ selected_preset ] || '';
