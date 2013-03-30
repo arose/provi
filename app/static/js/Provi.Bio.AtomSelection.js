@@ -79,7 +79,7 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
     console.log('ATOMSELECTION GRID', params);
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
-        'grid', 'update', 'type', 'filter', 'sort', 'property', 'contact_color_code'
+        'grid', 'update', 'type', 'filter', 'sort', 'property', 'widgets'
     ]);
     
     this.type = params.type;
@@ -98,6 +98,7 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
                 '<option value="variable">Selections</option>' +
                 '<option value="strucno">Structures</option>' +
                 '<option value="helixorient">Helixorient</option>' +
+                '<option value="helixcrossing">Helixcrossing</option>' +
             '</select>' +
             '&nbsp;' +
             '<button id="${eids.update}">update</button>' +
@@ -147,17 +148,7 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
                 'sidechain<br/>' +
             '</div>' +    
         '</div>' +
-        '<div class="control_row" id="${eids.contact_color_code}">' +
-            '<span style="background-color:#FFFF00; padding: 1px 3px;">&#8209;0.5</span>' +
-            '<span style="background-color:#FFA500; padding: 1px 3px;">0.0</span>' +
-            '<span style="background-color:#EB8900; padding: 1px 3px;">0.5</span>' +
-            '<span style="background-color:#D86E00; padding: 1px 3px;">1.0</span>' +
-            '<span style="background-color:#C55200; padding: 1px 3px;">1.5</span>' +
-            '<span style="background-color:#B13700; padding: 1px 3px; color: white;">2.0</span>' +
-            '<span style="background-color:#9E1B00; padding: 1px 3px; color: white;">2.5</span>' +
-            '<span style="background-color:#8B0000; padding: 1px 3px; color: white;">2.8</span>' +
-            '&nbsp;contact cutoff' +
-        '</div>' +
+        '<div class="control_row" id="${eids.widgets}"></div>' +
         '<div class="control_row">' +
             '<div style="height:500px;" id="${eids.grid}"></div>' +
         '</div>' +
@@ -177,8 +168,6 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
     _init: function(){
         var self = this;
 
-        var invalidate = _.bind( this.invalidate, this );
-
         this.create_grid();
         this.update_type();
         // this.update_grid();
@@ -186,16 +175,6 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         _.each( this.hide_eids, function(eid){
             self.elm( eid ).parent().hide();
         });
-
-        if( this.type==="voronoia" ){
-            this.sele_type.show_hole( 'all', undefined, invalidate );
-        }
-        if( this.type==="interface_contacts" ){
-            this.sele_type.show_contacts( 'Membrane', undefined, invalidate );
-            this.elm('contact_color_code').show();
-        }else{
-            this.elm('contact_color_code').hide();
-        }
 
         if( this.applet ){
             $(this.applet).bind('load_struct', function(e, fullPathName, fileName){
@@ -241,76 +220,6 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
                 self.update_type();
             }
         });
-
-        $( this.eid('grid', true) + ' input[cell="selected"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.select( id, !elm.prop('checked'), invalidate );
-        });
-
-        $( this.eid('grid', true) + ' input[title="displayed"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.display( id, !elm.prop('checked'), invalidate );
-        });
-
-        $( this.eid('grid', true) + ' input[cell="hole"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.show_hole( id, !elm.prop('checked'), invalidate );
-            console.log("hole");
-        });
-
-        $( this.eid('grid', true) + ' input[cell="cavity"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.show_cavity( id, !elm.prop('checked'), {}, invalidate );
-            console.log("checked");
-        });
-
-        $( this.eid('grid', true) + ' input[cell="neighbours"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.show_neighbours( id, !elm.prop('checked'), invalidate );
-            console.log("neighbours");
-        });
-
-        $( this.eid('grid', true) + ' input[cell="contacts"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.show_contacts( id, !elm.prop('checked'), invalidate );
-            console.log("contacts");
-        });
-
-        $( this.eid('grid', true) + ' input[cell="consurf"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.show_consurf( id, !elm.prop('checked'), {}, invalidate );
-            console.log("consurf");
-        });
-
-        $( this.eid('grid', true) + ' input[cell="intersurf"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.show_intersurf( id, !elm.prop('checked'), {}, invalidate );
-            console.log("intersurf");
-        });
-
-        $( this.eid('grid', true) + ' input[cell="axis"]' ).live( 'click', function(e, data){
-            var elm = $(this);
-            elm.parent().tipsy('hide');
-            var id = elm.data("id");
-            self.sele_type.show_axis( id, !elm.prop('checked'), {}, invalidate );
-            console.log("axis");
-        });
         
         Provi.Widget.Widget.prototype.init.call(this);
     },
@@ -344,7 +253,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             enableCellNavigation: false,
             enableColumnReorder: false,
             enableAsyncPostRender: true,
-            asyncPostRenderDelay: 0.1,
+            asyncPostRenderDelay: 1,
             showHeaderRow: true,
             headerRowHeight: 25,
             //rowHeight: 140,
@@ -374,7 +283,9 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         // $(header).css('padding', '1px');
     },
     update_type: function(){
+        var self = this;
         var type = this.type || 'atomindex';
+        this.elm('type').val( type );
         this.sele_type = new (Provi.Bio.AtomSelection.SelectionTypeRegistry.get( type ))({ 
             applet: this.applet,
             sele: '*',
@@ -382,6 +293,23 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             sort: this.elm('sort').children("option:selected").val(),
             property: this.elm('property').children("option:selected").val()
         });
+
+        var invalidate = _.bind( this.invalidate, this );
+
+        this.elm("widgets").empty();
+        this.sele_type._init.call( this.sele_type, this );
+
+        this.elm('grid').off( 'click.grid' );
+        _.each( this.sele_type.handler, function(d, i){
+            self.elm('grid').on( 'click.grid', d["selector"], function(e){
+                var elm = $(e.currentTarget);
+                elm.parent().tipsy('hide');
+                var id = elm.data("id");
+                var flag = !elm.prop('checked');
+                d["click"].apply( self.sele_type, [ id, flag, {}, invalidate ]);
+            });
+        });
+
         this.update_grid();
     },
     update_grid: function(){
@@ -403,6 +331,35 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
 });
 
 
+Provi.Bio.AtomSelection.CellFactory = function( p ){
+    p.color = p.color || "none";
+    p.label = p.label || p.name;
+    p.position = p.position || "right";
+    if( !_.isFunction(p.label) ){
+        var l = p.label;
+        p.label = function(value){
+            return (value ? 'Hide' : 'Show') + ' ' + l;
+        }
+    }
+    return function(id, value, disabled){
+
+        var $elm = $(
+            '<span style="background:' + p.color + '; float:' + p.position + '; width:22px;">' +
+                '<input cell="' + p.name + '" type="checkbox" ' + 
+                    ( disabled ? 'disabled="disabled" ' : '') +
+                    ( value ? 'checked="checked" ' : '' ) + 
+                '/>' +
+            '</span>'
+        );
+        $elm.children().prop( 'indeterminate', value > 0.0 && value < 1.0 );
+        $elm.children().data( 'id', id );
+        var tt = p.label( value, id );
+        $elm.tipsy({gravity: 'n', fallback: tt});
+        return $elm;
+    }
+}
+
+
 Provi.Bio.AtomSelection.SelectionType = function(params){
     this.applet = params.applet;
     this.parent_id = params.parent_id;
@@ -410,8 +367,21 @@ Provi.Bio.AtomSelection.SelectionType = function(params){
     this.filter = params.filter;
     this.sort = params.sort;
     this.property = params.property;
+
+    this.handler = {
+        "select": {
+            "selector": 'input[cell="selected"]',
+            "click": this.select
+        },
+        "display": {
+            "selector": 'input[cell="displayed"]',
+            "click": this.display
+        }
+    };
 }
 Provi.Bio.AtomSelection.SelectionType.prototype = {
+    handler: {},
+    _init: function(){},
     get_ids: function(){},
     get_data: function(id){},
     make_row: function(id){},
@@ -436,12 +406,12 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
         var d = '{' + this.selection(id) + '}.' + this.property + '';
         return this.applet.evaluate(d);
     },
-    select: function(id, flag, callback){
+    select: function(id, flag, params, callback){
         var selection = this.selection( id );
         var s = 'select ' + (flag ? 'remove' : 'add') + ' ' + selection;
         this.applet.script_callback( s, {}, callback );
     },
-    display: function(id, flag, callback){
+    display: function(id, flag, params, callback){
         var selection = this.selection( id );
         var s = 'display ' + (flag ? 'remove' : 'add') + ' ' + selection;
         this.applet.script_callback( s, {}, callback );
@@ -452,33 +422,20 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
         '</span>');
         return $label;
     },
-    selected_cell: function(id, selected, disabled){
-        selected = parseFloat(selected);
-        var $selected = $('<span style="float:left; width:25px;">' +
-            '<input cid="' + id + '" cell="selected" type="checkbox"' + 
-                ( disabled ? 'disabled="disabled" ' : '') +
-                ( selected ? 'checked="checked" ' : '' ) + 
-            '/>' +
-        '</span>');
-        $selected.children().prop( 'indeterminate', selected > 0.0 && selected < 1.0 );
-        $selected.children().data( 'id', id );
-        var tt = (selected ? 'Deselect' : 'Select') + (id==='all' ? ' all' : '');
-        $selected.tipsy({gravity: 'n', fallback: tt});
-        return $selected;
-    },
-    displayed_cell: function(id, displayed){
-        displayed = parseFloat(displayed);
-        var $displayed = $('<span style="float:left; width:25px;">' +
-            '<input title="displayed" type="checkbox"' + 
-                ( displayed ? 'checked="checked" ' : '' ) + 
-            '/>' +
-        '</span>');
-        $displayed.children().prop( 'indeterminate', displayed > 0.0 && displayed < 1.0 );
-        $displayed.children().data( 'id', id );
-        var tt = (displayed ? 'Hide' : 'Display') + (id==='all' ? ' all' : '');
-        $displayed.tipsy({gravity: 'n', fallback: tt});
-        return $displayed;
-    },
+    selected_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "selected",
+        "position": "left",
+        "label": function(selected, id){
+            return (selected ? 'Deselect' : 'Select') + (id==='all' ? ' all' : '');
+        }
+    }),
+    displayed_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "displayed",
+        "position": "left",
+        "label": function(displayed, id){
+            return (displayed ? 'Hide' : 'Display') + (id==='all' ? ' all' : '');
+        }
+    }),
     color_cell: function(color){
         if( color ){
             color = color || '';

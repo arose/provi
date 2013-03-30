@@ -79,8 +79,39 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
     this.atm_cutoff.reverse();
 
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
+    this.handler = _.defaults({
+        "show_consurf": {
+            "selector": 'input[cell="consurf"]',
+            "click": this.show_consurf
+        },
+        "show_intersurf": {
+            "selector": 'input[cell="intersurf"]',
+            "click": this.show_intersurf
+        },
+        "show_contacts": {
+            "selector": 'input[cell="contacts"]',
+            "click": this.show_contacts
+        }
+    }, this.handler );
 }
 Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableSelectionType, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype */ {
+    _init: function(grid){
+        var template = '' +
+            '<div class="control_row">' +
+                '<span style="background-color:#FFFF00; padding: 1px 3px;">&#8209;0.5</span>' +
+                '<span style="background-color:#FFA500; padding: 1px 3px;">0.0</span>' +
+                '<span style="background-color:#EB8900; padding: 1px 3px;">0.5</span>' +
+                '<span style="background-color:#D86E00; padding: 1px 3px;">1.0</span>' +
+                '<span style="background-color:#C55200; padding: 1px 3px;">1.5</span>' +
+                '<span style="background-color:#B13700; padding: 1px 3px; color: white;">2.0</span>' +
+                '<span style="background-color:#9E1B00; padding: 1px 3px; color: white;">2.5</span>' +
+                '<span style="background-color:#8B0000; padding: 1px 3px; color: white;">2.8</span>' +
+                '&nbsp;contact cutoff' +
+            '</div>' +
+        '';
+        grid.elm("widgets").append( template );
+        this.show_contacts( 'Membrane', undefined, {}, invalidate );
+    },
     tmp_prop_cmd: function(id){
         var tmp_prop = '{*}.property_tmp = NaN;';
         _.each(this.atm_cutoff, function(d){
@@ -275,7 +306,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
             'color atoms pink;' +
         '';
     },
-    show_contacts: function(id, flag, callback){
+    show_contacts: function(id, flag, params, callback){
         if(flag){
             this.shown_contact_id = undefined;
         }else{
@@ -283,32 +314,16 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         }
         this.applet.script_callback( this._show_contacts(id, flag), { maintain_selection: true, try_catch: true }, callback );
     },
-    consurf_cell: function(id, consurf){
-        if( id==="all" ) return '';
-
-        var $consurf = $('<span style="background:tomato; float:right; width:22px;">' +
-            '<input cell="consurf" type="checkbox" ' + 
-                ( consurf ? 'checked="checked" ' : '' ) + 
-            '/>' +
-        '</span>');
-        $consurf.children().data( 'id', id );
-        var tt = (consurf ? 'Hide' : 'Show') + ' contact surface';
-        $consurf.tipsy({gravity: 'n', fallback: tt});
-        return $consurf;
-    },
-    intersurf_cell: function(id, intersurf){
-        if( _.include([ 'all', 'Membrane', 'Water' ], id ) ) return '';
-
-        var $intersurf = $('<span style="background:skyblue; float:right; width:22px;">' +
-            '<input cell="intersurf" type="checkbox" ' + 
-                ( intersurf ? 'checked="checked" ' : '' ) + 
-            '/>' +
-        '</span>');
-        $intersurf.children().data( 'id', id );
-        var tt = (intersurf ? 'Hide' : 'Show') + ' element surface';
-        $intersurf.tipsy({gravity: 'n', fallback: tt});
-        return $intersurf;
-    },
+    consurf_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "consurf",
+        "color": "tomato",
+        "label": "contact surface"
+    }),
+    intersurf_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "intersurf",
+        "color": "skyblue",
+        "label": "element surface"
+    }),
     contacts_cell: function(id, contacts){
         // if( id==="all" ) return '';
 
