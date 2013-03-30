@@ -117,7 +117,7 @@ function helix_axis2(helix, draw){
 
 
 
-function helixorient( sele, draw ){
+function helixorient( sele, draw, id, colr ){
 	sele = {@sele and *.CA};
     var n = sele.length;
     var r12 = [];
@@ -126,6 +126,7 @@ function helixorient( sele, draw ){
     var diff13 = [];
     var diff24 = [];
     var helixaxis = [];
+    var axisdiff = [0];
     var resdir = [];
     var twist = [];
     var radius = [];
@@ -140,6 +141,7 @@ function helixorient( sele, draw ){
         # calculate helix axis
         helixaxis[i] = cross( diff13[i], diff24[i] );
         helixaxis[i] = helixaxis[i] * 1/norm(helixaxis[i]);
+        if(i>1) axisdiff[i] = vec_angle( helixaxis[i], helixaxis[i-1] );
 
         tmp = cos( vec_angle( diff13[i], diff24[i] ) );
         twist[i] = 180.0/3.1415 * acos( tmp );
@@ -159,20 +161,20 @@ function helixorient( sele, draw ){
     if( draw ){
     	#helix_axis2( sele, "tomato" );
         #helix_axis( residueorigin, "skyblue" );
-        var colr = "orange"
-        if( draw!=1) colr = draw;
+        if( !colr) colr = "orange";
         for(var i=2; i<=n-1; ++i){
-            draw ID @{ "_ho_axis_"+sele+i } VECTOR @{residueorigin[i]} @{helixaxis[i]} SCALE 10 COLOR @colr;
-            draw ID @{ "_ho_res_"+sele+i } VECTOR @{residueorigin[i]} @{resdir[i]} COLOR @colr;
+            draw ID @{ id+"_axis_"+i } VECTOR @{residueorigin[i]} @{helixaxis[i]} SCALE 10 COLOR @colr;
+            draw ID @{ id+"_res_"+i } VECTOR @{residueorigin[i]} @{resdir[i]} COLOR @colr;
         }
-        select @sele;
-        #cpk 20%;
-        color cartoon translucent;
+        # select @sele;
+        # cpk 20%;
+        # color cartoon translucent;
 
     }
     select none;
     return { "center": residueorigin,
         "axis": helixaxis,
+        "axisdiff": axisdiff,
         "radius": radius,
         "twist": twist,
         "resdir": resdir,
@@ -181,8 +183,20 @@ function helixorient( sele, draw ){
 }
 
 
-function helixorient_show_axis( sele, id ){
-	d = helixorient( sele, false );
-	helix_axis( d["center"], true, id, "skyblue" );
+function helixorient_show_axis( sele, id, local ){
+    try{
+	    var d = helixorient( sele, local, id, "orange" );
+	    helix_axis( d["center"], true, id, "skyblue" );
+        if(false){
+            var n = d["sele"].length;
+            for(var i=1; i<=n-3; ++i){
+                var s = d["sele"][i];
+                var colr = color("rwb", 0, 1, d["radius"][i]);
+                #var colr = color("rwb", 2000, 6000, d["twist"][i]);
+                #var colr = color("rwb", 0, 60, d["axisdiff"][i]);
+                color @s @colr;
+            }
+        }
+    }catch(){}
 }
 

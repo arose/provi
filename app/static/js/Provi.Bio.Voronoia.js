@@ -64,6 +64,20 @@ Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
     this.cavity_color = params.cavity_color;
     this.ids = params.ids;
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
+    this.handler = _.defaults({
+        "show_hole": {
+            "selector": 'input[cell="hole"]',
+            "click": this.show_hole
+        },
+        "show_cavity": {
+            "selector": 'input[cell="cavity"]',
+            "click": this.show_cavity
+        },
+        "show_hole": {
+            "selector": 'input[cell="neighbours"]',
+            "click": this.show_neighbours
+        }
+    }, this.handler );
 }
 Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableSelectionType, /** @lends Provi.Bio.Voronoia.VoronoiaSelectionType.prototype */ {
     default_params: {
@@ -71,6 +85,9 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         cavity_probe_radius: 0.6,
         exterior_probe_radius: 5.0,
         cavity_color: 'skyblue'
+    },
+    _init: function(grid){
+        this.show_hole( 'all', undefined, {}, grid.invalidate() );
     },
     get_ids: function(sele){
         return this.ids;
@@ -187,7 +204,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
             }).join(' ');
         }
     },
-    show_hole: function(id, flag, callback){
+    show_hole: function(id, flag, params, callback){
         this.applet.script_callback( this._show_hole(id, flag), { maintain_selection: true }, callback );
     },
     _show_cavity: function(id, flag, params){
@@ -229,47 +246,30 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
             'wireframe ' + (flag ? 'off' : '0.2') + ';' +
             'cpk ' + (flag ? 'off' : '0.2') + ';';
     },
-    show_neighbours: function(id, flag, callback){
+    show_neighbours: function(id, flag, params, callback){
         this.applet.script_callback( this._show_neighbours(id, flag), { maintain_selection: true }, callback );
     },
-    hole_cell: function(id, hole){
-        var $hole = $('<span style="background:skyblue; float:right; width:22px;">' +
-            '<input cell="hole" type="checkbox" ' + 
-                ( hole ? 'checked="checked" ' : '' ) + 
-            '/>' +
-        '</span>');
-        $hole.children().prop( 'indeterminate', hole > 0.0 && hole < 1.0 );
-        $hole.children().data( 'id', id );
-        var tt = (hole ? 'Hide' : 'Show') + (id==='all' ? ' all spheres' : ' sphere');
-        $hole.tipsy({gravity: 'n', fallback: tt});
-        return $hole;
-    },
-    cavity_cell: function(id, cavity, disabled){
-        var $cavity = $('<span style="background:tomato; float:right; width:22px;">' +
-            '<input cell="cavity" type="checkbox" ' + 
-                ( cavity ? 'checked="checked" ' : '' ) + 
-                ( disabled ? 'disabled="disabled" ' : '') +
-            '/>' +
-        '</span>');
-        $cavity.children().prop( 'indeterminate', cavity > 0.0 && cavity < 1.0 );
-        $cavity.children().data( 'id', id );
-        var tt = (cavity ? 'Hide' : 'Show') + (id==='all' ? ' all cavities' : ' cavity');
-        $cavity.tipsy({gravity: 'n', fallback: tt});
-        return $cavity;
-    },
-    neighbours_cell: function(id, neighbours){
-        neighbours = parseFloat(neighbours);
-        var $neighbours = $('<span style="background:lightgreen; float:right; width:22px;">' +
-            '<input cell="neighbours" type="checkbox" ' + 
-                ( neighbours ? 'checked="checked" ' : '' ) + 
-            '/>' +
-        '</span>');
-        $neighbours.children().prop( 'indeterminate', neighbours > 0.0 && neighbours < 0.2 );
-        $neighbours.children().data( 'id', id );
-        var tt = (neighbours ? 'Hide' : 'Show') + (id==='all' ? ' all neighbours' : ' neighbours');
-        $neighbours.tipsy({gravity: 'n', fallback: tt});
-        return $neighbours;
-    }
+    hole_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "hole",
+        "color": "skyblue",
+        "label": function(hole, id){
+            return (hole ? 'Hide' : 'Show') + (id==='all' ? ' all spheres' : ' sphere');
+        }
+    }),
+    cavity_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "cavity",
+        "color": "tomato",
+        "label": function(hole, id){
+            return (cavity ? 'Hide' : 'Show') + (id==='all' ? ' all cavities' : ' cavity');
+        }
+    }),
+    neighbours_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "neighbours",
+        "color": "lightgreen",
+        "label": function(hole, id){
+            return (hole ? 'Hide' : 'Show') + (id==='all' ? ' all neighbours' : ' neighbours');
+        }
+    })
 });
 
 
