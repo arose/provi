@@ -298,6 +298,11 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
 
         this.elm("widgets").empty();
         this.sele_type._init.call( this.sele_type, this );
+        this.sele_type.calculate();
+
+        $(this.sele_type).bind("calculate_ready", function(){
+            self.update_grid();
+        });
 
         this.elm('grid').off( 'click.grid' );
         _.each( this.sele_type.handler, function(d, i){
@@ -382,6 +387,7 @@ Provi.Bio.AtomSelection.SelectionType = function(params){
 Provi.Bio.AtomSelection.SelectionType.prototype = {
     handler: {},
     _init: function(){},
+    calculate: function(){},
     get_ids: function(){},
     get_data: function(id){},
     make_row: function(id){},
