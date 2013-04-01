@@ -362,7 +362,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     _delete: function(){
         var self = this;        
         $('#' + this.widget.data_id).empty();
-        this.script_callback('provi_selection = {};', {}, function(){
+        this.script_callback('provi_selection = {}; provi_data = {};', {}, function(){
             $(self).triggerHandler('delete');
         });
     },
@@ -657,6 +657,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         var result = "" + this.get_property("evaluate", molecular_math);
         if( result == 'ERROR' ){
             console.error('ERROR evaluate: ', molecular_math, result);
+            return false;
         }
         if( result == "true" ) return true;
         if( result == "false" ) return false;

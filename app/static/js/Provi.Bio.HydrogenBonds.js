@@ -205,4 +205,81 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 
 
 
+Provi.Bio.HydrogenBonds.HbondsSelectionType = function(params){
+    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+    this.handler = _.defaults({
+
+    }, this.handler );
+}
+Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype */ {
+    _init: function(grid){
+        this.applet.script_wait('' +
+            
+        '');
+    },
+    // calculate: function(){
+    //     var self = this;
+    //     this.ready = false;
+    //     this.applet.script_callback('' +
+    //         'if(!provi_data){ provi_data = {}; }' +
+    //         'provi_data["helixcrossing"] = helix_pairs({' + this.filtered() + '});' +
+    //     '', {}, function(){
+    //         self.ready = true;
+    //         $(self).trigger("calculate_ready");
+    //     });
+    // },
+    get_ids: function(){
+        if( !this.ready ) return [];
+        var format = '%[atomIndex]';
+        var data = this.applet.atoms_property_map( format, this.filtered() );
+        //console.error('get_ids');
+        data = _.map(data, function(val){
+            return val[0];
+        });
+        return data;
+    },
+    get_data: function(id){
+        var format = '\'%[group]\',\'%[resno]\',\'%[chain]\',\\"%[atomName]\\",\'%[file]\',\'%[model]\',\'%[selected]\',\'%[color]\'';
+        var a = this.applet.atoms_property_map( format, this.selection(id) )[0];
+        return a;
+    },
+    make_row: function(id){
+        if(id==='all'){
+            var label = 'Atoms';
+            var s = '{' + this.selection(id) + '}.selected.join("")';
+            var selected = this.applet.evaluate(s);
+            var color = '';
+        }else{
+            var a = this.get_data(id) || [];
+            var label = '[' + a[0] + ']' + a[1] + ':' + a[2] + '.' + a[3] + '/' + a[4] + '.' + a[5];
+            var selected = a[6];
+            var color = a[7];
+        }
+
+        var $row = $('<div></div>');
+        $row.append(
+            this.selected_cell( id, selected ),
+            this.displayed_cell( id, this.displayed(id) ),
+            this.label_cell( label ),
+            this.property_cell( id, this.get_property(id) )
+        );
+        return $row;
+    },
+    selection: function(id){
+        if( id==='all' ){
+            return 'within(MODEL, (' + this.filtered() + ') and helix)';
+        }else{
+            ids = id.split("_");
+            return '(strucno=' + ids[0] + ' or strucno=' + ids[1] + ')';
+        }
+    }
+});
+Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
+    'hbonds', Provi.Bio.HydrogenBonds.HbondsSelectionType
+);
+
+
+
+
+
 })();

@@ -42,7 +42,7 @@ Provi.Jmol.Controls.JmolConsole.prototype = /** @lends Provi.Jmol.Controls.JmolC
                     var cmd = this.value.trim();
                     if( cmd.charAt( cmd.length-1 ) != ';' ) cmd += ';';
                     self.print('> ' + cmd);
-                    var out = self.applet.script(
+                    var out = self.applet.script_wait(
                         cmd, { maintain_selection: self.maintain_selection, try_catch: true }
                     );
                     if( out.search(/ERROR/) != -1 ){

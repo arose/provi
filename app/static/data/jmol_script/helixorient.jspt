@@ -166,12 +166,7 @@ function helixorient( sele, draw, id, colr ){
             draw ID @{ id+"_axis_"+i } VECTOR @{residueorigin[i]} @{helixaxis[i]} SCALE 10 COLOR @colr;
             draw ID @{ id+"_res_"+i } VECTOR @{residueorigin[i]} @{resdir[i]} COLOR @colr;
         }
-        # select @sele;
-        # cpk 20%;
-        # color cartoon translucent;
-
     }
-    select none;
     return { "center": residueorigin,
         "axis": helixaxis,
         "axisdiff": axisdiff,
@@ -199,4 +194,27 @@ function helixorient_show_axis( sele, id, local ){
         }
     }catch(){}
 }
+
+
+function helixorient_crossingangle( sele_a, sele_b ){
+    var angl = 0;
+    var ha = 0;
+    var hb = 0;
+    try{
+        var ho_a = helixorient( sele_a );
+        var ho_b = helixorient( sele_b );
+        ha = helix_axis( ho_a["center"] );
+        hb = helix_axis( ho_b["center"] );
+        angl = vec_angle( ha[3], hb[3] );
+    }catch(){}
+    return [ angl, ha, hb ];
+}
+
+function helixorient_drawaxis( h, id, colr ){
+    if( !colr) colr = "skyblue";
+    var beg = h[1];
+    var vec = h[3];
+    draw ID @{id+""} color @colr VECTOR @beg @vec;
+}
+
 

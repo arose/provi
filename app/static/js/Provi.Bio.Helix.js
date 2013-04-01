@@ -75,6 +75,7 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
             parent_id: grid.eid('widgets')
         });
         this.applet.script_wait('' +
+            'script "../data/jmol_script/helixorient.jspt";' +
             'function provi_helixorient_test(ids){' +
                 'var sele_l = [];' +
                 'var draw_l = [];' +
@@ -149,11 +150,11 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
             }).join(' ');
         }else{
             return _.map( ids, function(id){
-                return 'script "../data/jmol_script/helixorient.jspt";' +
+                return '' +
                     'helixorient_show_axis({' + self.selection(id) + '}, ' +
                         '"helixorient_' + id + '_axis__no_widget__", ' +
                         ( params.show_local_axes ? 'true' : 'false' ) +
-                    ')' +
+                    ');' +
                 '';
             }).join(' ');
         }
@@ -193,75 +194,121 @@ Provi.Bio.Helix.HelixcrossingWidget.prototype = Utils.extend(Provi.Bio.AtomSelec
 })
 
 
-Provi.Bio.Helix.HelixcrossingSelectionTypeFactory = function(ids){
-    return function(params){
-        params.ids = ids;
-        return new Provi.Bio.Helix.HelixcrossingSelectionType(params);
-    }
-}
+
 
 Provi.Bio.Helix.HelixcrossingSelectionType = function(params){
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
+    this.handler = _.defaults({
+        "show_crossing": {
+            "selector": 'input[cell="crossing"]',
+            "click": this.show_crossing
+        },
+        "show_contacts": {
+            "selector": 'input[cell="helixcontacts"]',
+            "click": this.show_contacts
+        }
+    }, this.handler );
 }
 Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.Helix.HelixcrossingSelectionType.prototype */ {
     _init: function(grid){
         this.applet.script_wait('' +
+            'script "../data/jmol_script/helixorient.jspt";' +
             'function helix_pairs( sele ){' +
-                'var arr = [];' +
+                'var d = {};' +
+                // todo: join helices, split helices, min helix length
                 'var helices = {@sele and helix and protein}.strucno.all.count();' +
                 'var n = helices.length;' +
+                'set bondModeOr = true;' +
                 'for(var i = 1; i<n; i++){' +
                     'var x = (helices[i])[1];' +
                     'for(var j = i+1; j<=n; j++){' +
                         'var y = (helices[j])[1];' +
-                        'if({ within(4.0, false, strucno=@x) and strucno=@y }){' +
-                            'arr += "" + x + "_" + y;' +
+                        // todo: min number of residues between two helices
+                        'if( {*.CA and strucno=@x}.length > 4 & ' +
+                            '{*.CA and strucno=@y}.length > 4 & ' +
+                            '({strucno=@x and backbone}.bonds & {strucno=@y and backbone}.bonds).size == 0 &' +
+                            '{ within(4.0, false, strucno=@x) and strucno=@y } ' +
+                        '){' +
+                            'var angl = helixorient_crossingangle( {strucno=@x}, {strucno=@y} );' +
+                            'var name = "" + x + "_" + y;' +
+                            'd[ name ] = [ name, x, y, angl ];' +
                         '}' +
                     '}' +
                 '}' +
-                'return arr;' +
+                'set bondModeOr = false;' +
+                'return d;' +
             '}' +
             'function provi_helixcrossing_test(ids){' +
                 //'try{' +
                     'var sele_l = [];' +
-                    'var angle_l = [];' +
                     'var draw_l = [];' +
+                    'var contact_l = [];' +
+                    'var s = "";' +
                     'for(id in ids){' +
                         'var pair = id.split("_");' +
-                        'a = pair[1]*1; b = pair[2]*1;' + // convert to int
+                        'var a = pair[1]*1; var b = pair[2]*1;' + // convert to int
                         'sele_l += {strucno=@a or strucno=@b}.selected.join("");' +
-                        // 'tmp = 0;' +
-                        // 'var s = "tmp = ($helixorient_"+id+"_axis__no_widget__ & true)+0";' +
-                        // 'script INLINE @s;' +
-                        // 'draw_l += tmp;' +
+                        'tmpA = 0;' +
+                        's = "tmpA = ($helixorient_"+id+"_axis__no_widget__A & true)+0";' +
+                        'script INLINE @s;' +
+                        'tmpB = 0;' +
+                        's = "tmpB = ($helixorient_"+id+"_axis__no_widget__B & true)+0";' +
+                        'script INLINE @s;' +
+                        'draw_l += (tmpA+tmpB)/2;' +
+                        'tmp = 0;' +
+                        's = "tmp = ($helixcontact_"+id+" & true)+0";' +
+                        'script INLINE @s;' +
+                        'contact_l += tmp;' +
                     '}' +
                 //'}catch(){}' +
-                'return [ sele_l.average, 0 ];' +
+                'var angl = 0;' +
+                'if( ids.length==1 ){' +
+                    'angl = (provi_data["helixcrossing"][ ids[1] ][4])[1];' +
+                '}' +
+                'return [ sele_l.average, draw_l.average, contact_l.average, angl ];' +
             '};' +
         '');
     },
+    calculate: function(){
+        var self = this;
+        this.ready = false;
+        this.applet.script_callback('' +
+            'if(!provi_data){ provi_data = {}; }' +
+            'provi_data["helixcrossing"] = helix_pairs({' + this.filtered() + '});' +
+        '', {}, function(){
+            console.log("helixcrossing", "calculate_ready");
+            self.ready = true;
+            $(self).trigger("calculate_ready");
+        });
+    },
     get_ids: function(){
-        // var s = 'helix_pairs({' + this.filtered() + '}).join(",")';
-        var s = 'helix_pairs({*}).join(",")';
+        if( !this.ready ) return [];
+        var s = 'provi_data["helixcrossing"].keys.join(",")';
         var data = this.applet.evaluate(s);
         if(data){
             data = data.split(",");
         }
+        // todo: sort
         return data || [];
     },
-    get_data: function(id){
-        var ids = (id=="all") ? this.get_ids() : [id];
+    _get_data: function(ids, applet){
         var s = 'provi_helixcrossing_test(["' + ids.join('","') + '"]).join(",")';
-        var a = this.applet.evaluate(s);
+        var a = applet.evaluate(s);
         if(a){
             a = a.split(",");
         }else{
-            a = [0, 0];
+            a = [0, 0, 0, 0];
         }
         var selected = parseFloat(a[0]);
         var axis = parseFloat(a[1]);
+        var contacts = parseFloat(a[2]);
+        var angle = parseFloat(a[3]);
 
-        return [ selected, axis ];
+        return [ selected, axis, contacts, angle ];
+    },
+    get_data: function(id){
+        var ids = (id=="all") ? this.get_ids() : [id];
+        return this._get_data( ids, this.applet );
     },
     make_row: function(id){
         var a = this.get_data(id);
@@ -269,14 +316,15 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
             var label = "Helixcrossing";
         }else{
             ids = id.split("_");
-            var label = ids[0] + " - " + ids[1];
+            var label = ids[0] + " - " + ids[1] + ' (' + a[3].toFixed(2) + '\u00B0)';
         }
 
         var $row = $('<div></div>');
         $row.append(
             this.selected_cell( id, a[0] ),
-            this.label_cell( label )//,
-            //this.axis_cell( id, a[1] )
+            this.label_cell( label ),
+            this.crossing_cell( id, a[1] ),
+            this.contacts_cell( id, a[2] )
         );
         return $row;
     },
@@ -288,7 +336,7 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
             return '(strucno=' + ids[0] + ' or strucno=' + ids[1] + ')';
         }
     },
-    _show_axis: function(id, flag, params){
+    _show_crossing: function(id, flag, params){
         params = params || {};
         var self = this;
         var ids = (id==='all') ? this.get_ids() : [ id ];
@@ -298,19 +346,51 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
             }).join(' ');
         }else{
             return _.map( ids, function(id){
-                return 'script "../data/jmol_script/helixorient.jspt";' +
-                    'helixorient_show_axis({' + self.selection(id) + '}, ' +
-                        '"helixorient_' + id + '_axis__no_widget__")' +
+                var pair = id.split("_");
+                return '' +
+                    'var x = provi_data["helixcrossing"]["' + id + '"][4];' +
+                    'helixorient_drawaxis(' + 
+                        'x[2], "helixorient_' + id + '_axis__no_widget__A");' +
+                    'helixorient_drawaxis(' + 
+                        'x[3], "helixorient_' + id + '_axis__no_widget__B");' +
                 '';
             }).join(' ');
         }
     },
-    show_axis: function(id, flag, params, callback){
-        var s = this._show_axis(id, flag, params);
+    show_crossing: function(id, flag, params, callback){
+        var s = this._show_crossing(id, flag, params);
         this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
     },
-    axis_cell: Provi.Bio.AtomSelection.CellFactory({
-        name: "axis", label: "axis", color: "skyblue"
+    _show_contacts: function(id, flag, params){
+        params = params || {};
+        var self = this;
+        var ids = (id==='all') ? this.get_ids() : [ id ];
+        if(flag){
+            return _.map( ids, function(id){
+                return 'contact ID "helixcontact_' + id + '" delete;';
+            }).join(' ');
+        }else{
+            return _.map( ids, function(id){
+                pair = id.split("_");
+                return '' +
+                    'try{' +
+                        'contact ID "helixcontact_' + id + '" ' +
+                            '{strucno=' + pair[0] + '} {strucno=' + pair[1] + '} ' +
+                            'full vdw 110%;' +
+                    '}catch(){}' +
+                '';
+            }).join(' ');
+        }
+    },
+    show_contacts: function(id, flag, params, callback){
+        var s = this._show_contacts(id, flag, params);
+        this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
+    },
+    crossing_cell: Provi.Bio.AtomSelection.CellFactory({
+        name: "crossing", label: "crossing", color: "skyblue"
+    }),
+    contacts_cell: Provi.Bio.AtomSelection.CellFactory({
+        name: "helixcontacts", label: "contacts", color: "tomato"
     })
 });
 Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
@@ -485,6 +565,27 @@ Provi.Bio.Helix.GromacsHelixorientWidget.prototype = Utils.extend(Provi.Widget.W
 });
 
 
+// $(document).ready(function(){
+//     $.ajax({
+//         type: "GET",
+//         url: "sites.xml",
+//         dataType: "xml",
+//         success: function(xml) {
+//             $(xml).find('site').each(function(){
+//                 var id = $(this).attr('id');
+//                 var title = $(this).find('title').text();
+//                 var url = $(this).find('url').text();
+//                 $('<div class="items" id="link_'+id+'"></div>').html('<a href="'+url+'">'+title+'</a>').appendTo('#page-wrap');
+//                 $(this).find('desc').each(function(){
+//                     var brief = $(this).find('brief').text();
+//                     var long = $(this).find('long').text();
+//                     $('<div class="brief"></div>').html(brief).appendTo('#link_'+id);
+//                     $('<div class="long"></div>').html(long).appendTo('#link_'+id);
+//                 });
+//             });
+//         }
+//     });
+// });
 
 
 
