@@ -325,7 +325,6 @@ Provi.Bio.Mutate.MutateWidget.prototype = Utils.extend(Provi.Widget.Widget, /** 
                 "delete {@old};"
             , true);
 
-            // todo: delete old residue
         }
     },
     _init_residues: function(){
