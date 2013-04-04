@@ -2,71 +2,90 @@
 
 function provi_init(){
 	provi_data = {};
+	provi_property = {};
 	provi_selection = {};
-}
-
-function provi_load_property(){
-	'select *;' +
-    'x = load("' + url + get_params + '");' +
-    'line1_end = x.find("\n");' + 
-    'line1 = x[1][line1_end-1];' + 
-    'columns = line1.split(" ");' +
-    'd = x[line1_end][0];' + 
-    'i = 0;' +
-    'names = [];' +
-    'for(c in columns){' +
-        'i = i+1;' +
-        'c2 = c.split("#");' +
-        'name = "property_" + c2[1];' +
-        'names = names + name;' +
-        's = "DATA \\"" + name + " 0 " + i + " @d\\";";' + 
-        's2 = "{selected and " + name + " = " + c2[2] + "}." + name + " = NaN;";' + 
-        'script INLINE @s;' +
-        'script INLINE @s2;' +
-        'print "provi property: " + name;' +
-    '}' +
-    'select none;' +
-    'print "provi dataset: ' + this.id + ' loaded | " + ' +
-        '"provi property ds ' + this.id + ': " + names.join(" ");' +
+	provi_uid_counter = 0;
 }
 
 
-function provi_load_selection(){
-	'x = load("' + url + get_params + '");' +
-    'lines = x.split();' +
-    'names = [];' +
-    'if(!provi_selection){ provi_selection = {} }' +
-    'for(l in lines){' +
-        'fields = l.split(" ");' +
-        // 'print fields;' +
-        // 'print fields.join(" - ");' +
-        'name = fields[1];' +
-        'names = names + name;' +
-        // 'if( fields[2] == "ZB" ){' +
-        //     'd = fields[3][0];' +
-        // '}else{' +
-        //     'd = fields[2][0];' +
-        //     'd = d.sub(1);' +
-        // '}' +
-        'd = fields[2][0];' +
-        'sele = "({" + d.join(" ") + "})";' +
-        'provi_selection[name] = sele;' + 
-        'print "provi selection: " + name;' +
-    '}' +
-    'print "provi dataset: ' + this.id + ' loaded | " + ' +
-        '"provi selection ds ' + this.id + ': " + names.join(" ");' +
+function provi_uid(){
+    provi_uid_counter = provi_uid_counter + 1;
+    return provi_uid_counter;
 }
 
 
-function provi_load_bonds(){
-	'x = load("' + url + get_params + '");' +
-    'bond_count_before = {*}.bonds.size;' +
-    'script INLINE @x;' +
-    'bond_count_after = {*}.bonds.size;' +
-    'bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";' +
-    'hide add @bs;' +
-    'print "provi dataset: ' + this.id + ' loaded | " + ' +
-        '"provi bonds ds ' + this.id + ': " + bond_count_before + " " + bond_count_after;' +
+function provi_load_property( url, sele, dataset_id ){
+	if( !url ) return false;
+	if( !sele ) sele = {*};
+	# select *;
+    var x = load( url );
+    var line1_end = x.find("\n");
+    var line1 = x[1][line1_end-1];
+    var columns = line1.split(" ");
+    var d = x[line1_end][0];
+    var i = 0;
+    names = [];
+    pnames = [];
+    for(var c in columns){
+        i = i+1;
+        var c2 = c.split("#");
+        var pname = "property_provi" + provi_uid();
+        var name = "property_" + c2[1];
+        names = names + name;
+        pnames = pnames + pname;
+        # var s = "DATA \\"" + pname + " 0 " + i + " @d\\";";
+        var s = "{ @sele }." + pname + " = data( @d, 0, " + i + "); " +
+        	"{ @sele and " + pname + " = " + c2[2] + " }." + pname + " = NaN;";
+        script INLINE @s;
+        # print "provi property: " + pname + " " + name;
+    }
+    # select none;
+    if( dataset_id ){
+    	print "provi dataset: " + dataset_id + " loaded | " +
+        	"provi property ds " + dataset_id + ": " + pnames.join(" ");
+    }
+    return true;
+}
+
+
+function provi_load_selection( url, dataset_id ){
+	if( !url ) return false;
+	var x = load( url );
+    var lines = x.split();
+    var names = [];
+    var pnames = [];
+    for(l in lines){
+        var fields = l.split(" ");
+        var pname = "provi_selection" + provi_uid();
+        var name = fields[1];
+        names = names + name;
+        pnames = pnames + pname;
+        var d = fields[2][0];
+        var sele = "({" + d.join(" ") + "})";
+        provi_selection[name] = sele;
+        # print "provi selection: " + name;
+    }
+    if( dataset_id ){
+    	print "provi dataset: " + dataset_id + " loaded | "
+        	"provi selection ds " + dataset_id + ": " + pnames.join(" ");
+    }
+    return true;
+}
+
+
+function provi_load_bonds( url, hide_initially, dataset_id ){
+	if( !url ) return false;
+	x = load( url ); # must be global for script INLINE
+    var bond_count_before = {*}.bonds.size;
+    script INLINE @x;
+    var bond_count_after = {*}.bonds.size;
+    var bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";
+    if( hide_initially ) hide add @bs;
+    if( dataset_id ){
+    	print "provi dataset: " + dataset_id + " loaded | " +
+        	"provi bonds ds " + dataset_id + ": " + bond_count_before + " " + bond_count_after;
+	}
+	return true;
 }
 
 
