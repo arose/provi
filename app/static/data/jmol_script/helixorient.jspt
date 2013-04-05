@@ -210,11 +210,88 @@ function helixorient_crossingangle( sele_a, sele_b ){
     return [ angl, ha, hb ];
 }
 
+
 function helixorient_drawaxis( h, id, colr ){
     if( !colr) colr = "skyblue";
     var beg = h[1];
     var vec = h[3];
     draw ID @{id+""} color @colr VECTOR @beg @vec;
 }
+
+
+function helix_pairs( sele ){
+    var d = {};
+    # todo: join helices, split helices, min helix length
+    var helices = {@sele and helix and protein}.strucno.all.count();
+    var n = helices.length;
+    set bondModeOr = true;
+    for(var i = 1; i<n; i++){
+        var x = (helices[i])[1];
+        for(var j = i+1; j<=n; j++){
+            var y = (helices[j])[1];
+            # todo: min number of residues between two helices
+            if( {*.CA and strucno=@x}.length > 4 & 
+                {*.CA and strucno=@y}.length > 4 & 
+                {strucno=@x}.modelindex.all[1] == {strucno=@y}.modelindex.all[1] & 
+                ({strucno=@x and backbone}.bonds & {strucno=@y and backbone}.bonds).size == 0 &
+                { within(4.0, false, strucno=@x) and strucno=@y } 
+            ){
+                var angl = helixorient_crossingangle( {strucno=@x}, {strucno=@y} );
+                var name = "" + x + "_" + y;
+                d[ name ] = [ name, x, y, angl ];
+            }
+        }
+    }
+    set bondModeOr = false;
+    return d;
+}
+
+
+function provi_helixcrossing_test(ids){
+    var sele_l = [];
+    var draw_l = [];
+    var contact_l = [];
+    var s = "";
+    for(id in ids){
+        var pair = id.split("_");
+        var a = pair[1]*1; var b = pair[2]*1; # convert to int
+        sele_l += {strucno=@a or strucno=@b}.selected.join("");
+        tmpA = 0;
+        s = "tmpA = ($helixorient_"+id+"_axis__no_widget__A & true)+0";
+        script INLINE @s;
+        tmpB = 0;
+        s = "tmpB = ($helixorient_"+id+"_axis__no_widget__B & true)+0";
+        script INLINE @s;
+        draw_l += (tmpA+tmpB)/2;
+        tmp = 0;
+        s = "tmp = ($helixcontact_"+id+" & true)+0";
+        script INLINE @s;
+        contact_l += tmp;
+    }
+    var angl = 0;
+    var modelidx = 0;
+    if( ids.length==1 ){
+        angl = (provi_data["helixcrossing"][ ids[1] ][4])[1];
+    }
+    return [ sele_l.average, draw_l.average, contact_l.average, angl ];
+};
+
+
+function provi_helixorient_test(ids){
+    var sele_l = [];
+    var draw_l = [];
+    for(id in ids){
+        sele_l += {strucno=@id}.selected.join("");
+        try{
+            tmp = 0;
+            var s = "tmp = ($helixorient_"+id+"_axis__no_widget__ & true)+0";
+            script INLINE @s;
+            draw_l += tmp;
+        }catch(){
+            draw_l += 0;
+        }
+    }
+    return [ sele_l.average, draw_l.average ];
+};
 
 

@@ -74,25 +74,14 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         this.params_widget = new Provi.Bio.Helix.HelixorientParamsWidget({
             parent_id: grid.eid('widgets')
         });
-        this.applet.script_wait('' +
+        var self = this;
+        this.initialized = false;
+        this.applet.script_callback('' +
             'script "../data/jmol_script/helixorient.jspt";' +
-            'function provi_helixorient_test(ids){' +
-                'var sele_l = [];' +
-                'var draw_l = [];' +
-                'for(id in ids){' +
-                    'sele_l += {strucno=@id}.selected.join("");' +
-                    'try{' +
-                        'tmp = 0;' +
-                        'var s = "tmp = ($helixorient_"+id+"_axis__no_widget__ & true)+0";' +
-                        'script INLINE @s;' +
-                        'draw_l += tmp;' +
-                    '}catch(){' +
-                        'draw_l += 0;' +
-                    '}' +
-                '}' +
-                'return [ sele_l.average, draw_l.average ];' +
-            '};' +
-        '');
+        '', {}, function(){
+            self.initialized = true;
+            $(self).trigger("init_ready");
+        });
     },
     get_ids: function(){
         var s = '{' + this.filtered() + ' and helix and protein}.strucno.all.count().join("")';
@@ -104,6 +93,7 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         return data;
     },
     get_data: function(id){
+        if( !this.ready ) return [0, 0];
         var ids = (id=="all") ? this.get_ids() : [id];
         var s = 'provi_helixorient_test([' + ids.join(',') + ']).join(",")';
         var a = this.applet.evaluate(s);
@@ -211,65 +201,18 @@ Provi.Bio.Helix.HelixcrossingSelectionType = function(params){
 }
 Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.Helix.HelixcrossingSelectionType.prototype */ {
     _init: function(grid){
-        this.applet.script_wait('' +
+        var self = this;
+        this.initialized = false;
+        this.applet.script_callback('' +
             'script "../data/jmol_script/helixorient.jspt";' +
-            'function helix_pairs( sele ){' +
-                'var d = {};' +
-                // todo: join helices, split helices, min helix length
-                'var helices = {@sele and helix and protein}.strucno.all.count();' +
-                'var n = helices.length;' +
-                'set bondModeOr = true;' +
-                'for(var i = 1; i<n; i++){' +
-                    'var x = (helices[i])[1];' +
-                    'for(var j = i+1; j<=n; j++){' +
-                        'var y = (helices[j])[1];' +
-                        // todo: min number of residues between two helices
-                        'if( {*.CA and strucno=@x}.length > 4 & ' +
-                            '{*.CA and strucno=@y}.length > 4 & ' +
-                            '({strucno=@x and backbone}.bonds & {strucno=@y and backbone}.bonds).size == 0 &' +
-                            '{ within(4.0, false, strucno=@x) and strucno=@y } ' +
-                        '){' +
-                            'var angl = helixorient_crossingangle( {strucno=@x}, {strucno=@y} );' +
-                            'var name = "" + x + "_" + y;' +
-                            'd[ name ] = [ name, x, y, angl ];' +
-                        '}' +
-                    '}' +
-                '}' +
-                'set bondModeOr = false;' +
-                'return d;' +
-            '}' +
-            'function provi_helixcrossing_test(ids){' +
-                //'try{' +
-                    'var sele_l = [];' +
-                    'var draw_l = [];' +
-                    'var contact_l = [];' +
-                    'var s = "";' +
-                    'for(id in ids){' +
-                        'var pair = id.split("_");' +
-                        'var a = pair[1]*1; var b = pair[2]*1;' + // convert to int
-                        'sele_l += {strucno=@a or strucno=@b}.selected.join("");' +
-                        'tmpA = 0;' +
-                        's = "tmpA = ($helixorient_"+id+"_axis__no_widget__A & true)+0";' +
-                        'script INLINE @s;' +
-                        'tmpB = 0;' +
-                        's = "tmpB = ($helixorient_"+id+"_axis__no_widget__B & true)+0";' +
-                        'script INLINE @s;' +
-                        'draw_l += (tmpA+tmpB)/2;' +
-                        'tmp = 0;' +
-                        's = "tmp = ($helixcontact_"+id+" & true)+0";' +
-                        'script INLINE @s;' +
-                        'contact_l += tmp;' +
-                    '}' +
-                //'}catch(){}' +
-                'var angl = 0;' +
-                'if( ids.length==1 ){' +
-                    'angl = (provi_data["helixcrossing"][ ids[1] ][4])[1];' +
-                '}' +
-                'return [ sele_l.average, draw_l.average, contact_l.average, angl ];' +
-            '};' +
-        '');
+        '', {}, function(){
+            console.log("helixcrossing", "initialized");
+            self.initialized = true;
+            $(self).trigger("init_ready");
+        });
     },
     calculate: function(){
+        if( !this.initialized ) return;
         var self = this;
         this.ready = false;
         this.applet.script_callback('' +
@@ -292,6 +235,7 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
         return data || [];
     },
     _get_data: function(ids, applet){
+        if( !this.ready ) return [0, 0, 0, 0];
         var s = 'provi_helixcrossing_test(["' + ids.join('","') + '"]).join(",")';
         var a = applet.evaluate(s);
         if(a){
@@ -316,7 +260,9 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
             var label = "Helixcrossing";
         }else{
             ids = id.split("_");
-            var label = ids[0] + " - " + ids[1] + ' (' + a[3].toFixed(2) + '\u00B0)';
+            var label = ids[0] + " - " + ids[1] + ' (' + a[3].toFixed(2) + '\u00B0)' + 
+                // ' /' + ( a[2]=="0" ? parseInt(a[3])+1 : a[2] ) +
+                '';
         }
 
         var $row = $('<div></div>');

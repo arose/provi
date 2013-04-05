@@ -96,6 +96,14 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
 }
 Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableSelectionType, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype */ {
     _init: function(grid){
+        var self = this;
+        this.initialized = false;
+        this.applet.script_callback('' +
+            'script "../data/jmol_script/interface_contacts.jspt";' +
+        '', {}, function(){
+            self.initialized = true;
+            $(self).trigger("init_ready");
+        });
         var template = '' +
             '<div class="control_row">' +
                 '<span style="background-color:#FFFF00; padding: 1px 3px;">&#8209;0.5</span>' +
@@ -110,7 +118,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
             '</div>' +
         '';
         grid.elm("widgets").append( template );
-        this.show_contacts( 'Membrane', undefined, {}, invalidate );
+        $(this).bind("calculate_ready", function(){
+            self.show_contacts( 'Membrane', undefined, {}, _.bind( grid.invalidate, grid ) );
+        });
     },
     tmp_prop_cmd: function(id){
         var tmp_prop = '{*}.property_tmp = NaN;';
@@ -127,36 +137,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         return this.ids;
     },
     get_data: function(id){
+        if( !this.ready ) return [0, 0, 0];
         var ids = (id=="all") ? this.get_ids() : [id];
-        this.applet.script('' +
-            'function provi_sele_test(ids){' +
-                'var sele_l = [];' +
-                'var consurf_l = [];' +
-                'var intersurf_l = [];' +
-                'var displayed_l = [];' +
-                'for(id in ids){' +
-                    'if(id!="Water" & id!="Membrane"){' +
-                        'sele_l += provi_selection[id].selected.join("");' +
-                    '}' +
-                    //'var p = provi_selection[id];' +
-                    'tmp = 0;' +
-                    'var s = "tmp = ($"+id+"_consurf__no_widget__ & true)+0";' +
-                    'script INLINE @s;' +
-                    'consurf_l += tmp;' +
-                    'tmp = 0;' +
-                    'var s = "tmp = ($"+id+"_intersurf__no_widget__ & true)+0";' +
-                    'script INLINE @s;' +
-                    'intersurf_l += tmp;' +
-                    // 'var s = {p} and {displayed};' +
-                    // 'displayed_l += s.length.join("")/' +
-                    //     'provi_selection[id].length.join("");' +
-                '}' +
-                'return [ sele_l.average, consurf_l.average, intersurf_l.average, displayed_l.average ];' +
-            '};' +
-        '');
-        var s = 'provi_sele_test( ["' + ids.join('","') + '"] ).join(",")';
+        var s = 'provi_intercon_test( ["' + ids.join('","') + '"] ).join(",")';
         var a = this.applet.evaluate(s).split(",");
-        console.log(a);
         var selected = a[0];
         var consurf = parseFloat(a[1]);
         var intersurf = parseFloat(a[2]);
@@ -173,10 +157,6 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         var contacts = this.shown_contact_id === id;
         var consurf = a[1];
         var intersurf = a[2];
-        // var hole = a[1];
-        // var cavity = a[2];
-        // var neighbours = a[3];
-        // var displayed = a[4];
 
         var $row = $('<div></div>');
         $row.append(
@@ -185,8 +165,6 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
             this.contacts_cell( id, contacts ),
             this.consurf_cell( id, consurf ),
             this.intersurf_cell( id, intersurf )
-            // this.cavity_cell( id, cavity ),
-            // this.neighbours_cell( id, neighbours )
         );
         return $row;
     },
@@ -219,8 +197,6 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                     'var sele = {' + 
                         'property_tmp>=-0.5 and ' +
                         'property_tmp<=2.8' +
-                        // 'property_' + id + '>=-0.5 and ' +
-                        // 'property_' + id + '<=2.8' +
                     '};' +
                     'var sele2 = ' + 
                         (self.is_virtual(id) ? 'none' : self.selection(id, true)) + ';' +
@@ -235,13 +211,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                     ';' +
                     'isosurface id "' + id + '_consurf__no_widget__" ' +
                         'slab within 5.0 { @sele3 };' +
-                    // 'isosurface id "' + id + '_consurf__no_widget__"; ' +
-                    //     color_cmd +
                     'select *; ' +
                     'color "ic=[xFFFF00] [xFFA500] [xEB8900] [xD86E00] [xC55200] [xB13700] [x9E1B00] [x8B0000]";' +
                     'isosurface ID "' + id + '_consurf__no_widget__" ' + 
                         'MAP property_tmp;' +
-                        // 'MAP property_' + id + ';' +
                     'color $' + id + '_consurf__no_widget__ "ic" ' +
                         ' RANGE -0.5 2.8;' +
                 '';
