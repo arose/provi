@@ -494,25 +494,25 @@ Provi.Bio.AtomSelection.AtomindexSelectionType = function(params){
 Provi.Bio.AtomSelection.AtomindexSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.AtomSelection.AtomindexSelectionType.prototype */ {
     get_ids: function(){
         if( this.sort ){
-            this.applet.script('' +
-                'function sort_by_prop( sele ){' +
-                    'var arr = sele.atomindex.all;' +
-                    'var prop = sele.' + this.sort + '.all;' +
-                    'var n = arr.length;' +
-                    'for( var i = 1; i<=n; ++i ){' +
-                        'arr[i] = [ arr[i], prop[i] ];' +
-                    '}' +
-                    'arr.sort(2);' +
-                    'for( var i = 1; i<=n; ++i ){' +
-                        'arr[i] = (arr[i])[1];' +
-                    '}' +
-                    'return arr;' +
-                '}' +
-            '');
-            var s = 'sort_by_prop( {' + this.filtered() + '} ).join(",")';
+            // this.applet.script('' +
+            //     'function sort_by_prop( sele ){' +
+            //         'var arr = sele.atomindex.all;' +
+            //         'var prop = sele.' + this.sort + '.all;' +
+            //         'var n = arr.length;' +
+            //         'for( var i = 1; i<=n; ++i ){' +
+            //             'arr[i] = [ arr[i], prop[i] ];' +
+            //         '}' +
+            //         'arr.sort(2);' +
+            //         'for( var i = 1; i<=n; ++i ){' +
+            //             'arr[i] = (arr[i])[1];' +
+            //         '}' +
+            //         'return arr;' +
+            //     '}' +
+            // '');
+            var s = 'sort_by_prop( {' + this.filtered() + '}, "' + this.sort + '" ).join(",")';
             var a = this.applet.evaluate(s);
+            console.log("sort_by_prop", a, this.filtered());
             a = a ? a.split(",") : [];
-            console.log(a, this.filtered());
             return a;
         }else{
             var format = '%[atomIndex]';
@@ -538,7 +538,7 @@ Provi.Bio.AtomSelection.AtomindexSelectionType.prototype = Utils.extend(Provi.Bi
         }else{
             var a = this.get_data(id) || [];
             var label = '[' + a[0] + ']' + a[1] + ':' + a[2] + '.' + a[3] + '/' + a[4] + '.' + a[5];
-            var selected = a[6];
+            var selected = parseFloat(a[6]);
             var color = a[7];
         }
 
