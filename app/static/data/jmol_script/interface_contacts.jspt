@@ -1,0 +1,23 @@
+
+
+function provi_intercon_test(ids){
+    var sele_l = [];
+    var consurf_l = [];
+    var intersurf_l = [];
+    var displayed_l = [];
+    for(id in ids){
+        if(id!="Water" & id!="Membrane"){
+            sele_l += provi_selection[id].selected.join("");
+        }
+        tmp = 0;
+        var s = "tmp = ($"+id+"_consurf__no_widget__ & true)+0";
+        script INLINE @s;
+        consurf_l += tmp;
+        tmp = 0;
+        var s = "tmp = ($"+id+"_intersurf__no_widget__ & true)+0";
+        script INLINE @s;
+        intersurf_l += tmp;
+    }
+    return [ sele_l.average, consurf_l.average, intersurf_l.average, displayed_l.average ];
+};
+

@@ -1,0 +1,34 @@
+
+
+function provi_isosurface_test(ids){
+    var l = [];
+    for(id in ids){
+        l += (getProperty("shapeInfo", "Isosurface", "ID")
+            .find(id+"_iso__no_widget__") & true)+0;
+    }
+    return l.average;
+};
+
+
+function provi_hole_test(ids){
+    var sele_l = [];
+    var displayed_l = [];
+    var cpk_l = [];
+    var draw_l = [];
+    var iso_l = [];
+    for(id in ids){
+        sele_l += provi_selection[id].selected.join("");
+        var p = provi_selection[id];
+        cpk_l += provi_selection[id].cpk.join("");
+        tmp = 0;
+        var s = "tmp = ($"+id+"_draw__no_widget__ & true)+0";
+        script INLINE @s;
+        draw_l += tmp;
+        tmp = 0;
+        var s = "tmp = ($"+id+"_iso__no_widget__ & true)+0";
+        script INLINE @s;
+        iso_l += tmp;
+    }
+    return [ sele_l.average, cpk_l.average, draw_l.average, iso_l.average ];
+};
+
