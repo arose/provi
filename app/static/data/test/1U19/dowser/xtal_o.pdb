@@ -1,0 +1,14 @@
+REMARK /media/2TB/projects/GPCR_analysis/db/gpcr2013/calculation/1U19/1U19_OPM_mod.pdb xtal_o.pdb
+HETATM 5886  O   HOH A2000       0.353  -3.369  20.930  1.00 32.50   0  bury O  
+HETATM 5891  O   HOH A2015       0.151  -2.013  -2.881  1.00 56.63   0  bury O  
+HETATM 5892  O   HOH A2017       4.493  -1.019  -5.339  1.00 26.67   0  bury O  
+HETATM 5893  O   HOH A2020      -1.150  -2.956  -7.111  1.00 45.27   0  bury O  
+HETATM 5894  O   HOH A2021       6.502   1.081   7.496  1.00 42.23   0  bury O  
+HETATM 5895  O   HOH A2024       5.956   5.994 -14.891  1.00 37.57   0  bury O  
+HETATM 5897  O   HOH A2028      12.061   1.821  16.658  1.00 40.87   0  bury O  
+HETATM 5899  O   HOH A2032      -1.486  -8.267  17.195  1.00 28.45   0  bury O  
+HETATM 5901  O   HOH A2035       5.008  -7.874  14.077  1.00 59.41   0  bury O  
+HETATM 5907  O   HOH A2048      -1.279 -11.303  16.430  1.00 42.25   0  bury O  
+HETATM 5910  O   HOH A2052      -8.207  -6.920  20.973  1.00 45.41   0  bury O  
+HETATM 5913  O   HOH A2057     -11.239  -1.265  17.920  1.00 71.53   0  bury O  
+HETATM 5919  O   HOH A2064      -0.722  -6.558  19.175  1.00 44.54   0  bury O  
