@@ -202,31 +202,8 @@ Provi.Data.Controller.AtomPropertyMixin = {
     },
     load: function( applet ){
         var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = '../../data/get/';
-        var s = '' +
-            'select *;' +
-            'x = load("' + url + get_params + '");' +
-            'line1_end = x.find("\n");' + 
-            'line1 = x[1][line1_end-1];' + 
-            'columns = line1.split(" ");' +
-            'd = x[line1_end][0];' + 
-            'i = 0;' +
-            'names = [];' +
-            'for(c in columns){' +
-                'i = i+1;' +
-                'c2 = c.split("#");' +
-                'name = "property_" + c2[1];' +
-                'names = names + name;' +
-                's = "DATA \\"" + name + " 0 " + i + " @d\\";";' + 
-                's2 = "{selected and " + name + " = " + c2[2] + "}." + name + " = NaN;";' + 
-                'script INLINE @s;' +
-                'script INLINE @s2;' +
-                'print "provi property: " + name;' +
-            '}' +
-            'select none;' +
-            'print "provi dataset: ' + this.id + ' loaded | " + ' +
-                '"provi property ds ' + this.id + ': " + names.join(" ");' +
-        '';
+        var url = '../../data/get/' + get_params;
+        var s = 'provi_load_property("' + url + '", {*}, "' + this.id + '");';
         console.log(s);
         applet.script(s, { maintain_selection: true, try_catch: false });
     }
@@ -247,43 +224,8 @@ Provi.Data.Controller.AtomSelectionMixin = {
     },
     load: function( applet ){
         var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = '../../data/get/';
-        var s = '' +
-            // 'while(true){' +
-            //     'try{' +
-                    'x = load("' + url + get_params + '");' +
-                    'lines = x.split();' +
-                    'names = [];' +
-                    'if(!provi_selection){ provi_selection = {} }' +
-                    'for(l in lines){' +
-                        'fields = l.split(" ");' +
-                        // 'print fields;' +
-                        // 'print fields.join(" - ");' +
-                        'name = fields[1];' +
-                        'names = names + name;' +
-                        // 'if( fields[2] == "ZB" ){' +
-                        //     'd = fields[3][0];' +
-                        // '}else{' +
-                        //     'd = fields[2][0];' +
-                        //     'd = d.sub(1);' +
-                        // '}' +
-                        'd = fields[2][0];' +
-                        'sele = "({" + d.join(" ") + "})";' +
-                        'provi_selection[name] = sele;' + 
-                        'print "provi selection: " + name;' +
-                    '}' +
-                    'print "provi dataset: ' + this.id + ' loaded | " + ' +
-                        '"provi selection ds ' + this.id + ': " + names.join(" ");' +
-                // '}catch(e){' +
-                //     'print "provi dataset: ' + this.id + ' error " + e;' +
-                //     'var log_error = "console.error(\'provi dataset: ' + this.id + ' error " + e + "\')";' +
-                //     'javascript @log_error;' +
-                //     'break;' +
-                // '}' +
-                // 'print "provi dataset: ' + this.id + ' loaded";' +
-            //     'break;' +
-            // '}' +
-        '';
+        var url = '../../data/get/' + get_params;
+        s = 'provi_load_selection("' + url + '", "' + this.id + '");';
         console.log(s);
         applet.script(s, { maintain_selection: true, try_catch: false });
     }

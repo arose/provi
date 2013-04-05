@@ -280,8 +280,6 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         //console.log( this.grid );
     },
     _invalidate: function(){
-        console.log('invalidate');
-        console.log(this);
         this.grid.invalidate();
         this.header();
         this.grid.resizeCanvas();
@@ -362,7 +360,6 @@ Provi.Bio.AtomSelection.CellFactory = function( p ){
         }
     }
     return function(id, value, disabled){
-
         var $elm = $(
             '<span style="background:' + p.color + '; float:' + p.position + '; width:22px;">' +
                 '<input cell="' + p.name + '" type="checkbox" ' + 
@@ -723,39 +720,11 @@ Provi.Bio.AtomSelection.VariableSelectionType.prototype = Utils.extend(Provi.Bio
         if(data) data = data.trim().split(',');
         return data;
     },
-    get_dataOLD: function(id){
-        // var s = '{' + sele + '}.modelindex.all.count().join("")';
-        // var data = this.applet.evaluate(s);
-        // if(data) data = data.trim().split('\t');
-        // data = _.filter(data, function(val, i){
-        //     return i % 2 == 0;
-        // });
-        var a = [];
-        var s = this.selection(id, true) + '.selected.join("")';
-        var selected = this.applet.evaluate(s);
-        console.log(selected);
-        a.push( selected );
-        return a;
-    },
     get_data: function(id){
         var ids = (id=="all") ? this.get_ids() : [id];
-        this.applet.script('' +
-            'function provi_sele_test(ids){' +
-                'var sele_l = [];' +
-                'var displayed_l = [];' +
-                'for(id in ids){' +
-                    'sele_l += provi_selection[id].selected.join("");' +
-                    'var p = provi_selection[id];' +
-                    // 'var s = {p} and {displayed};' +
-                    // 'displayed_l += s.length.join("")/' +
-                    //     'provi_selection[id].length.join("");' +
-                '}' +
-                'return [ sele_l.average, displayed_l.average ];' +
-            '};' +
-        '');
         var s = 'provi_sele_test( ["' + ids.join('","') + '"] ).join(",")';
         var a = this.applet.evaluate(s).split(",");
-        var selected = a[0];
+        var selected = parseFloat(a[0]);
         return [ selected ];
     },
     make_row: function(id){

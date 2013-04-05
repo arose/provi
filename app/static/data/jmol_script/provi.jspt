@@ -9,7 +9,7 @@ function provi_init(){
 
 
 function provi_uid(){
-    provi_uid_counter = provi_uid_counter + 1;
+    provi_uid_counter = 1*(provi_uid_counter) + 1;
     return provi_uid_counter;
 }
 
@@ -17,33 +17,27 @@ function provi_uid(){
 function provi_load_property( url, sele, dataset_id ){
 	if( !url ) return false;
 	if( !sele ) sele = {*};
-	# select *;
     var x = load( url );
     var line1_end = x.find("\n");
     var line1 = x[1][line1_end-1];
     var columns = line1.split(" ");
-    var d = x[line1_end][0];
+    d = x[line1_end][0];
     var i = 0;
     names = [];
-    pnames = [];
+    select @sele;
     for(var c in columns){
         i = i+1;
         var c2 = c.split("#");
-        var pname = "property_provi" + provi_uid();
-        var name = "property_" + c2[1];
+        var name = "property_" + c2[1] + "_" + dataset_id;
         names = names + name;
-        pnames = pnames + pname;
-        # var s = "DATA \\"" + pname + " 0 " + i + " @d\\";";
-        var s = "{ @sele }." + pname + " = data( @d, 0, " + i + "); " +
-        	"{ @sele and " + pname + " = " + c2[2] + " }." + pname + " = NaN;";
+        var s = 'DATA "' + name + ' 0 ' + i + ' @d";';
+        s += "{ @sele and " + name + " = " + c2[2] + " }." + name + " = NaN;";
         script INLINE @s;
-        # print "provi property: " + pname + " " + name;
     }
-    # select none;
     if( dataset_id ){
-    	print "provi dataset: " + dataset_id + " loaded | " +
-        	"provi property ds " + dataset_id + ": " + pnames.join(" ");
+    	print "provi dataset: " + dataset_id + " loaded | provi property ds " + dataset_id + ": " + names.join(" ");
     }
+    select none;
     return true;
 }
 
@@ -53,21 +47,16 @@ function provi_load_selection( url, dataset_id ){
 	var x = load( url );
     var lines = x.split();
     var names = [];
-    var pnames = [];
     for(l in lines){
         var fields = l.split(" ");
-        var pname = "provi_selection" + provi_uid();
-        var name = fields[1];
+        var name = fields[1] + "_" + dataset_id;
         names = names + name;
-        pnames = pnames + pname;
         var d = fields[2][0];
         var sele = "({" + d.join(" ") + "})";
         provi_selection[name] = sele;
-        # print "provi selection: " + name;
     }
     if( dataset_id ){
-    	print "provi dataset: " + dataset_id + " loaded | "
-        	"provi selection ds " + dataset_id + ": " + pnames.join(" ");
+    	print "provi dataset: " + dataset_id + " loaded | provi selection ds " + dataset_id + ": " + names.join(" ");
     }
     return true;
 }
@@ -82,8 +71,7 @@ function provi_load_bonds( url, hide_initially, dataset_id ){
     var bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";
     if( hide_initially ) hide add @bs;
     if( dataset_id ){
-    	print "provi dataset: " + dataset_id + " loaded | " +
-        	"provi bonds ds " + dataset_id + ": " + bond_count_before + " " + bond_count_after;
+    	print "provi dataset: " + dataset_id + " loaded | provi bonds ds " + dataset_id + ": " + bond_count_before + " " + bond_count_after;
 	}
 	return true;
 }
@@ -99,5 +87,13 @@ function provi_load_isosurface(){
 }
 
 
+function provi_sele_test(ids){
+    var sele_l = [];
+    var displayed_l = [];
+    for(id in ids){
+        sele_l += provi_selection[id].selected.join("");
+    }
+    return [ sele_l.average, displayed_l.average ];
+}
 
 

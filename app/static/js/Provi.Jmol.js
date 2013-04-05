@@ -421,7 +421,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         this.applet = e.firstChild;
     },
     dom: function(){
-           return this.dom;
+        return this.dom;
     },
     set_loaded: function(){
         if( this.loaded || this._determining_load_status  ) return;
@@ -434,8 +434,8 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         s=s+"";
         if(!s)return [];
         if(s.charAt(0)!="{"){
-               if(s.indexOf(" | ")>=0)s=s.replace(/\ \|\ /g, "\n");
-               return s;
+            if(s.indexOf(" | ")>=0)s=s.replace(/\ \|\ /g, "\n");
+            return s;
         }
         try{
             var A = eval("("+s+")");
@@ -602,9 +602,12 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         }
     },
     _load: function(){
-        this.init_listeners();
+        var self = this;
         this.loaded = true;
-        $(this).triggerHandler('load');
+        this.script_callback('script "../data/jmol_script/provi.jspt"; provi_init();', {}, function(){
+            self.init_listeners();
+            $(self).triggerHandler('load');
+        });
     },
     get_property: function(property, value){
         if(!value) value = '';
@@ -707,12 +710,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         var res = parsedInfo[1];
         var atom = parsedInfo[3];
         console.log(parsedInfo, chain, res, atom);
-        //return;
-        //this.selection_manager.select( 'resNo=' + res + ' ' + (chain ? 'and chain=' + chain : '') + ' and atomname=' + atom );
-        //this.selection_manager.select( 'resNo=' + res + (chain ? ' and chain=' + chain : '') );
-        //var sele = new Selection({ selection: 'resNo=' + res + (chain ? ' and chain=' + chain : ''), applet: this });
-        //sele.select();
-        //this.script_wait('show SELECTED;');
         $(this).triggerHandler('pick', [info, id]);
     },
     _hover_callback: function( info, id, x, y, z ){
@@ -725,9 +722,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             this.set_loaded();
         }
         $(this).triggerHandler('ready', [ status ]);
-    },
-    get_smcra: function(selection){
-           return Provi.Bio.Sequence.jmol_to_smcra( this, selection );
     },
     large_atom_count: function(){
         if( !this.misc_manager ) return false;

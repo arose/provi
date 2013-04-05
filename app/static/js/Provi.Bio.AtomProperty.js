@@ -236,13 +236,15 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, 
         var self = this;
         
         var props = _.map( this.dataset.data.get_list(), function(p){
-            return p.name.substr(9); // remove 'property_' prefix
+            return p.name.split('_').slice(1, -1).join('_'); // remove 'property_' prefix and '_id' suffix
         });
+        console.log(props);
         if( this.filter_properties ){
             props = _.intersection( props, this.filter_properties )
         }
 
         _.each( props, function( property_name ){
+            property_name = property_name + '_' + self.dataset.id;
             var range = undefined;
             if( self.property_ranges ){
                 range = self.property_ranges[ property_name ];
