@@ -21,17 +21,20 @@ var Widget = Provi.Widget.Widget;
 
 Provi.Bio.InterfaceContacts.register = function( params ){
     var contacts_ds = params.contacts_ds;
-    console.log( contacts_ds );
+    var contacts_ds2 = params.contacts_ds2;
+    console.log( "InterfaceContacts.register", contacts_ds, contacts_ds2 );
     Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
         'interface_contacts', Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory(
-            _.pluck( contacts_ds.get().get_list(), 'name' )
+            _.pluck( contacts_ds.get().get_list(), 'name' ),
+            contacts_ds2.id
         )
     )
 }
 
-Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory = function(ids){
+Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory = function(ids, dataset_id){
     return function(params){
         params.ids = ids;
+        params.dataset_id = dataset_id;
         return new Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType(params);
     }
 }
@@ -39,6 +42,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory = function(ids
 Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
     var self = this;
     this.ids = params.ids;
+    this.dataset_id = params.dataset_id;
     this.ids.sort();
 
     this.ids = [ 'Membrane', 'Water' ].concat( this.ids );
@@ -123,9 +127,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         });
     },
     tmp_prop_cmd: function(id){
+        var self = this;
         var tmp_prop = '{*}.property_tmp = NaN;';
         _.each(this.atm_cutoff, function(d){
-            tmp_prop += '{ @provi_selection["' + id + '_' + d[0] + '"] }' +
+            tmp_prop += '{ @provi_selection["' + id.split('_')[0] + '_' + d[0] + '_' + self.dataset_id + '"] }' +
                 '.property_tmp = ' + d[0] + ';';
         });
         return tmp_prop;
@@ -179,18 +184,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
                 return 'isosurface id "' + id + '_consurf__no_widget__" delete;';
             }).join(' ');
         }else{
-            
             return _.map( ids, function(id){
-                var color_cmd = '';
-                _.each(self.atm_cutoff, function(d){
-                    color_cmd += '' +
-                        'if( {property_' + id + '=' + d[0] + '}.length ){' +
-                            'try{' +
-                                'color ISOSURFACE ' +
-                                    '{property_' + id + '=' + d[0] + '} ' + d[1] + ';' +
-                            '}catch(e){}' +
-                        '}';
-                });
                 return 'set drawHover true;' +
                     'set isosurfacePropertySmoothing false;' +
                     self.tmp_prop_cmd(id) +
@@ -223,7 +217,6 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
     },
     show_consurf: function(id, flag, params, callback){
         var s = this._show_consurf(id, flag, params);
-        console.log(s);
         this.applet.script_callback( s, { maintain_selection: true }, callback );
     },
     _show_intersurf: function(id, flag, params){
@@ -258,10 +251,6 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         if( flag || id =="all" ){
             return 'color {*} cpk;';
         }
-        // var color_cmd = '';
-        // _.each(this.atm_cutoff, function(d){
-        //     color_cmd += 'color {property_' + id + '=' + d[0] + '} ' + d[1] + ';';
-        // });
         return '' +
             'color {*} cpk;' +
             //color_cmd +
@@ -285,7 +274,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         }else{
             this.shown_contact_id = id;
         }
-        this.applet.script_callback( this._show_contacts(id, flag), { maintain_selection: true, try_catch: true }, callback );
+        var s = this._show_contacts(id, flag);
+        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, callback );
     },
     consurf_cell: Provi.Bio.AtomSelection.CellFactory({
         "name": "consurf",
