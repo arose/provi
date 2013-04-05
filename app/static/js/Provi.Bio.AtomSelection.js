@@ -79,7 +79,8 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
     console.log('ATOMSELECTION GRID', params);
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
-        'grid', 'update', 'type', 'filter', 'sort', 'property', 'widgets'
+        'grid', 'update', 'type', 'filter', 'sort', 'property', 'widgets',
+        'calc', 'init'
     ]);
     
     this.type = params.type;
@@ -102,6 +103,10 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
             '</select>' +
             '&nbsp;' +
             '<button id="${eids.update}">update</button>' +
+            '&nbsp;' +
+            '<button id="${eids.calc}">calc</button>' +
+            '&nbsp;' +
+            '<button id="${eids.init}">init</button>' +
         '</div>' +
         '<div class="control_row">' +
             '<label for="${eids.property}">Property:&nbsp;</label>' +
@@ -196,8 +201,14 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
             });
         }
 
-        this.elm('update').button().click(function(){
-            self.update_grid();
+        this.elm('update').button().click( _.bind( self.update_grid, self ) );
+
+        this.elm('calc').button().click( function(){
+            self.sele_type.calculate();
+        });
+
+        this.elm('init').button().click( function(){
+            self.sele_type._init( self );
         });
 
         this.elm('type').bind('change', function(){
@@ -270,6 +281,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
     },
     _invalidate: function(){
         console.log('invalidate');
+        console.log(this);
         this.grid.invalidate();
         this.header();
         this.grid.resizeCanvas();
@@ -298,7 +310,10 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
 
         this.elm("widgets").empty();
         this.sele_type._init.call( this.sele_type, this );
-        this.sele_type.calculate();
+
+        $(this.sele_type).bind("init_ready", function(){
+            self.sele_type.calculate();
+        });
 
         $(this.sele_type).bind("calculate_ready", function(){
             self.update_grid();
@@ -386,8 +401,14 @@ Provi.Bio.AtomSelection.SelectionType = function(params){
 }
 Provi.Bio.AtomSelection.SelectionType.prototype = {
     handler: {},
-    _init: function(){},
-    calculate: function(){},
+    _init: function(){
+        this.initialized = true;
+        $(this).trigger("init_ready");
+    },
+    calculate: function(){
+        this.ready = true;
+        $(this).trigger("calculate_ready");
+    },
     get_ids: function(){},
     get_data: function(id){},
     make_row: function(id){},
@@ -656,7 +677,7 @@ Provi.Bio.AtomSelection.ModelindexSelectionType.prototype = Utils.extend(Provi.B
         return data;
     },
     get_data: function(id){
-        var format = '\'%[file]\',\'%[model]\'';
+        var format = '\'%[model]\',\'%[modelindex]\'';
         var a = this.applet.atoms_property_map( format, this.selection(id), true )[0];
         var s = '{' + this.selection(id) + '}.selected.join("")';
         var selected = this.applet.evaluate(s);
@@ -669,7 +690,7 @@ Provi.Bio.AtomSelection.ModelindexSelectionType.prototype = Utils.extend(Provi.B
             var label = "Models";
         }else{
             // var label = '/' + a[0] + '.' + a[1];
-            var label = '/' + a[1];
+            var label = '/' + ( a[0]=="0" ? parseInt(a[1])+1 : a[0] );
         }
 
         var $row = $('<div></div>');
@@ -771,7 +792,9 @@ Provi.Bio.AtomSelection.StrucnoSelectionType = function(params){
 }
 Provi.Bio.AtomSelection.StrucnoSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.AtomSelection.StrucnoSelectionType.prototype */ {
     get_ids: function(){
-        var s = '{' + this.filtered() + '}.strucno.all.count().join("")';
+        var s = '{' + this.filtered() + '}.modelindex.all' +
+            '.add("/", {' + this.filtered() + '}.strucno.all )' +
+            '.count().join("")';
         var data = this.applet.evaluate(s);
         if(data) data = data.trim().split('\t');
         data = _.filter(data, function(val, i){
@@ -780,7 +803,7 @@ Provi.Bio.AtomSelection.StrucnoSelectionType.prototype = Utils.extend(Provi.Bio.
         return data;
     },
     get_data: function(id){
-        var format = '\'%[structure]\',\'%[substructure]\'';
+        var format = '\'%[structure]\',\'%[substructure]\',\'%[model]\',\'%[modelindex]\'';
         var a = this.applet.atoms_property_map( format, this.selection(id), true )[0];
         var s = '{' + this.selection(id) + '}.selected.join("")';
         // todo: get number of substructures of the same type with a smaller strucno
@@ -793,12 +816,13 @@ Provi.Bio.AtomSelection.StrucnoSelectionType.prototype = Utils.extend(Provi.Bio.
         if(id==="all"){
             var label = "Strucno";
         }else{
-            var label = a[0] + ' | ' + a[1];
+            console.log(a);
+            var label = a[0] + ' | ' + a[1] + ' /' + ( a[2]=="0" ? parseInt(a[3])+1 : a[2] );
         }
 
         var $row = $('<div></div>');
         $row.append(
-            this.selected_cell( id, a[2] ),
+            this.selected_cell( id, a[4] ),
             this.displayed_cell( id, this.displayed(id) ),
             this.label_cell( label )
         );
@@ -808,7 +832,8 @@ Provi.Bio.AtomSelection.StrucnoSelectionType.prototype = Utils.extend(Provi.Bio.
         if( id==='all' ){
             return 'within(MODEL, ' + this.filtered() + ')';
         }else{
-            return 'strucno=' + id;
+            var m = id.match( /(.*)\/(.*)/ );
+            return 'strucno=' + m[2] + ' and modelindex=' + m[1];
         }
     }
 });

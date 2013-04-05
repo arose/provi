@@ -73,7 +73,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
             "selector": 'input[cell="cavity"]',
             "click": this.show_cavity
         },
-        "show_hole": {
+        "show_neighbours": {
             "selector": 'input[cell="neighbours"]',
             "click": this.show_neighbours
         }
@@ -87,55 +87,24 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         cavity_color: 'skyblue'
     },
     _init: function(grid){
-        this.show_hole( 'all', undefined, {}, grid.invalidate() );
+        var self = this;
+        this.initialized = false;
+        this.applet.script_callback('' +
+            'script "../data/jmol_script/voronoia.jspt";' +
+        '', {}, function(){
+            self.initialized = true;
+            $(self).trigger("init_ready");
+        });
+        $(this).bind("calculate_ready", function(){
+            self.show_hole( 'all', undefined, {}, _.bind( grid.invalidate, grid ) );
+        });
     },
     get_ids: function(sele){
         return this.ids;
     },
     get_data: function(id){
+        if( !this.ready ) return [0, 0, 0, 0];
         var ids = (id=="all") ? this.get_ids() : [id];
-        this.applet.script('' +
-            'function provi_isosurface_test(ids){' +
-                'var l = [];' +
-                //'try{' +
-                    'for(id in ids){' +
-                        'l += (getProperty("shapeInfo", "Isosurface", "ID")' +
-                            '.find(id+"_iso__no_widget__") & true)+0;' +
-                    '}' +
-                //'}catch(){}' +
-                'return l.average;' +
-            '};' +
-            'function provi_hole_test(ids){' +
-                //'try{' +
-                    'var sele_l = [];' +
-                    'var displayed_l = [];' +
-                    'var cpk_l = [];' +
-                    'var draw_l = [];' +
-                    'var iso_l = [];' +
-                    'for(id in ids){' +
-                        'sele_l += provi_selection[id].selected.join("");' +
-                        'var p = provi_selection[id];' +
-                        // 'var s = {p} and {displayed};' +
-                        // 'displayed_l += s.length.join("")/' +
-                        //     'provi_selection[id].length.join("");' +
-                        'cpk_l += provi_selection[id].cpk.join("");' +
-                        'tmp = 0;' +
-                        'var s = "tmp = ($"+id+"_draw__no_widget__ & true)+0";' +
-                        'script INLINE @s;' +
-                        'draw_l += tmp;' +
-                        'tmp = 0;' +
-                        'var s = "tmp = ($"+id+"_iso__no_widget__ & true)+0";' +
-                        'script INLINE @s;' +
-                        'iso_l += tmp;' +
-                        // 'draw_l += (getProperty("shapeInfo", "Draw", "ID")' +
-                        //     '.find(id+"_draw__no_widget__") & true)+0;' +
-                        // 'iso_l += (getProperty("shapeInfo", "Isosurface", "ID")' +
-                        //     '.find(id+"_iso__no_widget__") & true)+0;' +
-                    '}' +
-                //'}catch(){}' +
-                'return [ sele_l.average, cpk_l.average, draw_l.average, iso_l.average ];' +
-            '};' +
-        '');
         var s = 'provi_hole_test(["' + ids.join('","') + '"]).join(",")';
         var a = this.applet.evaluate(s);
         if(a){
@@ -259,15 +228,15 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
     cavity_cell: Provi.Bio.AtomSelection.CellFactory({
         "name": "cavity",
         "color": "tomato",
-        "label": function(hole, id){
+        "label": function(cavity, id){
             return (cavity ? 'Hide' : 'Show') + (id==='all' ? ' all cavities' : ' cavity');
         }
     }),
     neighbours_cell: Provi.Bio.AtomSelection.CellFactory({
         "name": "neighbours",
         "color": "lightgreen",
-        "label": function(hole, id){
-            return (hole ? 'Hide' : 'Show') + (id==='all' ? ' all neighbours' : ' neighbours');
+        "label": function(neighbours, id){
+            return (neighbours ? 'Hide' : 'Show') + (id==='all' ? ' all neighbours' : ' neighbours');
         }
     })
 });
