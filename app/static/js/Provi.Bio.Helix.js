@@ -66,11 +66,16 @@ Provi.Bio.Helix.HelixorientSelectionType = function(params){
         "show_axis": {
             "selector": 'input[cell="axis"]',
             "click": this.show_axis
+        },
+        "colorize_axis": {
+            "selector": 'input[cell="colorize"]',
+            "click": this.colorize_axis
         }
     }, this.handler );
 }
 Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.Helix.HelixorientSelectionType.prototype */ {
     _init: function(grid){
+        grid.elm("widgets").empty();
         this.params_widget = new Provi.Bio.Helix.HelixorientParamsWidget({
             parent_id: grid.eid('widgets')
         });
@@ -83,14 +88,23 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
             $(self).trigger("init_ready");
         });
     },
-    get_ids: function(){
-        var s = '{' + this.filtered() + ' and helix and protein}.strucno.all.count().join("")';
-        var data = this.applet.evaluate(s);
-        if(data) data = data.trim().split('\t');
-        data = _.filter(data, function(val, i){
-            return i % 2 == 0;
+    calculate: function(){
+        if( !this.initialized ) return;
+        var self = this;
+        this.ready = false;
+        this.applet.script_callback('' +
+            'provi_data["helixorient"] = calc_helices({' + this.filtered() + '});' +
+        '', {}, function(){
+            console.log("helixorient", "calculate_ready");
+            self.ready = true;
+            $(self).trigger("calculate_ready");
         });
-        return data;
+    },
+    get_ids: function(){
+        if( !this.ready ) return [];
+        var s = 'provi_data["helixorient"].length';
+        var data = this.applet.evaluate(s);
+        return _.range(1, parseInt(data)+1);
     },
     get_data: function(id){
         if( !this.ready ) return [0, 0];
@@ -119,7 +133,8 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         $row.append(
             this.selected_cell( id, a[0] ),
             this.label_cell( label ),
-            this.axis_cell( id, a[1] )
+            this.axis_cell( id, a[1] ),
+            this.colorize_cell( id, false )
         );
         return $row;
     },
@@ -127,7 +142,8 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         if( id==='all' ){
             return 'within(MODEL, ' + this.filtered() + ' and helix)';
         }else{
-            return 'strucno=' + id;
+            return '@provi_data["helixorient"][' + id + ']["sele"]';
+            // return 'strucno=' + id;
         }
     },
     _show_axis: function(id, flag, params){
@@ -141,21 +157,52 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         }else{
             return _.map( ids, function(id){
                 return '' +
-                    'helixorient_show_axis({' + self.selection(id) + '}, ' +
-                        '"helixorient_' + id + '_axis__no_widget__", ' +
-                        ( params.show_local_axes ? 'true' : 'false' ) +
+                    'var x = provi_data["helixorient"][' + id + '];' +
+                    'helixorient_drawaxis(' + 
+                        'x["axis"], "helixorient_' + id + '_axis__no_widget__"' +
                     ');' +
+                    // 'helixorient_show_axis(provi_data["helixorient"][' + id + ']["sele"], ' +
+                    //     '"helixorient_' + id + '_axis__no_widget__", ' +
+                    //     ( params.show_local_axes ? 'true' : 'false' ) +
+                    // ');' +
                 '';
             }).join(' ');
         }
     },
     show_axis: function(id, flag, params, callback){
-        params.show_local_axes = this.params_widget.show_local_axes();
+        // params.show_local_axes = this.params_widget.show_local_axes();
         var s = this._show_axis(id, flag, params);
+        console.log("show_axis", s);
+        this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
+    },
+    _colorize_axis: function(id, flag, params){
+        params = params || {};
+        var self = this;
+        var ids = (id==='all') ? this.get_ids() : [ id ];
+        if(flag){
+            return _.map( ids, function(id){
+                return '' +
+                    'var x = provi_data["helixorient"][' + id + '];' +
+                    'color {@x["sele"]} cpk;';
+            }).join(' ');
+        }else{
+            return _.map( ids, function(id){
+                return '' +
+                    'var x = provi_data["helixorient"][' + id + '];' +
+                    'helixorient_colorize( x["data"] );' +
+                '';
+            }).join(' ');
+        }
+    },
+    colorize_axis: function(id, flag, params, callback){
+        var s = this._colorize_axis(id, flag, params);
         this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
     },
     axis_cell: Provi.Bio.AtomSelection.CellFactory({
         name: "axis", label: "axis", color: "skyblue"
+    }),
+    colorize_cell: Provi.Bio.AtomSelection.CellFactory({
+        name: "colorize", label: "colorize", color: "tomato"
     })
 });
 Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
@@ -216,7 +263,6 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
         var self = this;
         this.ready = false;
         this.applet.script_callback('' +
-            'if(!provi_data){ provi_data = {}; }' +
             'provi_data["helixcrossing"] = helix_pairs({' + this.filtered() + '});' +
         '', {}, function(){
             console.log("helixcrossing", "calculate_ready");
@@ -305,6 +351,7 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
     },
     show_crossing: function(id, flag, params, callback){
         var s = this._show_crossing(id, flag, params);
+        console.log("show_crossing", s);
         this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
     },
     _show_contacts: function(id, flag, params){

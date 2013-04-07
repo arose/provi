@@ -78,6 +78,7 @@ function helix_axis(pointz, draw, id, colr){
     return [beg, ent, vec, name];
 }
 
+
 function helix_axis2(helix, draw){
 
     var ca = {@helix and *.CA};
@@ -196,6 +197,20 @@ function helixorient_show_axis( sele, id, local ){
 }
 
 
+function helixorient_colorize( d ){
+    try{
+        var n = d["sele"].length;
+        for(var i=1; i<=n-3; ++i){
+            var s = d["sele"][i];
+            #var colr = color("rwb", 0, 1, d["radius"][i]);
+            #var colr = color("rwb", 2000, 6000, d["twist"][i]);
+            var colr = color("rwb", 0, 20, d["axisdiff"][i]);
+            color @s @colr;
+        }
+    }catch(){}
+}
+
+
 function helixorient_crossingangle( sele_a, sele_b ){
     var angl = 0;
     var ha = 0;
@@ -216,6 +231,64 @@ function helixorient_drawaxis( h, id, colr ){
     var beg = h[1];
     var vec = h[3];
     draw ID @{id+""} color @colr VECTOR @beg @vec;
+}
+
+
+function _calc_helices( sele ){
+    var struc_helices = {@sele and helix and protein}.strucno.all.count();
+    var n = struc_helices.length;
+    var helices = [];
+    var helices_tmp = [];
+    set bondModeOr = true;
+
+    # join adjacent helices
+    var x = (struc_helices[i])[1];
+    var y = 0; var sx = 0; var sy = 0;
+    var j = 2;
+    helices += { "sele": {@sele and strucno=@x} };
+    for(var i = 2; i<n; i++){
+        print i;
+        sx = helices[i-1]["sele"];
+        y = (struc_helices[i])[1];
+        sy = {@sele and strucno=@y};
+        if( ({@sx and backbone}.bonds & {@sy and backbone}.bonds).size > 0 ){
+            helices[j-1] = { "sele": { @sx or @sy } };
+        }else{
+            helices += { "sele": sy };
+            j += 1;
+        }
+    }
+
+    # calculate helix features
+    n = helices.length;
+    for(var i = 1; i<=n; i++){
+        var ho = helixorient( helices[i]["sele"] );
+        helices[i]["data"] = ho;
+        helices[i]["axis"] = helix_axis( helices[i]["data"]["center"] );
+    }
+
+    # split helices according to local tilt
+
+
+    # remove short helices
+
+
+    # recalculate helix features
+
+
+    return helices;
+}
+
+
+function calc_helices( sele ){
+    var helices = [];
+    var models = {sele}.modelindex.all.count();
+    var m = 0;
+    for(var c in models){
+        m = c[1];
+        helices += _calc_helices({modelindex=@m});
+    }
+    return helices;
 }
 
 
@@ -251,10 +324,10 @@ function provi_helixcrossing_test(ids){
     var sele_l = [];
     var draw_l = [];
     var contact_l = [];
-    var s = "";
+    var s = 0; var pair = 0; var a = 0; var b = 0;
     for(id in ids){
-        var pair = id.split("_");
-        var a = pair[1]*1; var b = pair[2]*1; # convert to int
+        pair = id.split("_");
+        a = pair[1]*1; b = pair[2]*1; # convert to int
         sele_l += {strucno=@a or strucno=@b}.selected.join("");
         tmpA = 0;
         s = "tmpA = ($helixorient_"+id+"_axis__no_widget__A & true)+0";
@@ -268,6 +341,9 @@ function provi_helixcrossing_test(ids){
         script INLINE @s;
         contact_l += tmp;
     }
+    unset tmpA;
+    unset tmpB;
+    unset tmp;
     var angl = 0;
     var modelidx = 0;
     if( ids.length==1 ){
@@ -280,17 +356,20 @@ function provi_helixcrossing_test(ids){
 function provi_helixorient_test(ids){
     var sele_l = [];
     var draw_l = [];
+    var helix_sele = 0; var s = 0;
     for(id in ids){
-        sele_l += {strucno=@id}.selected.join("");
+        helix_sele = provi_data["helixorient"][id]["sele"];
+        sele_l += helix_sele.selected.join("");
         try{
             tmp = 0;
-            var s = "tmp = ($helixorient_"+id+"_axis__no_widget__ & true)+0";
+            s = "tmp = ($helixorient_"+id+"_axis__no_widget__ & true)+0";
             script INLINE @s;
             draw_l += tmp;
         }catch(){
             draw_l += 0;
         }
     }
+    unset tmp;
     return [ sele_l.average, draw_l.average ];
 };
 
