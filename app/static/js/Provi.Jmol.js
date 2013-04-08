@@ -203,7 +203,7 @@ Provi.Jmol = $.extend(Provi.Jmol, /** @lends Provi.Jmol */ {
         $(this).triggerHandler('applet_added', applet);
     },
     remove_applet: function(name_suffix){
-        this._applet_list.removeItems(name_suffix, function(applet, name_suffix){
+        this._applet_list = _.reject(this._applet_list, function(applet){
             return name_suffix == applet.name_suffix;
         });
         this._applet_dict[name_suffix]._delete();
@@ -846,7 +846,7 @@ Provi.Jmol.JmolWidget = function(params){
         $('#' + self.picking_id).val( params.picking );
     });
     
-    $('#' + this.delete_id).tipsy({ gravity: 'e' }).click(function(){
+    $('#' + this.delete_id).qtip({ position: {my: 'right center', at: 'left center'} }).click(function(){
         $(this).trigger('mouseout');
         $(self.dom).hide();
         $(self.dom).appendTo('#trash');

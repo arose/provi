@@ -63,13 +63,15 @@ Provi.Bio.Helix.HelixorientParamsWidget.prototype = Utils.extend(Widget, /** @le
 Provi.Bio.Helix.HelixorientSelectionType = function(params){
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
     this.handler = _.defaults({
-        "show_axis": {
-            "selector": 'input[cell="axis"]',
-            "click": this.show_axis
+        show_axis: {
+            selector: 'input[cell="axis"]',
+            click: this.show_axis,
+            label: "axis"
         },
-        "colorize_axis": {
-            "selector": 'input[cell="colorize"]',
-            "click": this.colorize_axis
+        colorize_axis: {
+            selector: 'input[cell="colorize"]',
+            click: this.colorize_axis,
+            label: "colorize"
         }
     }, this.handler );
 }
@@ -199,10 +201,10 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
     },
     axis_cell: Provi.Bio.AtomSelection.CellFactory({
-        name: "axis", label: "axis", color: "skyblue"
+        name: "axis", color: "skyblue"
     }),
     colorize_cell: Provi.Bio.AtomSelection.CellFactory({
-        name: "colorize", label: "colorize", color: "tomato"
+        name: "colorize", color: "tomato"
     })
 });
 Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
@@ -236,13 +238,15 @@ Provi.Bio.Helix.HelixcrossingWidget.prototype = Utils.extend(Provi.Bio.AtomSelec
 Provi.Bio.Helix.HelixcrossingSelectionType = function(params){
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
     this.handler = _.defaults({
-        "show_crossing": {
-            "selector": 'input[cell="crossing"]',
-            "click": this.show_crossing
+        show_crossing: {
+            selector: 'input[cell="crossing"]',
+            click: this.show_crossing,
+            label: "crossing"
         },
-        "show_contacts": {
-            "selector": 'input[cell="helixcontacts"]',
-            "click": this.show_contacts
+        show_contacts: {
+            selector: 'input[cell="helixcontacts"]',
+            click: this.show_contacts,
+            label: "contacts"
         }
     }, this.handler );
 }
@@ -380,10 +384,10 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
         this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
     },
     crossing_cell: Provi.Bio.AtomSelection.CellFactory({
-        name: "crossing", label: "crossing", color: "skyblue"
+        name: "crossing", color: "skyblue"
     }),
     contacts_cell: Provi.Bio.AtomSelection.CellFactory({
-        name: "helixcontacts", label: "contacts", color: "tomato"
+        name: "helixcontacts", color: "tomato"
     })
 });
 Provi.Bio.AtomSelection.SelectionTypeRegistry.add(

@@ -80,7 +80,7 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
         'grid', 'update', 'type', 'filter', 'sort', 'property', 'widgets',
-        'calc', 'init'
+        'calc', 'init', 'tooltips'
     ]);
     
     this.type = params.type;
@@ -322,10 +322,35 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         _.each( this.sele_type.handler, function(d, i){
             self.elm('grid').on( 'click.grid', d["selector"], function(e){
                 var elm = $(e.currentTarget);
-                elm.parent().tipsy('hide');
+                //elm.parent().tipsy('hide');
+                elm.qtip('hide');
                 var id = elm.data("id");
                 var flag = !elm.prop('checked');
                 d["click"].apply( self.sele_type, [ id, flag, {}, invalidate ]);
+            });
+
+            if( !_.isFunction(d["label"]) ){
+                var label = d["label"];
+                d["label"] = function(value, id){
+                    var l = label ? ' ' + label : '';
+                    if( id==='all' ){
+                        l = ' all' + ( l ? _.pluralize( l ) : '' );
+                    }
+                    return (value ? 'Hide' : 'Show') + l;
+                }
+            }
+
+            self.elm('grid').on( 'mouseover', d["selector"], function(e){
+                $(this).qtip({
+                    overwrite: false,
+                    content: '?',
+                    show: {
+                        event: event.type,
+                        ready: true
+                    }
+                }, event);
+                var elm = $(e.originalEvent.target);
+                $(this).qtip('option', 'content.text', d["label"]( elm.prop('checked'), elm.data("id") ) );
             });
         });
 
@@ -352,14 +377,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
 
 Provi.Bio.AtomSelection.CellFactory = function( p ){
     p.color = p.color || "none";
-    p.label = p.label || p.name;
     p.position = p.position || "right";
-    if( !_.isFunction(p.label) ){
-        var l = p.label;
-        p.label = function(value){
-            return (value ? 'Hide' : 'Show') + ' ' + l;
-        }
-    }
     return function(id, value, disabled){
         var $elm = $(
             '<span style="background:' + p.color + '; float:' + p.position + '; width:22px;">' +
@@ -371,8 +389,6 @@ Provi.Bio.AtomSelection.CellFactory = function( p ){
         );
         $elm.children().prop( 'indeterminate', value > 0.0 && value < 1.0 );
         $elm.children().data( 'id', id );
-        var tt = p.label( value, id );
-        $elm.tipsy({gravity: 'n', fallback: tt});
         return $elm;
     }
 }
@@ -389,11 +405,17 @@ Provi.Bio.AtomSelection.SelectionType = function(params){
     this.handler = {
         "select": {
             "selector": 'input[cell="selected"]',
-            "click": this.select
+            "click": this.select,
+            "label": function(selected, id){
+                return (selected ? 'Deselect' : 'Select') + (id==='all' ? ' all' : '');
+            }
         },
         "display": {
             "selector": 'input[cell="displayed"]',
-            "click": this.display
+            "click": this.display,
+            "label": function(displayed, id){
+                return (displayed ? 'Hide' : 'Display') + (id==='all' ? ' all' : '');
+            }
         }
     };
 }
@@ -448,18 +470,10 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
         return $label;
     },
     selected_cell: Provi.Bio.AtomSelection.CellFactory({
-        "name": "selected",
-        "position": "left",
-        "label": function(selected, id){
-            return (selected ? 'Deselect' : 'Select') + (id==='all' ? ' all' : '');
-        }
+        "name": "selected", "position": "left"
     }),
     displayed_cell: Provi.Bio.AtomSelection.CellFactory({
-        "name": "displayed",
-        "position": "left",
-        "label": function(displayed, id){
-            return (displayed ? 'Hide' : 'Display') + (id==='all' ? ' all' : '');
-        }
+        "name": "displayed", "position": "left"
     }),
     color_cell: function(color){
         if( color ){
@@ -495,24 +509,8 @@ Provi.Bio.AtomSelection.AtomindexSelectionType = function(params){
 Provi.Bio.AtomSelection.AtomindexSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.AtomSelection.AtomindexSelectionType.prototype */ {
     get_ids: function(){
         if( this.sort ){
-            // this.applet.script('' +
-            //     'function sort_by_prop( sele ){' +
-            //         'var arr = sele.atomindex.all;' +
-            //         'var prop = sele.' + this.sort + '.all;' +
-            //         'var n = arr.length;' +
-            //         'for( var i = 1; i<=n; ++i ){' +
-            //             'arr[i] = [ arr[i], prop[i] ];' +
-            //         '}' +
-            //         'arr.sort(2);' +
-            //         'for( var i = 1; i<=n; ++i ){' +
-            //             'arr[i] = (arr[i])[1];' +
-            //         '}' +
-            //         'return arr;' +
-            //     '}' +
-            // '');
             var s = 'sort_by_prop( {' + this.filtered() + '}, "' + this.sort + '" ).join(",")';
             var a = this.applet.evaluate(s);
-            console.log("sort_by_prop", a, this.filtered());
             a = a ? a.split(",") : [];
             return a;
         }else{

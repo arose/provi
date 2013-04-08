@@ -140,13 +140,13 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     init: function(){
         var self = this;
         
-        this.elm('info').tipsy({ gravity: 'ne' });
+        this.elm('info').qtip({ position: {my: 'top center', at: 'bottom center'} });
         
         var heading = this.elm( 'heading' );
         heading.hover(function(){
             $(this).toggleClass('ui-state-hover');
         });
-        heading.children('[title]').tipsy({ gravity: 'nw' });
+        heading.children('[title]').qtip({ position: {my: 'top center', at: 'bottom center'} });
         heading.click(function() {
             $(this).siblings().toggle();
             //self.elm( 'content' ).toggle();
@@ -323,7 +323,7 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
     _init: function(){
         var self = this;
         $(this.dom).hide();
-        $( '#' + this.close_id ).tipsy({ gravity: 'e' }).click( function(){
+        $( '#' + this.close_id ).qtip({ position: {my: 'top center', at: 'bottom center'} }).click( function(){
             self.hide();
         });
         //Widget.prototype.init.call(this);

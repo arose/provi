@@ -67,15 +67,18 @@ Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
     this.handler = _.defaults({
         "show_hole": {
             "selector": 'input[cell="hole"]',
-            "click": this.show_hole
+            "click": this.show_hole,
+            "label": "sphere"
         },
         "show_cavity": {
             "selector": 'input[cell="cavity"]',
-            "click": this.show_cavity
+            "click": this.show_cavity,
+            "label": "cavity"
         },
         "show_neighbours": {
             "selector": 'input[cell="neighbours"]',
-            "click": this.show_neighbours
+            "click": this.show_neighbours,
+            "label": "neighbours"
         }
     }, this.handler );
 }
@@ -219,25 +222,13 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         this.applet.script_callback( this._show_neighbours(id, flag), { maintain_selection: true }, callback );
     },
     hole_cell: Provi.Bio.AtomSelection.CellFactory({
-        "name": "hole",
-        "color": "skyblue",
-        "label": function(hole, id){
-            return (hole ? 'Hide' : 'Show') + (id==='all' ? ' all spheres' : ' sphere');
-        }
+        "name": "hole", "color": "skyblue"
     }),
     cavity_cell: Provi.Bio.AtomSelection.CellFactory({
-        "name": "cavity",
-        "color": "tomato",
-        "label": function(cavity, id){
-            return (cavity ? 'Hide' : 'Show') + (id==='all' ? ' all cavities' : ' cavity');
-        }
+        "name": "cavity", "color": "tomato"
     }),
     neighbours_cell: Provi.Bio.AtomSelection.CellFactory({
-        "name": "neighbours",
-        "color": "lightgreen",
-        "label": function(neighbours, id){
-            return (neighbours ? 'Hide' : 'Show') + (id==='all' ? ' all neighbours' : ' neighbours');
-        }
+        "name": "neighbours", "color": "lightgreen"
     })
 });
 
