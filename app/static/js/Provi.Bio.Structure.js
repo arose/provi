@@ -34,7 +34,8 @@ Provi.Bio.Structure.Structure = function(params){
     this.filter = params.filter;
     this.lattice = params.lattice;
     this.type = params.type;
-
+    this.pdb_add_hydrogens = params.pdb_add_hydrogens;
+    
     this.load();
 };
 Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structure.prototype */ {
@@ -43,7 +44,8 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         load_as: undefined,
         script: false,
         filter: '',
-        lattice: ''
+        lattice: '',
+        pdb_add_hydrogens: false
     },
     load: function(){
         this.load_file();
@@ -88,20 +90,22 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
             path += ' ' + lattice + '';
         }
         
+        // add hydrogens and multiple bonding (fetches ligand data from rcsb pdb)
+        var s = 'set pdbAddHydrogens ' + ( this.pdb_add_hydrogens ? 'true' : 'false' ) + ';';
+
         // load structural data into the jmol applet
-        var s = '';
         if(load_as == 'trajectory'){
-            s = 'load TRAJECTORY ' + path + '; ' + style;
+            s += 'load TRAJECTORY ' + path + '; ' + style;
         }else if(load_as == 'trajectory+append'){
-            s = 'load APPEND TRAJECTORY ' + path + '; ' +
+            s += 'load APPEND TRAJECTORY ' + path + '; ' +
                 'subset file = _currentFileNumber; ' + style + ' subset;';
         }else if(load_as == 'append'){
-            s = 'load APPEND ' + path + '; ' +
+            s += 'load APPEND ' + path + '; ' +
                 'subset file = _currentFileNumber; ' + style + '; subset; ';
         //}else if(load_as == 'new'){
         }else{
             console.log(path);
-            s = 'load ' + path + '; ' + style;
+            s += 'load ' + path + '; ' + style;
         }
 
         applet.script_callback( s, { maintain_selection: true, try_catch: false }, function(){
@@ -136,7 +140,7 @@ Provi.Bio.Structure.StructureParamsWidget = function(params){
     Provi.Widget.Widget.call( this, params );
 
     this._init_eid_manager([
-        'load_as', 'filter', 'lattice'
+        'load_as', 'filter', 'lattice', 'pdb_add_hydrogens'
     ]);
 
     var template = '' +
@@ -170,6 +174,10 @@ Provi.Bio.Structure.StructureParamsWidget = function(params){
                 '<option value="{3 3 1}">{3 3 1}</option>' +
                 '<option value="{3 3 3}">{3 3 3}</option>' +
             '</select>' +
+            '<div>' +
+                '<input id="${eids.pdb_add_hydrogens}" type="checkbox" style="margin-top: 0.5em;"/>' +
+                '<label for="${eids.pdb_add_hydrogens}">add hydrogens and multiple bonding</label>' +
+            '</div>' +
         '</div>' +
     '';
     this.add_content( template, params );
@@ -186,6 +194,9 @@ Provi.Bio.Structure.StructureParamsWidget.prototype = Utils.extend(Widget, /** @
     },
     get_lattice: function(){
         return this.elm("lattice").children("option:selected").val();
+    },
+    get_pdb_add_hydrogens: function(){
+        return this.elm("pdb_add_hydrogens").is(':checked');
     }
 });
 

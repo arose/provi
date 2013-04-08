@@ -275,7 +275,8 @@ Provi.Data.Controller.StructureMixin = {
         params: [
             { name: 'load_as', getter: 'get_load_as' },
             { name: 'filter', getter: 'get_filter' },
-            { name: 'lattice', getter: 'get_lattice' }
+            { name: 'lattice', getter: 'get_lattice' },
+            { name: 'pdb_add_hydrogens', getter: 'get_pdb_add_hydrogens' }
         ],
         obj: Provi.Bio.Structure.StructureParamsWidget
     }],
