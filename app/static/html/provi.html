@@ -14,6 +14,8 @@
     <script type="text/javascript" src="../js/lib/stacktrace.min.js"></script>
     
     <script type="text/javascript" src="../js/lib/underscore-min.js"></script>
+    <script type="text/javascript" src="../js/lib/underscore.inflection.js"></script>
+    <script type="text/javascript" src="../js/lib/underscore.string.min.js"></script>
     
     <script type="text/javascript" src="../js/lib/canvg/rgbcolor.js"></script>
     <script type="text/javascript" src="../js/lib/canvg/canvg.js"></script>
@@ -29,9 +31,10 @@
     <script type="text/javascript" src="../js/lib/jquery-ui/js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="../js/lib/jstree/jquery.jstree.js"></script>
     <script type="text/javascript" src="../js/lib/chosen/chosen.jquery.js"></script>
-    
-    <script type="text/javascript" src="../js/lib/tipsy/src/javascripts/jquery.tipsy.js"></script>
-    
+
+    <link rel="stylesheet" media="screen" type="text/css" href="../js/lib/qtip2/jquery.qtip.min.css" />
+    <script type="text/javascript" src="../js/lib/qtip2/jquery.qtip.min.js"></script>
+
     <script type="text/javascript" src="../js/lib/jquery.sizes.js"></script>
     <script type="text/javascript" src="../js/lib/jlayout.grid.js"></script>
     <script type="text/javascript" src="../js/lib/jlayout.border.js"></script>
@@ -40,11 +43,6 @@
     
     <script type="text/javascript" src="../js/lib/sylvester.js"></script>
     <script type="text/javascript" src="../js/lib/numeric.js"></script>
-    
-    <!--[if IE]><script type="text/javascript" src="../js/lib/svg.js" data-path="../js/lib/"></script><![endif]-->
-    <script type="text/javascript" src="../js/lib/protovis-r.js"></script>
-    <!--<script type="text/javascript" src="../js/lib/protovis.min.js"></script>-->
-    <script type="text/javascript" src="../js/lib/pv.Behavior.tipsy.js"></script>
     
     <script type="text/javascript" src="../js/lib/plupload/js/plupload.full.js"></script>
     
@@ -104,7 +102,6 @@
     <script language="JavaScript" src="../js/lib/slickgrid/slick.grid.js"></script>
     
     <link type="text/css" href="../js/lib/jquery-ui/css/smoothness/jquery-ui.css" rel="stylesheet" />
-    <link type="text/css" href="../js/lib/tipsy/src/stylesheets/tipsy.css" rel="stylesheet" />
     <link type="text/css" href="../js/lib/chosen/chosen.css" rel="stylesheet" />
     <link rel='stylesheet' type='text/css' href='../css/keys.css'>
     <link rel='stylesheet' type='text/css' href='../css/view.css'>
@@ -386,9 +383,9 @@
                 });
             });
         
-            $('#tabs_panel a[title]:last').tipsy({ gravity: 'ne' });
-            $('#tabs_panel a[title]:first').tipsy({ gravity: 'nw' });
-            $('#tabs_panel a[title]').tipsy({ gravity: 'n' });
+            $('#tabs_panel a[title]').qtip({ position: {my: 'top center', at: 'bottom center'} });
+            $('#tabs_panel a[title]:last').qtip({ position: {my: 'top right', at: 'bottom center'} });
+            $('#tabs_panel a[title]:first').qtip({ position: {my: 'top left', at: 'bottom center'} });
         
             // when in test mode, load some data for development purposes
             if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){

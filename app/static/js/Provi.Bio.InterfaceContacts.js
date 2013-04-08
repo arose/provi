@@ -86,15 +86,24 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
     this.handler = _.defaults({
         "show_consurf": {
             "selector": 'input[cell="consurf"]',
-            "click": this.show_consurf
+            "click": this.show_consurf,
+            "label": "contact surface"
         },
         "show_intersurf": {
             "selector": 'input[cell="intersurf"]',
-            "click": this.show_intersurf
+            "click": this.show_intersurf,
+            "label": "element surface"
         },
         "show_contacts": {
             "selector": 'input[cell="contacts"]',
-            "click": this.show_contacts
+            "click": this.show_contacts,
+            label: function(contacts, id){
+                if( !contacts && id!=='all' ){
+                    return 'Show contacts';
+                }else if( !contacts && id==='all' ){
+                    return 'Hide all contacts';
+                }
+            }
         }
     }, this.handler );
 }
@@ -278,42 +287,20 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, callback );
     },
     consurf_cell: Provi.Bio.AtomSelection.CellFactory({
-        "name": "consurf",
-        "color": "tomato",
-        "label": "contact surface"
+        "name": "consurf", "color": "tomato",
     }),
     intersurf_cell: Provi.Bio.AtomSelection.CellFactory({
-        "name": "intersurf",
-        "color": "skyblue",
-        "label": "element surface"
+        "name": "intersurf", "color": "skyblue"
     }),
     contacts_cell: function(id, contacts){
-        // if( id==="all" ) return '';
-
         var $contacts = $('<span style="background:lightgreen; float:right; width:22px;">' +
             '<input cell="contacts" type="radio" ' + 
                 ( contacts ? 'checked="checked" ' : '' ) + 
             '/>' +
         '</span>');
         $contacts.children().data( 'id', id );
-
-        if( !contacts && id!=='all' ){
-            var tt = 'Show contacts';
-            $contacts.tipsy({gravity: 'n', fallback: tt});
-        }else if( !contacts && id==='all' ){
-            var tt = 'Hide all contacts';
-            $contacts.tipsy({gravity: 'n', fallback: tt});
-        }
-        
         return $contacts;
     }
-    // selection: function(id, flag){
-    //     if( _.include([ 'Membrane', 'Water' ], id ) ){
-    //         ''
-    //     }else{
-    //         return Provi.Bio.AtomSelection.VariableSelectionType.selection.call(this, id, flag);
-    //     }
-    // },
 });
 
 
