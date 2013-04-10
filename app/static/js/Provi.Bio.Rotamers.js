@@ -322,7 +322,7 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
         $.each(Provi.Bio.Rotamers.db[ this.res_name ], function(i){
             $("#" + self.rotamers_id).append(
         "<option value='rot" + i + "'>" +
-            this[0] + ( Provi.Utils.isNumber(this[0]) ? "%" : "" ) +
+            this[0] + ( _.isNumber(this[0]) ? "%" : "" ) +
             " (" + this.slice(1).join('\u00B0, ') + "\u00B0)" +
         "</option>"
         );
