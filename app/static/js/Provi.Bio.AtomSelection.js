@@ -254,7 +254,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         
         var columns = [
             { 
-                id:"id", name:"Id", field:"id", width:280,
+                id:"id", name:"Id", field:"id", width:350,
                 rerenderOnResize: true,
                 // formatter: format_cell
                 asyncPostRender: render_row

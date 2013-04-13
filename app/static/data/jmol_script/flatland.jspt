@@ -155,7 +155,6 @@ function flatland_focus( sele, sele2, pplane, hb, split_contact_residues ){
     var sele2 = { @sele or within(GROUP, @hb) };
 
     var focusdata = [];
-    message "focusdata XX";
 
     for(a in sele2){
         var bonds = connected(a, sele2);
@@ -331,15 +330,11 @@ function flatland_data( sele, pplane, split_contact_residues ){
     var polardata = polar_hb[1];
     var hb = polar_hb[2];
 
-    message "polardata";
-
     var sele2 = { @sele or within(GROUP, @hb) };
 
     var focusdata = flatland_focus( sele, sele2, pplane, hb, split_contact_residues );
-    message "focusdata";
 
     var vdwdata = flatland_vdw( sele, sele2, pplane );
-    message "vdwdata";
 
     flatland_hbond( sele );
 
