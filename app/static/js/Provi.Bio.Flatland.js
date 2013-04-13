@@ -434,10 +434,6 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             'draw id "svd3" vector {' + sele + '} {' + axes[2].join(' ') + '} color pink;' +
         '');
 
-        //return;
-
-        //Provi.Utils.pause(3000);
-
         var pplane = this.use_viewplane ? '0' :
             'plane({' + sele + '}' +
                 '.XYZ, @{{' + sele + '}' +
@@ -574,10 +570,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var fill = d3.scale.category10();
         var alpha = this.hull_alpha;
         self.alpha_asq = alpha*alpha;
-        //var nodes = d3.range(70).map(Object);
         var nodes = this.focus_data.concat( this.vdw_data );
         this.nodes = nodes;
-        //var nodes = this.focus_data;
         var links = [];
         _.each( this.focus_data, function(d,i){
             _.each( d.bonds, function(b,j){
