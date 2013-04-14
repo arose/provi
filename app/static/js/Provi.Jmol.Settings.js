@@ -33,12 +33,17 @@ Provi.Jmol.Settings.Radii['jmol'] = {'C':1.95,'N':1.85,'O':1.7,'S':2,'Mg':1.73,'
 Provi.Jmol.Settings.Radii['babel'] = {'C':1.7,'N':1.6,'O':1.55,'S':1.8,'Mg':2.2,'Fe':2.05,'Zn':2.1};
 
 
+// TODO
 // handle default values in provi.jspt
 // handle provis own settings in provi.jspt
+// handle style stuff in provi.jspt
+// provi clipping and zShade settings
 
 Provi.Jmol.Settings.groups = {
     misc: [ "defaultVDW", "isosurfacePropertySmoothing", "largeAtomCount" ],
-    lighting: [ "ambientPercent", "diffusePercent", "specular", "specularPercent", "specularPower", "specularExponent", "phongExponent", "zShade", "zShadePower", "zSlab", "zDepth", "celShading", "backgroundColor" ]
+    lighting: [ "ambientPercent", "diffusePercent", "specular", "specularPercent", "specularPower", "specularExponent", "phongExponent", "zShade", "zShadePower", "zSlab", "zDepth", "celShading", "backgroundColor" ],
+    bind: [ "mousedragFactor", "mousewheelFactor" ],
+    clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", "slab", "depth" ],
 }
 
 Provi.Jmol.Settings.dict = {
@@ -60,8 +65,19 @@ Provi.Jmol.Settings.dict = {
     celShading: { type: "checkbox" },
     backgroundColor: { type: "select", options: [ "[xFFFFFF]", "[x000000]" ] },
 
+    mousedragFactor: { type: "slider", range: [ 50, 400 ] },
+    mousewheelFactor: { type: "slider", range: [ 50, 400 ] },
+
+    slabEnabled: { type: "checkbox" },
+    slabRange: { type: "slider", range: [ 0, 100 ] },
+    slabByAtom: { type: "checkbox" },
+    slabByMolecule: { type: "checkbox" },
+    slab: { type: "slider", range: [ 0, 100 ] },
+    depth: { type: "slider", range: [ 0, 100 ] },
 
 }
+
+
 
 
 /**
@@ -814,7 +830,7 @@ Provi.Jmol.Settings.ClippingManager.prototype = Utils.extend( Provi.Jmol.Setting
         //this.applet.lighting_manager.set({z_depth: (this.depth||0), z_slab: (this.depth||0)+30});
         //var p = {z_depth: 0, z_slab: (params.depth||20)+10}
         names = names || this.names.slice();
-        if( this.slab_range ) names.removeItems( "slab" );
+        if( this.slab_range ) names = _.without( names, "slab" );
         return '' +
             'unbind "CTRL-LEFT";' + 
             'unbind "ALT-WHEEL";' + 
