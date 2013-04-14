@@ -115,6 +115,21 @@ function sort_by_prop( sele, prop ){
 }
 
 
+function provi_set( name, value, silent ){
+    if( value.type=="string" ){
+        value = "'" + value + "'";
+    }
+    var s = "set " + name + " " + value + ";";
+    script INLINE @s;
+    tmp = '';
+    s = "tmp = " + name + ";";
+    script INLINE @s;
+    if( !silent ){
+        print 'provi setting changed: ' + name + ' "' + tmp + '" "' + value + '"';
+    }
+}
+
+
 
 # geometry
 

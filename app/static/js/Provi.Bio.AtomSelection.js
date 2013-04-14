@@ -101,6 +101,7 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
                 '<option value="helixorient">Helixorient</option>' +
                 '<option value="helixcrossing">Helixcrossing</option>' +
                 '<option value="hbonds">Hydrogen bonds</option>' +
+                '<option value="settings">Settings</option>' +
             '</select>' +
             '&nbsp;' +
             '<button id="${eids.update}">update</button>' +
