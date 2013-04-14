@@ -80,7 +80,7 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
         'grid', 'update', 'type', 'filter', 'sort', 'property', 'widgets',
-        'calc', 'init', 'tooltips'
+        'calc', 'init'
     ]);
     
     this.type = params.type;

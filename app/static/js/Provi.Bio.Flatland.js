@@ -34,28 +34,6 @@ Provi.Bio.Flatland.Flatview.prototype = /** @lends Provi.Bio.Flatland.Flatview.p
 };
 
 
-var principal_axes = function(m){
-    m = numeric.clone(m);
-    var means = _.map(_.range(m[0].length), function(i){
-        return _.reduce(m, function(memo,x){
-            return x[i]+memo;
-        }, 0) / m.length;
-    });
-    // substract means
-    _.each(m, function(d,i){
-        _.each(means, function(me,j){
-            m[i][j] -= me;
-        });
-    });
-    var svd = numeric.svd(m);
-    // scale axes
-    var axes = _.map(svd.S, function(s, i){
-        return _.map(svd.V, function(v){
-            return v[i]*s;
-        });
-    });
-    return axes;
-};
 
 
     // // apply gravity forces
@@ -162,9 +140,9 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
-        '<div class="control_row" id="${eids.sketch_widget}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
-        '<canvas class="control_row" id="${eids.canvas}" style="position:fixed; top:-1000000; left:-1000000; width:550px; height:550px; border:solid grey 2px; background-color: white;"></canvas>' +
-        '<div class="control_row" id="${eids.image}" style="width:250px; height:250px; border:solid grey 2px"></div>' +
+        '<div class="control_row" id="${eids.sketch_widget}" style="width:360px; height:360px; border:solid grey 2px"></div>' +
+        '<canvas class="control_row" id="${eids.canvas}" style="position:fixed; top:-1000000; left:-1000000; width:360px; height:360px; border:solid grey 2px; background-color: white;"></canvas>' +
+        '<div class="control_row" id="${eids.image}" style="width:360px; height:360px; border:solid grey 2px"></div>' +
         '<div class="control_row">' +
             '<span id="${eids.selection}"></span>' +
         '</div>' +
@@ -424,7 +402,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         });
         //console.log(coords);
         
-        var axes = principal_axes(coords);
+        var axes = Provi.Utils.principal_axes(coords);
         // var axes = [[2, 1, 1], [1, 2, 1], [1, 1, 2]];
 
         applet.script( '' +
@@ -1003,7 +981,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
     //     var x = c.x/n;
     //     var y = c.y/n;
     //     if(this.show_axes){
-    //         var axes = principal_axes( _.map(fnodes, function(d){ return [d.x, d.y]; }) );
+    //         var axes = Provi.Utils.principal_axes( _.map(fnodes, function(d){ return [d.x, d.y]; }) );
     //         return [
     //             { x: x, y: y },
     //             { x: x + axes[0][0]/2, y: y + axes[0][1]/2 },
