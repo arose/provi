@@ -65,8 +65,8 @@ Provi.Jmol.Settings.dict = {
     celShading: { type: "checkbox" },
     backgroundColor: { type: "select", options: [ "[xFFFFFF]", "[x000000]" ] },
 
-    mousedragFactor: { type: "slider", range: [ 50, 400 ] },
-    mousewheelFactor: { type: "slider", range: [ 50, 400 ] },
+    mousedragFactor: { type: "slider", range: [ 50, 400 ], factor: 100 },
+    mousewheelFactor: { type: "slider", range: [ 50, 400 ], factor: 100 },
 
     slabEnabled: { type: "checkbox" },
     slabRange: { type: "slider", range: [ 0, 100 ] },
@@ -156,10 +156,11 @@ Provi.Jmol.Settings.SettingsSelectionType.prototype = Utils.extend(Provi.Bio.Ato
             );
 
         }else if( p.type=="slider" ){
-
+            value = parseFloat(value);
+            if( p.factor ) value *= p.factor;
             $row.append(
                 $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
-                    .slider({ min: 0, max: 100, value: parseFloat(value) })
+                    .slider({ min: p.range[0], max: p.range[1], value: value })
                     .data( 'id', id )
                     .bind( 'slidestop slide', _.bind( this.set, this ) ),
                 '<label>' + _.str.humanize( id ) + '</label>'
@@ -174,17 +175,18 @@ Provi.Jmol.Settings.SettingsSelectionType.prototype = Utils.extend(Provi.Bio.Ato
         var elm = $(e.currentTarget);
         var id = elm.data('id');
         var p = Provi.Jmol.Settings.dict[ id ] || {};
-        var data = '';
+        var value = '';
         if( p.type=="checkbox" ){
-            data = elm.is(':checked');
+            value = elm.is(':checked');
         }else if( p.type=="select" ){
-            data = '"' + elm.children("option:selected").val() + '"';
+            value = '"' + elm.children("option:selected").val() + '"';
         }else if( p.type=="slider" ){
-            data = elm.slider("value");
+            value = elm.slider("value");
+            if( p.factor ) value /= p.factor;
         }else{
             return;
         }
-        var s = 'provi_set("' + id + '", ' + data + ', true);';
+        var s = 'provi_set("' + id + '", ' + value + ', true);';
         // this.applet.script( s );
         this.applet.script_callback( s, {}, _.bind( this.grid.invalidate, this.grid ) );
     }    
