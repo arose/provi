@@ -287,7 +287,7 @@ Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.A
         var s = 'provi_hbond_test(["' + ids.join('","') + '"]).join(",")';
         var a = this.applet.evaluate(s);
         a = a ? a.split(",") : [0, 0, 0];
-        return [ parseFloat(a[0]), parseFloat(a[1]), parseFloat(a[2]) ];
+        return _.map( a, parseFloat );
     },
     make_row: function(id){
         var a = this.get_data(id);
