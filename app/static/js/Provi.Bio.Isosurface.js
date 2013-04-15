@@ -164,6 +164,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
                 '<option value="MEP 2">[1/(1+d)] MLP</option>' +
                 '<option value="MEP 3">[e^(-d)] Hydrophobicity potential</option>' +
                 '<option value="CPK">CPK</option>' +
+                '<option value="property COLOR">atom color</option>' +
             '</select>' +
         '</div>' +
         '<div class="control_row">' +
