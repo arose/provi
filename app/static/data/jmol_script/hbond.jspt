@@ -1,0 +1,27 @@
+
+
+
+function provi_hbonds( sele, angle_min, dist_max ){
+	select not hydrogen and @sele;
+   	hbonds delete;
+    set hbondsRasmol FALSE;
+    set hbondsAngleMinimum @angle_min;
+    set hbondsDistanceMaximum @dist_max;
+    var bond_count_before = {*}.bonds.size;
+    calculate hbonds;
+    var bond_count_after = {*}.bonds.size;
+    bs = [];
+    var s = "bs = [{" + (bond_count_before) + ":" + (bond_count_after-1) + "}];";
+    script INLINE @s;
+    hide add @bs;
+    var arr = [];
+    for( var b in bs ){
+    	arr += b.atoms.all.atomindex.all.join("_");
+    }
+    select none;
+    return arr;
+}
+
+
+
+

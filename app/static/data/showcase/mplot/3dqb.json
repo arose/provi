@@ -1,0 +1,60 @@
+[
+    {
+        "type": "story",
+        "params": {
+            "sort_key": 0,
+            "data": {
+                "pdb_id": "3dqb",
+                "probe_radius": 1.4,
+                "family": "GPCR",
+                "mphd_url": "http://proteinformatics.charite.de/mphd/"
+            }
+        }
+    },
+    {
+        "dir": "showcase",
+        "filename": "mplot/3dqb.mbn",
+        "type": "mbn",
+        "params": {
+            "sort_key": 1,
+            "heading": "Interface Contacts",
+            "info": "Infotext",
+            "description": "Description",
+            "show_dataset_info": false,
+            "load_as": "new"
+        }
+    },
+    {
+        "dir": "showcase",
+        "filename": "mplot/3dqb.mplane",
+        "type": "mplane",
+        "applet": 0,
+        "params": {
+            "sort_key": 2,
+            "heading": "Membrane Planes",
+            "show_dataset_info": false
+        }
+    },
+    {
+        "dir": "showcase",
+        "filename": "mplot/3dqb.tmhelix",
+        "type": "tmhelix",
+        "applet": 0,
+        "params": {
+            "sort_key": 3,
+            "heading": "Transmembrane Helices",
+            "show_dataset_info": false
+        }
+    },
+    {
+        "dir": "showcase",
+        "filename": "mplot/3dqb.anal",
+        "type": "anal",
+        "applet": 0,
+        "params": {
+            "sort_key": 4,
+            "heading": "Hydrogen Bonds",
+            "show_dataset_info": false
+        }
+    }
+]

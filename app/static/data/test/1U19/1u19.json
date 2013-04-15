@@ -1,0 +1,37 @@
+[
+    {
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1_mod_1.4.mbn", 
+        "type": "mbn"
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1_mod.mplane", 
+        "type": "mplane"
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1.tmhelix", 
+        "type": "tmhelix"
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1_hbx.anal", 
+        "type": "anal"
+    }, 
+    {
+        "params": {
+            "data": {
+                "family": "G Protein-Coupled Receptors (GPCRs)", 
+                "mphd_url": "http://proteinformatics.charite.de/dmpc/go?pdb=1u19", 
+                "pdb_id": "1u19", 
+                "probe_radius": "1.4"
+            }, 
+            "sort_key": -1
+        }, 
+        "type": "story"
+    }
+]

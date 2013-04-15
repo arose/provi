@@ -1,0 +1,1 @@
+acceptor-chain,a-type,a-no,a-atom,donor-chain,d-type,d-no,d-atom

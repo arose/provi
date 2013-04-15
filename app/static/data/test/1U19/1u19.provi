@@ -1,0 +1,145 @@
+[
+    {
+        "applet": "default", 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19.pdb", 
+        "type": "pdb"
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1_mod_1.4.mbn.atmsele", 
+        "type": "atmsele", 
+        "when": 0
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1_mod_1.4.mbn_contact.atmsele", 
+        "type": "atmsele", 
+        "when": 1
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19.vol.atmsele", 
+        "type": "atmsele", 
+        "when": 0
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19.vol.atmprop", 
+        "type": "atmprop", 
+        "when": 0
+    }, 
+    {
+        "funcname": "Provi.Bio.Voronoia.register", 
+        "params": {
+            "holes_ds": "DATASET_3"
+        }, 
+        "type": "function", 
+        "when": 3
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1.tmhelix.atmsele", 
+        "type": "atmsele", 
+        "when": 0
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1_hbx.anal.bonds", 
+        "type": "bonds", 
+        "when": 6
+    }, 
+    {
+        "applet": 0, 
+        "params": {
+            "dataset": "DATASET_7", 
+            "parent_id": "tab_widgets", 
+            "tmhelix_atmsele_ds": "DATASET_6"
+        }, 
+        "type": "widget", 
+        "when": 7, 
+        "widgetname": "Provi.Bio.HydrogenBonds.HbondsWidget2"
+    }, 
+    {
+        "applet": 0, 
+        "params": {
+            "heading": "Cavities", 
+            "hide_eids": [
+                "filter", 
+                "sort", 
+                "type", 
+                "property"
+            ], 
+            "parent_id": "tab_widgets", 
+            "type": "voronoia"
+        }, 
+        "type": "widget", 
+        "when": 3, 
+        "widgetname": "Provi.Bio.AtomSelection.GridWidget"
+    }, 
+    {
+        "funcname": "Provi.Bio.InterfaceContacts.register", 
+        "params": {
+            "contacts_ds": "DATASET_1"
+        }, 
+        "type": "function", 
+        "when": 2
+    }, 
+    {
+        "applet": 0, 
+        "params": {
+            "heading": "Interface contacts", 
+            "hide_eids": [
+                "filter", 
+                "sort", 
+                "type", 
+                "property"
+            ], 
+            "parent_id": "tab_widgets", 
+            "type": "interface_contacts"
+        }, 
+        "type": "widget", 
+        "when": 2, 
+        "widgetname": "Provi.Bio.AtomSelection.GridWidget"
+    }, 
+    {
+        "applet": 0, 
+        "params": {
+            "dataset": "DATASET_4", 
+            "filter_properties": [
+                "packing_density", 
+                "z_score"
+            ], 
+            "heading": "Packing", 
+            "parent_id": "tab_widgets"
+        }, 
+        "type": "widget", 
+        "when": 4, 
+        "widgetname": "Provi.Bio.AtomProperty.AtomPropertyGroupWidget"
+    }, 
+    {
+        "applet": 0, 
+        "dir": "mphd", 
+        "filename": "het/1u19/1u19_1_mod.mplane", 
+        "type": "mplane", 
+        "when": 0
+    }, 
+    {
+        "params": {
+            "data": {
+                "family": "G Protein-Coupled Receptors (GPCRs)", 
+                "mphd_url": "http://proteinformatics.charite.de/dmpc/go?pdb=1u19", 
+                "pdb_id": "1u19", 
+                "probe_radius": "1.4"
+            }, 
+            "sort_key": -1
+        }, 
+        "type": "story"
+    }
+]
