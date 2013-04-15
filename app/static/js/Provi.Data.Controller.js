@@ -84,9 +84,10 @@ Provi.Data.Controller.ProviMixin = {
     available_widgets: {},
     init: function( params ){
         var self = this;
+        console.log( 'ProviMixin init', params, this );
         this.retrieve_data( function(d){
             self.set_data( d );
-            console.log( 'ProviMixin', d );
+            console.log( 'ProviMixin retrieve', d );
             self.load( d );
         });
         Provi.Data.Dataset.prototype.init.call(this, params);
@@ -102,6 +103,7 @@ Provi.Data.Controller.ProviMixin = {
         var wg_dict = {};
 
         _.each( d, function(data, i){
+            console.log("ProviMixin load", i, data);
             var func;
             if( data.params ){
                 _.each( data.params , function(value, key){
@@ -114,7 +116,6 @@ Provi.Data.Controller.ProviMixin = {
                     }
                 });
             }
-            console.log(i, data);
             if( data.type=='story' ){
                 ds_dict[i] = ( new Provi.Data.Dataset({type:'story'}) ).init( data.params );
 
