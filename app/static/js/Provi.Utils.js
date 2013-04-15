@@ -187,4 +187,36 @@ Provi.Utils.HistoryManager.prototype = /** @lends Provi.Utils.HistoryManager.pro
 
 
 
+
+// math
+
+Provi.Utils.geometric_center = function(coords){
+    return _.map(_.range( coords[0].length ), function(i){
+        return _.reduce(coords, function(sum, x){ 
+            return sum + x[i]; 
+        }, 0) / coords.length;
+    });
+}
+
+Provi.Utils.principal_axes = function(m, center){
+    m = numeric.clone(m);
+    var means = center || Provi.Utils.geometric_center(m);
+    // substract means
+    _.each(m, function(d,i){
+        _.each(means, function(me,j){
+            m[i][j] -= me;
+        });
+    });
+    var svd = numeric.svd(m);
+    // scale axes
+    var axes = _.map(svd.S, function(s, i){
+        return _.map(svd.V, function(v){
+            return v[i]*s;
+        });
+    });
+    return axes;
+};
+
+
+
 })();

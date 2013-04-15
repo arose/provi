@@ -32,49 +32,6 @@ Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.B
 }
 
 
-// /**
-//  * Represents hydrogen bonds
-//  * @constructor
-//  */
-// Provi.Bio.HydrogenBonds.Hbonds = function(hbonds_list){
-//     this.hbonds_list = hbonds_list;
-//     this.init();
-// };
-// Provi.Bio.HydrogenBonds.Hbonds.prototype = Provi.Utils.extend(Provi.Bio.Smcra.AbstractAtomPropertyMap, /** @lends Provi.Bio.HydrogenBonds.Hbonds.prototype */ {
-//     key_length: 2,
-//     init: function(){
-// 	console.log( 'HBX', this );
-// 	var self = this;
-// 	this.property_dict = {};
-// 	this.property_list = [];
-// 	this._keys = [];
-// 	$.each( this.hbonds_list, function(i, hb){
-// 	    var property = {
-// 		atom1: { resno: hb[0][3], chain: hb[0][2], atom_name: $.trim(hb[0][0]) },
-// 		atom2: { resno: hb[1][3], chain: hb[1][2], atom_name: $.trim(hb[1][0]) },
-// 		type: hb[2],
-// 		sele: '(' + hb[0][3] + ':' + hb[0][2] + '.' + $.trim(hb[0][0]) + ' OR ' +
-// 		    hb[1][3] + ':' + hb[1][2] + '.' + $.trim(hb[1][0]) + ')'
-// 	    }
-// 	    var key1 = [ hb[0][2], hb[0][3], $.trim(hb[0][0]) ];
-// 	    var key2 = [ hb[1][2], hb[1][3], $.trim(hb[1][0]) ];
-// 	    var key = [ key1, key2 ];
-// 	    self._keys.push( key );
-// 	    self.property_dict[ key ] = property;
-// 	    self.property_list.push( property );
-// 	});
-//     },
-//     _get: function(id){
-// 	//console.log('ID', id );
-// 	return this.property_dict[ id ];
-//     },
-//     _cmp_id: function(id, own_id){
-// 	var len = id.length;
-// 	return Provi.Utils.array_cmp( id, own_id[0].slice(0, len) ) ||
-// 	    Provi.Utils.array_cmp( id, own_id[1].slice(0, len) );
-//     }
-// });
-
 
 
 /**
@@ -273,7 +230,16 @@ Provi.Bio.HydrogenBonds.HbondParamsWidget.prototype = Utils.extend(Widget, /** @
 Provi.Bio.HydrogenBonds.HbondsSelectionType = function(params){
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
     this.handler = _.defaults({
-
+        "show_hbres": {
+            "selector": 'input[cell="hbres"]',
+            "click": this.show_hbres,
+            "label": "hydrogen bond residue"
+        },
+        "show_hbond": {
+            "selector": 'input[cell="hbond"]',
+            "click": this.show_hbond,
+            "label": "hydrogen bond"
+        }
     }, this.handler );
 }
 Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype */ {
@@ -296,12 +262,11 @@ Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.A
         this.ready = false;
         var filtered = this.filtered() + ' and ' + this.params_widget.filter();
         var s = '' +
-            'set bondModeOr = ' + 
-                ( this.params_widget.bond_mode_or() ? 'true' : 'false' ) + ';' +
             'provi_data["hbonds"] = provi_hbonds(' +
                 '{' + filtered + '}, ' +
                 this.params_widget.angle_min() + ', ' +
-                this.params_widget.dist_max() + 
+                this.params_widget.dist_max() + ', ' +
+                ( this.params_widget.bond_mode_or() ? 'true' : 'false' ) +
             ');' +
         '';
         console.log(s);
@@ -313,46 +278,73 @@ Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.A
     get_ids: function(){
         if( !this.ready ) return [];
         var s = 'provi_data["hbonds"]';
-        var data = this.applet.evaluate(s).split("\n");
+        var data = this.applet.evaluate(s).trim().split("\n");
         // console.log("hbonds sele", data);
         return data;
     },
     get_data: function(id){
-        var pair = id.split("_");
-        var format = '\'%[group1]\',\'%[resno]\',\'%[chain]\',\\"%[atomName]\\",\'%[file]\',\'%[model]\',\'%[selected]\'';
-        var a1 = this.applet.atoms_property_map( format, 'atomindex='+pair[0] )[0];
-        var a2 = this.applet.atoms_property_map( format, 'atomindex='+pair[1] )[0];
-        return [ a1, a2 ];
+        var ids = (id=="all") ? this.get_ids() : [id];
+        var s = 'provi_hbond_test(["' + ids.join('","') + '"]).join(",")';
+        var a = this.applet.evaluate(s);
+        a = a ? a.split(",") : [0, 0, 0];
+        return _.map( a, parseFloat );
     },
     make_row: function(id){
+        var a = this.get_data(id);
+        console.log(id, a)
+        var selected = a[0];
+        var hbond = a[1];
+        var hbres = a[2];
+
         if(id==='all'){
             var label = 'Hbonds';
-            var s = '{' + this.selection(id) + '}.selected.join("")';
-            var selected = this.applet.evaluate(s);
-            var color = '';
         }else{
-            var a = this.get_data(id);
-            var label = id;
-            var selected = 0;
-            if(a){
-                label = '' +
-                    a[0][0] + a[0][1] + ':' + a[0][2] + '.' + 
-                        a[0][3] + '/' + a[0][4] + '.' + a[0][5] +
-                    ' -- ' +
-                    a[1][0] + a[1][1] + ':' + a[1][2] + '.' + 
-                        a[1][3] + '/' + a[1][4] + '.' + a[1][5] +
-                '';
-                selected = ( parseInt(a[0][6]) + parseInt(a[1][6]) ) / 2;
-            }
+            var format = '\'%[group1]\',\'%[resno]\',\'%[chain]\',\\"%[atomName]\\",\'%[file]\',\'%[model]\'';
+            var pair = id.split("_");
+            var a1 = this.applet.atoms_property_map( format, 'atomindex='+pair[0] )[0];
+            var a2 = this.applet.atoms_property_map( format, 'atomindex='+pair[1] )[0];
+            var label = '' +
+                a1[0] + a1[1] + ':' + a1[2] + '.' + 
+                    a1[3] + '/' + a1[4] + '.' + a1[5] +
+                ' -- ' +
+                a2[0] + a2[1] + ':' + a2[2] + '.' + 
+                    a2[3] + '/' + a2[4] + '.' + a2[5] +
+            '';
         }
 
         var $row = $('<div></div>');
         $row.append(
             this.selected_cell( id, selected ),
-            this.label_cell( label )
+            this.label_cell( label ),
+            this.hbres_cell( id, hbres ),
+            this.hbond_cell( id, hbond )
         );
         return $row;
     },
+    _show_hbres: function(id, flag, params){
+        var self = this;
+        var ids = (id==='all') ? this.get_ids() : [ id ];
+        return 'provi_toggle_hbond_residues(["' + ids.join('","') + '"], ' + flag + ');';
+    },
+    show_hbres: function(id, flag, params, callback){
+        var s = this._show_hbres(id, flag, params);
+        this.applet.script_callback( s, { maintain_selection: true }, callback );
+    },
+    _show_hbond: function(id, flag, params){
+        var self = this;
+        var ids = (id==='all') ? this.get_ids() : [ id ];
+        return 'provi_toggle_hbond(["' + ids.join('","') + '"], ' + flag + ');';
+    },
+    show_hbond: function(id, flag, params, callback){
+        var s = this._show_hbond(id, flag, params);
+        this.applet.script_callback( s, { maintain_selection: true }, callback );
+    },
+    hbres_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "hbres", "color": "tomato"
+    }),
+    hbond_cell: Provi.Bio.AtomSelection.CellFactory({
+        "name": "hbond", "color": "skyblue"
+    }),
     selection: function(id){
         if( id==='all' ){
             return 'within(MODEL, (' + this.filtered() + ') and helix)';

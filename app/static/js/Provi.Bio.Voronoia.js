@@ -110,18 +110,9 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         var ids = (id=="all") ? this.get_ids() : [id];
         var s = 'provi_hole_test(["' + ids.join('","') + '"]).join(",")';
         var a = this.applet.evaluate(s);
-        if(a){
-            a = a.split(",");
-        }else{
-            a = [0, 0, 0, 0];
-        }
+        a = a ? a.split(",") : [0, 0, 0, 0];
         // console.log(a);
-        var selected = a[0];
-        var neighbours = parseFloat(a[1]);
-        var hole = parseFloat(a[2]);
-        var cavity = parseFloat(a[3]);
-
-        return [ selected, hole, cavity, neighbours ];
+        return _.map( a, parseFloat );
     },
     make_row: function(id){
         if(id==='all'){
@@ -132,21 +123,14 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         }else{
             var label = 'Cavity ' + id.split('_')[2];
         }
-        var a = this.get_data(id);
-        var selected = a[0];
-        var hole = a[1];
-        var cavity = a[2];
-        var neighbours = a[3];
-        var displayed = a[4];
+        var a = this.get_data(id); // selected, neighbours, hole, cavity
 
-        var $row = $('<div></div>');
-        $row.append(
-            this.selected_cell( id, selected ),
-            //this.displayed_cell( id, displayed ),
+        var $row = $('<div></div>').append(
+            this.selected_cell( id, a[0] ),
             this.label_cell( label ),
-            this.hole_cell( id, hole ),
-            this.cavity_cell( id, cavity, this.ids.length>50 && id==="all" ),
-            this.neighbours_cell( id, neighbours )
+            this.hole_cell( id, a[2] ),
+            this.cavity_cell( id, a[3], this.ids.length>50 && id==="all" ),
+            this.neighbours_cell( id, a[1] )
         );
         return $row;
     },

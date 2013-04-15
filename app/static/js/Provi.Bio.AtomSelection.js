@@ -80,7 +80,7 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
         'grid', 'update', 'type', 'filter', 'sort', 'property', 'widgets',
-        'calc', 'init', 'tooltips'
+        'calc', 'init'
     ]);
     
     this.type = params.type;
@@ -101,6 +101,7 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
                 '<option value="helixorient">Helixorient</option>' +
                 '<option value="helixcrossing">Helixcrossing</option>' +
                 '<option value="hbonds">Hydrogen bonds</option>' +
+                '<option value="settings">Settings</option>' +
             '</select>' +
             '&nbsp;' +
             '<button id="${eids.update}">update</button>' +
@@ -254,7 +255,7 @@ Provi.Bio.AtomSelection.GridWidget.prototype = Utils.extend(Provi.Widget.Widget,
         
         var columns = [
             { 
-                id:"id", name:"Id", field:"id", width:280,
+                id:"id", name:"Id", field:"id", width:350,
                 rerenderOnResize: true,
                 // formatter: format_cell
                 asyncPostRender: render_row
@@ -541,8 +542,7 @@ Provi.Bio.AtomSelection.AtomindexSelectionType.prototype = Utils.extend(Provi.Bi
             var color = a[7];
         }
 
-        var $row = $('<div></div>');
-        $row.append(
+        var $row = $('<div></div>').append(
             this.selected_cell( id, selected ),
             this.displayed_cell( id, this.displayed(id) ),
             this.label_cell( label ),
@@ -590,8 +590,7 @@ Provi.Bio.AtomSelection.GroupindexSelectionType.prototype = Utils.extend(Provi.B
             var label = '[' + a[0] + ']' + a[1] + ':' + a[2] + '/' + a[3] + '.' + a[4];    
         }
 
-        var $row = $('<div></div>');
-        $row.append(
+        var $row = $('<div></div>').append(
             this.selected_cell( id, a[5] ),
             this.displayed_cell( id, this.displayed(id) ),
             this.label_cell( label ),
@@ -630,19 +629,18 @@ Provi.Bio.AtomSelection.ChainlabelSelectionType.prototype = Utils.extend(Provi.B
     get_data: function(id){
         var s = '{' + this.selection(id) + '}.selected.join("")';
         var selected = this.applet.evaluate(s);
-        return [ this.selection(id), selected ];
+        return _.map([ selected ], parseFloat);
     },
     make_row: function(id){
         var a = this.get_data(id);
         if(id==="all"){
             var label = "Chains";
         }else{
-            var label = a[0];
+            var label = this.selection(id);
         }
         
-        var $row = $('<div></div>');
-        $row.append(
-            this.selected_cell( id, a[1] ),
+        var $row = $('<div></div>').append(
+            this.selected_cell( id, a[0] ),
             this.displayed_cell( id, this.displayed(id) ),
             this.label_cell( label )
         );
@@ -676,7 +674,7 @@ Provi.Bio.AtomSelection.ModelindexSelectionType.prototype = Utils.extend(Provi.B
         var format = '\'%[model]\',\'%[modelindex]\'';
         var a = this.applet.atoms_property_map( format, this.selection(id), true )[0];
         var s = '{' + this.selection(id) + '}.selected.join("")';
-        var selected = this.applet.evaluate(s);
+        var selected = parseFloat( this.applet.evaluate(s) );
         a.push( selected );
         return a;
     },
@@ -689,8 +687,7 @@ Provi.Bio.AtomSelection.ModelindexSelectionType.prototype = Utils.extend(Provi.B
             var label = '/' + ( a[0]=="0" ? parseInt(a[1])+1 : a[0] );
         }
 
-        var $row = $('<div></div>');
-        $row.append(
+        var $row = $('<div></div>').append(
             this.selected_cell( id, a[2] ),
             this.displayed_cell( id, this.displayed(id) ),
             this.label_cell( label )
@@ -728,10 +725,9 @@ Provi.Bio.AtomSelection.VariableSelectionType.prototype = Utils.extend(Provi.Bio
     },
     make_row: function(id){
         var a = this.get_data(id);
-        var $row = $('<div></div>');
         var label = (id==="all") ? 'Selections' : id;
 
-        $row.append(
+        $row = $('<div></div>').append(
             this.selected_cell( id, a[0] ),
             this.label_cell( label )
         );
@@ -775,7 +771,7 @@ Provi.Bio.AtomSelection.StrucnoSelectionType.prototype = Utils.extend(Provi.Bio.
         var a = this.applet.atoms_property_map( format, this.selection(id), true )[0];
         var s = '{' + this.selection(id) + '}.selected.join("")';
         // todo: get number of substructures of the same type with a smaller strucno
-        var selected = this.applet.evaluate(s);
+        var selected = parseFloat( this.applet.evaluate(s) );
         a.push( selected );
         return a;
     },
@@ -788,8 +784,7 @@ Provi.Bio.AtomSelection.StrucnoSelectionType.prototype = Utils.extend(Provi.Bio.
             var label = a[0] + ' | ' + a[1] + ' /' + ( a[2]=="0" ? parseInt(a[3])+1 : a[2] );
         }
 
-        var $row = $('<div></div>');
-        $row.append(
+        var $row = $('<div></div>').append(
             this.selected_cell( id, a[4] ),
             this.displayed_cell( id, this.displayed(id) ),
             this.label_cell( label )

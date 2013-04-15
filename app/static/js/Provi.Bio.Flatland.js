@@ -34,28 +34,6 @@ Provi.Bio.Flatland.Flatview.prototype = /** @lends Provi.Bio.Flatland.Flatview.p
 };
 
 
-var principal_axes = function(m){
-    m = numeric.clone(m);
-    var means = _.map(_.range(m[0].length), function(i){
-        return _.reduce(m, function(memo,x){
-            return x[i]+memo;
-        }, 0) / m.length;
-    });
-    // substract means
-    _.each(m, function(d,i){
-        _.each(means, function(me,j){
-            m[i][j] -= me;
-        });
-    });
-    var svd = numeric.svd(m);
-    // scale axes
-    var axes = _.map(svd.S, function(s, i){
-        return _.map(svd.V, function(v){
-            return v[i]*s;
-        });
-    });
-    return axes;
-};
 
 
     // // apply gravity forces
@@ -136,7 +114,7 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
         'alpha', 'gravity', 'friction', 'theta', 'hull_alpha',
         'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
         'canvas', 'image', 'auto_update', 'use_viewplane', 'download', 'download_svg',
-        'hide_vdw', 'fix_all', 'split_contact_residues'
+        'hide_vdw', 'fix_all', 'split_contact_residues', 'init'
     ]);
     
     this.dataset = params.dataset;
@@ -162,9 +140,9 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
-        '<div class="control_row" id="${eids.sketch_widget}" style="width:550px; height:550px; border:solid grey 2px"></div>' +
-        '<canvas class="control_row" id="${eids.canvas}" style="position:fixed; top:-1000000; left:-1000000; width:550px; height:550px; border:solid grey 2px; background-color: white;"></canvas>' +
-        '<div class="control_row" id="${eids.image}" style="width:250px; height:250px; border:solid grey 2px"></div>' +
+        '<div class="control_row" id="${eids.sketch_widget}" style="width:360px; height:360px; border:solid grey 2px"></div>' +
+        '<canvas class="control_row" id="${eids.canvas}" style="position:fixed; top:-1000000; left:-1000000; width:360px; height:360px; border:solid grey 2px; background-color: white;"></canvas>' +
+        '<div class="control_row" id="${eids.image}" style="width:360px; height:360px; border:solid grey 2px"></div>' +
         '<div class="control_row">' +
             '<span id="${eids.selection}"></span>' +
         '</div>' +
@@ -236,6 +214,8 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
             '&nbsp;&nbsp;' +
             '<button id="${eids.resume}">resume</button>' +
             '&nbsp;&nbsp;' +
+            '<button id="${eids.init}">init</button>' +
+            '&nbsp;&nbsp;' +
             'alpha: <span id="${eids.current_alpha}"></span>' +
         '</div>' +
         '<div class="control_row">' +
@@ -297,6 +277,18 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             return this.applet_selector.get_value(true);
         }
     },
+    _init_jmolscript: function(){
+        var self = this;
+        this.jmolscript_ready = false;
+        var applet = this.get_applet();
+        if( !applet ) return;
+        applet.script_callback('' +
+            'script "../data/jmol_script/flatland.jspt";' +
+        '', {}, function(){
+            console.log("Flatland init jmolscript done");
+            self.jmolscript_ready = true;
+        });
+    },
     _init: function(){
         var self = this;
         
@@ -309,10 +301,16 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
                 // $(applet).bind('load_struct.'+self.id, function(){
                 //     self.example();
                 // });
+            self._init_jmolscript();
             });
         }
         this.selection.set_applet( this.get_applet() );
         this.selection.set_input( this.sele );
+
+        var applet = this.get_applet();
+        if( applet ){
+            self._init_jmolscript();
+        }
 
         // $( this.get_applet() ).bind('load_struct.'+self.id, function(){
         //     self.example();
@@ -346,6 +344,10 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
 
         this.elm('resume').button().click( function(){
             self.resume();
+        });
+
+        this.elm('init').button().click( function(){
+            self._init_jmolscript();
         });
 
         this.elm('download').button().click( function(){
@@ -384,13 +386,13 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
     },
     get_jmol_data: function(){
         var applet = this.get_applet();
-        if( !applet ) return;
+        if( !applet || !this.jmolscript_ready ) return;
         var self = this;
         console.log('FOOFLATLAND');
 
         //var sele = '1332';
         // var sele = '340-347';
-        var sele = this.selection.get().selection;
+        var sele = this.selection.get();
         console.log('FOOFLATLAND SELE', sele);
         var format = "'%[atomno]',%[resno],'%[chain]','%[model]','%[file]','%x','%y','%z'";
         var apm = applet.atoms_property_map( format, sele );
@@ -400,7 +402,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         });
         //console.log(coords);
         
-        var axes = principal_axes(coords);
+        var axes = Provi.Utils.principal_axes(coords);
         // var axes = [[2, 1, 1], [1, 2, 1], [1, 1, 2]];
 
         applet.script( '' +
@@ -410,137 +412,116 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             'draw id "svd3" vector {' + sele + '} {' + axes[2].join(' ') + '} color pink;' +
         '');
 
-        //return;
+        var pplane = this.use_viewplane ? '0' :
+            'plane({' + sele + '}' +
+                '.XYZ, @{{' + sele + '}' +
+                '.XYZ + point(' + axes[0].join(', ') + ')}, @{{' + sele + '}' +
+                '.XYZ + point(' + axes[1].join(', ') + ')})';
+        var s = 'flatland_data({' + sele + '}, ' + pplane + ', ' + this.split_contact_residues + ')';
+        console.log(s);
+        var data = applet.evaluate( s );
 
-        //Provi.Utils.pause(3000);
+        data = $.parseJSON(data);
+        // console.log(data);
 
-        $.ajax({
-            url: '../data/jmol_script/helix_plane.jspt',
-            cache: false,
-            dataType: 'text',
-            success: function(script){
-                var applet = self.get_applet();
-                if( !applet ) return;
-                
-                //console.log(script);
-                console.log('../data/jmol_script/helix_plane.jspt');
-                script = script.replace('###plane###',
-                    self.use_viewplane ? '' :
-                    'p = plane({' + sele + '}' +
-                        '.XYZ, @{{' + sele + '}' +
-                        '.XYZ + point(' + axes[0].join(', ') + ')}, @{{' + sele + '}' +
-                        '.XYZ + point(' + axes[1].join(', ') + ')});'
-                );
-                script = script.replace('###sele###', sele);
-                script = script.replace('###split_contact_residues###', self.split_contact_residues);
-
-                var data = applet.script_wait_output( script );
-                //console.log(data);
-                // remove first 5 lines with hbond calc output
-                data = data.split('\n').slice(11,-1).join('\n');
-                //data = data.split('\n').slice(0,-1).join('\n');
-                data = $.parseJSON(data);
-
-                focus_data = _.map( data[0], function(d,i){
-                    var bonds = _.map(d[1], function(b,j){
-                        return { atomno: b[0], dist: b[1] };
-                    });
-                    var bonds2 = _.map(d[5], function(b,j){
-                        return { atomno: b[0], dist: b[1] };
-                    });
-                    var bonds3 = _.map(d[6], function(b,j){
-                        return { atomno: b[0], dist: b[1] };
-                    });
-                    var bonds4 = _.map(d[7], function(b,j){
-                        return { atomno: b[0], dist: b[1] };
-                    });
-                    var bonds5 = _.map(d[8], function(b,j){
-                        return { atomno: b[0], dist: b[1] };
-                    });
-                    
-                    return {
-                        atomno: d[0],
-                        bonds: bonds,
-                        bonds2: bonds2,
-                        bonds3: bonds3,
-                        bonds4: bonds4,
-                        bonds5: bonds5,
-                        ring: d[9]==1 ? true : false,
-                        backbone: d[10]==1 ? true : false,
-                        atomname: d[11],
-                        original_coords: d[2],
-                        projected_coords: d[3],
-                        color: _.map( d[4], function(c){ return parseInt(c, 10); }),
-                        x: d[3][1],
-                        y: d[3][2]
-                    };
-                });
-
-                polar_data = _.map( data[1], function(d,i){
-                    console.log(d);
-                    return d;
-                });
-
-                var center = _.reduce(focus_data, function(memo,d){
-                    return [ memo[0] + d.x, memo[1] + d.y ];
-                }, [0, 0]);
-                center = numeric.div(center, focus_data.length);
-                //console.log(center);
-                vdw_data = _.map( data[2], function(d,i){
-                    var nbs = _.map(d[4], function(b,j){
-                        return {
-                            resno: b[0],
-                            dist: b[1]
-                        };
-                    });
-                    var vdw_pos = [d[3][1], d[3][2]];
-                    var v = numeric.sub(center, vdw_pos);
-                    var v = numeric.sub(vdw_pos, center);
-                    var vn = numeric.div(v, numeric.norm2(v));
-                    var pc = numeric.add( vdw_pos, numeric.mul( vn, 1 ) );
-                    //console.log(v, vn, vdw_pos, pc);
-                    return {
-                        resno: d[0],
-                        mindist: d[1],
-                        original_coords: d[2],
-                        projected_coords_unadjusted: d[3],
-                        projected_coords: pc,
-                        color: (d[5]<60) ? [128, 0, 0] : [0, 200, 0],
-                        x: pc[0],
-                        y: pc[1],
-                        nbs: nbs,
-                        vdw: true,
-                        angle: d[5],
-                        group1: d[6],
-                        contacts: d[7]
-                    };
-                });
-
-                console.log( "HB data", data[1] );
-                //console.log(data);
-
-                focus_data_dict = {};
-                _.each( focus_data, function(d,i){
-                    focus_data_dict[ d.atomno ] = d;
-                });
-
-                vdw_data_dict = {};
-                _.each( vdw_data, function(d,i){
-                    vdw_data_dict[ d.resno ] = d;
-                });
-
-                self.focus_data = focus_data;
-                self.focus_data_dict = focus_data_dict;
-
-                self.polar_data = polar_data;
-
-                self.vdw_data = vdw_data;
-                self.vdw_data_dict = vdw_data_dict;
-                //console.log(vdw_data,vdw_data_dict);
-
-                self._render();
-            }
+        focus_data = _.map( data[0], function(d,i){
+            var bonds = _.map(d[1], function(b,j){
+                return { atomno: b[0], dist: b[1] };
+            });
+            var bonds2 = _.map(d[5], function(b,j){
+                return { atomno: b[0], dist: b[1] };
+            });
+            var bonds3 = _.map(d[6], function(b,j){
+                return { atomno: b[0], dist: b[1] };
+            });
+            var bonds4 = _.map(d[7], function(b,j){
+                return { atomno: b[0], dist: b[1] };
+            });
+            var bonds5 = _.map(d[8], function(b,j){
+                return { atomno: b[0], dist: b[1] };
+            });
+            
+            return {
+                atomno: d[0],
+                bonds: bonds,
+                bonds2: bonds2,
+                bonds3: bonds3,
+                bonds4: bonds4,
+                bonds5: bonds5,
+                ring: d[9]==1 ? true : false,
+                backbone: d[10]==1 ? true : false,
+                atomname: d[11],
+                original_coords: d[2],
+                projected_coords: d[3],
+                color: _.map( d[4], function(c){ return parseInt(c, 10); }),
+                x: d[3][1],
+                y: d[3][2]
+            };
         });
+
+        polar_data = _.map( data[1], function(d,i){
+            console.log(d);
+            return d;
+        });
+
+        var center = _.reduce(focus_data, function(memo,d){
+            return [ memo[0] + d.x, memo[1] + d.y ];
+        }, [0, 0]);
+        center = numeric.div(center, focus_data.length);
+        //console.log(center);
+        vdw_data = _.map( data[2], function(d,i){
+            var nbs = _.map(d[4], function(b,j){
+                return {
+                    resno: b[0],
+                    dist: b[1]
+                };
+            });
+            var vdw_pos = [d[3][1], d[3][2]];
+            var v = numeric.sub(center, vdw_pos);
+            var v = numeric.sub(vdw_pos, center);
+            var vn = numeric.div(v, numeric.norm2(v));
+            var pc = numeric.add( vdw_pos, numeric.mul( vn, 1 ) );
+            //console.log(v, vn, vdw_pos, pc);
+            return {
+                resno: d[0],
+                mindist: d[1],
+                original_coords: d[2],
+                projected_coords_unadjusted: d[3],
+                projected_coords: pc,
+                color: (d[5]<60) ? [128, 0, 0] : [0, 200, 0],
+                x: pc[0],
+                y: pc[1],
+                nbs: nbs,
+                vdw: true,
+                angle: d[5],
+                group1: d[6],
+                contacts: d[7]
+            };
+        });
+
+        console.log( "HB data", data[1] );
+        //console.log(data);
+
+        focus_data_dict = {};
+        _.each( focus_data, function(d,i){
+            focus_data_dict[ d.atomno ] = d;
+        });
+
+        vdw_data_dict = {};
+        _.each( vdw_data, function(d,i){
+            vdw_data_dict[ d.resno ] = d;
+        });
+
+        self.focus_data = focus_data;
+        self.focus_data_dict = focus_data_dict;
+
+        self.polar_data = polar_data;
+
+        self.vdw_data = vdw_data;
+        self.vdw_data_dict = vdw_data_dict;
+        //console.log(vdw_data,vdw_data_dict);
+
+        self._render();
     },
     resume: function(){
         if( this.force ){
@@ -567,10 +548,8 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
         var fill = d3.scale.category10();
         var alpha = this.hull_alpha;
         self.alpha_asq = alpha*alpha;
-        //var nodes = d3.range(70).map(Object);
         var nodes = this.focus_data.concat( this.vdw_data );
         this.nodes = nodes;
-        //var nodes = this.focus_data;
         var links = [];
         _.each( this.focus_data, function(d,i){
             _.each( d.bonds, function(b,j){
@@ -1002,7 +981,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
     //     var x = c.x/n;
     //     var y = c.y/n;
     //     if(this.show_axes){
-    //         var axes = principal_axes( _.map(fnodes, function(d){ return [d.x, d.y]; }) );
+    //         var axes = Provi.Utils.principal_axes( _.map(fnodes, function(d){ return [d.x, d.y]; }) );
     //         return [
     //             { x: x, y: y },
     //             { x: x + axes[0][0]/2, y: y + axes[0][1]/2 },
