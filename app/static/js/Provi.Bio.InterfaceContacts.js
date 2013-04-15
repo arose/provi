@@ -155,10 +155,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         var ids = (id=="all") ? this.get_ids() : [id];
         var s = 'provi_intercon_test( ["' + ids.join('","') + '"] ).join(",")';
         var a = this.applet.evaluate(s).split(",");
-        var selected = a[0];
-        var consurf = parseFloat(a[1]);
-        var intersurf = parseFloat(a[2]);
-        return [ selected, consurf, intersurf ];
+        return _.map(a, parseFloat);
     },
     make_row: function(id){
         if(id==='all'){
@@ -166,19 +163,14 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         }else{
             var label = this.id_names[ id ] || id;
         }
-        var a = this.get_data(id);
-        var selected = a[0];
-        var contacts = this.shown_contact_id === id;
-        var consurf = a[1];
-        var intersurf = a[2];
+        var a = this.get_data(id); // selected, consurf, intersurf
 
-        var $row = $('<div></div>');
-        $row.append(
-            this.selected_cell( id, selected, this.is_virtual(id) ),
+        var $row = $('<div></div>').append(
+            this.selected_cell( id, a[0], this.is_virtual(id) ),
             this.label_cell( label ),
-            this.contacts_cell( id, contacts ),
-            this.consurf_cell( id, consurf ),
-            this.intersurf_cell( id, intersurf )
+            this.contacts_cell( id, this.shown_contact_id === id ),
+            this.consurf_cell( id, a[1] ),
+            this.intersurf_cell( id, a[2] )
         );
         return $row;
     },

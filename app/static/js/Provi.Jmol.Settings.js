@@ -32,6 +32,171 @@ Provi.Jmol.Settings.Radii = {};
 Provi.Jmol.Settings.Radii['jmol'] = {'C':1.95,'N':1.85,'O':1.7,'S':2,'Mg':1.73,'Fe':1.7,'Zn':1.39};
 Provi.Jmol.Settings.Radii['babel'] = {'C':1.7,'N':1.6,'O':1.55,'S':1.8,'Mg':2.2,'Fe':2.05,'Zn':2.1};
 
+
+// TODO
+// handle default values in provi.jspt
+// handle provis own settings in provi.jspt
+// handle style stuff in provi.jspt
+// provi clipping and zShade settings
+
+Provi.Jmol.Settings.groups = {
+    misc: [ "defaultVDW", "isosurfacePropertySmoothing", "largeAtomCount" ],
+    lighting: [ "ambientPercent", "diffusePercent", "specular", "specularPercent", "specularPower", "specularExponent", "phongExponent", "zShade", "zShadePower", "zSlab", "zDepth", "celShading", "backgroundColor" ],
+    bind: [ "mousedragFactor", "mousewheelFactor" ],
+    clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", "slab", "depth" ],
+}
+
+Provi.Jmol.Settings.dict = {
+    defaultVDW: { type: "select", options: [ "jmol", "babel", "rasmol" ] },
+    isosurfacePropertySmoothing: { type: "checkbox" },
+    largeAtomCount: { type: "checkbox", provi: true },
+
+    ambientPercent: { type: "slider", range: [ 1, 100 ] },
+    diffusePercent: { type: "slider", range: [ 1, 100 ] },
+    specular: { type: "checkbox" },
+    specularPercent: { type: "slider", range: [ 1, 100 ] },
+    specularPower: { type: "slider", range: [ 1, 100 ] },
+    specularExponent: { type: "select", options: _.range( 1, 10 ) },
+    phongExponent: { type: "slider", range: [ 1, 100 ] }, 
+    zShade: { type: "checkbox" },
+    zShadePower: { type: "select", options: _.range( 1, 4 ) },
+    zSlab: { type: "slider", range: [ 1, 100 ] },
+    zDepth: { type: "slider", range: [ 1, 100 ] },
+    celShading: { type: "checkbox" },
+    backgroundColor: { type: "select", options: [ "[xFFFFFF]", "[x000000]" ] },
+
+    mousedragFactor: { type: "slider", range: [ 50, 400 ], factor: 100 },
+    mousewheelFactor: { type: "slider", range: [ 50, 400 ], factor: 100 },
+
+    slabEnabled: { type: "checkbox" },
+    slabRange: { type: "slider", range: [ 0, 100 ] },
+    slabByAtom: { type: "checkbox" },
+    slabByMolecule: { type: "checkbox" },
+    slab: { type: "slider", range: [ 0, 100 ] },
+    depth: { type: "slider", range: [ 0, 100 ] },
+
+}
+
+
+
+
+/**
+ * A widget to get params
+ * @constructor
+ * @extends Provi.Widget.Widget
+ */
+Provi.Jmol.Settings.SettingsParamsWidget = function(params){
+    params = _.defaults(
+        params,
+        Provi.Jmol.Settings.SettingsParamsWidget.prototype.default_params
+    );
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([  ]);
+
+    var template = '' +
+        
+    '';
+    //this.add_content( template, params );
+}
+Provi.Jmol.Settings.SettingsParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Settings.SettingsParamsWidget.prototype */ {
+    default_params: {
+        
+    }
+});
+
+
+
+
+Provi.Jmol.Settings.SettingsSelectionType = function(params){
+    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+    this.handler = {};
+}
+Provi.Jmol.Settings.SettingsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Jmol.Settings.SettingsSelectionType.prototype */ {
+    _init: function(grid){
+        this.grid = grid;
+        grid.elm("widgets").empty();
+        this.params_widget = new Provi.Jmol.Settings.SettingsParamsWidget({
+            parent_id: grid.eid('widgets')
+        });
+        var self = this;
+    },
+    get_ids: function(){
+        return _.keys( Provi.Jmol.Settings.dict );
+    },
+    get_data: function(id){
+        return this.applet.evaluate( id );
+    },
+    make_row: function(id){
+        if( id=="all" ) return;
+        var value = this.get_data( id );
+        var $row = $('<div></div>');
+        var p = Provi.Jmol.Settings.dict[ id ] || {};
+        if( p.type=="checkbox" ){
+
+            $row.append(
+                $('<input type="checkbox" />')
+                    .data( 'id', id )
+                    .attr( 'checked', value )
+                    .click( _.bind( this.set, this ) ),
+                '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+            );
+
+        }else if( p.type=="select" ){
+
+            $row.append(
+                $('<select class="ui-state-default">' +
+                    _.map( p.options, function(o){
+                        return '<option value="' + o + '">' + _.str.humanize( o ) + '</option>'
+                    }) +
+                '</select>')
+                    .data( 'id', id )
+                    .val( value )
+                    .bind( 'click change', _.bind( this.set, this )),
+                '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+            );
+
+        }else if( p.type=="slider" ){
+            value = parseFloat(value);
+            if( p.factor ) value *= p.factor;
+            $row.append(
+                $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
+                    .slider({ min: p.range[0], max: p.range[1], value: value })
+                    .data( 'id', id )
+                    .bind( 'slidestop slide', _.bind( this.set, this ) ),
+                '<label>' + _.str.humanize( id ) + '</label>'
+            );
+
+        }else{
+            $row.append( _.str.humanize( id ) );
+        }
+        return $row;
+    },
+    set: function(e){
+        var elm = $(e.currentTarget);
+        var id = elm.data('id');
+        var p = Provi.Jmol.Settings.dict[ id ] || {};
+        var value = '';
+        if( p.type=="checkbox" ){
+            value = elm.is(':checked');
+        }else if( p.type=="select" ){
+            value = '"' + elm.children("option:selected").val() + '"';
+        }else if( p.type=="slider" ){
+            value = elm.slider("value");
+            if( p.factor ) value /= p.factor;
+        }else{
+            return;
+        }
+        var s = 'provi_set("' + id + '", ' + value + ', true);';
+        // this.applet.script( s );
+        this.applet.script_callback( s, {}, _.bind( this.grid.invalidate, this.grid ) );
+    }    
+});
+Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
+    'settings', Provi.Jmol.Settings.SettingsSelectionType
+);
+
+
+
 /**
  * A base class to create classes to provide a central instance for changing settings
  * @constructor
@@ -667,7 +832,7 @@ Provi.Jmol.Settings.ClippingManager.prototype = Utils.extend( Provi.Jmol.Setting
         //this.applet.lighting_manager.set({z_depth: (this.depth||0), z_slab: (this.depth||0)+30});
         //var p = {z_depth: 0, z_slab: (params.depth||20)+10}
         names = names || this.names.slice();
-        if( this.slab_range ) names.removeItems( "slab" );
+        if( this.slab_range ) names = _.without( names, "slab" );
         return '' +
             'unbind "CTRL-LEFT";' + 
             'unbind "ALT-WHEEL";' + 
