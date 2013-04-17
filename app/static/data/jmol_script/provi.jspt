@@ -115,6 +115,15 @@ function sort_by_prop( sele, prop ){
 }
 
 
+function range(n){
+    var l = [];
+    for(var i=1; i<=n; ++i){
+        l[i] = i;
+    }
+    return l;
+}
+
+
 function provi_set( name, value, silent ){
     if( value.type=="string" ){
         value = "'" + value + "'";
