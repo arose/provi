@@ -52,10 +52,7 @@ function helix_axis2(helix, draw){
     var beg = [];
     var ent = [];
     var tmp = [];
-    var l = [];
-    for(var i=1; i<=n; ++i){
-        l[i] = i;
-    }
+    var l = range(n);
     
     tmp = lsq( l, ca.X.all );
     beg = beg + tmp[1];
@@ -66,8 +63,7 @@ function helix_axis2(helix, draw){
     tmp = lsq( l, ca.Z.all );
     beg += tmp[1];
     ent += tmp[2];
-    print "helix_axis2";
-    print beg;
+
     beg = point( "{" + beg[1] + " " + beg[2] + " " + beg[3] + "}" );
     ent = point( "{" + ent[1] + " " + ent[2] + " " + ent[3] + "}" );
     var vec = ent-beg;
