@@ -99,12 +99,12 @@ function jmol_applet_ready_callback (applet_name, id, status, applet){
  * Also available as a global function because Jmol would not accept it otherwise.
  * @memberOf Provi.Jmol
  */
-function jmol_bind (applet_name){
-    console.log('BIND');
-    console.log( applet_name+'' );
-    Provi.Jmol.get_applet( applet_name+'' ).clipping_manager.sync();
-    Provi.Jmol.get_applet( applet_name+'' ).lighting_manager.sync();
-};
+// function jmol_bind (applet_name){
+//     console.log('BIND');
+//     console.log( applet_name+'' );
+//     Provi.Jmol.get_applet( applet_name+'' ).clipping_manager.sync();
+//     Provi.Jmol.get_applet( applet_name+'' ).lighting_manager.sync();
+// };
 
 function jmol_zoom (applet_name, _X, _Y, _DELTAX, _DELTAY, _TIME, _ACTION, _ATOM, _BOND, _POINT ){
     console.log( 'ZOOM', applet_name+'', _X, _Y, _DELTAX, _DELTAY, _TIME, _ACTION, _ATOM, _BOND, _POINT );
@@ -328,13 +328,6 @@ Provi.Jmol.Applet = function(params){
     this.widget = false;
     
     this._determining_load_status = false;
-    this.bind_manager = new Provi.Jmol.Settings.BindManager({ applet: this });
-    this.clipping_manager = new Provi.Jmol.Settings.ClippingManager({ applet: this }); // needs to come before lighting manager because the lighting manager depends on the clipping manager
-    this.lighting_manager = new Provi.Jmol.Settings.LightingManager({ applet: this });
-    this.quality_manager = new Provi.Jmol.Settings.QualityManager({ applet: this });
-    this.picking_manager = new Provi.Jmol.Settings.PickingManager({ applet: this });
-    this.style_manager = new Provi.Jmol.Settings.StyleManager({ applet: this });
-    this.misc_manager = new Provi.Jmol.Settings.MiscManager({ applet: this }); // depends on style_manager
     
     this._init();
     if( typeof(Provi.Jmol._default_applet) == 'undefined' ){
@@ -724,11 +717,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         $(this).triggerHandler('ready', [ status ]);
     },
     large_atom_count: function(){
-        if( !this.misc_manager ) return false;
-        var large_atom_count = this.misc_manager.large_atom_count || 1000000;
-        var atom_count = this.evaluate( '{*}.count;' );
-        console.log(this, this.misc_manager, this.misc_manager.large_atom_count, atom_count);
-        return atom_count >= large_atom_count;
+        return this.evaluate( 'provi_get("largeAtomCount");' );
     },
     init_listeners: function(){
         var self = this;
@@ -837,14 +826,15 @@ Provi.Jmol.JmolWidget = function(params){
     
     var self = this;
     
-    $('#' + this.picking_id).bind('click change', $.proxy( function(){
-        var picking = $('#' + self.picking_id).children("option:selected").val();
-        self.applet.picking_manager.set({picking: picking});
-    }, this ));
-    $(this.applet.picking_manager).bind('change', function(){
-        var params = self.applet.picking_manager.get();
-        $('#' + self.picking_id).val( params.picking );
-    });
+    // TODO
+    // $('#' + this.picking_id).bind('click change', $.proxy( function(){
+    //     var picking = $('#' + self.picking_id).children("option:selected").val();
+    //     self.applet.picking_manager.set({picking: picking});
+    // }, this ));
+    // $(this.applet.picking_manager).bind('change', function(){
+    //     var params = self.applet.picking_manager.get();
+    //     $('#' + self.picking_id).val( params.picking );
+    // });
     
     $('#' + this.delete_id).qtip({ position: {my: 'right center', at: 'left center'} }).click(function(){
         $(this).trigger('mouseout');
