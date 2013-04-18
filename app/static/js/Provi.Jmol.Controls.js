@@ -429,7 +429,6 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
                 var applet = self.applet_selector.get_value();
                 if(applet){
                     applet.script('center ' + d.sele + '; zoom(' + d.sele + ') 100;');
-                    applet.clipping_manager.sync();
                 }
             });
         });
@@ -457,83 +456,56 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
     update_quality: function(){
         var applet = this.applet_selector.get_value();
         if(applet){
-            if( this.quality==2 ){
-                applet.quality_manager.set({
-                    high_resolution: true, 
-                    antialias_display: true, 
-                    antialias_translucent: true
-                });
-                applet.style_manager.set({
-                    hermite_level: -3, 
-                    cartoon: 0.8, 
-                    ribbon_aspect_ratio: 16
-                });
-            }else if( this.quality==1 ){
-                applet.quality_manager.set({
-                    high_resolution: true, 
-                    antialias_display: false, 
-                    antialias_translucent: true
-                });
-                applet.style_manager.set({
-                    hermite_level: -1, 
-                    cartoon: 0.6, 
-                    ribbon_aspect_ratio: 4
-                });
-            }else{
-                applet.quality_manager.set({
-                    high_resolution: false, 
-                    antialias_display: false, 
-                    antialias_translucent: true
-                });
-                applet.style_manager.set({
-                    hermite_level: 0, 
-                    cartoon: 0.8, 
-                    ribbon_aspect_ratio: 16
-                });
-            }
+            // if( this.quality==2 ){
+            //     applet.quality_manager.set({
+            //         high_resolution: true, 
+            //         antialias_display: true, 
+            //         antialias_translucent: true
+            //     });
+            //     applet.style_manager.set({
+            //         hermite_level: -3, 
+            //         cartoon: 0.8, 
+            //         ribbon_aspect_ratio: 16
+            //     });
+            // }else if( this.quality==1 ){
+            //     applet.quality_manager.set({
+            //         high_resolution: true, 
+            //         antialias_display: false, 
+            //         antialias_translucent: true
+            //     });
+            //     applet.style_manager.set({
+            //         hermite_level: -1, 
+            //         cartoon: 0.6, 
+            //         ribbon_aspect_ratio: 4
+            //     });
+            // }else{
+            //     applet.quality_manager.set({
+            //         high_resolution: false, 
+            //         antialias_display: false, 
+            //         antialias_translucent: true
+            //     });
+            //     applet.style_manager.set({
+            //         hermite_level: 0, 
+            //         cartoon: 0.8, 
+            //         ribbon_aspect_ratio: 16
+            //     });
+            // }
         }
     },
     set_style: function (){
         var applet = this.applet_selector.get_value(true);
         if( !applet ) return;
-        var default_style = applet.style_manager.get_default_style();
         
         var selected_style = this.elm('style').children("option:selected").val();
         if( !selected_style ) return;
         this.elm('style').val('');
         
-        var styles = {
-            'default': 'select protein or nucleic;',
-            'lines': 'select protein or nucleic; wireframe -${line};',
-            'sticks': 'select protein or nucleic; wireframe -${stick};',
-            'cpk': 'select protein or nucleic; wireframe -${stick}; cpk ${cpk};',
-            'spacefill': 'select protein or nucleic; cpk only 100%;',
-            'backbone': 'select protein or nucleic; backbone -${backbone};',
-            'backbone+lines': 'select protein or nucleic; backbone -${backbone}; select ${sidechain_helper_sele}; wireframe ${line};',
-            'backbone+sticks': 'select protein or nucleic; backbone -${backbone}; select ${sidechain_helper_sele}; wireframe ${stick};',
-            'backbone+cpk': 'select protein or nucleic; backbone -${backbone}; cpk ${cpk}; select ${sidechain_helper_sele}; wireframe ${stick};',
-            'trace': 'select protein or nucleic; trace only; {protein or nucleic}.trace = ${trace};',
-            'tube': 'select protein or nucleic; trace only; {protein or nucleic}.trace = for(x;{protein or nucleic};x.temperature/100);',
-            'tube10': 'select *; trace only; {*}.trace = for(x;{*};x.temperature*10);',
-            'tube8': 'select *; trace only; {*}.trace = for(x;{*};x.temperature*8);',
-            'tube5': 'select *; trace only; {*}.trace = for(x;{*};x.temperature*5);',
-            'ribbon': 'select protein; ribbon only; select helix or sheet; ribbon ${cartoon}; select nucleic; ${nucleic_cartoon_style} only;',
-            'cartoon': 'select protein; cartoon only; select helix or sheet; cartoon ${cartoon}; select nucleic; ${nucleic_cartoon_style} only;',
-            'cartoon+lines': 'select protein; cartoon only; select nucleic; ${nucleic_cartoon_style}; select ${sidechain_helper_sele}; wireframe ${line}; select helix or sheet; cartoon ${cartoon};',
-            'cartoon+sticks': 'select protein; cartoon only; select nucleic; ${nucleic_cartoon_style}; select ${sidechain_helper_sele}; wireframe ${stick}; select helix or sheet; cartoon ${cartoon};',
-            'cartoon+cpk': 'select protein; cartoon only; select nucleic; ${nucleic_cartoon_style}; select ${sidechain_helper_sele}; wireframe ${stick}; cpk ${cpk}; select helix or sheet; cartoon ${cartoon};',
-            'cartoon+aromatic': 'select protein; cartoon only; select nucleic; ${nucleic_cartoon_style}; select ${sidechain_helper_sele}; select helix or sheet; cartoon ${cartoon}; select aromatic; wireframe ${stick};'
+        var s = 'provi_style("' + selected_style + '");';
+        if( this.elm('style_sele').is(':checked') ){
+            s = 'subset selected;' + s + 'subset;';
         }
-        
-        this.style_cmd = applet.style_manager.get_style( styles[ selected_style ] || '' );
-        
-        if( this.style_cmd ){
-            var s = default_style + this.style_cmd;
-            if( this.elm('style_sele').is(':checked') ){
-                s = 'subset selected; ' + s + 'subset;';
-            }
-            applet.script( 'try{' + s + '}catch(e){ subset; }', { maintain_selection: true });
-        }
+        console.log(s);
+        applet.script( 'try{' + s + '}catch(e){ subset; }', { maintain_selection: true });
     },
     set_preset: function (){
         var applet = this.applet_selector.get_value(true);

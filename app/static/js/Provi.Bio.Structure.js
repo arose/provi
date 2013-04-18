@@ -72,7 +72,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         type = type ? (type + '::') : '';
         type = '';
         if( !style ){
-            style = applet.style_manager.get_default_style(true);
+            style = 'provi_style();';
         }else{
             style = 'select all; ' + style;
         }
@@ -98,7 +98,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
             s += 'load TRAJECTORY ' + path + '; ' + style;
         }else if(load_as == 'trajectory+append'){
             s += 'load APPEND TRAJECTORY ' + path + '; ' +
-                'subset file = _currentFileNumber; ' + style + ' subset;';
+                'subset file = _currentFileNumber; ' + style + '; subset;';
         }else if(load_as == 'append'){
             s += 'load APPEND ' + path + '; ' +
                 'subset file = _currentFileNumber; ' + style + '; subset; ';
@@ -107,15 +107,17 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
             console.log(path);
             s += 'load ' + path + '; ' + style;
         }
+        s += "provi_settings_init();";
 
         applet.script_callback( s, { maintain_selection: true, try_catch: false }, function(){
             if( load_as != 'append' && load_as != 'trajectory+append' ){
-                applet.lighting_manager.set();
-                applet.clipping_manager.set();
-                applet.picking_manager.set();
+                // applet.lighting_manager.set();
+                // applet.clipping_manager.set();
+                // applet.picking_manager.set();
             }
-            applet.picking_manager.set();
-            applet.misc_manager.set();
+            // applet.picking_manager.set();
+            // applet.misc_manager.set();
+            applet.script( 'provi_settings_init();', { maintain_selection: true, try_catch: false } );
             if( load_as != 'trajectory+append' && load_as != 'trajectory'  ){
                 applet.script( 'frame all;', { maintain_selection: true, try_catch: false } );
             }

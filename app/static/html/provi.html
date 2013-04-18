@@ -111,7 +111,7 @@
     <script type="text/javascript">
     
         Provi.Debug.auto();
-        
+
         _.extend( Provi.defaults.dom_parent_ids, {
             DATASET_WIDGET: 'tab_widgets',
             CANVAS_WIDGET: 'main',
@@ -198,34 +198,6 @@
                 parent_id: 'tab_controls'
             });
         
-            new Provi.Jmol.Settings.LightingManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Settings.ClippingManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Settings.QualityManagerWidget({
-                parent_id: 'tab_settings'
-            });
-
-            new Provi.Jmol.Settings.BindManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Settings.PickingManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
-            new Provi.Jmol.Settings.StyleManagerWidget({
-                parent_id: 'tab_settings'
-            });
-
-            new Provi.Jmol.Settings.MiscManagerWidget({
-                parent_id: 'tab_settings'
-            });
-        
             new Provi.Jmol.Modeling.JmolModelingWidget({
                 parent_id: 'tab_controls'
             });
@@ -288,10 +260,6 @@
                 parent_id: 'tab_tree'
             });
         
-            // new Provi.Bio.Sequence.TreeViewWidget({
-            //     parent_id: 'tab_tree'
-            // });
-        
             new Provi.Jmol.Controls.JmolAnimationWidget({
                 parent_id: 'tab_controls',
                 collapsed: true
@@ -319,11 +287,7 @@
             new Provi.Data.Io.ExampleLoadWidget({
                 parent_id: 'tab_io'
             });
-            
-            // new Provi.Data.Io.Galaxy.GalaxyLoadWidget({
-            //     parent_id: 'tab_io'
-            // });
-        
+
         
             // calculate
         
@@ -338,10 +302,6 @@
                 parent_id: 'tab_io'
             });
             
-            //new Provi.Data.Io.Galaxy.SaveGalaxyWidget({
-            //    parent_id: 'tab_io'
-            //});
-            
             new Provi.Data.Io.SaveExampleWidget({
                 parent_id: 'tab_io'
             });
@@ -353,6 +313,8 @@
                 parent_id: 'tab_data'
             });
             
+
+
             $('#tab_scrollbox').scroll(function (event, ui) {
                 $(this).data('scrollTop-tab-' + tabs_panel.tabs('option', 'selected'), $(this).scrollTop());
             });
