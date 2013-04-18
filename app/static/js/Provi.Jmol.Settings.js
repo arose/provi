@@ -258,8 +258,6 @@ Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
 
 
 
-    // large_structure_style: 'select protein or nucleic; cartoon off; backbone ${backbone};'
-
 
             // 'unbind "CTRL-LEFT";' + 
             // 'unbind "ALT-WHEEL";' + 
