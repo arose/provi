@@ -42,6 +42,7 @@ Provi.Jmol.Settings.groups = {
     quality: [ "highResolution", "antialiasDisplay", "antialiasTranslucent", "antialiasImages", "wireframeRotation" ],
     picking: [ "atomPicking", "drawPicking", "picking", "pickingStyle", "selectionHalos", "selectionHalosColor", "hoverDelay" ],
     style: [ "cartoon", "trace", "line", "stick", "cpk", "spacefill", "backbone", "hermiteLevel", "cartoonRockets", "cartoonFancy", "ribbonAspectRatio", "ribbonBorder", "rocketBarrels", "sheetSmoothing", "traceAlpha", "cartoonBaseEdges", "sidechainHelper", "style" ],
+    sys: [ "appletProxy" ],
 }
 
 Provi.Jmol.Settings.dict = {
@@ -113,6 +114,8 @@ Provi.Jmol.Settings.dict = {
     cartoonBaseEdges: { type: "checkbox" },
     sidechainHelper:  { type: "checkbox", provi: true },
     style: { type: "select", options: [ "", "default", "lines", "sticks", "cartoon", "backbone", "trace" ] },
+
+    appletProxy: { type: "text" }
 }
 
 
@@ -194,6 +197,16 @@ Provi.Jmol.Settings.SettingsSelectionType.prototype = Utils.extend(Provi.Bio.Ato
                 '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
             );
 
+        }else if( p.type=="text" ){
+
+            $row.append(
+                $('<input type="text" />')
+                    .data( 'id', id )
+                    .val( value )
+                    .blur( _.bind( this.set, this ) ),
+                '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+            );
+
         }else if( p.type=="slider" ){
 
             var self = this;
@@ -234,8 +247,10 @@ Provi.Jmol.Settings.SettingsSelectionType.prototype = Utils.extend(Provi.Bio.Ato
         }else if( p.type=="select" ){
             value = elm.children("option:selected").val();
             if( p.value!="float" && p.value!="int" ){
-                value = '"' + value  + '"';
+                value = '"' + value + '"';
             }
+        }else if( p.type=="text" ){
+            value = '"' + elm.val() + '"';
         }else if( p.type=="slider" ){
             value = elm.slider("value");
             if( p.factor ) value /= p.factor;

@@ -27,6 +27,7 @@ function provi_bind_init(){
 }
 
 
+
 function provi_zslab( delta_y ){
     slab @{slab - delta_y/abs(delta_y)}; 
     if(slab<0){ slab 0; } 
@@ -42,9 +43,10 @@ function provi_settings_init(){
     set hoverDelay 0.1;
     set mousedragFactor 2.0;
     set selectionHalos true;
-    set picking group;
+    set highResolution true;
+    set picking "group";
     provi_set( "largeAtomCount", false, false, true );
-    provi_set( "selectionHalosColor", "[x00FF00]" );
+    provi_set( "selectionHalosColor", "green" );
     provi_set( "cartoon", 0.8, false, true );
     provi_set( "trace", 0.3, false, true );
     provi_set( "line", 0.01, false, true );

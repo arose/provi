@@ -107,7 +107,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
             console.log(path);
             s += 'load ' + path + '; ' + style;
         }
-        s += "provi_settings_init();";
+        //s += "provi_settings_init(); set highResolution true; set picking group;";
 
         applet.script_callback( s, { maintain_selection: true, try_catch: false }, function(){
             if( load_as != 'append' && load_as != 'trajectory+append' ){
