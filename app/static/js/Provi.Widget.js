@@ -252,6 +252,78 @@ var Widget = Provi.Widget.Widget;
 
 
 
+Provi.Widget.form_builder = function( params, value, id, self ){
+
+    var p = params;
+    var $elm = $('<div></div>');
+
+    if( p.type=="checkbox" ){
+
+        $elm.append(
+            $('<input type="checkbox" />')
+                .data( 'id', id )
+                .attr( 'checked', value )
+                .click( _.bind( self.set, self ) ),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
+    }else if( p.type=="select" ){
+
+        $elm.append(
+            $('<select class="ui-state-default">' +
+                _.map( p.options, function(o){
+                    if( p.value=="float" ) o = o.toFixed( p.fixed || 2 );
+                    return '<option value="' + o + '">' + ( _.isNumber(o) ? o : _.str.humanize( o ) ) + '</option>'
+                }) +
+            '</select>')
+                .data( 'id', id )
+                .val( value )
+                .bind( 'click change', _.bind( self.set, self )),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
+    }else if( p.type=="text" ){
+
+        $elm.append(
+            $('<input type="text" />')
+                .data( 'id', id )
+                .val( value )
+                .blur( _.bind( self.set, self ) ),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
+    }else if( p.type=="slider" ){
+
+        value = parseFloat(value);
+        if( p.factor ) value *= p.factor;
+        $elm.append( 
+            (function(){
+                var handle, slider;
+                slider = $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
+                    .slider({ min: p.range[0], max: p.range[1], value: value, slide: function(event, ui) {
+                        handle.qtip('option', 'content.text', '' + ui.value);
+                    }})
+                    .data( 'id', id )
+                    .bind( 'slidestop slide', _.bind( self.set, self ) );
+                handle = $('.ui-slider-handle', slider);
+                handle.qtip({
+                    content: '' + slider.slider('option', 'value'),
+                    position: { my: 'bottom center', at: 'top center' },
+                    hide: { delay: 300 }
+                });
+                return slider;
+            })(),
+            '<label>' + _.str.humanize( id ) + '</label>'
+        );
+    }else{
+        $elm.append( _.str.humanize( id ) );
+    }
+
+    return $elm;
+}
+
+
+
 /**
  * A widget
  * @constructor

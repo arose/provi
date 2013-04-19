@@ -168,74 +168,10 @@ Provi.Jmol.Settings.SettingsSelectionType.prototype = Utils.extend(Provi.Bio.Ato
     },
     make_row: function(id){
         if( id=="all" ) return;
-        var value = this.get_data( id );
-        console.log(id, value);
-        var $row = $('<div></div>');
-        var p = Provi.Jmol.Settings.dict[ id ] || {};
-        if( p.type=="checkbox" ){
-
-            $row.append(
-                $('<input type="checkbox" />')
-                    .data( 'id', id )
-                    .attr( 'checked', value )
-                    .click( _.bind( this.set, this ) ),
-                '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
-            );
-
-        }else if( p.type=="select" ){
-
-            $row.append(
-                $('<select class="ui-state-default">' +
-                    _.map( p.options, function(o){
-                        if( p.value=="float" ) o = o.toFixed( p.fixed || 2 );
-                        return '<option value="' + o + '">' + ( _.isNumber(o) ? o : _.str.humanize( o ) ) + '</option>'
-                    }) +
-                '</select>')
-                    .data( 'id', id )
-                    .val( value )
-                    .bind( 'click change', _.bind( this.set, this )),
-                '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
-            );
-
-        }else if( p.type=="text" ){
-
-            $row.append(
-                $('<input type="text" />')
-                    .data( 'id', id )
-                    .val( value )
-                    .blur( _.bind( this.set, this ) ),
-                '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
-            );
-
-        }else if( p.type=="slider" ){
-
-            var self = this;
-            value = parseFloat(value);
-            if( p.factor ) value *= p.factor;
-            $row.append( 
-                (function(){
-                    var handle, slider;
-                    slider = $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
-                        .slider({ min: p.range[0], max: p.range[1], value: value, slide: function(event, ui) {
-                            handle.qtip('option', 'content.text', '' + ui.value);
-                        }})
-                        .data( 'id', id )
-                        .bind( 'slidestop slide', _.bind( self.set, self ) );
-                    handle = $('.ui-slider-handle', slider);
-                    handle.qtip({
-                        content: '' + slider.slider('option', 'value'),
-                        position: { my: 'bottom center', at: 'top center' },
-                        hide: { delay: 300 }
-                    });
-                    return slider;
-                })(),
-                '<label>' + _.str.humanize( id ) + '</label>'
-            );
-
-        }else{
-            $row.append( _.str.humanize( id ) );
-        }
-        return $row;
+        return Provi.Widget.form_builder( 
+            Provi.Jmol.Settings.dict[ id ] || {},
+            this.get_data( id ), id, this
+        )
     },
     set: function(e){
         var elm = $(e.currentTarget);
