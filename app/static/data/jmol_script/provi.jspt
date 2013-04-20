@@ -204,7 +204,7 @@ function is_provi_setting( name ){
 function is_provi_style( name ){
     if( name=="line" || name=="cartoon" || name=="trace" || 
         name=="stick" || name=="cpk" || name=="spacefill" || 
-        name=="backbone" || name=="largeAtomCount" ){
+        name=="backbone" || name=="largeAtomCount" || name=="sidechainHelper" ){
         return true;
     }else{
         return false;
