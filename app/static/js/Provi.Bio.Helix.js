@@ -134,7 +134,7 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         var $row = $('<div></div>');
         $row.append(
             this.selected_cell( id, a[0] ),
-            this.label_cell( label ),
+            this.label_cell( label, id ),
             this.axis_cell( id, a[1] ),
             this.colorize_cell( id, false )
         );
@@ -318,7 +318,7 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
         var $row = $('<div></div>');
         $row.append(
             this.selected_cell( id, a[0] ),
-            this.label_cell( label ),
+            this.label_cell( label, id ),
             this.crossing_cell( id, a[1] ),
             this.contacts_cell( id, a[2] )
         );

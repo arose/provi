@@ -47,6 +47,7 @@ function provi_settings_init(){
     set picking "group";
     provi_set( "largeAtomCount", false, false, true );
     provi_set( "selectionHalosColor", "green" );
+    provi_set( "highlightColor", "yellow" );
     provi_set( "cartoon", 0.8, false, true );
     provi_set( "trace", 0.3, false, true );
     provi_set( "line", 0.01, false, true );
@@ -132,13 +133,32 @@ function provi_load_isosurface(){
 }
 
 
-function provi_sele_test(ids){
+function provi_sele_test( ids ){
     var sele_l = [];
     var displayed_l = [];
     for(id in ids){
         sele_l += provi_selection[id].selected.join("");
     }
     return [ sele_l.average, displayed_l.average ];
+}
+
+
+function provi_highlight( sele ){
+    // todo: ensure visibility/display
+    var saved_colors = sele.color.all;
+    var dt = 0.07;
+    var colr = provi_get( "highlightColor" );
+    for( var i=0; i<3; ++i){
+        color {@sele} @colr;
+        delay @dt;
+        {@sele}.color = saved_colors;
+        delay @dt;
+    }
+}
+
+
+function provi_center( sele ){
+    // todo
 }
 
 
@@ -160,7 +180,7 @@ function sort_by_prop( sele, prop ){
 }
 
 
-function range(n){
+function range( n ){
     var l = [];
     for(var i=1; i<=n; ++i){
         l[i] = i;
@@ -173,7 +193,7 @@ function is_provi_setting( name ){
     if( name=="largeAtomCount" || name=="cartoon" || name=="trace" || 
         name=="line" || name=="stick" || name=="cpk" || name=="spacefill" || 
         name=="backbone" || name=="sidechainHelper" || name=="selectionHalosColor" ||
-        name=="style" ){
+        name=="style" || name=="highlightColor" ){
         return true;
     }else{
         return false;

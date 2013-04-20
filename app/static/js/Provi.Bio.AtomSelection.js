@@ -417,6 +417,13 @@ Provi.Bio.AtomSelection.SelectionType = function(params){
             "label": function(displayed, id){
                 return (displayed ? 'Hide' : 'Display') + (id==='all' ? ' all' : '');
             }
+        },
+        "highlight": {
+            "selector": 'span[cell="label"]',
+            "click": this.highlight,
+            "label": function(displayed, id){
+                return "Highlight";
+            }
         }
     };
 }
@@ -464,10 +471,15 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
         var s = 'display ' + (flag ? 'remove' : 'add') + ' ' + selection;
         this.applet.script_callback( s, {}, callback );
     },
-    label_cell: function(label){
-        var $label = $('<span style="float:left; width:120px;">' +
+    highlight: function(id){
+        console.log( "highlight", id );
+        var s = "provi_highlight({" + this.selection( id ) + "});";
+        this.applet.script( s, {} );
+    },
+    label_cell: function(label, id){
+        var $label = $('<span cell="label" style="float:left; width:120px;">' +
             label +
-        '</span>');
+        '</span>').data( 'id', id );
         return $label;
     },
     selected_cell: Provi.Bio.AtomSelection.CellFactory({
@@ -545,7 +557,7 @@ Provi.Bio.AtomSelection.AtomindexSelectionType.prototype = Utils.extend(Provi.Bi
         var $row = $('<div></div>').append(
             this.selected_cell( id, selected ),
             this.displayed_cell( id, this.displayed(id) ),
-            this.label_cell( label ),
+            this.label_cell( label, id ),
             this.color_cell( color ),
             this.property_cell( id, this.get_property(id) )
         );
@@ -593,7 +605,7 @@ Provi.Bio.AtomSelection.GroupindexSelectionType.prototype = Utils.extend(Provi.B
         var $row = $('<div></div>').append(
             this.selected_cell( id, a[5] ),
             this.displayed_cell( id, this.displayed(id) ),
-            this.label_cell( label ),
+            this.label_cell( label, id ),
             this.property_cell( id, this.get_property(id) )
         );
         return $row;
@@ -642,7 +654,7 @@ Provi.Bio.AtomSelection.ChainlabelSelectionType.prototype = Utils.extend(Provi.B
         var $row = $('<div></div>').append(
             this.selected_cell( id, a[0] ),
             this.displayed_cell( id, this.displayed(id) ),
-            this.label_cell( label )
+            this.label_cell( label, id )
         );
         return $row;
     },
@@ -690,7 +702,7 @@ Provi.Bio.AtomSelection.ModelindexSelectionType.prototype = Utils.extend(Provi.B
         var $row = $('<div></div>').append(
             this.selected_cell( id, a[2] ),
             this.displayed_cell( id, this.displayed(id) ),
-            this.label_cell( label )
+            this.label_cell( label, id )
         );
         return $row;
     },
@@ -729,7 +741,7 @@ Provi.Bio.AtomSelection.VariableSelectionType.prototype = Utils.extend(Provi.Bio
 
         $row = $('<div></div>').append(
             this.selected_cell( id, a[0] ),
-            this.label_cell( label )
+            this.label_cell( label, id )
         );
         return $row;
     },
@@ -787,7 +799,7 @@ Provi.Bio.AtomSelection.StrucnoSelectionType.prototype = Utils.extend(Provi.Bio.
         var $row = $('<div></div>').append(
             this.selected_cell( id, a[4] ),
             this.displayed_cell( id, this.displayed(id) ),
-            this.label_cell( label )
+            this.label_cell( label, id )
         );
         return $row;
     },

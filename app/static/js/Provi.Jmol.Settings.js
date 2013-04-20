@@ -40,7 +40,7 @@ Provi.Jmol.Settings.groups = {
     bind: [ "mousedragFactor", "mousewheelFactor" ],
     clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", "slab", "depth" ],
     quality: [ "highResolution", "antialiasDisplay", "antialiasTranslucent", "antialiasImages", "wireframeRotation" ],
-    picking: [ "atomPicking", "drawPicking", "picking", "pickingStyle", "selectionHalos", "selectionHalosColor", "hoverDelay" ],
+    picking: [ "atomPicking", "drawPicking", "picking", "pickingStyle", "selectionHalos", "selectionHalosColor", "hoverDelay", "highlightColor" ],
     style: [ "cartoon", "trace", "line", "stick", "cpk", "spacefill", "backbone", "hermiteLevel", "cartoonRockets", "cartoonFancy", "ribbonAspectRatio", "ribbonBorder", "rocketBarrels", "sheetSmoothing", "traceAlpha", "cartoonBaseEdges", "sidechainHelper", "style" ],
     sys: [ "appletProxy" ],
 }
@@ -86,7 +86,7 @@ Provi.Jmol.Settings.dict = {
     pickingStyle: { type: "select", options: [ "toggle", "selectOrToggle", "extendedSelect", "measure" ] },
     selectionHalos: { type: "checkbox" },
     selectionHalosColor: { type: "select", options: [ "green", "gold" ], provi: true },
-    // hoverDelay: { type: "select", options: [ 0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 1.0 ], value: "float" },
+    highlightColor: { type: "select", options: [ "pink", "yellow", "black", "white", "green", "gold" ], provi: true },
     hoverDelay: { type: "slider", range: [ 1, 100 ], factor: 100 },
 
     // cpk: 

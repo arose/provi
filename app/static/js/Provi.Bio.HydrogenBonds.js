@@ -315,7 +315,7 @@ Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.A
         var $row = $('<div></div>');
         $row.append(
             this.selected_cell( id, selected ),
-            this.label_cell( label ),
+            this.label_cell( label, id ),
             this.hbres_cell( id, hbres ),
             this.hbond_cell( id, hbond )
         );

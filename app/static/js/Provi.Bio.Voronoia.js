@@ -127,7 +127,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
 
         var $row = $('<div></div>').append(
             this.selected_cell( id, a[0] ),
-            this.label_cell( label ),
+            this.label_cell( label, id ),
             this.hole_cell( id, a[2] ),
             this.cavity_cell( id, a[3], this.ids.length>50 && id==="all" ),
             this.neighbours_cell( id, a[1] )

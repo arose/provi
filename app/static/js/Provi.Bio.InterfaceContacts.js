@@ -167,7 +167,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
 
         var $row = $('<div></div>').append(
             this.selected_cell( id, a[0], this.is_virtual(id) ),
-            this.label_cell( label ),
+            this.label_cell( label, id ),
             this.contacts_cell( id, this.shown_contact_id === id ),
             this.consurf_cell( id, a[1] ),
             this.intersurf_cell( id, a[2] )
