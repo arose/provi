@@ -113,7 +113,7 @@ Provi.Jmol.Settings.dict = {
     traceAlpha: { type: "checkbox" },
     cartoonBaseEdges: { type: "checkbox" },
     sidechainHelper:  { type: "checkbox", provi: true },
-    style: { type: "select", options: [ "", "default", "lines", "sticks", "cartoon", "backbone", "trace" ] },
+    style: { type: "select", options: [ "", "default", "lines", "sticks", "cartoon", "cartoon+sticks", "backbone", "backbone+sticks", "trace" ] },
 
     appletProxy: { type: "text" }
 }
