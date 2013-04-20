@@ -38,7 +38,7 @@ Provi.Widget.WidgetManager = {
     },
     remove_widget: function(id){
         delete this._widget_dict[id];
-        this._widget_list = _.without(this._widget_list, id);
+        this._widget_list.removeItems(id);
     },
     get_widget_id: function(id){
         if( typeof(id) != 'undefined' ){
@@ -244,6 +244,9 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
         $(this.dom).unblock();
     }
 };
+
+
+/** @exports Widget as Provi.Widget.Widget */
 var Widget = Provi.Widget.Widget;
 
 
@@ -388,7 +391,7 @@ Provi.Widget.PopupWidget = function(params){
     $(this.dom).append( content ).css('position', 'absolute');
     this._init();
 };
-Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.Widget.prototype */ {
+Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.PopupWidget.prototype */ {
     _init: function(){
         var self = this;
         $(this.dom).hide();
@@ -430,32 +433,6 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
         $( '#' + this.data_id ).empty();
     }
 });
-
-
-
-Provi.Widget.GridWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Widget.GridWidget.prototype.default_params
-    );
-    Provi.Widget.Widget.call( this, params );
-
-    this._init_eid_manager([ 'grid' ]);
-    
-    var template = '<div id="${eids.grid}"></div>';
-    this.add_content( template, params );
-    this._init();
-};
-Provi.Widget.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Widget.Widget.prototype */ {
-    default_params: {
-
-    },
-    _init: function(){
-
-    }
-});
-
-
 
 
 /**
