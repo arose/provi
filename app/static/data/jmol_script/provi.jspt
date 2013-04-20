@@ -1,0 +1,460 @@
+
+
+function provi_init(){
+	provi_data = {};
+	provi_property = {};
+	provi_selection = {};
+    provi_settings = {};
+	provi_uid_counter = 0;
+    provi_settings_init();
+    provi_bind_init();
+}
+
+
+function provi_uid(){
+    provi_uid_counter = 1*(provi_uid_counter) + 1;
+    return provi_uid_counter;
+}
+
+function provi_require( script ){
+    // TODO
+    // provi_scripts[ script ]
+}
+
+function provi_bind_init(){
+    unbind "ALT-WHEEL";
+    bind "ALT-WHEEL" "provi_zslab( _DELTAY );";
+}
+
+
+
+function provi_zslab( delta_y ){
+    slab @{slab - delta_y/abs(delta_y)}; 
+    if(slab<0){ slab 0; } 
+    if(slab>100){ slab 100; } 
+    set zSlab @{zSlab + delta_y/abs(delta_y)}; 
+    if(zSlab<0){ set zSlab 0; } 
+    if(zSlab>100){ set zSlab 100; }
+    // todo: notify provi
+}
+
+
+function provi_settings_init(){
+    set hoverDelay 0.1;
+    set mousedragFactor 2.0;
+    set selectionHalos true;
+    set highResolution true;
+    set picking "group";
+    provi_set( "largeAtomCount", false, false, true );
+    provi_set( "selectionHalosColor", "green" );
+    provi_set( "highlightColor", "yellow" );
+    provi_set( "cartoon", 0.8, false, true );
+    provi_set( "trace", 0.3, false, true );
+    provi_set( "line", 0.01, false, true );
+    provi_set( "stick", 0.15, false, true );
+    provi_set( "cpk", 20, false, true );
+    provi_set( "spacefill", 0.5, false, true );
+    provi_set( "backbone", 0.3, false, true );
+    provi_set( "sidechainHelper", false );
+    provi_set( "style", "default" );
+}
+
+
+function provi_load_property( url, sele, dataset_id ){
+	if( !url ) return false;
+	if( !sele ) sele = {*};
+    var x = load( url );
+    var line1_end = x.find("\n");
+    var line1 = x[1][line1_end-1];
+    var columns = line1.split(" ");
+    d = x[line1_end][0];
+    var i = 0;
+    names = [];
+    select @sele;
+    for(var c in columns){
+        i = i+1;
+        var c2 = c.split("#");
+        var name = "property_" + c2[1] + "_" + dataset_id;
+        names = names + name;
+        var s = 'DATA "' + name + ' 0 ' + i + ' @d";';
+        s += "{ @sele and " + name + " = " + c2[2] + " }." + name + " = NaN;";
+        script INLINE @s;
+    }
+    if( dataset_id ){
+    	print "provi dataset: " + dataset_id + " loaded | provi property ds " + dataset_id + ": " + names.join(" ");
+    }
+    select none;
+    return true;
+}
+
+
+function provi_load_selection( url, dataset_id ){
+	if( !url ) return false;
+	var x = load( url );
+    var lines = x.split();
+    var names = [];
+    for(l in lines){
+        var fields = l.split(" ");
+        var name = fields[1] + "_" + dataset_id;
+        names = names + name;
+        var d = fields[2][0];
+        var sele = "({" + d.join(" ") + "})";
+        provi_selection[name] = sele;
+    }
+    if( dataset_id ){
+    	print "provi dataset: " + dataset_id + " loaded | provi selection ds " + dataset_id + ": " + names.join(" ");
+    }
+    return true;
+}
+
+
+function provi_load_bonds( url, hide_initially, dataset_id ){
+	if( !url ) return false;
+	x = load( url ); # must be global for script INLINE
+    var bond_count_before = {*}.bonds.size;
+    script INLINE @x;
+    var bond_count_after = {*}.bonds.size;
+    var bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";
+    if( hide_initially ) hide add @bs;
+    if( dataset_id ){
+    	print "provi dataset: " + dataset_id + " loaded | provi bonds ds " + dataset_id + ": " + bond_count_before + " " + bond_count_after;
+	}
+	return true;
+}
+
+
+function provi_load_structure(){
+	
+}
+
+
+function provi_load_isosurface(){
+	
+}
+
+
+function provi_sele_test( ids ){
+    var sele_l = [];
+    var displayed_l = [];
+    for(id in ids){
+        sele_l += provi_selection[id].selected.join("");
+    }
+    return [ sele_l.average, displayed_l.average ];
+}
+
+
+function provi_highlight( sele ){
+    // todo: ensure visibility/display
+    var saved_colors = sele.color.all;
+    var dt = 0.07;
+    var colr = provi_get( "highlightColor" );
+    for( var i=0; i<3; ++i){
+        color {@sele} @colr;
+        delay @dt;
+        {@sele}.color = saved_colors;
+        delay @dt;
+    }
+}
+
+
+function provi_center( sele ){
+    // todo
+}
+
+
+function sort_by_prop( sele, prop ){
+    var x = sele.atomindex.all;
+    prop_arr = [];
+    var s = "prop_arr = sele." + prop + ".all;";
+    script INLINE @s;
+    var n = x.length;
+    for( var i = 1; i<=n; ++i ){
+        x[i] = [ x[i], prop_arr[i] ];
+    }
+    unset prop_arr;
+    x.sort(2);
+    for( var i = 1; i<=n; ++i ){
+        x[i] = (x[i])[1];
+    }
+    return x;
+}
+
+
+function range( n ){
+    var l = [];
+    for(var i=1; i<=n; ++i){
+        l[i] = i;
+    }
+    return l;
+}
+
+
+function is_provi_setting( name ){
+    if( name=="largeAtomCount" || name=="cartoon" || name=="trace" || 
+        name=="line" || name=="stick" || name=="cpk" || name=="spacefill" || 
+        name=="backbone" || name=="sidechainHelper" || name=="selectionHalosColor" ||
+        name=="style" || name=="highlightColor" ){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+
+function is_provi_style( name ){
+    if( name=="line" || name=="cartoon" || name=="trace" || 
+        name=="stick" || name=="cpk" || name=="spacefill" || 
+        name=="backbone" || name=="largeAtomCount" ){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+
+function provi_get( name ){
+    if( name=="selectionHalosColor" ){
+        // how to get the color?
+        var value = provi_settings[ name ];
+        if( value.type=="string" ){
+            value = value.trim('"');
+        }
+        return value;
+    }else if( is_provi_setting( name ) ){
+        var value = provi_settings[ name ];
+        if( value.type=="string" ){
+            value = value.trim('"');
+        }
+        return value;
+    }else{
+        tmp = '';
+        s = "tmp = " + name + ";";
+        script INLINE @s;
+        return tmp;
+    }
+}
+
+
+function provi_set( name, value, message, nostyle ){
+    tmp = value;
+    if( name=="selectionHalosColor" ){
+        color selectionHalos @value;
+        provi_settings[ name ] = value;
+    }else if( name=="style" ){
+        provi_style( value );
+        provi_settings[ name ] = value;
+    }else if( is_provi_setting( name ) ){
+        provi_settings[ name ] = value;
+    }else{
+        if( value.type=="string" ){
+            value = "'" + value + "'";
+        }
+        var s = "set " + name + " " + value + ";";
+        script INLINE @s;
+        tmp = '';
+        s = "tmp = " + name + ";";
+        script INLINE @s;
+    }
+    if( !nostyle && is_provi_style( name )  ){
+        provi_style( provi_get( "style" ) );
+    }
+    if( message ){
+        print 'provi setting changed: ' + name + ' "' + tmp + '" "' + value + '"';
+    }
+}
+
+
+
+
+
+# geometry
+
+function norm(v){
+    return v/v;
+}
+
+
+function vec_mag(v){
+    return sqrt( v.X*v.X + v.Y*v.Y + v.Z*v.Z );
+}
+
+
+function vec_angle(v1, v2){
+    var ang = acos( (v1*v2) / ( vec_mag(v1)*vec_mag(v2) ) );
+    if( ang > 90 ) ang = 180-ang;
+    return ang;
+}
+
+
+function lsq(x, y) {
+    var n = x.length;
+    if (n != y.length || n == 0) return false;
+    var sum_x = x.sum;
+    var sum_y = y.sum;
+    var sum_xy = 0;
+    var sum_xx = 0;
+    for (var i = 1; i <= n; i++) {
+        sum_xx += x[i]*x[i];
+        sum_xy += x[i]*y[i];
+    }
+    # y = x * m + b
+    var m = (n*sum_xy - sum_x*sum_y) / (n*sum_xx - (sum_x**2));
+    var b = (sum_y*sum_xx - sum_x*sum_xy) / (n*sum_xx - (sum_x**2));
+    return [ x[1]*m+b, x[n]*m+b ];
+}
+
+
+
+# style
+
+function provi_style( name ){
+    if( name=="lines" ){
+        select protein or nucleic; 
+            wireframe @{-provi_get("line")};
+    }else if( name=="sticks" ){
+        select protein or nucleic; 
+            wireframe @{-provi_get("stick")};
+    }else if( name=="cpk" ){
+        select protein or nucleic; 
+            wireframe @{-provi_get("stick")};
+            cpk @{provi_get("cpk")}%;
+    }else if( name=="spacefill" ){
+        select protein or nucleic; 
+            cpk only 100%;
+    }else if( name=="backbone" ){
+        select protein or nucleic; 
+            backbone @{-provi_get("backbone")};
+    }else if( name=="backbone+lines" ){
+        select protein or nucleic; 
+            backbone @{-provi_get("backbone")}; 
+        select @{provi_sidechain_helper_sele()}; 
+            wireframe @{provi_get("line")};
+    }else if( name=="backbone+sticks" ){
+        select protein or nucleic; 
+            backbone @{-provi_get("backbone")}; 
+        select @{provi_sidechain_helper_sele()}; 
+            wireframe @{provi_get("stick")};
+    }else if( name=="backbone+cpk" ){
+        select protein or nucleic; 
+            backbone @{-provi_get("backbone")}; 
+            cpk @{provi_get("cpk")}%; 
+        select @{provi_sidechain_helper_sele()}; 
+            wireframe @{provi_get("stick")};
+    }else if( name=="trace" ){
+        select protein or nucleic; 
+            trace only; 
+            {protein or nucleic}.trace = ${trace};
+    }else if( name=="tube" ){
+        select protein or nucleic; 
+            trace only; 
+            {protein or nucleic}.trace = for(x;{protein or nucleic};x.temperature/100);
+    }else if( name=="tube10" ){
+        select *; 
+            trace only; {*}.trace = for(x;{*};x.temperature*10);
+    }else if( name=="tube8" ){
+        select *; 
+            trace only; {*}.trace = for(x;{*};x.temperature*8);
+    }else if( name=="tube5" ){
+        select *; 
+            trace only; {*}.trace = for(x;{*};x.temperature*5);
+    }else if( name=="ribbon" ){
+        select protein; 
+            ribbon only; 
+        select helix or sheet; 
+            ribbon @{provi_get("cartoon")}; 
+        select nucleic; 
+            cartoon only;
+    }else if( name=="cartoon" ){
+        select protein; 
+            cartoon only; 
+        select helix or sheet; 
+            cartoon @{provi_get("cartoon")}; 
+        select nucleic; 
+            cartoon only;
+    }else if( name=="cartoon+lines" ){
+        select protein; 
+            cartoon only; 
+        select nucleic; 
+            cartoon only;
+        select @{provi_sidechain_helper_sele()}; 
+            wireframe @{provi_get("line")}; 
+        select helix or sheet; 
+            cartoon @{provi_get("cartoon")};
+    }else if( name=="cartoon+sticks" ){
+        select protein; 
+            cartoon only; 
+        select nucleic; 
+            cartoon only;
+        select @{provi_sidechain_helper_sele()}; 
+            wireframe @{provi_get("stick")}; 
+        select helix or sheet; 
+            cartoon @{provi_get("cartoon")};
+    }else if( name=="cartoon+cpk" ){
+        select protein; 
+            cartoon only; 
+        select nucleic; 
+            cartoon only;
+        select @{provi_sidechain_helper_sele()}; 
+            wireframe @{provi_get("stick")}; 
+            cpk @{provi_get("cpk")}%; 
+        select helix or sheet; 
+            cartoon @{provi_get("cartoon")};
+    }else if( name=="cartoon+aromatic" ){
+        select protein; 
+            cartoon only; 
+        select nucleic; 
+            cartoon only; 
+        select @{provi_sidechain_helper_sele()}; 
+        select helix or sheet; 
+            cartoon @{provi_get("cartoon")}; 
+        select aromatic; 
+            wireframe @{provi_get("stick")};
+    }else{
+        name = "default";
+        select protein; 
+            cartoon only; 
+        select helix or sheet; 
+            cartoon @{provi_get("cartoon")};
+        select nucleic;
+            cartoon only;
+        select (ligand or ace or ((gmy or gpl) and (sidechain or *.N or *.CA)) or ((gpl or cyg or ypl or yfa or lrt) and sidechain) ); 
+            wireframe @{provi_get("stick")};
+            spacefill @{provi_get("spacefill")};
+        select (gpl or ypl or cyg or yfa or lrt) and (sidechain or *.CA); 
+            wireframe @{provi_get("stick")};
+        select water; 
+            wireframe @{provi_get("line")};
+        select HOH; 
+            cpk @{provi_get("cpk")}%;
+        select (hetero and not(ret or plm or ace or lrt or ypl or cyg or gmy or yfa or gpl)) or within(GROUP, connected(hetero and not(ret or plm or ace or lrt or ypl or gmy or yfa or gpl))); 
+            wireframe @{provi_get("stick")};
+        select (ace) or (within(GROUP, connected(ace)) and (*.N or *.CA)); 
+            wireframe @{provi_get("stick")};
+        select ((ret or plm or ger) and hetero) or (within(GROUP, connected(ret or plm or ger)) and (sidechain or *.CA)); 
+            wireframe @{provi_get("stick")};
+        select (dmpc or dmp or popc or pop); 
+            wireframe @{provi_get("stick")};
+    }
+    if( provi_get("largeAtomCount") ){
+        select protein or nucleic; 
+            cartoon off; 
+            backbone @{provi_get("backbone")};
+    }
+    select none;
+}
+
+
+function provi_sidechain_helper_sele(){
+    if( provi_get( "sidechainHelper" ) ){
+        return { (protein or nucleic) and (sidechain or *.CA or (pro and *.N)) };
+    }else{
+        return { (protein or nucleic) };
+    }
+}
+
+
+
+
+
+
+

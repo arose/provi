@@ -1,0 +1,267 @@
+
+html, body{
+    font: normal 0.9em Verdana, sans-serif;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important;
+}
+
+.ui-tabs-nav a {
+    padding: 0.3em 0.5em !important;
+}
+
+.ui-container {
+    margin-top: 0.0em;
+    margin-bottom: 1.0em;
+    width: 100%;
+}
+
+.xui-container .ui-widget-content {
+    border: 0 !important;
+}
+
+.ui-container .ui-widget-header {
+    cursor: pointer;
+    position: relative;
+    padding: 0.2em;
+    vertical-align: middle;
+}
+
+.ui-container .ui-state-active {
+    border: 0 !important;
+}
+
+div.ui-container {
+    border: 1px solid lightgrey !important;
+}
+
+div.ui-container .ui-container {
+    border: 0 !important;
+}
+
+.ui-container .ui-jmol {
+    margin: 0.0em;
+    padding: 0.0em;
+}
+
+
+h3 {
+    margin-top: 0.1em;
+    margin-bottom: 0.0em;
+    padding-left: 0.5em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
+
+
+.ui-slider {
+    margin: 0.5em 1em 0em 2.5em;
+    width: 15em;
+    border: 1px solid lightgrey !important;
+}
+
+
+/*
+.ui-tabs .ui-tabs-hide {
+    position: absolute;
+    left: -10000px;
+}
+*/
+
+
+.ui-widget {
+    font: normal 1em Verdana, sans-serif;
+}
+
+
+
+#tabs {
+    margin: 0em;
+    overflow: auto;
+}
+
+#treeLoading {
+    position: fixed;
+    float: left;
+    top: 12%;
+    left: 92%;
+}
+
+div.ui-dynatree-container{
+    font-family: Verdana, sans-serif;
+    font-size: 1em; /* font size should not be too big */
+    padding: 0em;
+    background-color: inherit; 
+    border: none;
+}
+
+span.ui-dynatree-folder a {
+    font-weight:normal;
+}
+
+span.model span.ui-dynatree-icon {
+    background-image: url(mol.png);
+}
+
+span.residue span.ui-dynatree-icon {
+    background-image: url(res16.png);
+}
+
+#contactGraph{
+    border: 2px solid #E6E6E6;
+}
+
+div.control_row {
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    clear: both;
+}
+
+div.control_group {
+    padding-top: 0.5em;
+    padding: 0.5em;
+    clear: both;
+}
+
+.control_row.checkbox input {
+    clear: left;
+    float: left;
+}
+
+.control_row.checkbox label {
+    float: left;
+    width: 90%;
+    margin-left: 0.3em;
+}
+
+div.my-content {
+    padding-left: 0.5em;
+}
+
+.widget {
+    margin-top: 0.0em;
+    margin-bottom: 1.0em;
+}
+
+div.control_info {
+    padding: 0.5em;
+}
+
+
+.save_state_ok {
+    background-color: lightgreen !important;
+}
+
+.save_state_error {
+    background-color: red !important;
+}
+
+
+/* Splitbar styles; these are the default class names */
+.vsplitbar {
+	width: 6px;
+	background: #669 url(../img/vgrabber.gif) no-repeat center;
+}
+.vsplitbar:hover, .vsplitbar.active {
+	background: #c66 url(../img/vgrabber.gif) no-repeat center;
+	opacity: 0.7;
+	background: #c99;
+}
+.hsplitbar {
+	height: 6px;
+	background: #669 url(../img/hgrabber.gif) no-repeat center;
+}
+.hsplitbar.active, .hsplitbar:hover {
+	background: #c66 url(../img/hgrabber.gif) no-repeat center;
+}
+
+
+/* tab panel */
+.ui-tabs {
+    padding: 0em;
+    border: none;
+}
+.ui-tabs-nav {
+    border-left: none;
+    border-right: none;
+}
+
+/* buttons */
+.ui-button {
+    font-size: 0.8em !important;
+}
+
+.ui-icon {
+    display: inline-block !important;
+}
+
+.load_example a {
+    border-bottom: 1px dotted #ba0000;
+    text-decoration: none;
+}
+.load_example a:hover {
+    border-bottom: 1px solid #ba0000;
+    cursor: pointer;
+}
+
+
+/**
+ * Jmol
+ */
+
+.ui-jmol {
+    overflow: hidden !important;
+    border: 0 !important;    
+    padding: 0em !important;
+    margin: 0em !important;
+    width: 100%;
+    height: 100%;
+}
+
+
+/**
+ * Jstree
+ */
+
+.jstree .ui-button-text {
+    padding: 0.0em 0.3em;
+}
+
+.jstree .ui-state-active {
+    background: #ffe59b;
+}
+
+.jstree-default .jstree-no-icons.jstree-checkbox { display:inline-block; }
+.jstree-default .jstree-no-checkboxes.jstree-checkbox { display:none !important; }
+.jstree-default .jstree-checked.jstree-checkbox { background-position:-38px -19px; }
+.jstree-default .jstree-unchecked.jstree-checkbox { background-position:-2px -19px; }
+.jstree-default .jstree-undetermined.jstree-checkbox { background-position:-20px -19px; }
+.jstree-default .jstree-checked.jstree-checkbox:hover { background-position:-38px -37px; }
+.jstree-default .jstree-unchecked.jstree-checkbox:hover { background-position:-2px -37px; }
+.jstree-default .jstree-undetermined.jstree-checkbox:hover { background-position:-20px -37px; }
+
+
+div.chzn-container {
+    display: inline-block;
+}
+
+.scale.bwr {
+    /* Old browsers */
+    background: rgb(0,0,255); 
+    /* FF3.6+ */
+    background: -moz-linear-gradient(left,  rgb(0,0,255) 0%, rgb(255,255,255) 50%, rgb(255,0,0) 100%); 
+    /* Chrome,Safari4+ */
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%,rgb(0,0,255)), color-stop(50%,rgb(255,255,255)), color-stop(100%,rgb(255,0,0)));
+    /* Chrome10+,Safari5.1+ */
+    background: -webkit-linear-gradient(left,  rgb(0,0,255) 0%,rgb(255,255,255) 50%,rgb(255,0,0) 100%); 
+    /* Opera 11.10+ */
+    background: -o-linear-gradient(left,  rgb(0,0,255) 0%,rgb(255,255,255) 50%,rgb(255,0,0) 100%); 
+    /* IE10+ */
+    background: -ms-linear-gradient(left,  rgb(0,0,255) 0%,rgb(255,255,255) 50%,rgb(255,0,0) 100%); 
+    /* W3C */
+    background: linear-gradient(left,  rgb(0,0,255) 0%,rgb(255,255,255) 50%,rgb(255,0,0) 100%);
+    /* IE6-9 */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0000ff', endColorstr='#ff0000',GradientType=1 ); 
+}
+
