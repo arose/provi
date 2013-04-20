@@ -343,7 +343,7 @@ function provi_style( name ){
     }else if( name=="trace" ){
         select protein or nucleic; 
             trace only; 
-            {protein or nucleic}.trace = ${trace};
+            {protein or nucleic}.trace = @{provi_get("trace")};
     }else if( name=="tube" ){
         select protein or nucleic; 
             trace only; 
