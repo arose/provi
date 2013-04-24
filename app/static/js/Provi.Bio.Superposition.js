@@ -47,7 +47,8 @@ Provi.Bio.Superposition.SuperposeWidget = function(params){
         'gap_penalty', 'gap_extension', 'superpose',
         'sele1_selector_widget', 'sele2_selector_widget',
         'ali_sele1_selector_widget', 'ali_sele2_selector_widget',
-        'filter_sele1_selector_widget', 'filter_sele2_selector_widget'
+        'filter_sele1_selector_widget', 'filter_sele2_selector_widget',
+        'motion_sele1_selector_widget', 'motion_sele2_selector_widget'
     ]);
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
@@ -83,6 +84,12 @@ Provi.Bio.Superposition.SuperposeWidget = function(params){
                 '<div class="control_row" id="${eids.filter_sele2_selector_widget}"></div>' +
             '</div>' +
         '</div>' +
+        '<div class="control_row">Motion selection:' +
+            '<div class="control_group">' +
+                '<div class="control_row" id="${eids.motion_sele1_selector_widget}"></div>' +
+                '<div class="control_row" id="${eids.motion_sele2_selector_widget}"></div>' +
+            '</div>' +
+        '</div>' +
         '<div class="control_row">' +
             '<button id="${eids.superpose}">superpose</button>' +
         '</div>' +
@@ -92,31 +99,17 @@ Provi.Bio.Superposition.SuperposeWidget = function(params){
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
         parent_id: this.eid('applet_selector_widget')
     });
-    this.sele1_selector = new Provi.Bio.AtomSelection.SelectorWidget({
-        parent_id: this.eid('sele1_selector_widget'),
-        applet: params.applet, tag_name: 'span'
-    });
-    this.sele2_selector = new Provi.Bio.AtomSelection.SelectorWidget({
-        parent_id: this.eid('sele2_selector_widget'),
-        applet: params.applet, tag_name: 'span'
-    });
-    this.ali_sele1_selector = new Provi.Bio.AtomSelection.SelectorWidget({
-        parent_id: this.eid('ali_sele1_selector_widget'),
-        applet: params.applet, tag_name: 'span'
-    });
-    this.ali_sele2_selector = new Provi.Bio.AtomSelection.SelectorWidget({
-        parent_id: this.eid('ali_sele2_selector_widget'),
-        applet: params.applet, tag_name: 'span'
-    });
-    this.filter_sele1_selector = new Provi.Bio.AtomSelection.SelectorWidget({
-        parent_id: this.eid('filter_sele1_selector_widget'),
-        applet: params.applet, tag_name: 'span'
-    });
-    this.filter_sele2_selector = new Provi.Bio.AtomSelection.SelectorWidget({
-        parent_id: this.eid('filter_sele2_selector_widget'),
-        applet: params.applet, tag_name: 'span'
-    });
-
+    var self = this;
+    var selectors = [
+        'sele1', 'sele2', 'ali_sele1', 'ali_sele2', 
+        'filter_sele1', 'filter_sele2', 'motion_sele1', 'motion_sele2'
+    ]
+    _.each(selectors, function( name ){
+        self[name+'_selector'] = new Provi.Bio.AtomSelection.SelectorWidget({
+            parent_id: self.eid(name+'_selector_widget'),
+            applet: params.applet, tag_name: 'span'
+        });    
+    })
     this._init();
 }
 Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Superposition.SuperposeWidget.prototype */ {
@@ -169,6 +162,43 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
             return this.applet_selector.get_value(true);
         }
     },
+    apm: function( sele, ali_sele ){
+        var applet = this.get_applet();
+        var format = "'%[atomno]',%[resno],'%[chain]','%[model]','%[file]','%[group1]'";
+        return applet.atoms_property_map( 
+            format, 
+            '(' + sele + ') and (' + ali_sele + ') and protein and *.CA'
+        );
+    },
+    seq: function( apm ){
+        return _.map(apm, function(p, i){
+            return p[5] ? p[5] : ' ';
+        }).join('');
+    },
+    alignment: function( apm1, apm2 ){
+        this.gap_penalty = parseInt( this.elm('gap_penalty').val() );
+        this.gap_extension = parseInt( this.elm('gap_extension').val() );
+
+        var seq1 = this.seq( apm1 );
+        var seq2 = this.seq( apm2 );
+
+        nw = new Provi.Bio.Alignment.NeedlemanWunsch({
+            seq1: seq1, 
+            seq2: seq2,
+            gap_penalty: this.gap_penalty,
+            gap_extension_penalty: this.gap_extension
+        });
+        nw.calc();
+        nw.trace();
+
+        return nw;
+    },
+    gap: function( ali ){
+        var g = 0
+        return _.map(ali.split(''), function(c, i){
+            return c=='-' ? ++g : g;
+        });
+    },
     superpose: function(){
         var applet = this.get_applet();
         var self = this;
@@ -180,6 +210,8 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
         var ali_sele2 = this.ali_sele2_selector.get();
         var filter_sele1 = this.filter_sele1_selector.get();
         var filter_sele2 = this.filter_sele2_selector.get();
+        var motion_sele1 = this.motion_sele1_selector.get();
+        var motion_sele2 = this.motion_sele2_selector.get();
 
         if(this.no_alignment){
             var subset = '*';
@@ -187,54 +219,12 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
         }else{
             var subset = '*.CA or *.C or *.N';
 
-            this.gap_penalty = parseInt( this.elm('gap_penalty').val() );
-            this.gap_extension = parseInt( this.elm('gap_extension').val() );
+            var apm1 = this.apm( sele1, ali_sele1 );
+            var apm2 = this.apm( sele2, ali_sele2 );
 
-            var format = "'%[atomno]',%[resno],'%[chain]','%[model]','%[file]','%[group1]'";
-            var apm1 = applet.atoms_property_map( 
-                format, 
-                '(' + sele1 + ') and (' + ali_sele1 + ') and protein and *.CA'
-            );
-            var apm2 = applet.atoms_property_map( 
-                format, 
-                '(' + sele2 + ') and (' + ali_sele2 + ') and protein and *.CA' 
-            );
-            //console.log(apm1);
-            //console.log(apm2);
-
-            var seq1 = _.map(apm1, function(p, i){
-                return p[5] ? p[5] : ' ';
-            }).join('');
-            var seq2 = _.map(apm2, function(p, i){
-                return p[5] ? p[5] : ' ';
-            }).join('');
-
-            // console.log(seq1);
-            // console.log(seq2);
-
-            nw = new Provi.Bio.Alignment.NeedlemanWunsch({
-                seq1: seq1, 
-                seq2: seq2,
-                gap_penalty: this.gap_penalty,
-                gap_extension_penalty: this.gap_extension
-            });
-            nw.calc();
-            nw.trace();
-
-            // console.log(nw.ali1);
-            // console.log(nw.ali2);
-
-            var g = 0
-            var gap1 = _.map(nw.ali1.split(''), function(c, i){
-                return c=='-' ? ++g : g;
-            });
-            var g = 0
-            var gap2 = _.map(nw.ali2.split(''), function(c, i){
-                return c=='-' ? ++g : g;
-            });
-
-            // console.log(gap1);
-            // console.log(gap2);
+            var nw = this.alignment( apm1, apm2 );
+            var gap1 = this.gap( nw.ali1 );
+            var gap2 = this.gap( nw.ali2 );
 
             var pairs = '';
             _.each(nw.ali1.split(''), function(c1, i){
@@ -287,7 +277,31 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
                 'rotate translate;' + 
         '';
 
-        // console.log('SUPERPOSE', s);
+        if( motion_sele1 && motion_sele1 ){
+            var apm_m1 = this.apm( sele1, motion_sele1 );
+            var apm_m2 = this.apm( sele2, motion_sele2 );
+
+            var nw_m = this.alignment( apm_m1, apm_m2 );
+            var gap_m1 = this.gap( nw.ali1 );
+            var gap_m2 = this.gap( nw.ali2 );
+
+            var pairs_m = [[],[]];
+            _.each(nw_m.ali1.split(''), function(c1, i){
+                var c2 = nw_m.ali2.split('')[i];
+                if( c1!='-' && c2!='-'){
+                    pairs_m[0].push('atomno=' + apm_m1[ i - gap_m1[i] ][0]);
+                    pairs_m[1].push('atomno=' + apm_m2[ i - gap_m2[i] ][0]);
+                }
+            });
+            s += 'axis_angle( ' + 
+                '{' + pairs_m[0].join(' or ') + '}, ' +
+                '{' + pairs_m[1].join(' or ') + '}, ' +
+                'true )' +
+            ';';
+        }
+        
+
+        console.log('SUPERPOSE', s);
         s = 'try{' + s + '}catch(e){};';
         applet.script( s, { maintain_selection: true } );
     }
