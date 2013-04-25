@@ -263,7 +263,6 @@ Provi.Jmol = $.extend(Provi.Jmol, /** @lends Provi.Jmol */ {
         $(Provi.Jmol).triggerHandler( 'default_applet_change' );
     }
 });
-Provi.Jmol._applet_dict.size = Utils.object_size_fn;
 
 
 
@@ -913,7 +912,8 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
             elm.append("<option value='" + this.name_suffix + "'>" + this.name_suffix + "</option>");
         });
         elm.val( value );
-        elm.triggerHandler('change');
+        elm.triggerHandler('change'); // ??
+        $(this).triggerHandler('change');
         //$(this).triggerHandler('change', [ this.get_value(true) ]);
         
         // hide applet selector, if only one option is available
@@ -955,7 +955,7 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
            console.log( 'set_value ' + value );
            $("#" + this.selector_id).val( value );
     },
-    change: function(fn){
+    change: function(fn){ // ??
            $("#" + this.selector_id).change(fn);
     }
 });

@@ -472,8 +472,8 @@ Provi.Bio.AtomSelection.SelectionType.prototype = {
         this.applet.script_callback( s, {}, callback );
     },
     highlight: function(id){
-        console.log( "highlight", id );
         var s = "provi_highlight({" + this.selection( id ) + "});";
+        console.log( "highlight", id, s );
         this.applet.script( s, {} );
     },
     label_cell: function(label, id){
