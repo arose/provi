@@ -38,7 +38,7 @@ Provi.Jmol.Controls.JmolConsole.prototype = /** @lends Provi.Jmol.Controls.JmolC
         var self = this;
         this.input.keypress(function(event) {
             if (event.which == 13 && this.value) {
-                try {
+                //try {
                     var cmd = this.value.trim();
                     if( cmd.charAt( cmd.length-1 ) != ';' ) cmd += ';';
                     self.print('> ' + cmd);
@@ -58,12 +58,12 @@ Provi.Jmol.Controls.JmolConsole.prototype = /** @lends Provi.Jmol.Controls.JmolC
                             self.print(echo[1] , 'green');
                         }
                     }
-                } catch (e) {
-                    self.print(e.toString(), '#ff0000');
-                } finally {
-                    self.history.push(cmd);
-                    this.value = '';
-                }
+                // } catch (e) {
+                //     self.print(e.toString(), '#ff0000');
+                // } finally {
+                //     self.history.push(cmd);
+                //     this.value = '';
+                // }
             }
         });
         
@@ -113,15 +113,15 @@ Provi.Jmol.Controls.JmolConsoleWidget = function(params){
 }
 Provi.Jmol.Controls.JmolConsoleWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Controls.JmolConsoleWidget.prototype */ {
     _init: function(){
-    var self = this;
-    $(this.applet_selector).bind("change", function(event, applet){
-        //console.log('JMOL CONSOLE APPLET CHANGE',applet, self.applet_selector.get_value(true));
+        var self = this;
+        $(this.applet_selector).bind("change", function(event, applet){
+            console.log('JMOL CONSOLE APPLET CHANGE',applet, self.applet_selector.get_value(true));
+            self.console.applet = self.applet_selector.get_value(true);
+        });
         self.console.applet = self.applet_selector.get_value(true);
-    });
-    self.console.applet = self.applet_selector.get_value(true);
-    $("#" + this.maintain_selection_id).bind('change', function() {
-        self.console.maintain_selection = $("#" + self.maintain_selection_id).is(':checked');
-    });
+        $("#" + this.maintain_selection_id).bind('change', function() {
+            self.console.maintain_selection = $("#" + self.maintain_selection_id).is(':checked');
+        });
     }
 });
 
