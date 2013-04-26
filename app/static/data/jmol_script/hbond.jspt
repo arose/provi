@@ -1,0 +1,85 @@
+
+
+
+function provi_hbonds( sele, angle_min, dist_max, bond_mode_or ){
+	select *;
+    hbonds delete;
+    select not hydrogen and @sele;
+    set bondModeOr = bond_mode_or;
+    set hbondsRasmol FALSE;
+    set hbondsAngleMinimum @angle_min;
+    set hbondsDistanceMaximum @dist_max;
+    var bond_count_before = {*}.bonds.size;
+    calculate hbonds;
+    var bond_count_after = {*}.bonds.size;
+    bs = [];
+    var s = "bs = [{" + (bond_count_before) + ":" + (bond_count_after-1) + "}];";
+    script INLINE @s;
+    hide add @bs;
+    var arr = [];
+    for( var b in bs ){
+    	arr += b.atoms.all.atomindex.all.join("_");
+    }
+    hbonds delete;
+    select none;
+    return arr;
+}
+
+
+
+function provi_hbond_test(ids){
+    var sele_l = [];
+    var hbond_l = [];
+    var cpk_l = [];
+    for(id in ids){
+        pair = id.split("_");
+        a = pair[1]*1; b = pair[2]*1; # convert to int
+        tmp = {atomindex=@a or atomindex=@b};
+        sele_l += tmp.selected.join("");
+        hbond_l += { connected( 'hbond', @tmp ) }.size >= 2;
+        cpk_l += tmp.cpk.join("")/0.2;
+    }
+    return [ sele_l.average, hbond_l.average, cpk_l.average ];
+};
+
+
+function provi_toggle_hbond( ids, flag ){
+    select none;
+    for(id in ids){
+        pair = id.split("_");
+        a = pair[1]*1; b = pair[2]*1; # convert to int
+        as = {atomindex=@a};
+        bs = {atomindex=@b};
+        if( flag ){
+            connect (@as) (@bs) hbond delete;
+        }else{
+            connect (@as) (@bs) hbond modifyOrCreate;
+            select add {@as or @bs};    
+        }
+    }
+    hbonds on;
+    select none;
+}
+
+
+function provi_toggle_hbond_residues( ids, flag ){
+    select none;
+    for(id in ids){
+        pair = id.split("_");
+        a = pair[1]*1; b = pair[2]*1; # convert to int
+        select add {atomindex=@a or atomindex=@b};
+    }
+    select within(GROUP, selected);
+    if( flag ){
+        wireframe off;
+        cpk off;
+    }else{
+        wireframe 0.2;
+        cpk 0.2;
+    }
+    select none;
+}
+
+
+
+

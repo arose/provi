@@ -1,0 +1,12 @@
+add links to ducumentation
+
+sphinx
+jsdoc
+
+
+for example like this:
+
+cd path/to/repository/
+cd app/static/doc/
+ln -s ../../../doc/jsdoc/ jsdoc
+ln -s ../../../doc/sphinx/ sphinx
