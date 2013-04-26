@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    
+    <title>BioJ test</title>
+
+    <link rel="stylesheet" href="../js/lib/slickgrid/slick.grid.css" type="text/css"/>
+    <link rel="stylesheet" href="../js/lib/slickgrid/css/smoothness/jquery-ui-1.8.16.custom.css" type="text/css"/>
+    <link rel="stylesheet" href="../js/lib/slickgrid/examples/examples.css" type="text/css"/>
+    
+    <script type="text/javascript" src="../js/lib/underscore-min.js"></script>
+    <script type="text/javascript" src="../js/lib/jquery.js"></script>
+
+
+
+    <script src="../js/lib/slickgrid/lib/jquery-ui-1.8.16.custom.min.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.core.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.formatters.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.editors.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.grid.js"></script>
+    <script language="JavaScript" src="../js/lib/slickgrid/slick.dataview.js"></script>
+
+    <style>
+        .cell-title {
+            font-weight: bold;
+        }
+
+        .cell-effort-driven {
+            text-align: center;
+        }
+
+        .toggle {
+            height: 9px;
+            width: 9px;
+            display: inline-block;
+        }
+
+        .toggle.expand {
+            background: url(../js/lib/slickgrid/images/expand.gif) no-repeat center center;
+        }
+
+        .toggle.collapse {
+            background: url(../js/lib/slickgrid/images/collapse.gif) no-repeat center center;
+        }
+
+    </style>
+</head>
+
+<body>
+    <script type="text/javascript">
+
+        function listify(x){
+            if( _.isUndefined(x) || _.isNull(x) ){
+                return [];
+            }else{
+                return _.isArray(x) ? x : [ x ];
+            }
+        }
+
+        function get_leafs(data, depth){
+            data["id"] = _.uniqueId();
+            data["indent"] = depth;
+            if( depth==0 ){
+                data["tags"] = _.map( listify( data["tags"] ), function(e){
+                    return depth + ":" + e;
+                });
+            }
+            if( data.hasOwnProperty("value") ){
+                return data;
+            }else if( data.hasOwnProperty("data") ){
+                var children = _.flatten( _.map( listify( data.data ), function(d){
+                    d["tags"] = _.map( listify( d["tags"] ), function(e){
+                        return (depth+1) + ":" + e;
+                    });
+                    _.each(["tags", "notes"], function(v){
+                        d[v] = listify( data[v] ).concat( listify( d[v] ) );
+                    });
+                    if( _.isUndefined(d["source"]) ){
+                        d["source"] = data["source"];
+                    }
+                    d["parent"] = data["id"];
+                    return get_leafs( d, depth+1 );
+                }), true);
+                return [ data ].concat( children );
+            }else{
+                return {};
+            }
+        }
+
+        var TreeIndentFormatter = function (row, cell, value, columnDef, dataContext) {
+            value = (value+"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+            var spacer = "<span style='display:inline-block;height:1px;width:" + 
+                (15 * dataContext["indent"]) + "px'></span>";
+            var idx = dataView.getIdxById(dataContext.id);
+            //console.log(dataContext.id, idx, data, data[idx + 1], data[idx]);
+            if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {
+                if (dataContext._collapsed) {
+                    return spacer + " <span class='toggle expand'></span>&nbsp;" + value;
+                } else {
+                    return spacer + " <span class='toggle collapse'></span>&nbsp;" + value;
+                }
+            } else {
+                return spacer + " <span class='toggle'></span>&nbsp;" + value;
+            }
+        };
+
+        var ValueFormatter = function (row, cell, value, columnDef, dataContext) {
+            if( _.isUndefined(value) ){
+                return "";
+            }else if( _.isArray(value) ){
+                var ret = [];
+                _.each( value, function(v, i){
+                    ret.push( v + " " + dataContext["unit"][i] );
+                });
+                return ret.join(", ");
+            }else{
+                return value + " " + dataContext["unit"];
+            }
+        };
+
+        var sort_ci = function(a, b) {
+            if (a.toLowerCase() < b.toLowerCase()) return -1;
+            if (a.toLowerCase() > b.toLowerCase()) return 1;
+            return 0;
+        };
+
+        var TagsFormatter = function (row, cell, value, columnDef, dataContext) {
+            value = _.map( listify( value ), function(v, i){
+                var tok = v.split(":");
+                if( dataContext["indent"]==parseInt(tok[0]) ){
+                    return "[ " + tok[1] + " ]";
+                }else{
+                    return tok[1];
+                }
+            });
+            return listify( value.sort(sort_ci) ).join(", ");
+        };
+
+        var SourceFormatter = function (row, cell, value, columnDef, dataContext) {
+            if( value ){
+                return value["title"] + " " + value["author"];
+            }
+            return "";
+        };
+
+        var dataView;
+        var grid;
+        var data = [];
+        var columns = [
+            { id: "id", name: "Id", field: "id", width: 120, cssClass: "cell-title", formatter: TreeIndentFormatter },
+            { id: "value", name: "Value", field: "value", width: 150, formatter: ValueFormatter },
+            { id: "tags", name: "Tags", field: "tags", width: 420, formatter: TagsFormatter },
+            { id: "source", name: "Source", field: "source", width: 600, formatter: SourceFormatter }
+        ];
+
+        $.getJSON('../data/bio.json/janz_farrens_jbc_2004.json', function(json) {
+            console.log(json);
+            var leafs = _.flatten( _.map( listify( json ), function(d){
+                console.log(d);
+                return get_leafs( d, 0 );
+            }));
+            data = leafs;
+            init();
+        });
+
+        var options = {
+            editable: false,
+            enableCellNavigation: true
+        };
+
+        var searchString = "";
+
+        function myFilter(item) {
+            if (searchString != "") {
+                var tokens = _.map( searchString.split(","), function(v){
+                    v = v.trim();
+                });
+                tokens = searchString.split(",");
+                var flag = true;
+                _.each( tokens, function(tok){
+                    var tok_flag = false;
+                    _.each( listify(item["tags"]), function(v){
+                        _.each( tok.split("|"), function(otok){
+                            if( v.split(":")[1] == otok.trim() ){
+                                tok_flag = true;
+                            }
+                        })
+                    });
+                    if( flag && !tok_flag ) flag = false;
+                });
+                return flag;
+            }
+
+            if (item.parent != null) {
+                var parent = data[item.parent];
+                while (parent) {
+                    if (parent._collapsed) {
+                        return false;
+                    }
+                    parent = data[parent.parent];
+                }
+            }
+            return true;
+        }
+
+        function init() {
+            var indent = 0;
+
+            // initialize the model
+            dataView = new Slick.Data.DataView({ inlineFilters: true });
+            dataView.beginUpdate();
+            dataView.setItems(data);
+            dataView.setFilter(myFilter);
+            dataView.endUpdate();
+
+            // initialize the grid
+            grid = new Slick.Grid("#myGrid", dataView, columns, options);
+
+            grid.onClick.subscribe(function (e, args) {
+                if ($(e.target).hasClass("toggle")) {
+                    var item = dataView.getItem(args.row);
+                    if (item) {
+                        if (!item._collapsed) {
+                            item._collapsed = true;
+                        } else {
+                            item._collapsed = false;
+                        }
+                        dataView.updateItem(item.id, item);
+                    }
+                    e.stopImmediatePropagation();
+                }
+            });
+
+            // wire up model events to drive the grid
+            dataView.onRowCountChanged.subscribe(function (e, args) {
+                grid.updateRowCount();
+                grid.render();
+            });
+
+            dataView.onRowsChanged.subscribe(function (e, args) {
+                grid.invalidateRows(args.rows);
+                grid.render();
+            });
+
+            // wire up the search textbox to apply the filter to the model
+            $("#txtSearch").keyup(function (e) {
+                Slick.GlobalEditorLock.cancelCurrentEdit();
+                // clear on Esc
+                if (e.which == 27) {
+                    this.value = "";
+                }
+                searchString = this.value;
+                dataView.refresh();
+            });
+        };
+    </script>
+
+    <table width="100%">
+        <tr>
+            <td valign="top" width="50%">
+                <div style="border:1px solid gray;background:wheat;padding:6px;">
+                    <label>Show entries with tag including:</label>
+                    <input type="text" id="txtSearch" style="width:300px;">
+                </div>
+                <br/>
+                <div id="myGrid" style="width:1400px; height:500px;"></div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
