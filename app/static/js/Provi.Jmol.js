@@ -94,35 +94,6 @@ function jmol_applet_ready_callback (applet_name, id, status, applet){
 };
 
 
-/**
- * Function to delegate a jmol applet bind callback to the corresponding applet wrapper.
- * Also available as a global function because Jmol would not accept it otherwise.
- * @memberOf Provi.Jmol
- */
-// function jmol_bind (applet_name){
-//     console.log('BIND');
-//     console.log( applet_name+'' );
-//     Provi.Jmol.get_applet( applet_name+'' ).clipping_manager.sync();
-//     Provi.Jmol.get_applet( applet_name+'' ).lighting_manager.sync();
-// };
-
-function jmol_zoom (applet_name, _X, _Y, _DELTAX, _DELTAY, _TIME, _ACTION, _ATOM, _BOND, _POINT ){
-    console.log( 'ZOOM', applet_name+'', _X, _Y, _DELTAX, _DELTAY, _TIME, _ACTION, _ATOM, _BOND, _POINT );
-    var applet = Provi.Jmol.get_applet( applet_name+'' );
-};
-
-
-/**
- * Function to delegate a jmol applet center callback to the corresponding applet wrapper.
- * Also available as a global function because Jmol would not accept it otherwise.
- * @memberOf Provi.Jmol
- */
-function jmol_center (applet_name, atom_index){
-    console.log('CENTER');
-    console.log( applet_name+'', atom+'' );
-    Provi.Jmol.get_applet( applet_name+'' )
-        .script('zoomTo 0.75 {atomIndex=' + atom_index + '}', true);
-};
 
 
 (function() {
@@ -330,7 +301,6 @@ Provi.Jmol.Applet = function(params){
     
     this._init();
     if( typeof(Provi.Jmol._default_applet) == 'undefined' ){
-        //Provi.Jmol.set_default_applet( this.name_suffix );
         Provi.Jmol._default_applet = this;
         Provi.Jmol.add_applet(this.name_suffix, this);
         $(Provi.Jmol).triggerHandler( 'default_applet_change' );
@@ -486,68 +456,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             return -1;
         }
     },
-    _script_wait: function(script, params){
-        script = this._prepare_script( script, params );
-        var ret = '';
-        try{
-            ret = this.applet.scriptWait(script);
-        }catch(e){
-            console.error('Jmol.scriptWait ERROR', e, script, ret);
-        }
-        
-        var s = ""
-        if( ret ){
-            for(var i=ret.length;--i>=0;){
-                for(var j=0;j< ret[i].length;j++){
-                    s+=ret[i][j]+"\n"
-                }
-            }
-        }
-        return ret;
-    },
-    /**
-     * executes a jmol script synchronously
-     */
-    script_wait: function(script, params){
-        //console.log( 'SCRIPT: ' + script );
-        if(this.loaded){
-            return this._script_wait(script, params);
-        }else{
-            console.warn('Jmol script_wait DEFERED');
-            var self = this;
-            //$(this).bind('load', function(){ self.script_wait(script, maintain_selection) });
-            $(this).bind('load', function(){ self.script(script, params) });
-            return -1;
-        }
-    },
-    _script_wait_output: function(script, params){
-        script = this._prepare_script( script, params );
-        try{
-            var ret = this.applet.scriptWaitOutput(script);
-        }catch(e){
-            console.error('Jmol.scriptWaitOutput ERROR', e, {stack: e.stack, script: script});
-        }
-        
-        if(ret){
-                // remove first line and last two lines then return
-                return ret.split('\n').slice(1,-3).join('\n');
-        }else{
-            return false;
-        }
-    },
-    /**
-     * executes a jmol script synchronously and returns the output
-     */
-    script_wait_output: function(script, params){
-        if(this.loaded){
-            return this._script_wait_output(script, params);
-        }else{
-            console.warn('script_wait_output defered');
-            var self = this;
-            $(this).bind('load', function(){ self.script_wait_output(script, maintain_selection, message) });
-            return -1;
-        }
-    },
     script_callback: function(script, params, callback){
         var id = Provi.Utils.uuid();
         var self = this;
@@ -573,23 +481,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             $(this).bind('load', function(){
                   self.script(script, params);
             });
-            return -1;
-        }
-    },
-    _load_inline: function(model, script, params){
-        script = this._prepare_script( params );
-        return this.applet.loadInlineString(model, script, false);
-    },
-    /**
-     * loads a model given as a string, can execute a script afterwards
-     */
-    load_inline: function(model, script, params){
-        if(this.loaded){
-            return this._load_inline(model, script, params);
-        }else{
-            console.warn('load_inline defered');
-            var self = this;
-            $(this).bind('load', function(){ self.load_inline(model, script, params) });
             return -1;
         }
     },
