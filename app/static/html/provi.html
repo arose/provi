@@ -345,7 +345,7 @@
             $('#tabs_panel a[title]:first').qtip({ position: {my: 'top left', at: 'bottom center'} });
         
             // when in test mode, load some data for development purposes
-            if( !Provi.Data.Io.Get.init({parent_id: 'main'}) && $.query.get('test') ){
+            if( $.query.get('test') ){
             var applet = Provi.Jmol.get_default_applet( true );
             
             if( $.query.get('test') == '2rdd' ){
