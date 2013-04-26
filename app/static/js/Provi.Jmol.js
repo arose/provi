@@ -596,7 +596,8 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     _load: function(){
         var self = this;
         this.loaded = true;
-        this.script_callback('script "../data/jmol_script/provi.jspt"; provi_init();', {}, function(){
+        var prevent_cache = '?_id=' + (new Date().getTime());
+        this.script_callback('script "../data/jmol_script/provi.jspt' + prevent_cache + '"; provi_init();', {}, function(){
             self.init_listeners();
             $(self).triggerHandler('load');
         });
