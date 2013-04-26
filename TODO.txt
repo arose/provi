@@ -1,0 +1,14 @@
+
+
+
+* Mplane
+* Dataset status
+* Dataset url builder: full path (http...), cookie handling
+* Save structure: provi_write() function that allows selections => to get rid of the scriptWait calls
+* PLupload - needs to have an upload folder
+* UrlLoad - needs to have an upload folder
+* Jmol calculate - for larger images
+* Jmol proxyUrl is a relay url that gets called as PROXYURL?url=...
+
+
+
