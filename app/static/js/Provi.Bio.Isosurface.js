@@ -415,17 +415,13 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         };
     },
     init_isosurface: function(){
-        var file_url = '../../data/get/?id=' + this.dataset.server_id + '&session_id=' + $.cookie('provisessions');
-        if( this.dataset.type=='vert' ){
-            file_url += '&dataname=data.vert';
-        }
         this.applet.script(
             'isosurface ID "' + this.isosurface_name + '" ' +
             ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
             ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) +
             ( this.insideout ? 'INSIDEOUT ' : '' ) + 
             ( this.frontonly ? 'FRONTONLY ' : '' ) + 
-            '"' + file_url + '" ' +
+            '"' + this.dataset.url + '" ' +
             ( this.style ? this.style : '' ) + 
             ';'
         , { maintain_selection: true, try_catch: true });
@@ -501,34 +497,34 @@ Provi.Bio.Isosurface.VolumeWidget.prototype = Utils.extend(Provi.Bio.Isosurface.
         }
         this.applet.script(
             'isosurface id "' + this.isosurface_name + '" ' +
-            ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
-            ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
-            (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
-            (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
-            (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
-            'color density ' +
-            '"../../data/get/?id=' + this.dataset.server_id + '&session_id=' + $.cookie('provisessions') + '" ' +
-            ';' +
-            'color $' + this.isosurface_name + ' "rwb" range -20 20;' +
+                ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
+                ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
+                (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
+                (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
+                (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
+                'color density ' +
+                '"' + this.dataset.url + '" ' +
+                ';' +
+                'color $' + this.isosurface_name + ' "rwb" range -20 20;' +
         '', true);
     }else{
         this.applet.script(
             'isosurface id "' + this.isosurface_name + '" ' +
-            ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
-            ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
-            (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
-            (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
-            (this.sign ? 'SIGN blue red ' : '') +
-            (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
-            (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
-            (this.select ? 'select {' + this.select + '} ' : '') +
-            (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
-            //'colorscheme "rwb" color absolute -20 20 ' +
-            (this.type ? this.type + ' ' : '') +
-            (this.type ? 'MAP ' : '') +
-            ( (!this.type && this.insideout) ? 'INSIDEOUT ' : '' ) + 
-            '"../../data/get/?id=' + this.dataset.server_id + '" ' +
-            (this.style ? this.style + ' ' : '') +
+                ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
+                ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
+                (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
+                (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
+                (this.sign ? 'SIGN blue red ' : '') +
+                (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
+                (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
+                (this.select ? 'select {' + this.select + '} ' : '') +
+                (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
+                //'colorscheme "rwb" color absolute -20 20 ' +
+                (this.type ? this.type + ' ' : '') +
+                (this.type ? 'MAP ' : '') +
+                ( (!this.type && this.insideout) ? 'INSIDEOUT ' : '' ) + 
+                '"' + this.dataset.url + '" ' +
+                (this.style ? this.style + ' ' : '') +
         ';', true);
     }
     }

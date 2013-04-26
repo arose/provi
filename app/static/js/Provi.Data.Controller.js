@@ -44,40 +44,15 @@ Provi.Data.Controller.DataMixin = {
 Provi.Data.Controller.JmolMixin = {
     available_widgets: {},
     init: function( params ){
-        var self = this;
-        if(params.applet){
-            this.load( params.applet );
-        }
+        if(params.applet) this.load( params.applet );
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
     load: function( applet ){
-        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = '../../data/get/'
         applet._delete();
-        applet.script('load ' + url + get_params + ';', { maintain_selection: true, try_catch: true });
+        applet.script('load "' + this.url + '";', { maintain_selection: true, try_catch: true });
     }
 }
 
-
-/**
- * @class
- */
-Provi.Data.Controller.PngMixin = {
-    available_widgets: {},
-    init: function( params ){
-        var self = this;
-        if(params.applet){
-            this.load( params.applet );
-        }
-        Provi.Data.Dataset.prototype.init.call(this, params);
-    },
-    load: function( applet ){
-        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = '../../data/get/'
-        applet._delete();
-        applet.script('load ' + url + get_params + ';', { maintain_selection: true, try_catch: true });
-    }
-}
 
 
 Provi.Data.Controller.ProviMixin = {
@@ -202,9 +177,7 @@ Provi.Data.Controller.AtomPropertyMixin = {
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
     load: function( applet ){
-        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = '../../data/get/' + get_params;
-        var s = 'provi_load_property("' + url + '", {*}, "' + this.id + '");';
+        var s = 'provi_load_property("' + this.url + '", {*}, "' + this.id + '");';
         console.log(s);
         applet.script(s, { maintain_selection: true, try_catch: false });
     }
@@ -224,9 +197,7 @@ Provi.Data.Controller.AtomSelectionMixin = {
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
     load: function( applet ){
-        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = '../../data/get/' + get_params;
-        s = 'provi_load_selection("' + url + '", "' + this.id + '");';
+        s = 'provi_load_selection("' + this.url + '", "' + this.id + '");';
         console.log(s);
         applet.script(s, { maintain_selection: true, try_catch: false });
     }
@@ -247,10 +218,9 @@ Provi.Data.Controller.BondsMixin = {
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
     load: function( applet ){
-        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = '../../data/get/';
+        //$.cookie('provisessions');
         var s = '' +
-            'x = load("' + url + get_params + '");' +
+            'x = load("' + this.url + '");' +
             'bond_count_before = {*}.bonds.size;' +
             'script INLINE @x;' +
             'bond_count_after = {*}.bonds.size;' +
@@ -285,20 +255,13 @@ Provi.Data.Controller.StructureMixin = {
         Provi.Data.Dataset.prototype.init.call(this, params);
         if( params.applet ){
 
-            var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-            //var params = '?id=' + this.dataset.server_id;
+            // $.cookie('provisessions');
             
-            if( $.inArray(this.type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol']) >= 0 ){
-                get_params += '&data_action=get_pdb';
-            }
-
-            filename = '../../data/get/' + get_params + '"';
-
             if( !params.script ) params.script = '';
             params.script += 'print "provi dataset: ' + this.id + ' loaded";';
 
             new Provi.Bio.Structure.Structure( $.extend( params, {
-                filename: filename,
+                filename: this.url,
                 type: this.type,
                 dataset: this
             }));
@@ -341,8 +304,7 @@ Provi.Data.Controller.ScriptMixin = {
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
     retrieve_data: function( onload ){
-        var get_params = { 'id': this.server_id+'' };
-        $.get( '../../data/get/', get_params, onload, 'text' );
+        $.get( this.url, {}, onload, 'text' );
     },
     load: function(applet){
         applet.script( this.data );
@@ -494,9 +456,9 @@ Provi.Data.Controller.FastaMixin = {
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
     load: function( jalview ){
-        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = window.location.protocol + '//' + window.location.host + '/data/get/';
-        new Provi.Jalview.JalviewWidget({ file: url + get_params });
+        var url = window.location.protocol + '//' + window.location.host + 
+            '/example/data/' + this.url;
+        new Provi.Jalview.JalviewWidget({ file: url });
     }
 }
 
@@ -515,10 +477,9 @@ Provi.Data.Controller.FeaturesMixin = {
         Provi.Data.Dataset.prototype.init.call(this, params);
     },
     load: function( jalview ){
-        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = window.location.protocol + '//' + window.location.host + '/data/get/';
-        $.get( url + get_params, function(data){
-            console.log("Features loaded");
+        var url = window.location.protocol + '//' + window.location.host + 
+            '/example/data/' + this.url;
+        $.get( url, function(data){
             jalview.applet.loadAnnotation( data );
         });
     }
@@ -543,9 +504,9 @@ Provi.Data.Controller.TmalignMixin = {
     },
     load: function( sele, applet ){
         var self = this;
-        var get_params = '?id=' + this.server_id + '&session_id=' + $.cookie('provisessions');
-        var url = window.location.protocol + '//' + window.location.host + '/data/get/';
-        $.get( url + get_params, function(data){
+        var url = window.location.protocol + '//' + window.location.host + 
+            '/example/data/' + this.url;
+        $.get( url, function(data){
             var t = [0, 0, 0];
             var u = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
             var j = 0;
@@ -601,10 +562,8 @@ Provi.Data.Controller.extend_by_type = function( obj, type ){
         $.extend( obj, Ctrl.StoryMixin );
     }else if( type === 'prop' ){
         $.extend( obj, Ctrl.PropensitiesMixin );
-    }else if( type === 'jmol' ){
+    }else if( _.include(['jmol', 'png'], type) ){
         $.extend( obj, Ctrl.JmolMixin );
-    }else if( type === 'png' ){
-        $.extend( obj, Ctrl.PngMixin );
     }else if( type === 'atmprop' ){
         $.extend( obj, Ctrl.AtomPropertyMixin );
     }else if( type === 'atmsele' ){

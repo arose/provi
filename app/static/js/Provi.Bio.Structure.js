@@ -80,7 +80,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
             applet._delete();
         }
 
-        var path = '"' + type + this.filename;
+        var path = '"' + type + this.filename + '"';
 
         if(filter){
             path += ' FILTER "' + filter + '"';

@@ -101,6 +101,7 @@ Provi.Data.Dataset = function(params){
     this._set_type( params.type );
     this.data = params.data;
     this.name = params.name;
+    this.url = params.url;
     this.data_list = [];
     this.data_dict = {};
     //this.applet = params.applet;
@@ -111,6 +112,7 @@ Provi.Data.Dataset = function(params){
     this.meta = params.meta;
     this.id = Provi.Data.DatasetManager.add( this );
     this._init();
+    this.set_status( this._status );
 };
 Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     _init: function(){
@@ -179,8 +181,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     },
     retrieve_data: function(){
         var self = this;
-        var get_params = { 'id': this.id+'' };
-        $.getJSON( '../../data/get/', get_params, function(d){
+        $.getJSON( this.url, {}, function(d){
             self.set_data( d );
         });
     },

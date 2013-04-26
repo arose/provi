@@ -190,44 +190,20 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
     var self = this;
     var dataset = new Provi.Data.Dataset({
         name: filename,
-        status: { local: null, server: 'importing' },
+        status: { local: "loaded", server: "Ok" },
         meta: {
             directory: directory_name,
             filename: filename
-        }
-    });
-    var extra_files = '';
-    console.log( 'ext: ', filename.substring( filename.lastIndexOf('.') ) );
-    // handling of MSMS .vert/.face files
-    // example of handling datasets comprised of multiple files
-    if( filename.substring( filename.lastIndexOf('.') ) == '.vert' ){
-        extra_files = 'data.face:' + filename.slice( 0, filename.lastIndexOf('.') ) + '.face';
-        console.log( 'extra_files: ', extra_files );
-    }
-    $.ajax({
-        url: '../../example/import_example/',
-        data: {
-            directory_name: directory_name,
-            filename: filename,
-            datatype: type,
-            extra_files: extra_files
         },
-        cache: false,
-        success: function(response){
-            response = $.parseJSON( response );
-            dataset.server_id = response.id;
-            dataset.set_type( response.type );
-            dataset.set_status( 'server', response.status );
-            // TODO document, move to Dataset code
-            $( dataset ).triggerHandler( 'loaded' );
-            if( dataset && !no_init ){
-                dataset.init( params );
-            }
-            if( $.isFunction(success) ){
-                success( dataset );
-            }
-        }
+        type: filename.split('.').pop(),
+        url: '../../example/data/' +
+            '?directory_name=' + directory_name + 
+            '&_id=' + (new Date().getTime()) +
+            '&path=' + filename
+            
     });
+    $( dataset ).triggerHandler( 'loaded' );
+    if(!no_init) dataset.init( params );
     return dataset;
 }
 
@@ -360,57 +336,20 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
         
         // LOAD //
         $( '#' + this.jstree_id + ' button[title="load"]' ).live( 'click', function(e, data){
-            $(this).attr("disabled", true)
-                .addClass('ui-state-disabled')
-                .button( "option", "label", "loading..." );
             var ds = self.load_dataset(
                 self.directory_name,
                 $(this).parent().parent().data('path')
             );
-            var button = this;
-            $(ds).bind( 'loaded', function(){
-                $(button).attr("disabled", false)
-                    .removeClass('ui-state-disabled')
-                    .button( "option", "label", "load" );
-            });
-        });
-
-        // IMPORT //
-        $( '#' + this.jstree_id + ' button[title="import"]' ).live( 'click', function(e, data){
-            $(this).attr("disabled", true)
-                .addClass('ui-state-disabled')
-                .button( "option", "label", "importing..." );
-            var ds = self.import_dataset(
-                self.directory_name,
-                $(this).parent().parent().data('path'),
-                '',
-                true
-            );
-            var button = this;
-            $(ds).bind( 'loaded', function(){
-                $(button).attr("disabled", false)
-                    .removeClass('ui-state-disabled')
-                    .button( "option", "label", "import" );
-            });
         });
 
         // PARAMS //
         $( '#' + this.jstree_id + ' button[title="params"]' ).live( 'click', function(e, data){
-            $(this).attr("disabled", true)
-                .addClass('ui-state-disabled')
-                .button( "option", "label", "..." );
-            var ds = self.import_dataset(
+            var ds = self.load_dataset(
                 self.directory_name,
                 $(this).parent().parent().data('path'),
                 '',
                 true
             );
-            var button = this;
-            $(ds).bind( 'loaded', function(){
-                $(button).attr("disabled", false)
-                    .removeClass('ui-state-disabled')
-                    .button( "option", "label", "p" );
-            });
             self._popup.empty();
             var dsw = new Provi.Data.DatasetWidget({
                 parent_id: self._popup.data_id,
@@ -419,7 +358,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
             $(dsw).bind('loaded', function(){ 
                 self._popup.hide();
             });
-            self._popup.show( $(button).parent().children('ins') );
+            self._popup.show( $(this).parent().children('ins') );
         });
         
         Widget.prototype.init.call(this);
@@ -433,18 +372,9 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
         var params = {
             applet: this.applet_selector.get_value()
         }
-        return Provi.Data.Io.import_example( directory_name, filename, type, params, function(dataset){
-            
-        }, no_init);
-    },
-    import_dataset: function(directory_name, filename, type, no_init){
-        var self = this;
-        var params = {
-            applet: this.applet_selector.get_value()
-        }
-        return Provi.Data.Io.import_example( directory_name, filename, type, params, function(dataset){
-            
-        }, no_init);
+        return Provi.Data.Io.import_example( 
+            directory_name, filename, type, params, function(dataset){}, no_init
+        );
     },
     dataset_list: function(){
         if( !this.directory_name ) return;
@@ -465,12 +395,8 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
                     data: { directory_name: self.directory_name }
                 }
             },
-            core: {
-                html_titles: true
-            },
-            themeroller: {
-                item: ""
-            },
+            core: { html_titles: true },
+            themeroller: { item: "" },
             plugins: [ "json_data", 'themeroller', 'cookies' ]
         });
         
@@ -483,14 +409,11 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
                 if( !$n.data('dir') ){
                     $n.children('a').children('span').before(
                         '<button title="load">load</button>' +
-                        '<button title="import">i</button>' +
-                        '<button title="params">p</button>' +
-                        ''
+                        '<button title="params">p</button>'
                     );
                     $n.children('a').children('button').button();
                 }
             });
-            //console.log( 'JSTREE LOAD NODE', nodes );
         });
         
     }
@@ -509,7 +432,7 @@ Provi.Data.Io.import_url = function(url, name, type, params, success, no_init){
         status: { local: null, server: 'importing' }
     });
     $.ajax({
-        url: '../../urlload/index/',
+        url: '../../urlload/',
         data: { url: url, name: name, datatype: type },
         success: function(response){
             response = $.parseJSON( response );
@@ -894,7 +817,7 @@ Provi.Data.Io.SaveExampleWidget.prototype = Utils.extend(Provi.Data.Io.SaveDataW
         var applet = this.applet_selector.get_value();
         var name = $('#' + this.filename_id).val();
         var directory_name = this.get_directory_name();
-        path = '/../../../save/jmol/' +
+        path = '../../save/jmol/' +
             '?POST?_PNGJBIN_&' +
             'name=' + name + '&' +
             'directory_name=' + directory_name +
