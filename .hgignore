@@ -19,7 +19,7 @@ doc/sphinx/_build
 *.pyc
 
 provi_wsgi.ini
-
+app/app.cfg
 
 app/static/applet/jmol/versions
 app/static/applet/jmol/jmol-*
