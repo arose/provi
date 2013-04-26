@@ -164,7 +164,7 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
     },
     apm: function( sele, ali_sele ){
         var applet = this.get_applet();
-        var format = "'%[atomno]',%[resno],'%[chain]','%[model]','%[file]','%[group1]'";
+        var format = "'%[atomno]',%[resno],'%[chain]','%[model]','%[file]','%[group1]', %[atomindex]";
         return applet.atoms_property_map( 
             format, 
             '(' + sele + ') and (' + ali_sele + ') and protein and *.CA'
@@ -277,25 +277,27 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
                 'rotate translate;' + 
         '';
 
-        if( motion_sele1 && motion_sele1 ){
+        if( motion_sele1 && motion_sele2 ){
             var apm_m1 = this.apm( sele1, motion_sele1 );
             var apm_m2 = this.apm( sele2, motion_sele2 );
 
             var nw_m = this.alignment( apm_m1, apm_m2 );
-            var gap_m1 = this.gap( nw.ali1 );
-            var gap_m2 = this.gap( nw.ali2 );
+            var gap_m1 = this.gap( nw_m.ali1 );
+            var gap_m2 = this.gap( nw_m.ali2 );
+
+            console.log(apm_m1, apm_m2, gap_m1, gap_m2, nw_m.ali1.split(''), nw_m.ali2.split(''))
 
             var pairs_m = [[],[]];
             _.each(nw_m.ali1.split(''), function(c1, i){
                 var c2 = nw_m.ali2.split('')[i];
                 if( c1!='-' && c2!='-'){
-                    pairs_m[0].push('atomno=' + apm_m1[ i - gap_m1[i] ][0]);
-                    pairs_m[1].push('atomno=' + apm_m2[ i - gap_m2[i] ][0]);
+                    pairs_m[0].push('atomIndex=' + apm_m1[ i - gap_m1[i] ][6]);
+                    pairs_m[1].push('atomIndex=' + apm_m2[ i - gap_m2[i] ][6]);
                 }
             });
             s += 'axis_angle( ' + 
-                '{' + pairs_m[0].join(' or ') + '}, ' +
-                '{' + pairs_m[1].join(' or ') + '}, ' +
+                    '{' + pairs_m[0].join(' or ') + '}, ' +
+                    '{' + pairs_m[1].join(' or ') + '}, ' +
                 'true )' +
             ';';
         }

@@ -23,7 +23,7 @@ function provi_require( script ){
 
 function provi_bind_init(){
     unbind "CTRL-LEFT";
-    bind "CTRL-LEFT" "if(_MODE==2 and _ATOM){ zoomTo 0.6 (_ATOM); }";
+    bind "CTRL-LEFT" "if(_MODE==2 and _ATOM){ centerAt absolute @{ {_ATOM}.XYZ }; }";
     unbind "ALT-WHEEL";
     bind "ALT-WHEEL" "provi_zslab( _DELTAY );";
 }
@@ -312,12 +312,21 @@ function lsq(x, y) {
 
 function axis_angle( sele1, sele2, draw ){
     var m = compare( sele1, sele2 );
-    var c1 = (m%1)[1];
-    var c2 = (m%1)[2];
-    var q = quaternion( point(c1), point(c2) );
+    message @sele1;
+    message @sele2;
+    message @m;
+    var q = quaternion( m%1 );
     var axis = q%-1;
     var angl = q%-2;
-    var centr = { @sele1 or @sele2 }.XYZ
+    var centr2 = { @sele2 }.XYZ;
+    var ap = centr2 + axis*10;
+    message @axis;
+    message @angl;
+    #select within(GROUP, sele2);
+    #translateSelected @{m%2*-1};
+    #rotateSelected @centr2 @ap @angl;
+    #select none;
+    var centr = { @sele1 or @sele2 }.XYZ;
     if( draw ){
         draw ID "origin" @centr diameter 5.0;
         draw ID "axis" vector @centr @{axis} scale 150.0 diameter 0.3;
