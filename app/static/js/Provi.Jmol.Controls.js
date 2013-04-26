@@ -38,7 +38,7 @@ Provi.Jmol.Controls.JmolConsole.prototype = /** @lends Provi.Jmol.Controls.JmolC
         var self = this;
         this.input.keypress(function(event) {
             if (event.which == 13 && this.value) {
-                //try {
+                try {
                     var cmd = this.value.trim();
                     if( cmd.charAt( cmd.length-1 ) != ';' ) cmd += ';';
                     self.print('> ' + cmd);
@@ -58,12 +58,12 @@ Provi.Jmol.Controls.JmolConsole.prototype = /** @lends Provi.Jmol.Controls.JmolC
                             self.print(echo[1] , 'green');
                         }
                     }
-                // } catch (e) {
-                //     self.print(e.toString(), '#ff0000');
-                // } finally {
-                //     self.history.push(cmd);
-                //     this.value = '';
-                // }
+                } catch (e) {
+                    self.print(e.toString(), '#ff0000');
+                } finally {
+                    self.history.push(cmd);
+                    this.value = '';
+                }
             }
         });
         
