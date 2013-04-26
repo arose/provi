@@ -278,6 +278,7 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
         '';
 
         if( motion_sele1 && motion_sele2 ){
+            // http://fizz.cmp.uea.ac.uk/dyndom/dyndomMain.do
             var apm_m1 = this.apm( sele1, motion_sele1 );
             var apm_m2 = this.apm( sele2, motion_sele2 );
 
