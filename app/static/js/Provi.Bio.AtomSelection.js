@@ -760,6 +760,11 @@ Provi.Bio.AtomSelection.VariableSelectionType.prototype = Utils.extend(Provi.Bio
         }
         return ret;
     },
+    highlight: function(id){
+        var s = "provi_highlight(" + this.selection( id, true ) + ");";
+        console.log( "highlight", id, s );
+        this.applet.script( s, {} );
+    }
 });
 
 
