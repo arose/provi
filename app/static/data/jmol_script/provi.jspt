@@ -139,6 +139,15 @@ function provi_load_isosurface(){
 }
 
 
+function provi_write_pdb( sele ){
+    save selection tmp_pdb;
+    select sele;
+    var d = write("pdb").split("\n");
+    restore selection tmp_pdb;
+    return d;
+}
+
+
 function provi_sele_test( ids ){
     var sele_l = [];
     var displayed_l = [];
