@@ -1,7 +1,8 @@
 import os
 import urllib2
 import json
-from StringIO import StringIO
+import StringIO
+import tempfile
 
 from flask import Flask
 from flask import send_from_directory
@@ -183,8 +184,15 @@ def save_download():
     name = request.form.get('name', 'file.dat')
     data = request.form.get('data', '')
     data = decode( data, encoding )
+    ftmp = tempfile.NamedTemporaryFile()
+    ftmp.write( data )
+    ftmp.seek(0)
+    # not working... but should
+    # strio = StringIO.StringIO()
+    # strio.write( data )
+    # strio.seek(0)
     return send_file(
-        StringIO( data ),
+        ftmp,
         mimetype=mimetype, as_attachment=True,
         attachment_filename=name
     )
@@ -196,6 +204,16 @@ def save_download():
 
 
 if __name__ == '__main__':
-    app.run( debug=True )
+    app.run( debug=True, host='127.0.0.1' )
+
+
+
+
+
+
+
+
+
+
 
 

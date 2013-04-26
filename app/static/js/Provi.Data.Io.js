@@ -587,53 +587,55 @@ Provi.Data.Io.PdbLoadWidget.prototype = Utils.extend(Provi.Data.Io.UrlLoadWidget
 Provi.Data.Io.SaveDataWidget = function(params){
     params.heading = params.heading || 'Download data';
     params.collapsed = true;
+    params.backend_type = this.backend_type;
     Widget.call( this, params );
-    this._build_element_ids([
+    
+    this._init_eid_manager([
         'save_structure', 'save_structure_selected', 'save_image', 
         'save_state', 'save_isosurface', 'save_ndx', 'save_jmol',
         'ndx_group', 'applet_selector_widget', 'form', 'iframe', 'process_structure'
     ]);
-    var content = '<div  class="control_group">' +
-        '<div id="' + this.applet_selector_widget_id + '"></div>' +
+
+    var template = '<div  class="control_group">' +
+        '<div id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row">' +
-            '<button id="' + this.save_structure_id + '">save structure</button>' +
+            '<button id="${eids.save_structure}">save structure</button>' +
             '&nbsp;&nbsp;' +
-            '<input id="' + this.save_structure_selected_id + '" type="checkbox"/>' +
-            '<label for="' + this.save_structure_selected_id + '">selected</label>' +
+            '<input id="${eids.save_structure_selected}" type="checkbox"/>' +
+            '<label for="${eids.save_structure_selected}">selected</label>' +
             '&nbsp;&nbsp;' +
-            '<input id="' + this.process_structure_id + '" type="checkbox"/>' +
-            '<label for="' + this.process_structure_id + '">process</label>' +
+            '<input id="${eids.process_structure}" type="checkbox"/>' +
+            '<label for="${eids.process_structure}">process</label>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button id="' + this.save_image_id + '">save image</button>' +
+            '<button id="${eids.save_image}">save image</button>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button id="' + this.save_state_id + '">save state</button>' +
+            '<button id="${eids.save_state}">save state</button>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button id="' + this.save_isosurface_id + '">save isosurface</button>' +
+            '<button id="${eids.save_isosurface}">save isosurface</button>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button id="' + this.save_ndx_id + '">save ndx</button>&nbsp;' +
+            '<button id="${eids.save_ndx}">save ndx</button>&nbsp;' +
             'Group name: ' +
-            '<input id="' + this.ndx_group_id + '" type="text"/>' +
+            '<input id="${eids.ndx_group}" type="text"/>' +
         '</div>' +
         '<div class="control_row">' +
-            '<button id="' + this.save_jmol_id + '">save jmol</button>' +
+            '<button id="${eids.save_jmol}">save jmol</button>' +
         '</div>' +
-        '<form id="' + this.form_id + '" style="display:hidden;" method="post" action="../../save/' + this.backend_type + '/" target="' + this.iframe_id + '">' +
+        '<form id="${eids.form}" style="display:hidden;" method="post" action="../../save/${params.backend_type}/" target="${eids.iframe}">' +
             '<input type="hidden" name="name" value=""></input>' +
             '<input type="hidden" name="data" value=""></input>' +
             '<input type="hidden" name="type" value=""></input>' +
             '<input type="hidden" name="encoding" value=""></input>' +
         '</form>' +
-        '<iframe id="' + this.iframe_id + '" name="' + this.iframe_id + '" style="display:none;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
+        '<iframe id="${eids.iframe}" name="${eids.iframe}" style="display:none;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
     '</div>';
-    $(this.dom).append( content );
-    
+    this.add_content( template, params );
     
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-        parent_id: this.applet_selector_widget_id,
+        parent_id: this.eid('applet_selector_widget'),
         applet: params.applet,
         allow_new_applets: false
     });
@@ -644,53 +646,21 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
     extra_input_fields: '',
     init: function(){
         var self = this;
-        
-        $("#" + this.save_structure_id).button().click(function() {
-            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
-            setTimeout(function(){
-                $("#" + self.save_structure_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save structure" );
-            }, 3000);
-            self.save_structure();
+
+        _.each([ 'structure', 'image', 'state', 'isosurface', 'ndx', 'jmol' ], function(name, i){
+            self.elm( 'save_' + name ).button().click(function() {
+                $(this).attr("disabled", true).addClass('ui-state-disabled');
+                setTimeout(function(){
+                    $("#" + self.save_structure_id).attr("disabled", false).removeClass('ui-state-disabled');
+                }, 3000);
+                self[ 'save_' + name ]();
+            });
         });
-        $("#" + this.save_image_id).button().click(function() {
-            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
-            setTimeout(function(){
-                $("#" + self.save_image_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save image" );
-            }, 3000);
-            self.save_image();
-        });
-        $("#" + this.save_state_id).button().click(function() {
-            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
-            setTimeout(function(){
-                $("#" + self.save_state_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save state" );
-            }, 3000);
-            self.save_state();
-        });
-        $("#" + this.save_isosurface_id).button().click(function() {
-            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
-            setTimeout(function(){
-                $("#" + self.save_isosurface_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save isosurface" );
-            }, 3000);
-            self.save_isosurface();
-        });
-        $("#" + this.save_ndx_id).button().click(function() {
-            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
-            setTimeout(function(){
-                $("#" + self.save_ndx_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save ndx" );
-            }, 3000);
-            self.save_ndx();
-        });
-        $("#" + this.save_jmol_id).button().click(function() {
-            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "saving..." );
-            setTimeout(function(){
-                $("#" + self.save_jmol_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "save jmol" );
-            }, 3000);
-            self.save_jmol();
-        });
+
         Widget.prototype.init.call(this);
     },
     save_data: function( data, name, encoding, type ){
-        var form = $('#' + this.form_id);
+        var form = this.elm('form');
         form.children('input[name=name]').val( name );
         form.children('input[name=data]').val( data );
         form.children('input[name=encoding]').val( encoding || '' );
@@ -699,17 +669,10 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
     },
     save_structure: function(){
         var applet = this.applet_selector.get_value();
-        applet.script_wait('save selection tmp' + this.id + ';');
-        if( !$("#" + this.save_structure_selected_id).is(':checked') ){
-            applet.script_wait('select *;');
-        }
-        // x = write("PDB"); write VAR x "?";
-        var data = applet.evaluate('write("pdb").split("\n")');
-        //var data = this.applet_selector.get_value().evaluate('write("ramachandran","r").split("\n")');
-        //var data = this.applet_selector.get_value().get_property_as_string("fileContents", '');
-        //console.log("SAVE STRUCTURE", data, data.split("\n"));
+        var sele = this.elm('save_structure_selected').is(':checked') ? "selected" : "*";
+        var data = applet.evaluate('provi_write_pdb({' + sele + '});');
 
-        if( $("#" + this.process_structure_id).is(':checked') ){
+        if( this.elm('process_structure').is(':checked') ){
             data = _.filter( data.split("\n"), function(line){
                 return (line.slice(0,4)=="ATOM" || line.slice(0,6)=="HETATM") ? true : false;
             }).sort( function(a, b){
@@ -733,7 +696,6 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
         }
 
         this.save_data( data, 'structure.pdb' );
-        applet.script_wait('restore selection tmp' + this.id + ';');
     },
     save_image: function(){
         var data = this.applet_selector.get_value().get_property_as_string("image", '');
@@ -749,7 +711,7 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
         this.save_data( data, 'isosurface.jvxl' );
     },
     save_ndx: function(){
-        var name = $('#' + this.ndx_group_id).val() || 'IndexGroup';
+        var name = this.elm('ndx_group').val() || 'IndexGroup';
         var atomno = this.applet_selector.get_value().evaluate('{selected}.format("%[atomno]").join(" ")');
         var data = '[ ' + name + ' ]\n' +
             Provi.Utils.wordwrap( atomno, 80, '\n', false ) +
@@ -775,24 +737,28 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.Io.SaveExampleWidget = function(params){
-    params.heading = 'Save in example/local dir';
+    params.heading = 'Save in local dir';
     Provi.Data.Io.SaveDataWidget.call( this, params );
-    this._build_element_ids([ 'directory_selector_widget', 'filename', 'append' ]);
-    $('#' + this.applet_selector_widget_id).after(
-        '<div id="' + this.directory_selector_widget_id + '"></div>' +
+    this._init_eid_manager([ 'directory_selector_widget', 'filename', 'append' ]);
+
+    var template = '' +
+        '<div id="${eids.directory_selector_widget}"></div>' +
         '<div class="control_row">' +
             'Filename: ' +
-            '<input id="' + this.filename_id + '" type="text"/>' +
+            '<input id="${eids.filename}" type="text"/>' +
         '</div>' +
         '<div class="control_row">' +
-            '<input id="' + this.append_id + '" type="checkbox"/>' +
-            '<label for="' + this.append_id + '">append (carefull!)</label>' +
-        '</div>'
-    );
+            '<input id="${eids.append}" type="checkbox"/>' +
+            '<label for="${eids.append}">append (carefull!)</label>' +
+        '</div>' +
+    '';
+    $.tmpl( template, { eids: this.eid_dict, params: params } )
+        .insertAfter( this.elm('applet_selector_widget') )
+        
     this.directory_selector = new Provi.Data.Io.ExampleDirectorySelectorWidget({
-        parent_id: this.directory_selector_widget_id
+        parent_id: this.eid('directory_selector_widget')
     })
-    $('#' + this.form_id).append(
+    this.elm('form').append(
         '<input type="hidden" name="append" value=""></input>' +
         '<input type="hidden" name="directory_name" value=""></input>'
     );
@@ -803,9 +769,9 @@ Provi.Data.Io.SaveExampleWidget.prototype = Utils.extend(Provi.Data.Io.SaveDataW
     },
     backend_type: 'local',
     save_data: function( data, name, encoding, type ){
-        name = $('#' + this.filename_id).val() || name;
-        append = $("#" + this.append_id).is(':checked');
-        var form = $('#' + this.form_id);
+        name = this.elm('filename').val() || name;
+        append = this.elm('append').is(':checked');
+        var form = this.elm('form');
         form.children('input[name=append]').val( append );
         form.children('input[name=directory_name]').val( this.get_directory_name() );
         Provi.Data.Io.SaveDataWidget.prototype.save_data.call( this, data, name, encoding, type );
@@ -815,16 +781,14 @@ Provi.Data.Io.SaveExampleWidget.prototype = Utils.extend(Provi.Data.Io.SaveDataW
     },
     save_jmol: function(){
         var applet = this.applet_selector.get_value();
-        var name = $('#' + this.filename_id).val();
+        var name = this.elm('filename').val();
         var directory_name = this.get_directory_name();
         path = '../../save/jmol/' +
             '?POST?_PNGJBIN_&' +
             'name=' + name + '&' +
             'directory_name=' + directory_name +
         '';
-        var s = '' +
-            'print load("' + path + '");' +
-        '';
+        var s = 'print load("' + path + '");';
         console.log(s);
         applet.script( s );
     }

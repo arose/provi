@@ -492,7 +492,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         try{
             ret = this.applet.scriptWait(script);
         }catch(e){
-            console.error('Jmol.scriptWait ERROR', e, script);
+            console.error('Jmol.scriptWait ERROR', e, script, ret);
         }
         
         var s = ""
