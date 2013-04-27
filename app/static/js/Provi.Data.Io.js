@@ -651,7 +651,7 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
             self.elm( 'save_' + name ).button().click(function() {
                 $(this).attr("disabled", true).addClass('ui-state-disabled');
                 setTimeout(function(){
-                    $("#" + self.save_structure_id).attr("disabled", false).removeClass('ui-state-disabled');
+                    self.elm( 'save_' + name ).attr("disabled", false).removeClass('ui-state-disabled');
                 }, 3000);
                 self[ 'save_' + name ]();
             });
@@ -754,7 +754,7 @@ Provi.Data.Io.SaveExampleWidget = function(params){
     '';
     $.tmpl( template, { eids: this.eid_dict, params: params } )
         .insertAfter( this.elm('applet_selector_widget') )
-        
+
     this.directory_selector = new Provi.Data.Io.ExampleDirectorySelectorWidget({
         parent_id: this.eid('directory_selector_widget')
     })
