@@ -74,10 +74,7 @@ Provi.Bio.AtomProperty.AtomProperty.prototype = /** @lends Provi.Bio.AtomPropert
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.AtomProperty.AtomPropertyWidget = function( params ){
-    params = _.defaults(
-        params,
-        Provi.Bio.AtomProperty.AtomPropertyWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     params.persist_on_applet_delete = false;
 
     this.dataset = params.dataset;
@@ -214,10 +211,7 @@ Provi.Bio.AtomProperty.AtomPropertyWidget.prototype = Utils.extend(Provi.Widget.
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.AtomProperty.AtomPropertyGroupWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     params.persist_on_applet_delete = false;
 
     this.filter_properties = params.filter_properties;

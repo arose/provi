@@ -29,10 +29,7 @@ var Widget = Provi.Widget.Widget;
  * @extends Provi.Widget.Widget
  */
 Provi.Bio.Helix.HelixorientParamsWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Helix.HelixorientParamsWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 'show_local_axes' ]);
 
@@ -408,10 +405,7 @@ Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Helix.GromacsHelixorientWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Helix.GromacsHelixorientWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     console.log('HELIXORIENT', params);
     params.persist_on_applet_delete = true;
     

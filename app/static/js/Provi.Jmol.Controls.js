@@ -232,10 +232,7 @@ Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /**
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Controls.JmolDisplayWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jmol.Controls.JmolDisplayWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     this.style_cmd = params.style_cmd;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
@@ -567,10 +564,7 @@ Provi.Jmol.Controls.JmolDisplayWidget.prototype = Utils.extend(Widget, /** @lend
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Controls.JmolAnimationWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jmol.Controls.JmolAnimationWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Provi.Widget.Widget.call( this, params );
 
     this.frame_list = []; //maps frames to file_model ids

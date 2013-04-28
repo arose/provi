@@ -53,10 +53,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionTypeFactory = function(ids){
 }
 
 Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Voronoia.VoronoiaSelectionType.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     this.resolution = params.resolution;
     this.cavity_probe_radius = params.cavity_probe_radius;
     this.exterior_probe_radius = params.exterior_probe_radius;

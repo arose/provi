@@ -72,10 +72,7 @@ Provi.Bio.Rotamers.sidechain_atoms["PRX"] = [
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Rotamers.RotamersWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Rotamers.RotamersWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
 
     this.picking_select = 'ATOM';
     this.drag_selected = false;

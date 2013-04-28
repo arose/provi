@@ -31,10 +31,7 @@ var Widget = Provi.Widget.Widget;
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Superposition.SuperposeWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Superposition.SuperposeWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
 
     this.gap_penalty = params.gap_penalty;
     this.gap_extension = params.gap_extension;

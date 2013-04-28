@@ -470,10 +470,7 @@ Provi.Data.Io.import_pdb = function(id, params, success, no_init){
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.Io.UrlLoadWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Data.Io.UrlLoadWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Widget.call( this, params );
     this.input_id = this.id + '_input';
     this.load_as_selector_widget_id = this.id + '_load_as';
@@ -550,10 +547,7 @@ Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Da
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.Io.PdbLoadWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Data.Io.PdbLoadWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Provi.Data.Io.UrlLoadWidget.call( this, params );
     $('#' + this.input_id).attr('size', '4');
 }

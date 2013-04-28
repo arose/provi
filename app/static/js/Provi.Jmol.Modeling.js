@@ -29,10 +29,7 @@ var Widget = Provi.Widget.Widget;
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Modeling.JmolModelingWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jmol.Modeling.JmolModelingWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
 
     this.move_selected = false;
     this.show_vdw = false;

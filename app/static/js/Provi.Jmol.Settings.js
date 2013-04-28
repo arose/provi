@@ -126,10 +126,7 @@ Provi.Jmol.Settings.dict = {
  * @extends Provi.Widget.Widget
  */
 Provi.Jmol.Settings.SettingsParamsWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jmol.Settings.SettingsParamsWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([  ]);
 

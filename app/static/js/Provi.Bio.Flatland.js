@@ -60,10 +60,7 @@ Provi.Bio.Flatland.Flatview.prototype = /** @lends Provi.Bio.Flatland.Flatview.p
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Flatland.SketchWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Flatland.SketchWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
@@ -97,10 +94,8 @@ Provi.Bio.Flatland.SketchWidget.prototype = Utils.extend(Provi.Widget.Widget, /*
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Flatland.FlatlandWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Flatland.FlatlandWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
+    
     console.log('FLATLAND', params);
     if( params.applet ){
         params.persist_on_applet_delete = false;

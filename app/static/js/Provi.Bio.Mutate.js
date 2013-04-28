@@ -230,10 +230,7 @@ Provi.Bio.Mutate.res_db = {
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Mutate.MutateWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Mutate.MutateWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     console.log('MUTATE', params);
     params.persist_on_applet_delete = false;
     params.heading = 'Mutate';
