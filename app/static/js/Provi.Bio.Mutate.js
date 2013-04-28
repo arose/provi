@@ -233,8 +233,6 @@ Provi.Bio.Mutate.MutateWidget = function(params){
     params = _.defaults( params, this.default_params );
     console.log('MUTATE', params);
     params.persist_on_applet_delete = false;
-    params.heading = 'Mutate';
-    //params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
         'applet_selector', 'residue_expression', 'mutate', 'residues'
@@ -261,7 +259,8 @@ Provi.Bio.Mutate.MutateWidget = function(params){
 }
 Provi.Bio.Mutate.MutateWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Bio.Mutate.MutateWidget.prototype */ {
     default_params: {
-        
+        heading: "Mutate",
+        collapsed: true
     },
     _init: function(){
         var self = this;

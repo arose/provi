@@ -91,138 +91,41 @@ Provi.Jmol.Controls.JmolConsole.prototype = /** @lends Provi.Jmol.Controls.JmolC
  */
 Provi.Jmol.Controls.JmolConsoleWidget = function(params){
     Widget.call( this, params );
-    this._build_element_ids([ 'input', 'log', 'maintain_selection', 'applet_selector_widget' ]);
+    this._init_eid_manager([ 'input', 'log', 'maintain_selection', 'applet_selector_widget' ]);
     
-    var content = '<div class="control_group">' +
-    '<div class="control_row" id="' + this.applet_selector_widget_id + '"></div>' +
+    var template = '<div class="control_group">' +
+    '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
         '<div class="control_row">' +
-            '<input id="' + this.maintain_selection_id + '" type="checkbox" style="float:left; margin-top: 0.0em;"/>' +
-            '<label for="' + this.maintain_selection_id + '">maintain current selection</label>' +
+            '<input id="${eids.maintain_selection}" type="checkbox" style="float:left; margin-top: 0.0em;"/>' +
+            '<label for="${eids.maintain_selection}">maintain current selection</label>' +
         '</div>' +
-        '<label for="' + this.input_id + '">Execute a Jmol command (<a href="http://chemapps.stolaf.edu/jmol/docs/" target="_blank">docu</a>):</label>' +
-        '<input type="text" id="' + this.input_id + '" class="ui-state-default" style="margin-top:0.2em; width:100%; border: 0px;"/>' +
-        '<div id="' + this.log_id + '" style="overflow:auto; max-height:300px; min-height:150px; margin-top:10px;  padding: 2px;" class="ui-state-default ui-state-disabled"></div>' +
+        '<label for="${eids.input}">Execute a Jmol command (<a href="http://chemapps.stolaf.edu/jmol/docs/" target="_blank">docu</a>):</label>' +
+        '<input type="text" id="${eids.input}" class="ui-state-default" style="margin-top:0.2em; width:100%; border: 0px;"/>' +
+        '<div id="${eids.log}" style="overflow:auto; max-height:300px; min-height:150px; margin-top:10px;  padding: 2px;" class="ui-state-default ui-state-disabled"></div>' +
     '</div>';
-    $(this.dom).append( content );
+    this.add_content( template, params );
+
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-        parent_id: this.applet_selector_widget_id,
+        parent_id: this.eid("applet_selector_widget"),
         applet: params.applet
     });
-    this.console = new Provi.Jmol.Controls.JmolConsole( $('#'+this.input_id), $('#'+this.log_id), params.applet );
+    this.console = new Provi.Jmol.Controls.JmolConsole( this.elm("input"), this.elm("log"), params.applet );
     this._init();
 }
 Provi.Jmol.Controls.JmolConsoleWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Controls.JmolConsoleWidget.prototype */ {
     _init: function(){
         var self = this;
         $(this.applet_selector).bind("change", function(event, applet){
-            console.log('JMOL CONSOLE APPLET CHANGE',applet, self.applet_selector.get_value(true));
             self.console.applet = self.applet_selector.get_value(true);
         });
-        self.console.applet = self.applet_selector.get_value(true);
-        $("#" + this.maintain_selection_id).bind('change', function() {
-            self.console.maintain_selection = $("#" + self.maintain_selection_id).is(':checked');
+        this.console.applet = this.applet_selector.get_value(true);
+        this.elm("maintain_selection").bind('change', function() {
+            self.console.maintain_selection = self.elm("maintain_selection").is(':checked');
         });
     }
 });
 
 
-/**
- * A widget holding a global jmol controls
- * @constructor
- * @extends Provi.Widget.Widget
- * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
- */
-Provi.Jmol.Controls.JmolGlobalControlWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jmol.Controls.JmolGlobalControlWidget.prototype.default_params
-    );
-    this.sync_mouse = params.sync_mouse;
-    Widget.call( this, params );
-    this._build_element_ids([ 'sync_mouse', 'sync_orientation', 'applet_selector_sync_orientation', 'change_default_applet' ]);
-    
-    var template = '' +
-        '<div class="control_row">' +
-            '<input id="' + this.sync_mouse_id + '" type="checkbox" style="float:left; margin-top: 0.0em;"/>' +
-            '<label for="' + this.sync_mouse_id + '">sync mouse</label>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<button id="' + this.sync_orientation_id + '">sync orientation</button>&nbsp;' +
-            '<span id="' + this.applet_selector_sync_orientation_id + '"></span>' +
-        '</div>' +
-    '<div class="control_row">' +
-            'Change default&nbsp;' +
-            '<span id="' + this.change_default_applet_id + '"></span>' +
-        '</div>' +
-    '';
-    this.add_content( template, params );
-
-    this.applet_selector_sync_orientation = new Provi.Jmol.JmolAppletSelectorWidget({
-        parent_id: this.applet_selector_sync_orientation_id
-    });
-    this.change_default_applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-        parent_id: this.change_default_applet_id,
-    show_default_applet: false
-    });
-    this._init();
-}
-Provi.Jmol.Controls.JmolGlobalControlWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Controls.JmolGlobalControlWidget.prototype */ {
-    default_params: {
-        heading: 'Global Controls',
-        sync_mouse: false,
-        collapsed: true
-    },
-    _init: function(){
-        this.sync_mouse = $("#" + this.sync_mouse_id).is(':checked');
-        this.update_sync_mouse();
-        var self = this;
-        
-        $("#" + this.sync_mouse_id).bind('change', function() {
-            self.sync_mouse = $("#" + self.sync_mouse_id).is(':checked');
-            self.update_sync_mouse();
-        });
-        $("#" + this.sync_orientation_id).button().click(function() {
-            self.sync_orientation();
-        });
-        $(this.change_default_applet_selector).bind('change_selected', function( event ) {
-            var applet = self.change_default_applet_selector.get_value(true);
-            var default_applet = Provi.Jmol.get_default_applet();
-            if(applet && applet != default_applet){
-            Provi.Jmol.set_default_applet( applet );
-            }
-            });
-        $(Provi.Jmol).bind('default_applet_change', function(){
-            var applet = Provi.Jmol.get_default_applet();
-            if(applet && self.change_default_applet_selector.get_value(true) != applet){
-            self.change_default_applet_selector.set_value( applet.name_suffix );
-            }
-        });
-
-        Provi.Widget.Widget.prototype.init.call(this);
-    },
-    update_sync_mouse: function(){
-        var s = '';
-        if( this.sync_mouse ){
-            s += 'sync * on; sync * "set syncMouse on";';
-        }else{
-            s += 'sync * off;';
-        }
-        var applet = Provi.Jmol.get_default_applet();
-        if(applet){
-            applet.script(s);
-        }
-    },
-    sync_orientation: function(){
-        var applet = this.applet_selector_sync_orientation.get_value();
-        if(applet){
-            var s = 'sync * on;';
-            s += 'sync > "' + applet.get_property_as_array('orientationInfo').moveTo.replace(/1\.0/,"0") + '";';
-            s += 'sync * off;';
-            applet.script(s);
-        }
-        this.update_sync_mouse();
-    }
-});
 
 
 /**
