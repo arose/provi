@@ -168,35 +168,31 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.DatasetWidget = function(params){
-    this.load_params_widget = [];
     this.dataset = params.dataset;
-    this.load_params_values = params.load_params_values || {};
-    console.log( "ds load params", this.load_params_values );
     Widget.call( this, params );
-    this.load_widget_id = this.id + '_load_widget';
-    this.load_id = this.id + '_load';
-    this.ds_info_id = this.id + '_ds_info';
-    var content = '<div  class="control_group">' +
-        '<div class="control_row" id="' + this.ds_info_id + '"></div>' +
-        '<div class="control_row" id="' + this.load_widget_id + '"></div>' +
+    this._init_eid_manager( ['ds_info', 'load_widget', 'load'] );
+
+    var template = '<div  class="control_group">' +
+        '<div class="control_row" id="${eids.ds_info}"></div>' +
+        '<div class="control_row" id="${eids.load_widget}"></div>' +
     '</div>'
-    $(this.dom).append( content );
-    this.update();
+    this.add_content( template, params );
+    
     this.init();
 }
 Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.DatasetWidget.prototype */ {
     init: function(){
         var self = this;
+        this.update();
         $(this.dataset).bind('initialized loaded', function(){
             self.update();
         });
     },
     update: function(){
         var self = this;
-        var elm = $('#' + this.ds_info_id);
-        var bgcolor = this.dataset.loaded ? 'lightgreen' : ( this.dataset.initialized ? 'orange' : 'lightgrey' );
-        elm.empty();
-        elm.append(
+        var bgcolor = this.dataset.loaded ? 'lightgreen' : ( this.dataset.initialized ? 'lightsalmon' : 'lightgrey' );
+
+        this.elm("ds_info").empty().append(
             '<div style="background-color: ' + bgcolor + '; margin: 5px; padding: 3px;">' +
                 '<div>' + this.dataset.id + '. ' + this.dataset.name + ' (' + this.dataset.type + ')</div>' +
                 '<div>Initialized: ' + this.dataset.initialized + '&nbsp;|&nbsp;Ready: ' + this.dataset.loaded + '</div>' +
@@ -205,41 +201,29 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
         
         if( !this.applet_selector ){
             this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-                parent_id: this.load_widget_id,
+                parent_id: this.eid("load_widget"),
                 allow_new_applets: ( $.inArray(this.dataset.type, Provi.Data.types.structure.concat(Provi.Data.types.isosurface)) >= 0 )
             });
         }
-        if(this.dataset.load_params_widget && !this.load_params_widget.length){
-            $.each(this.dataset.load_params_widget, function(i, lpw){
-                self.load_params_widget.push(
-                    new lpw.obj({ parent_id: self.load_widget_id, dataset: self.dataset, load_params_values: self.load_params_values })
-                );
-            });
+        if( this.dataset.params_object && !this.load_params_widget ){
+            this.load_params_widget = new this.dataset.params_object({
+                parent_id: this.eid("load_widget"),
+                dataset: this.dataset
+            })
         }
         if( !this._load_button_initialized ){
             this._load_button_initialized = true;
-            $('#' + this.load_widget_id).append(
-                '<button id="' + this.load_id + '">load</button>'
+            this.elm("load_widget").append(
+                '<button id="' + this.eid("load") + '">load</button>'
             );
-            $("#" + this.load_id).button().click(function() {
+            this.elm("load").button().click(function() {
                 Provi.Widget.ui_disable_timeout( $(this) );
-                var params = {
-                    applet: self.applet_selector.get_value()
-                }
-                if(self.load_params_widget.length){
-                    $.each(self.load_params_widget, function(i, lpw){
-                        var ds_lpw = self.dataset.load_params_widget[i];
-                        if( ds_lpw.params ){
-                            $.each(ds_lpw.params, function(i, p){
-                                console.log(p)
-                                params[ p.name ] = lpw[ p.getter ]();
-                            });
-                        }else{
-                            params[ ds_lpw.name ] = lpw[ ds_lpw.getter ]();
-                        }
-                    });
-                }
-                //console.log('DS LOAD PARAMS', params);
+                
+                var params = self.load_params_widget ? self.load_params_widget.params : {};
+                params.applet = self.applet_selector.get_value();
+
+                console.log("DatasetWidget", params, self.load_params_widget ? _.clone( self.load_params_widget.params ) : {});
+
                 self.dataset.init( params );
                 $(self).triggerHandler('loaded');
             });

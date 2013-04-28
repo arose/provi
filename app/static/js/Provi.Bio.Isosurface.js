@@ -47,19 +47,16 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     params.parent_id = Provi.defaults.dom_parent_ids.DATASET_WIDGET;
 
     var p = [ 
-        "isosurface_type", "dataset", "applet", "resolution", "display_within", "color", 
+        "isosurface_type", "dataset", "applet", "resolution", "within", "color", 
         "style", "sele", "no_create", "no_init", "translucent", "focus",
-        "colorscheme", "color_range", "frontonly"
+        "colorscheme", "color_range", "frontonly", "insideout"
     ];
     _.extend( this, _.pick( params, p ) );
-
-    // this.init_load_params( params );
     
     Widget.call( this, params );
     this._build_element_ids([ 
-        'show', 'color', 'focus', 'display_within', 'translucent', 
-        'colorscheme', 'color_range', 'color_sele_widget',
-        'style', 'delete', 'load_params', 'frontonly', 'map'
+        'show', 'color', 'focus', 'display_within', 'translucent', 'colorscheme', 'map',
+        'color_range', 'color_sele_widget', 'style', 'delete', 'load_params', 'frontonly'
     ]);
     
     this.isosurface_name = params.isosurface_name || 'isosurface_' + this.id;
@@ -186,6 +183,7 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         isosurface_type: 'Isosurface',
         resolution: 1.0,
         display_within: 10.0,
+        within: 5.0,
         color: '',
         style: '',
         sele: 'atomno=1',
@@ -393,20 +391,11 @@ Provi.Bio.Isosurface.IsosurfaceWidget.prototype = Utils.extend(Widget, /** @lend
         }
         this.applet.script(s, { maintain_selection: true, try_catch: true });
     },
-    init_load_params: function( params ){
-        this.within = params.within || '';
-        this.insideout = params.insideout || '';
-        this.load_params = {
-            within: this.within,
-            insideout: this.insideout,
-            reload_widget: this
-        };
-    },
     init_isosurface: function(){
         this.applet.script(
             'isosurface ID "' + this.isosurface_name + '" ' +
             ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
-            ( this.within ? 'WITHIN ' + this.within + ' ' : '' ) +
+            ( this.within ? 'WITHIN ' + this.within + ' { protein } ' : '' ) +
             ( this.insideout ? 'INSIDEOUT ' : '' ) + 
             ( this.frontonly ? 'FRONTONLY ' : '' ) + 
             '"' + this.dataset.url + '" ' +
@@ -601,52 +590,26 @@ Provi.Bio.Isosurface.SurfaceWidget.prototype = Utils.extend(Provi.Bio.Isosurface
 
 
 /**
- * A widget to get load params
+ * A widget to select a structure loading type
  * @constructor
- * @extends Provi.Widget.Widget
  */
 Provi.Bio.Isosurface.LoadParamsWidget = function(params){
-    this.dataset = params.dataset;
-    this.load_params_values = params.load_params_values || {};
-    console.log( this.load_params_values );
-    Widget.call( this, params );
-    this._build_element_ids([ 'within', 'insideout' ]);
-    var content = '<div>' +
-    '<div class="control_row">' +
-        '<label for="' + this.within_id + '">Within:</label>' +
-        '<input id="' + this.within_id + '" type="text" size="10" value=""/>' +
-    '</div>' +
-    '<div class="control_row">' +
-        '<input id="' + this.insideout_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.insideout_id + '" style="display:block;">insideout (lighting)</label>' +
-    '</div>';
-    $(this.dom).append( content );
-    
-    if( this.dataset && $.inArray( this.dataset.type, ['ccp4', 'mrc', 'map']) >= 0 ){
-    $("#" + this.within_id).val('2 {protein}');
-    }
-    
-    if( this.load_params_values.hasOwnProperty('within') ){
-    $("#" + this.within_id).val( this.load_params_values.within );
-    }
-    if( this.load_params_values.hasOwnProperty('insideout') ){
-    $("#" + this.insideout_id).attr('checked', this.load_params_values.insideout);
-    }
-    if( this.load_params_values.hasOwnProperty('reload_widget') ){
-    this.reload_widget = this.load_params_values.reload_widget;
-    }
+    Provi.Widget.ParamsWidget.call( this, params );
 }
-Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Isosurface.LoadParamsWidget.prototype */ {
-    get_within: function(){
-        return $("#" + this.within_id).val();
-    },
-    get_insideout: function(){
-        return $("#" + this.insideout_id).is(':checked');
-    },
-    get_reload_widget: function(){
-        return this.reload_widget;
+Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Isosurface.LoadParamsWidget.prototype */ {
+    params_dict: {
+        within: {
+            default_value: 2,
+            type: "slider", 
+            range: [ 1, 10 ]
+        },
+        insideout: {
+            default_value: false,
+            type: "checkbox" 
+        }
     }
 });
+
 
 
 /**

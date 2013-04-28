@@ -105,7 +105,6 @@ Provi.Widget.Widget = function(params){
     }
     
     var template = '' +
-        //'<span title="close" id="${eids.close}" class="ui-icon ui-icon-close" style="position:relative; float:right; z-index:100;"></span>' +
         '<div class="ui-widget-header ui-state-active" id="${eids.heading}" ' +
                 'style="{{if !params.heading}}display:none;{{/if}}">' +
             '<span title="show/hide" class="ui-icon ui-icon-triangle-1-s"></span>' +
@@ -159,8 +158,6 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
         heading.children('[title]').qtip({ position: {my: 'top center', at: 'bottom center'} });
         heading.click(function() {
             $(this).siblings().toggle();
-            //self.elm( 'content' ).toggle();
-            //self.elm( 'content' ).next().toggle();
             $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-s');
             $(this).toggleClass('ui-state-active ui-state-default');
             return false;
@@ -177,7 +174,7 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
         if(this.applet && !this.persist_on_applet_delete){
             $(this.applet).bind('delete', $.proxy( this.del, this ) );
         }
-        //console.log('WIDGET INIT', this.heading);
+
         this.initialized = true;
         $(this).triggerHandler('init');
     },
@@ -209,6 +206,7 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     * @returns {void}
     */
     _build_element_ids: function( names ){
+        console.error( "_build_element_ids", "deprecated" );
         var self = this;
         $.each( names, function(i, name){
             self[ name + '_id' ] = self.id + '_' + name;
@@ -218,7 +216,7 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
         return this.id + '_' + name;
     },
     _init_eid_manager: function( eid_list ){
-           this.add_eids( eid_list );
+       this.add_eids( eid_list );
     },
     add_eids: function( eid_list ){
         var self = this;
@@ -229,8 +227,8 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
         this.eid_dict = $.extend( this.eid_dict, eid_dict );
     },
     eid: function( name, selector ){
-           if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";
-           return (selector ? '#' : '') + this.eid_dict[ name ];
+       if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";
+       return (selector ? '#' : '') + this.eid_dict[ name ];
     },
     elm: function( name ){
         return $( '#' + this.eid(name) );
@@ -278,14 +276,16 @@ Provi.Widget.form_builder = function( params, value, id, self ){
 
         $elm.append(
             $('<select class="ui-state-default">' +
-                _.map( p.options, function(o){
+                _.map( p.options, function( o, l ){
+                    var label = _.isNumber(o) ? o : _.str.humanize( o )
+                    if( !_.isArray( p.options ) ) label = l;
                     if( p.value=="float" ) o = o.toFixed( p.fixed || 2 );
-                    return '<option value="' + o + '">' + ( _.isNumber(o) ? o : _.str.humanize( o ) ) + '</option>'
+                    return '<option value="' + o + '">' + label + '</option>'
                 }) +
             '</select>')
                 .data( 'id', id )
                 .val( value )
-                .bind( 'click change', _.bind( self.set, self )),
+                .bind( 'change', _.bind( self.set, self )),
             '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
         );
 
@@ -328,6 +328,51 @@ Provi.Widget.form_builder = function( params, value, id, self ){
 
     return $elm;
 }
+
+
+
+/**
+ * A widget to select params
+ * @constructor
+ */
+Provi.Widget.ParamsWidget = function(params){
+    params = _.defaults( params, this.default_params );
+    Provi.Widget.Widget.call( this, params );
+
+    this.params = {};
+
+    var self = this;
+    _.each( this.params_dict, function( p, id ){
+        var elm = Provi.Widget.form_builder( p, p.default_value, id, self );
+        self.elm( 'content' ).append( elm );
+        self.params[ id ] = p.default_value;
+    });
+
+}
+Provi.Widget.ParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.ParamsWidget.prototype */ {
+    set: function(e){
+        var elm = $(e.currentTarget);
+        var id = elm.data('id');
+        var p = this.params_dict[ id ] || {};
+        var value = '';
+        if( p.type=="checkbox" ){
+            value = elm.is(':checked');
+        }else if( p.type=="select" ){
+            value = elm.children("option:selected").val();
+        }else if( p.type=="text" ){
+            value = elm.val();
+        }else if( p.type=="slider" ){
+            value = elm.slider("value");
+            if( p.factor ) value /= p.factor;
+            if( p.fixed ) value = value.toFixed( p.fixed );
+        }else{
+            return;
+        }
+        this.params[ id ] = value;
+    }
+});
+
+
 
 
 

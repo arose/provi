@@ -90,7 +90,7 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
         	if( i==0 || prev.loaded ){
         		func();
         	}else{
-                $( prev ).bind('loaded', function(){
+                $( prev ).one('loaded', function(){
                     func();
                 });
             }
@@ -100,7 +100,7 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
 		if( last.loaded ){
 			this.dataset.set_loaded();
 		}else{
-			$( last ).bind('loaded', function(){
+			$( last ).one('loaded', function(){
 	            self.dataset.set_loaded();
 	        });
 		}

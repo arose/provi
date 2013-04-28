@@ -23,7 +23,6 @@ html, body{
 
 .ui-container .ui-widget-header {
     cursor: pointer;
-    position: relative;
     padding: 0.2em;
     vertical-align: middle;
 }
