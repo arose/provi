@@ -26,33 +26,45 @@ var AtomProperty = {};
 /**
  * @class Represents atom property
  */
-Provi.Bio.AtomProperty.AtomProperty = function(name){
-    this.name = name;
+Provi.Bio.AtomProperty.AtomProperty = function( params ){
+    this.dataset = params.dataset;
+    this.applet = params.applet;
+    // var self = this;
+    // $(this.dataset).bind("loaded", function(){self.get_list(); console.log("foobar")});
+    this.load();
 };
 Provi.Bio.AtomProperty.AtomProperty.prototype = /** @lends Provi.Bio.AtomProperty.AtomProperty.prototype */ {
-    
-};
-
-
-/**
- * @class Represents atom property group
- */
-Provi.Bio.AtomProperty.AtomPropertyGroup = function(names){
-    var self = this;
-    this._list = [];
-    _.each(names, function(name){
-        self.add( new Provi.Bio.AtomProperty.AtomProperty(name) );
-    });
-    console.log( this.get_list() );
-};
-Provi.Bio.AtomProperty.AtomPropertyGroup.prototype = /** @lends Provi.Bio.AtomProperty.AtomPropertyGroup.prototype */ {
-    add: function(atom_property){
-        this._list.push( atom_property );
+    load: function(){
+        var s = 'provi_load_property("' + this.dataset.url + '", {*}, "' + this.dataset.id + '");';
+        this.applet.script(s, { maintain_selection: true, try_catch: false });
     },
     get_list: function(){
-        return this._list;
+        var d = this.applet.evaluate( "provi_datasets[" + this.dataset.id + "].join(',')" ).split(",");
+        // console.log("AtomProperty", d);
+        return d;
     }
 };
+
+
+// /**
+//  * @class Represents atom property group
+//  */
+// Provi.Bio.AtomProperty.AtomPropertyGroup = function(names){
+//     var self = this;
+//     this._list = [];
+//     _.each(names, function(name){
+//         self.add( new Provi.Bio.AtomProperty.AtomProperty(name) );
+//     });
+//     console.log( this.get_list() );
+// };
+// Provi.Bio.AtomProperty.AtomPropertyGroup.prototype = /** @lends Provi.Bio.AtomProperty.AtomPropertyGroup.prototype */ {
+//     add: function(atom_property){
+//         this._list.push( atom_property );
+//     },
+//     get_list: function(){
+//         return this._list;
+//     }
+// };
 
 
 /**
@@ -61,7 +73,7 @@ Provi.Bio.AtomProperty.AtomPropertyGroup.prototype = /** @lends Provi.Bio.AtomPr
  * @extends Provi.Widget.Widget
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
-Provi.Bio.AtomProperty.AtomPropertyWidget = function(params){
+Provi.Bio.AtomProperty.AtomPropertyWidget = function( params ){
     params = _.defaults(
         params,
         Provi.Bio.AtomProperty.AtomPropertyWidget.prototype.default_params
@@ -224,6 +236,7 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget = function(params){
         '<div id="${eids.list}"></div>' +
     '</div>';
     this.add_content( template, params );
+
     this.init();
 }
 Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype */ {
@@ -235,10 +248,10 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, 
     init: function(){
         var self = this;
         
-        var props = _.map( this.dataset.data.get_list(), function(p){
-            return p.name.split('_').slice(1, -1).join('_'); // remove 'property_' prefix and '_id' suffix
+        var props = _.map( this.dataset.bio.get_list(), function(p){
+            return p.split('_').slice(1, -1).join('_'); // remove 'property_' prefix and '_id' suffix
         });
-        console.log(props);
+        
         if( this.filter_properties ){
             props = _.intersection( props, this.filter_properties )
         }
@@ -250,7 +263,6 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, 
                 range = self.property_ranges[ property_name ];
             }
             self.add( property_name, range );
-            console.log(property_name, range);
         });
 
         Provi.Widget.Widget.prototype.init.call(this);

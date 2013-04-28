@@ -22,12 +22,39 @@ var Widget = Provi.Widget.Widget;
  * Represents a bond set
  * @constructor
  */
-Provi.Bio.HydrogenBonds.BondSet = function(bondset){
-    this.bondset = bondset;
+Provi.Bio.HydrogenBonds.BondSet = function( params ){
+    params = _.defaults(
+        params,
+        Provi.Bio.HydrogenBonds.BondSet.prototype.default_params
+    )
+    var p = [ "applet", "dataset" ];
+    _.extend( this, _.pick( params, p ) );
+    var self = this;
+    $(this.dataset).bind("loaded", function(){self.sele()});
+    this.load();
 };
 Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.BondSet.prototype */ {
+    default_params: {
+
+    },
+    load: function( applet ){
+        var s = '' +
+            'x = load("' + this.dataset.url + '");' +
+            'bond_count_before = {*}.bonds.size;' +
+            'script INLINE @x;' +
+            'bond_count_after = {*}.bonds.size;' +
+            'bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";' +
+            'hide add @bs;' +
+            'provi_datasets[' + this.dataset.id + '] = bs;' + 
+            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+        '';
+        console.log(s);
+        this.applet.script(s, { maintain_selection: true, try_catch: false });
+    },
     sele: function(){
-        return this.bondset;
+        var d = this.applet.evaluate( "provi_datasets[" + this.dataset.id + "]" );
+        console.log(d);
+        return d;
     }
 }
 
@@ -137,7 +164,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
         }
     },
     show: function(){
-        var sele = this.dataset.data.sele();
+        var sele = this.dataset.bio.sele();
         var filter_sele = this.get_filter();;
         var bond_mode_or = this.bond_mode_or;
         console.log(this, sele, filter_sele);

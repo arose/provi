@@ -28,7 +28,8 @@ Provi.Data.types = {
     structure: ['pdb', 'ent', 'pqr', 'gro', 'cif', 'mmcif', 'mol', 'mol2', 'sdf', 'xyzr', 'xyzrn'],
     isosurface: ['jvxl', 'obj', 'vert'],
     volume: ['cube', 'mrc', 'cub', 'ccp4', 'dx', 'map'],
-    interface_contacts: ['sco', 'mbn']
+    interface_contacts: ['sco', 'mbn'],
+    jmol: ['jmol', 'png']
 }
 
 
@@ -97,104 +98,69 @@ Provi.Data.DatasetManager = {
  * @constructor
  */
 Provi.Data.Dataset = function(params){
-    this._status = params.status || { local: null, server: null };
-    this._set_type( params.type );
-    this.data = params.data;
+    params = _.defaults(
+        params,
+        Provi.Data.Dataset.prototype.default_params
+    );
+    this.raw_data = params.raw_data;
     this.name = params.name;
     this.url = params.url;
-    this.data_list = [];
-    this.data_dict = {};
-    //this.applet = params.applet;
-    /** list of applets this dataset has been loaded into */
-    this.applet_list = [];
-    this.server_id = params.server_id;
-    this.plupload_id = params.plupload_id;
+    this.type = params.type;
+
+    // can be polluted by other functions for temp storage, i.e.
+    // plupload_id for the plupload widget
     this.meta = params.meta;
+
+    this.initialized = false;
+    this.loaded = false;
+
     this.id = Provi.Data.DatasetManager.add( this );
-    this._init();
-    this.set_status( this._status );
+    
+    this.detect_type();
 };
 Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
-    _init: function(){
-        $(this).bind('change', function(){
-            $(Provi.Data.DatasetManager).triggerHandler('change');
-        });
+    bio_object: Provi.Bio.Data.Data,
+    raw_type: false, // [ false, "text", "json" ]
+    default_params: {
+        name: "unnamed",
     },
-    /**
-     * get the status of the dataset
-     * @returns {object} status object
-     */
-    get_status: function(){
-        return this._status;
-    },
-    /**
-     * Sets the status of the dataset.
-     * Fires the {@link Provi.Data.Dataset#event:change} event.
-     */
-    set_status: function(status){
-        if( arguments.length == 1 ){
-            this._status = status;
-        }else if( arguments.length == 2 ){
-            this._status[ arguments[0] ] = arguments[1];
-        }else{
-            throw "Expect exactly one or two arguments";
+    detect_type: function(){
+        if( !this.type ){
+            // from this.url
+            // fallback: dat
         }
-        $(this).triggerHandler('change');
-        if( status['local']=='loaded' || (arguments[0]=='local' && arguments[1]=='loaded') ){
-            $(this).triggerHandler('loaded2');
-        }
+        Provi.Data.Controller.extend_by_type( this, this.type );
     },
-    /**
-     * Sets the data/content of the dataset.
-     * Fires the {@link Provi.Data.Dataset#event:change} event.
-     */
-    set_data: function(data){
-        this.data = data;
-        $(this).triggerHandler('change');
-    },
-    _set_type: function(type){
-        this.type = type;
-        Provi.Data.Controller.extend_by_type( this, type );
-    },
-    add_data: function( name, data ){
-        this.data_list.push( data );
-        this.data_dict[ name ] = data;
-        $(this).triggerHandler('change');
-    },
-    get: function( name ){
-        if( typeof(name) == 'undefined' ) name = 'main';
-        return this.get_dict()[ name ];
-    },
-    get_list: function(){
-        return [ this.data ].concat( this.data_list );
-    },
-    get_dict: function(){
-        return $.extend( { main: this.data }, this.data_dict );
-    },
-    /**
-     * Sets the type of the dataset.
-     * Fires the {@link Provi.Data.Dataset#event:change} event.
-     */
-    set_type: function(type){
-        this._set_type(type);
-        $(this).triggerHandler('change');
-    },
-    retrieve_data: function(){
+    retrieve_raw_data: function( params ){
         var self = this;
-        $.getJSON( this.url, {}, function(d){
-            self.set_data( d );
+        $.ajax({
+            dataType: this.raw_type,
+            url: this.url,
+            success: function( d ){
+                self.raw_data = d;
+                self._init( params );
+            },
+            error: function(e){ console.error(e); }
         });
+    },
+    set_loaded: function(){
+        // must be called e.g. when Jmol has finished loading the dataset
+        this.loaded = true;
+        $(this).triggerHandler("loaded");
+    },
+    _init: function( params ){
+        params.dataset = this;
+        this.bio = new this.bio_object( params );
+        this.initialized = true;
+        $(this).triggerHandler("initialized");
     },
     init: function( params ){
-        if( params.applet ){
-            this.applet_list.push( params.applet );
-            var name = this.name + ' (' + this.id + ')';
-            if( $('#' + params.applet.widget.data_id).text() ){
-                name = ', ' + name;
-            }
-            $('#' + params.applet.widget.data_id).append( name );
+        if( this.raw_type ){
+            this.retrieve_raw_data( params );
+        }else{
+            this._init( params );
         }
-    }
+    },
 };
 
 
@@ -208,7 +174,7 @@ Provi.Data.DatasetWidget = function(params){
     this.load_params_widget = [];
     this.dataset = params.dataset;
     this.load_params_values = params.load_params_values || {};
-    console.log( this.load_params_values );
+    console.log( "ds load params", this.load_params_values );
     Widget.call( this, params );
     this.load_widget_id = this.id + '_load_widget';
     this.load_id = this.id + '_load';
@@ -224,7 +190,7 @@ Provi.Data.DatasetWidget = function(params){
 Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.DatasetWidget.prototype */ {
     init: function(){
         var self = this;
-        $(this.dataset).bind('change', function(){
+        $(this.dataset).bind('initialized loaded', function(){
             self.update();
         });
     },
@@ -232,15 +198,14 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
         var self = this;
         var elm = $('#' + this.ds_info_id);
         elm.empty();
-        var status = this.dataset.get_status();
         elm.append(
-            '<div style="background-color: ' + ( status.server == 'Ok' ? 'lightgreen' : 'lightgrey' ) + '; margin: 5px; padding: 3px;">' +
+            '<div style="background-color: ' + ( this.dataset.initialized ? 'lightgreen' : 'lightgrey' ) + '; margin: 5px; padding: 3px;">' +
                 '<div>' + this.dataset.id + '. ' + this.dataset.name + ' (' + this.dataset.type + ')</div>' +
-                '<div>Local Status: ' + status.local + '&nbsp;|&nbsp;Server Status: ' + status.server + '</div>' +
+                '<div>Initialized: ' + this.dataset.initialized + '&nbsp;|&nbsp;Ready: ' + this.dataset.loaded + '</div>' +
             '</div>'
         );
         
-        if( status.server == 'Ok'){
+        if( this.dataset.initialized ){
             if( !this.applet_selector ){
                 this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
                     parent_id: this.load_widget_id,

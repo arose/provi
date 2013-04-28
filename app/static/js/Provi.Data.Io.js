@@ -186,23 +186,21 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
  * function to import a dataset from from a example/local data directory
  * @returns {Provi.Data.Dataset} dataset instance
  */
-Provi.Data.Io.import_example = function( directory_name, filename, type, params, success, no_init ){
+Provi.Data.Io.import_example = function( directory_name, filename, type, params, no_init ){
     var self = this;
     var dataset = new Provi.Data.Dataset({
         name: filename,
-        status: { local: "loaded", server: "Ok" },
         meta: {
             directory: directory_name,
             filename: filename
         },
-        type: filename.split('.').pop(),
+        type: type || filename.split('.').pop(),
         url: '../../example/data/' +
             '?directory_name=' + directory_name + 
             '&_id=' + (new Date().getTime()) +
             '&path=' + filename
             
     });
-    $( dataset ).triggerHandler( 'loaded' );
     if(!no_init) dataset.init( params );
     return dataset;
 }
@@ -373,7 +371,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
             applet: this.applet_selector.get_value()
         }
         return Provi.Data.Io.import_example( 
-            directory_name, filename, type, params, function(dataset){}, no_init
+            directory_name, filename, type, params, no_init
         );
     },
     dataset_list: function(){
