@@ -627,46 +627,14 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
                     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
                 });
             }
-            if( msg1.search(/provi property ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
-                //console.log(msg1, msg2, msg3);
-                var m = msg1.match(/provi property ds ([\w]+): ([\w\. ]+)/);
-                var dataset_id = m[1];
-                var property_names = m[2].split(" ");
-                var ds = Provi.Data.DatasetManager.get( dataset_id );
-                ds.set_data( new Provi.Bio.AtomProperty.AtomPropertyGroup(property_names) );
-            }
-            if( msg1.search(/provi selection ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
-                //console.log(msg1, msg2, msg3);
-                var m = msg1.match(/provi selection ds ([\w]+): ([\w ]*)/);
-                var dataset_id = m[1];
-                var sele_names = [];
-                if( m[2].trim() ){
-                    sele_names = m[2].split(" ");
-                }
-                var ds = Provi.Data.DatasetManager.get( dataset_id );
-                console.debug( ds, dataset_id );
-                ds.set_data( new Provi.Bio.AtomSelection.AtomSelectionGroup(sele_names) );
-            }
-            if( msg1.search(/provi bonds ds ([\w]+):/) != -1 && msg1.search(/__no_widget__/) == -1 ){
-                //console.log(msg1, msg2, msg3);
-                var m = msg1.match(/provi bonds ds ([\w]+): ([\w]+) ([\w]+)/);
-                console.log('BONDS', m);
-                var dataset_id = m[1];
-                var bonds_before = m[2];
-                var bonds_after = m[3];
-                var bondset = '[{' + (bonds_before) + ':' + (parseInt(bonds_after)-1) + '}]'
-                var ds = Provi.Data.DatasetManager.get( dataset_id );
-                ds.set_data( new Provi.Bio.HydrogenBonds.BondSet(bondset) );
-            }
             // needs to be last!
             if( msg1.search(/provi dataset:/) != -1 ){
                 //console.log(msg1, msg2, msg3);
                 var m = msg1.match(/provi dataset: ([\w]+) ([\w]+)/);
                 var dataset_id = m[1];
                 var status = m[2];
-                //console.log('DS', dataset_id, status);
-                var ds = Provi.Data.DatasetManager.get( dataset_id );
-                ds.set_status('local', status);
+                console.log('DS', dataset_id, status);
+                Provi.Data.DatasetManager.get( dataset_id ).set_loaded();
             }
         });
     }

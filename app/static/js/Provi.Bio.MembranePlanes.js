@@ -26,19 +26,77 @@ var MembranePlanes = {};
 /**
  * @class Represents membrane planes
  */
-Provi.Bio.MembranePlanes.Mplane = function(plane1, plane2, distance){
-    this.plane1 = plane1;
-    this.plane2 = plane2;
-    this.distance = parseFloat(distance);
+Provi.Bio.MembranePlanes.Mplane = function( params ){
+    this.dataset = params.dataset;
+    this.applet = params.applet;
+    this.parse();
+    this.calc_distance();
+
+    var self = this;
+    $(this.dataset).bind("loaded", function(){
+        new Provi.Bio.MembranePlanes.MplaneWidget({
+            parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+            dataset: self.dataset,
+            applet: self.applet
+        });
+    });
+
+    $(this.dataset).bind("initialized", function(){
+        self.dataset.set_loaded();
+    });
 };
 Provi.Bio.MembranePlanes.Mplane.prototype = /** @lends Provi.Bio.MembranePlanes.Mplane.prototype */ {
     __jmol_format: function( p ){
         return "{" + p[0].join(',') + "} {" + p[1].join(',') + "} {" + p[2].join(',') + "}";
     },
     format_as_jmol_planes: function(){
-        return [ this.__jmol_format(this.plane1), this.__jmol_format(this.plane2) ];
+        return [ this.__jmol_format( this.plane1 ), this.__jmol_format( this.plane2 ) ];
+    },
+    parse: function(){
+        var line = this.dataset.raw_data.split("\n")[0];
+        var raw_planes = line.substring( line.indexOf(": {") + 2 ).split(":::");
+        var planes = _.map( raw_planes, function( pl ){
+            var raw_points = pl.split( /}\s+{/ );
+            return _.map( raw_points, function( pt ){
+                return _.map( pt.split(","), function( c ){
+                    return parseFloat( c.replace(/{|}|\s*/g, "") )
+                });
+            })
+        });
+        this.plane1 = planes[0];
+        this.plane2 = planes[1];
+    },
+    calc_distance: function(){
+        // http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
+        // http://mathworld.wolfram.com/Point-PlaneDistance.html
+        var p1 = _.map( this.plane1, $V );
+        var p2 = _.map( this.plane2, $V );
+        var v1 = p1[1].subtract( p1[0] );
+        var v2 = p1[2].subtract( p1[0] );
+        var n = v1.cross( v2 );
+        var v3 = p2[0].subtract( p1[0] );
+        this.distance = Math.abs( v3.dot( n ) / n.modulus() );
     }
 };
+
+
+
+    // def distance(self, planes):
+    //     p1 = map( numpy.array, planes[0] )
+    //     p2 = map( numpy.array, planes[1] )
+    //     # http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
+    //     # http://mathworld.wolfram.com/Point-PlaneDistance.html
+    //     n = numpy.cross( p1[1]-p1[0], p1[2]-p1[0] )
+    //     p0 = p2[0]
+    //     v0 = p1[0]
+    //     dist = numpy.abs( numpy.dot( (p0-v0), n )/self.vec_mag(n) )
+    //     if numpy.isnan(dist):
+    //         return 0
+    //     else:
+    //         return dist
+    // def vec_mag( self, v ):
+    //     return math.sqrt( v[0]**2 + v[1]**2 + v[2]**2 )
+
 
 
 /**
@@ -126,7 +184,7 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         this.orient();
         var self = this;
         
-        this.elm("distance").html( this.dataset.data.distance.toFixed(2) );
+        this.elm("distance").html( this.dataset.bio.distance.toFixed(2) );
         
         this.elm("visibility").bind('change click', function() {
             self.visibility = self.elm("visibility").is(':checked');
@@ -183,7 +241,7 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         this.draw();
     },
     orient: function(){        
-        var mp = this.dataset.data;
+        var mp = this.dataset.bio;
         // first try to rotate the model so the planes are aligned with the point of view
         var s = 'M = {' + mp.plane1[1].join(',') + '};' +
             'A =  {' + mp.plane1[0].join(',') + '};' +
@@ -195,7 +253,8 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
     draw: function(){
         var base_name = 'plane_' + this.id;
         if(this.visibility){
-            var mp = this.dataset.data;
+            var mp = this.dataset.bio;
+            console.log(mp, this.dataset);
             var mp_f = mp.format_as_jmol_planes();
             var color = 'color TRANSLUCENT ' + this.translucency + ' ' +
                 (this.color.charAt(0) == '#' ? '[x' + this.color.substring(1) + ']' : this.color);

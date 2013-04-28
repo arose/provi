@@ -79,7 +79,6 @@ function helix_axis2(helix, draw){
 }
 
 
-
 function helixorient( sele, draw, id, colr ){
 	sele = {@sele and *.CA};
     var n = sele.length;

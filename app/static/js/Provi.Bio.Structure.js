@@ -25,47 +25,31 @@ var Widget = Provi.Widget.Widget;
  * @class Represents Structure
  */
 Provi.Bio.Structure.Structure = function(params){
-    this.filename = params.filename;
-
-    this.applet = params.applet;
-    this.load_as = params.load_as;
-    this.style = params.style;
-    this.script = params.script;
-    this.filter = params.filter;
-    this.lattice = params.lattice;
-    this.type = params.type;
-    this.pdb_add_hydrogens = params.pdb_add_hydrogens;
-    
+    var self = this;
+    var p = [ "applet", "load_as", "style", "script", "filter", "lattice", "pdb_add_hydrogens", "dataset" ];
+    _.extend( this, _.pick( params, p ) );
     this.load();
 };
 Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structure.prototype */ {
     default_params: {
         style: '',
         load_as: undefined,
-        script: false,
+        script: '',
         filter: '',
         lattice: '',
         pdb_add_hydrogens: false
     },
     load: function(){
-        this.load_file();
-    },
-    load_file: function(){
         var self = this;
-        var applet = this.applet;
-        var load_as = this.load_as;
         var style = this.style;
-        var script = this.script;
-        var filter = this.filter;
-        var lattice = this.lattice;
-        var type = this.type;
+        var post_script = this.script || '';
+        var type = this.dataset.type;
         
-        if( $.inArray(type, ['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol', 'cif']) >= 0 ){
+        if( _.contains(['pdb', 'pqr', 'ent', 'sco', 'mbn', 'vol', 'cif'], type ) ){
             type = 'pdb';
         }
         var jmol_types = {
             pdb: 'PDB',
-            ent: 'PDB',
             gro: 'GROMACS'
         };
         type = jmol_types[type];
@@ -76,54 +60,39 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         }else{
             style = 'select all; ' + style;
         }
-        if( load_as != 'append' && load_as != 'trajectory+append' ){
-            applet._delete();
+        if( this.load_as != 'append' && this.load_as != 'trajectory+append' ){
+            this.applet._delete();
         }
 
-        var path = '"' + type + this.filename + '"';
-
-        if(filter){
-            path += ' FILTER "' + filter + '"';
-        }
-
-        if(lattice){
-            path += ' ' + lattice + '';
-        }
+        var path = '"' + type + this.dataset.url + '"';
+        if( this.filter ) path += ' FILTER "' + this.filter + '"';
+        if( this.lattice ) path += ' ' + this.lattice + '';
         
         // add hydrogens and multiple bonding (fetches ligand data from rcsb pdb)
         var s = 'set pdbAddHydrogens ' + ( this.pdb_add_hydrogens ? 'true' : 'false' ) + ';';
 
         // load structural data into the jmol applet
-        if(load_as == 'trajectory'){
+        if( this.load_as == 'trajectory' ){
             s += 'load TRAJECTORY ' + path + '; ' + style;
-        }else if(load_as == 'trajectory+append'){
+        }else if( this.load_as == 'trajectory+append' ){
             s += 'load APPEND TRAJECTORY ' + path + '; ' +
                 'subset file = _currentFileNumber; ' + style + '; subset;';
-        }else if(load_as == 'append'){
+        }else if( this.load_as == 'append' ){
             s += 'load APPEND ' + path + '; ' +
                 'subset file = _currentFileNumber; ' + style + '; subset; ';
-        //}else if(load_as == 'new'){
         }else{
-            console.log(path);
             s += 'load ' + path + '; ' + style;
         }
-        //s += "provi_settings_init(); set highResolution true; set picking group;";
 
-        applet.script_callback( s, { maintain_selection: true, try_catch: false }, function(){
-            if( load_as != 'append' && load_as != 'trajectory+append' ){
-                // applet.lighting_manager.set();
-                // applet.clipping_manager.set();
-                // applet.picking_manager.set();
+        this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, function(){
+            post_script = 'provi_settings_init();' + post_script;
+            if( this.load_as != 'trajectory+append' && this.load_as != 'trajectory'  ){
+                post_script = 'frame all;' + post_script;
             }
-            // applet.picking_manager.set();
-            // applet.misc_manager.set();
-            applet.script( 'provi_settings_init();', { maintain_selection: true, try_catch: false } );
-            if( load_as != 'trajectory+append' && load_as != 'trajectory'  ){
-                applet.script( 'frame all;', { maintain_selection: true, try_catch: false } );
+            if( self.dataset ){
+                post_script += 'print "provi dataset: ' + self.dataset.id + ' loaded";';
             }
-            if( script ){
-                applet.script( script, { maintain_selection: true, try_catch: false } );
-            }
+            self.applet.script( post_script, { maintain_selection: true, try_catch: false } );
         });
     }
 };

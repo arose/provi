@@ -25,7 +25,7 @@ Provi.Bio.InterfaceContacts.register = function( params ){
     console.log( "InterfaceContacts.register", contacts_ds, contacts_ds2 );
     Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
         'interface_contacts', Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory(
-            _.pluck( contacts_ds.get().get_list(), 'name' ),
+            contacts_ds.bio.get_list(),
             contacts_ds2.id
         )
     )

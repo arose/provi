@@ -27,39 +27,42 @@ var AtomProperty = {};
 /**
  * @class Represents atom selection
  */
-Provi.Bio.AtomSelection.AtomSelection = function(name){
-    this.name = name;
+Provi.Bio.AtomSelection.AtomSelection = function( params ){
+    this.dataset = params.dataset;
+    this.applet = params.applet;
+    this.load();
 };
 Provi.Bio.AtomSelection.AtomSelection.prototype = /** @lends Provi.Bio.AtomSelection.AtomSelection.prototype */ {
-    sele: function(flag){
-        if(flag){
-            return 'provi_selection["' + this.name + '"]';
-        }else{
-            return '@{ provi_selection["' + this.name + '"] }';
-        }
-    }
-};
-
-
-/**
- * @class Represents atom property group
- */
-Provi.Bio.AtomSelection.AtomSelectionGroup = function(names){
-    var self = this;
-    this._list = [];
-    _.each(names, function(name){
-        self.add( new Provi.Bio.AtomSelection.AtomSelection(name) );
-    });
-    // console.log( this.get_list() );
-};
-Provi.Bio.AtomSelection.AtomSelectionGroup.prototype = /** @lends Provi.Bio.AtomSelection.AtomSelectionGroup.prototype */ {
-    add: function(atom_selection){
-        this._list.push( atom_selection );
+    load: function(){
+        var s = 'provi_load_selection("' + this.dataset.url + '", "' + this.dataset.id + '");';
+        this.applet.script(s, { maintain_selection: true, try_catch: false });
     },
     get_list: function(){
-        return this._list;
+        return this.applet.evaluate( "provi_datasets[" + this.dataset.id + "].join(',')" ).split(",");
     }
 };
+
+
+
+// /**
+//  * @class Represents atom property group
+//  */
+// Provi.Bio.AtomSelection.AtomSelectionGroup = function(names){
+//     var self = this;
+//     this._list = [];
+//     _.each(names, function(name){
+//         self.add( new Provi.Bio.AtomSelection.AtomSelection(name) );
+//     });
+//     // console.log( this.get_list() );
+// };
+// Provi.Bio.AtomSelection.AtomSelectionGroup.prototype = /** @lends Provi.Bio.AtomSelection.AtomSelectionGroup.prototype */ {
+//     add: function(atom_selection){
+//         this._list.push( atom_selection );
+//     },
+//     get_list: function(){
+//         return this._list;
+//     }
+// };
 
 
 

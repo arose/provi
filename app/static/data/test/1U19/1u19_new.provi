@@ -1,89 +1,48 @@
 [
     {
-        "applet": "default",
-        "filename": "pdb/1U19_OPM_mod.pdb", 
-        "type": "pdb"
+        "filename": "pdb/1U19_OPM_mod.pdb"
     },
     {
-        "applet": 0,
-        "filename": "TMalign/matrix.txt", 
-        "type": "tmalign",
-        "params": {
-            "sele": "file=1"
-        }
-    }, 
-    {
-        "applet": 0,
         "filename": "dowser/dowserwat.pdb", 
-        "type": "pdb",
-        "load_as": "append",
-        "when": 1
+        "params": { 
+            "load_as": "append"
+        }
     },
     {
-        "applet": 0,
         "filename": "TMalign/matrix.txt", 
         "type": "tmalign",
         "params": {
-            "sele": "file=2"
+            "sele": "file=1 or file=2"
+        }
+    },
+    {
+        "name": "vol_atomprop",
+        "filename": "vol/1U19_OPM_mod.vol.atmprop"
+    },
+    {
+        "widget": "Provi.Bio.AtomProperty.AtomPropertyGroupWidget",
+        "params": {
+            "dataset": "DATASET_vol_atomprop", 
+            "filter_properties": [
+                "packing_density", 
+                "z_score"
+            ], 
+            "heading": "Packing", 
+            "parent_id": "tab_widgets"
         }
     }, 
     {
-        "applet": 0,
-        "filename": "mbn/1U19_OPM_mod_1.4.mbn.atmsele", 
-        "type": "atmsele", 
-        "when": 3
+        "name": "vol_atomsele",
+        "filename": "vol/1U19_OPM_mod.vol.atmsele"
     }, 
     {
-        "applet": 0, 
-        "filename": "mbn/1U19_OPM_mod_1.4.mbn_contact.atmsele", 
-        "type": "atmsele", 
-        "when": 3
-    }, 
-    {
-        "applet": 0,
-        "filename": "vol/1U19_OPM_mod.vol.atmsele", 
-        "type": "atmsele", 
-        "when": 3
-    }, 
-    {
-        "applet": 0, 
-        "filename": "vol/1U19_OPM_mod.vol.atmprop", 
-        "type": "atmprop", 
-        "when": 3
-    }, 
-    {
-        "funcname": "Provi.Bio.Voronoia.register", 
+        "function": "Provi.Bio.Voronoia.register", 
         "params": {
-            "holes_ds": "DATASET_6"
-        }, 
-        "type": "function", 
-        "when": 7
-    }, 
+            "holes_ds": "DATASET_vol_atomsele"
+        }
+    },
     {
-        "applet": 0, 
-        "filename": "helix/1U19_OPM.opmhelix.atmsele", 
-        "type": "atmsele", 
-        "when": 3
-    }, 
-    {
-        "applet": 0,
-        "filename": "HBX/1U19_OPM_mod_hbx.anal.bonds", 
-        "type": "bonds", 
-        "when": 9
-    }, 
-    {
-        "applet": 0, 
-        "params": {
-            "dataset": "DATASET_10", 
-            "parent_id": "tab_widgets", 
-            "tmhelix_atmsele_ds": "DATASET_9"
-        }, 
-        "type": "widget", 
-        "when": 10, 
-        "widgetname": "Provi.Bio.HydrogenBonds.HbondsWidget"
-    }, 
-    {
-        "applet": 0, 
+        "widget": "Provi.Bio.AtomSelection.GridWidget",
         "params": {
             "heading": "Cavities", 
             "hide_eids": [
@@ -94,22 +53,41 @@
             ], 
             "parent_id": "tab_widgets", 
             "type": "voronoia"
-        }, 
-        "type": "widget", 
-        "when": 7, 
-        "widgetname": "Provi.Bio.AtomSelection.GridWidget"
+        }
+    },
+    {
+        "name": "tmhelix",
+        "filename": "helix/1U19_OPM.opmhelix.atmsele"
     }, 
     {
-        "funcname": "Provi.Bio.InterfaceContacts.register", 
+        "name": "hbx",
+        "filename": "HBX/1U19_OPM_mod_hbx.anal.bonds"
+    },
+    {
+        "widget": "Provi.Bio.HydrogenBonds.HbondsWidget",
         "params": {
-            "contacts_ds": "DATASET_4",
-            "contacts_ds2": "DATASET_5"
-        }, 
-        "type": "function", 
-        "when": 5
+            "dataset": "DATASET_hbx", 
+            "parent_id": "tab_widgets", 
+            "tmhelix_atmsele_ds": "DATASET_tmhelix"
+        }
+    },
+    {
+        "name": "mbn",
+        "filename": "mbn/1U19_OPM_mod_1.4.mbn.atmsele"
+    },
+    {
+        "name": "mbn_contacts",
+        "filename": "mbn/1U19_OPM_mod_1.4.mbn_contact.atmsele"
+    },
+    {
+        "function": "Provi.Bio.InterfaceContacts.register", 
+        "params": {
+            "contacts_ds": "DATASET_mbn",
+            "contacts_ds2": "DATASET_mbn_contacts"
+        }
     }, 
     {
-        "applet": 0, 
+        "widget": "Provi.Bio.AtomSelection.GridWidget",
         "params": {
             "heading": "Interface contacts", 
             "hide_eids": [
@@ -120,30 +98,9 @@
             ], 
             "parent_id": "tab_widgets", 
             "type": "interface_contacts"
-        }, 
-        "type": "widget", 
-        "when": 5, 
-        "widgetname": "Provi.Bio.AtomSelection.GridWidget"
-    }, 
+        }
+    },
     {
-        "applet": 0, 
-        "params": {
-            "dataset": "DATASET_7", 
-            "filter_properties": [
-                "packing_density", 
-                "z_score"
-            ], 
-            "heading": "Packing", 
-            "parent_id": "tab_widgets"
-        }, 
-        "type": "widget", 
-        "when": 7, 
-        "widgetname": "Provi.Bio.AtomProperty.AtomPropertyGroupWidget"
-    }, 
-    {
-        "applet": 0,
-        "filename": "mplane/1U19_OPM.mplane", 
-        "type": "mplane", 
-        "when": 3
+        "filename": "mplane/1U19_OPM.mplane"
     }
 ]

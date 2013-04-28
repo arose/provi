@@ -2,7 +2,8 @@
 
 function provi_init(){
 	provi_data = {};
-	provi_property = {};
+    provi_datasets = {};
+	provi_property = {}; # not used?
 	provi_selection = {};
     provi_settings = {};
 	provi_uid_counter = 0;
@@ -16,10 +17,12 @@ function provi_uid(){
     return provi_uid_counter;
 }
 
+
 function provi_require( script ){
     #TODO
     #provi_scripts[ script ]
 }
+
 
 function provi_bind_init(){
     unbind "CTRL-LEFT";
@@ -27,7 +30,6 @@ function provi_bind_init(){
     unbind "ALT-WHEEL";
     bind "ALT-WHEEL" "provi_zslab( _DELTAY );";
 }
-
 
 
 function provi_zslab( delta_y ){
@@ -87,7 +89,9 @@ function provi_load_property( url, sele, dataset_id ){
         script INLINE @s;
     }
     if( dataset_id ){
-    	print "provi dataset: " + dataset_id + " loaded | provi property ds " + dataset_id + ": " + names.join(" ");
+        provi_datasets[ dataset_id ] = names;
+        print "provi dataset: " + dataset_id + " loaded";
+    	#print "provi dataset: " + dataset_id + " loaded | provi property ds " + dataset_id + ": " + names.join(" ");
     }
     select none;
     return true;
@@ -108,7 +112,9 @@ function provi_load_selection( url, dataset_id ){
         provi_selection[name] = sele;
     }
     if( dataset_id ){
-    	print "provi dataset: " + dataset_id + " loaded | provi selection ds " + dataset_id + ": " + names.join(" ");
+        provi_datasets[ dataset_id ] = names;
+        print "provi dataset: " + dataset_id + " loaded";
+        #print "provi dataset: " + dataset_id + " loaded | provi selection ds " + dataset_id + ": " + names.join(" ");
     }
     return true;
 }

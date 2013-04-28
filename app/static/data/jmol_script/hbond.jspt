@@ -26,7 +26,6 @@ function provi_hbonds( sele, angle_min, dist_max, bond_mode_or ){
 }
 
 
-
 function provi_hbond_test(ids){
     var sele_l = [];
     var hbond_l = [];
