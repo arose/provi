@@ -28,8 +28,8 @@ var AtomProperty = {};
  * @class Represents atom selection
  */
 Provi.Bio.AtomSelection.AtomSelection = function( params ){
-    this.dataset = params.dataset;
-    this.applet = params.applet;
+    var p = [ "dataset", "applet" ];
+    _.extend( this, _.pick( params, p ) );
     this.load();
 };
 Provi.Bio.AtomSelection.AtomSelection.prototype = /** @lends Provi.Bio.AtomSelection.AtomSelection.prototype */ {
@@ -82,11 +82,8 @@ Provi.Bio.AtomSelection.GridWidget = function(params){
         'calc', 'init'
     ]);
     
-    this.type = params.type;
-    this.hide_eids = params.hide_eids;
-
-    this.dataset = params.dataset;
-    this.applet = params.applet;
+    var p = [ "dataset", "applet", "type", "heide_eids" ];
+    _.extend( this, _.pick( params, p ) );
     
     var template = '' +
         '<div class="control_row">' +
@@ -395,12 +392,8 @@ Provi.Bio.AtomSelection.CellFactory = function( p ){
 
 
 Provi.Bio.AtomSelection.SelectionType = function(params){
-    this.applet = params.applet;
-    this.parent_id = params.parent_id;
-    this.sele = params.sele;
-    this.filter = params.filter;
-    this.sort = params.sort;
-    this.property = params.property;
+    var p = [ "applet", "parent_id", "sele", "filter", "sort", "property" ];
+    _.extend( this, _.pick( params, p ) );
 
     this.handler = {
         "select": {
@@ -851,7 +844,7 @@ Provi.Bio.AtomSelection.SelectionTypeRegistry = {
  */
 Provi.Bio.AtomSelection.SelectorWidget = function(params){
     params = _.defaults( params, this.default_params );
-    this.applet = params.applet;
+    _.extend( this, _.pick( params, [ "applet" ] ) );
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 'selection' ]);
     var template = '' +

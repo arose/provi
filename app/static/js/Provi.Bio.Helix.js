@@ -213,10 +213,7 @@ Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
 
 
 Provi.Bio.Helix.HelixcrossingWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Helix.HelixcrossingWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Provi.Bio.AtomSelection.GridWidget.call( this, params );
 }
 Provi.Bio.Helix.HelixcrossingWidget.prototype = Utils.extend(Provi.Bio.AtomSelection.GridWidget, /** @lends Provi.Bio.Helix.HelixcrossingWidget.prototype */ {

@@ -54,11 +54,10 @@ Provi.Bio.Voronoia.VoronoiaSelectionTypeFactory = function(ids){
 
 Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
     params = _.defaults( params, this.default_params );
-    this.resolution = params.resolution;
-    this.cavity_probe_radius = params.cavity_probe_radius;
-    this.exterior_probe_radius = params.exterior_probe_radius;
-    this.cavity_color = params.cavity_color;
-    this.ids = params.ids;
+    
+    var p = [ "resolution", "cavity_probe_radius", "exterior_probe_radius", "cavity_color", "ids" ];
+    _.extend( this, _.pick( params, p ) );
+
     Provi.Bio.AtomSelection.SelectionType.call( this, params );
     this.handler = _.defaults({
         "show_hole": {

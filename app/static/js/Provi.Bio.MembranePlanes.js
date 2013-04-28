@@ -27,8 +27,8 @@ var MembranePlanes = {};
  * @class Represents membrane planes
  */
 Provi.Bio.MembranePlanes.Mplane = function( params ){
-    this.dataset = params.dataset;
-    this.applet = params.applet;
+    var p = [ "dataset", "applet" ];
+    _.extend( this, _.pick( params, p ) );
     this.parse();
     this.calc_distance();
 
@@ -91,12 +91,8 @@ Provi.Bio.MembranePlanes.Mplane.prototype = /** @lends Provi.Bio.MembranePlanes.
 Provi.Bio.MembranePlanes.MplaneWidget = function(params){
     params = _.defaults( params, this.default_params );
     
-    this.dataset = params.dataset;
-    this.applet = params.applet;
-    this.color = params.color;
-    this.translucency = params.translucency;
-    this.size = params.size;
-    this.visibility = params.visibility;
+    var p = [ "dataset", "applet", "color", "translucency", "size", "visibility" ];
+    _.extend( this, _.pick( params, p ) );
     
     Widget.call( this, params );
 

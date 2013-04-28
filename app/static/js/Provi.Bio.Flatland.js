@@ -67,7 +67,7 @@ Provi.Bio.Flatland.SketchWidget = function(params){
         'drawing'
     ]);
     
-    this.flatland = params.flatland;
+    _.extend( this, _.pick( params, [ "flatland" ] ) );
 
     var template = '' +
         '<div id="${eids.drawing}" style=""></div>' +
@@ -112,26 +112,12 @@ Provi.Bio.Flatland.FlatlandWidget = function(params){
         'hide_vdw', 'fix_all', 'split_contact_residues', 'init'
     ]);
     
-    this.dataset = params.dataset;
-    this.applet = params.applet;
-    this.sele = params.sele;
-    this.show_helper_links = params.show_helper_links;
-    this.show_center = params.show_center;
-    this.show_axes = params.show_axes;
-    this.show_hull = params.show_hull;
-    this.color_tension = params.color_tension;
-    this.alpha = params.alpha;
-    this.gravity = params.gravity;
-    this.friction =params.friction;
-    this.theta = params.theta;
-    this.hull_alpha = params.hull_alpha;
-    this.auto_update = params.auto_update;
-    this.external_sketch_widget = params.external_sketch_widget;
-    this.show_image = params.show_image;
-    this.hide_vdw = params.hide_vdw;
-    this.fix_all = params.fix_all;
-    this.split_contact_residues = params.split_contact_residues;
-    
+    var p = [
+        "dataset", "applet", "sele", "show_helper_links", "show_center", "show_axes", "show_hull",
+        "color_tension", "alpha", "gravity", "friction", "theta", "hull_alpha", "auto_update",
+        "external_sketch_widget", "show_image", "hide_vdw", "fix_all", "split_contact_residues"
+    ];
+    _.extend( this, _.pick( params, p ) );
     
     var template = '' +
         '<div class="control_row" id="${eids.applet_selector_widget}"></div>' +
