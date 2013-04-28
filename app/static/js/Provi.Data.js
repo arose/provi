@@ -206,7 +206,7 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
             '</div>'
         );
         
-        if( this.dataset.initialized ){
+        if( true || this.dataset.initialized ){
             if( !this.applet_selector ){
                 this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
                     parent_id: this.load_widget_id,

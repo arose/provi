@@ -47,8 +47,10 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
         params,
         Provi.Bio.Isosurface.IsosurfaceWidget.prototype.default_params
     );
+    params.parent_id = Provi.defaults.dom_parent_ids.DATASET_WIDGET;
+
     this.isosurface_type = params.isosurface_type;
-    console.log(params, Provi.Bio.Isosurface.IsosurfaceWidget.prototype.default_params);
+    console.log(params, Provi.Bio.Isosurface.IsosurfaceWidget.prototype.default_params, this.default_params);
     this.dataset = params.dataset;
     this.applet = params.applet;
     this.resolution = parseFloat(params.resolution);

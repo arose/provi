@@ -14,149 +14,6 @@ Provi.Data.Controller = {};
 
 (function() {
 
-/** @exports Utils as Provi.Utils */
-var Utils = Provi.Utils;
-
-
-/**
- * @class
- */
-Provi.Data.Controller.IsosurfaceMixin = {
-    available_widgets: {
-        'IsosurfaceWidget': Provi.Bio.Isosurface.IsosurfaceWidget
-    },
-    load_params_widget: [
-        {
-            params: [
-                { name: 'within', getter: 'get_within' },
-                { name: 'insideout', getter: 'get_insideout' },
-                { name: 'reload_widget', getter: 'get_reload_widget' }
-            ],
-            obj: Provi.Bio.Isosurface.LoadParamsWidget
-        }
-    ],
-    init: function( params ){
-        var self = this;
-        Provi.Data.Dataset.prototype.init.call(this, params);
-        console.log( this, params );
-        if( params.reload_widget ){
-            params.reload_widget.reload(params);
-        }else if( params.applet ){
-            new Provi.Bio.Isosurface.IsosurfaceWidget({
-                parent_id: 'tab_widgets',
-                dataset: self,
-                applet: params.applet,
-                within: params.within,
-                insideout: params.insideout,
-                select: params.select,
-                ignore: params.ignore,
-                color: params.color,
-                style: params.style,
-                focus: params.focus,
-                sele: params.sele
-            });
-        }
-    }
-}
-
-
-/**
- * @class
- */
-Provi.Data.Controller.VolumeMixin = {
-    available_widgets: {
-        'VolumeWidget': Provi.Bio.Isosurface.VolumeWidget
-    },
-    load_params_widget: [
-        {
-            params: [
-                { name: 'within', getter: 'get_within' },
-                { name: 'insideout', getter: 'get_insideout' },
-                { name: 'reload_widget', getter: 'get_reload_widget' }
-            ],
-            obj: Provi.Bio.Isosurface.LoadParamsWidget
-        },
-        {
-            params: [
-                { name: 'sigma', getter: 'get_sigma' },
-                { name: 'cutoff', getter: 'get_cutoff' },
-                { name: 'sign', getter: 'get_sign' },
-                { name: 'color_density', getter: 'get_color_density' },
-                { name: 'downsample', getter: 'get_downsample' }
-            ],
-            obj: Provi.Bio.Isosurface.VolumeParamsWidget
-        },
-        {
-            params: [
-                { name: 'resolution', getter: 'get_resolution' },
-                { name: 'select', getter: 'get_select' },
-                { name: 'ignore', getter: 'get_ignore' },
-                { name: 'type', getter: 'get_type' }
-            ],
-            obj: Provi.Bio.Isosurface.SurfaceParamsWidget
-        }
-    ],
-    init: function( params ){
-        var self = this;
-        Provi.Data.Dataset.prototype.init.call(this, params);
-        console.log( this, params );
-        //if( params.reload_widget ){
-            new Provi.Bio.Isosurface.VolumeWidget( $.extend( params, {
-                parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
-                dataset: self
-            }));
-        //}
-    }
-}
-
-
-/**
- * @class
- */
-Provi.Data.Controller.FastaMixin = {
-    available_widgets: {},
-    init: function( params ){
-        var self = this;
-        // params.jalview = Provi.Jalview.get_default_applet();
-        // if(params.jalview){
-            this.load( params.jalview );
-        // }
-        Provi.Data.Dataset.prototype.init.call(this, params);
-    },
-    load: function( jalview ){
-        var url = window.location.protocol + '//' + window.location.host + 
-            '/example/data/' + this.url;
-        new Provi.Jalview.JalviewWidget({ file: url });
-    }
-}
-
-
-/**
- * @class
- */
-Provi.Data.Controller.FeaturesMixin = {
-    available_widgets: {},
-    init: function( params ){
-        var self = this;
-        params.jalview = Provi.Jalview.get_default_applet();
-        if(params.jalview){
-            this.load( params.jalview );
-        }
-        Provi.Data.Dataset.prototype.init.call(this, params);
-    },
-    load: function( jalview ){
-        var url = window.location.protocol + '//' + window.location.host + 
-            '/example/data/' + this.url;
-        $.get( url, function(data){
-            jalview.applet.loadAnnotation( data );
-        });
-    }
-}
-
-
-
-
-
 
 
 var type_mixins = {
@@ -204,6 +61,56 @@ var type_mixins = {
     },
     "story": {
         bio_object: Provi.Bio.Data.Story
+    },
+    "isosurface": {
+        bio_object: Provi.Bio.Isosurface.IsosurfaceWidget,
+        load_params_widget: [{
+            params: [
+                { name: 'within', getter: 'get_within' },
+                { name: 'insideout', getter: 'get_insideout' },
+                { name: 'reload_widget', getter: 'get_reload_widget' }
+            ],
+            obj: Provi.Bio.Isosurface.LoadParamsWidget
+        }],
+    },
+    "volume": {
+        bio_object: Provi.Bio.Isosurface.VolumeWidget,
+        load_params_widget: [
+            {
+                params: [
+                    { name: 'within', getter: 'get_within' },
+                    { name: 'insideout', getter: 'get_insideout' },
+                    { name: 'reload_widget', getter: 'get_reload_widget' }
+                ],
+                obj: Provi.Bio.Isosurface.LoadParamsWidget
+            },
+            {
+                params: [
+                    { name: 'sigma', getter: 'get_sigma' },
+                    { name: 'cutoff', getter: 'get_cutoff' },
+                    { name: 'sign', getter: 'get_sign' },
+                    { name: 'color_density', getter: 'get_color_density' },
+                    { name: 'downsample', getter: 'get_downsample' }
+                ],
+                obj: Provi.Bio.Isosurface.VolumeParamsWidget
+            },
+            {
+                params: [
+                    { name: 'resolution', getter: 'get_resolution' },
+                    { name: 'select', getter: 'get_select' },
+                    { name: 'ignore', getter: 'get_ignore' },
+                    { name: 'type', getter: 'get_type' }
+                ],
+                obj: Provi.Bio.Isosurface.SurfaceParamsWidget
+            }
+        ],
+    },
+    "fasta": {
+        bio_object: Provi.Bio.Data.Fasta
+    },
+    "features": {
+        bio_object: Provi.Bio.Data.Features,
+        raw_type: "text"
     },
     "dat": {
         bio_object: Provi.Bio.HydrogenBonds.BondSet
