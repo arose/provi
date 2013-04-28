@@ -23,21 +23,11 @@ var type_mixins = {
     },
     "tmalign": {
         bio_object: Provi.Bio.Data.Tmalign,
-        params_object: "todo: sele",
         raw_type: "text"
     },
     "structure": {
-        load_params_widget: [{
-            params: [
-                { name: 'load_as', getter: 'get_load_as' },
-                { name: 'filter', getter: 'get_filter' },
-                { name: 'lattice', getter: 'get_lattice' },
-                { name: 'pdb_add_hydrogens', getter: 'get_pdb_add_hydrogens' }
-            ],
-            obj: Provi.Bio.Structure.StructureParamsWidget
-        }],
-        params_object: "todo",
         bio_object: Provi.Bio.Structure.Structure,
+        params_object: Provi.Bio.Structure.StructureParamsWidget
     },
     "atmprop": {
         bio_object: Provi.Bio.AtomProperty.AtomProperty
@@ -64,14 +54,7 @@ var type_mixins = {
     },
     "isosurface": {
         bio_object: Provi.Bio.Isosurface.IsosurfaceWidget,
-        load_params_widget: [{
-            params: [
-                { name: 'within', getter: 'get_within' },
-                { name: 'insideout', getter: 'get_insideout' },
-                { name: 'reload_widget', getter: 'get_reload_widget' }
-            ],
-            obj: Provi.Bio.Isosurface.LoadParamsWidget
-        }],
+        params_object: Provi.Bio.Isosurface.LoadParamsWidget
     },
     "volume": {
         bio_object: Provi.Bio.Isosurface.VolumeWidget,

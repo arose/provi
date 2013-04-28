@@ -447,29 +447,30 @@ Provi.Data.Io.import_url = function( url, name, type, params, no_init ){
 Provi.Data.Io.UrlLoadWidget = function(params){
     params = _.defaults( params, this.default_params );
     Widget.call( this, params );
-    this.input_id = this.id + '_input';
-    this.load_as_selector_widget_id = this.id + '_load_as';
-    this.applet_selector_widget_id = this.id + '_applet';
-    this.load_button_id = this.id + '_load_button';
-    var content = '<div  class="control_group">' +
-        '<div id="' + this.applet_selector_widget_id + '"></div>' +
-        '<div id="' + this.load_as_selector_widget_id + '"></div>' +
+    params.input_label = this.input_label;
+
+    this._init_eid_manager([
+        "input", "load_params_widget", "applet_selector_widget", "load"
+    ]);
+
+    var template = '<div  class="control_group">' +
+        '<div id="${eids.applet_selector_widget}"></div>' +
+        '<div id="${eids.load_params_widget}"></div>' +
         '<div class="control_row">' +
-            '<label for="' + this.input_id + '">' + this.input_label + ':&nbsp;</label>' +
-            '<input type="text" id="' + this.input_id + '" class="ui-state-default"></input>&nbsp;' +
-            '<button id="' + this.load_button_id + '">import</button>' +
+            '<label for="${input}">${params.input_label}:&nbsp;</label>' +
+            '<input type="text" id="${eids.input}" class="ui-state-default"></input>&nbsp;' +
+            '<button id="${eids.load}">import</button>' +
         '</div>' +
     '</div>';
-    $(this.dom).append( content );
+    this.add_content( template, params );
+    
     this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-        parent_id: this.applet_selector_widget_id,
+        parent_id: this.eid('applet_selector_widget'),
         applet: params.applet,
         new_jmol_applet_parent_id: params.new_jmol_applet_parent_id,
         allow_new_applets: true
     });
-    this.load_as_selector = new Provi.Bio.Structure.StructureParamsWidget({
-        parent_id: this.load_as_selector_widget_id
-    })
+
     this.init();
 }
 Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.Io.UrlLoadWidget.prototype */ {
@@ -480,32 +481,30 @@ Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Da
     },
     init: function(){
         var self = this;
-        $("#" + this.load_button_id).button().click(function() {
+        this.elm("load").button().click(function() {
             Provi.Widget.ui_disable_timeout( $(this) );
             self.import_url();
         });
         Widget.prototype.init.call(this);
     },
     get_url: function(){
-        return $('#' + this.input_id).val();
+        return this.elm("input").val();
     },
     get_name: function(){
-        return $('#' + this.input_id).val();
+        return this.elm("input").val();
     },
     get_type: function(){
         return '';
+    },
+    get_params: function(){
+        return {};
     },
     import_url: function(){
         var url = this.get_url();
         var name = this.get_name();
         var type = this.get_type();
-        var self = this;
-        var params = {
-            applet: this.applet_selector.get_value(),
-            load_as: this.load_as_selector.get_load_as(),
-            filter: this.load_as_selector.get_filter(),
-            lattice: this.load_as_selector.get_lattice()
-        }
+        var params = this.get_params();
+        params.applet = this.applet_selector.get_value();
         Provi.Data.Io.import_url( url, name, type, params );
     }
 });
@@ -520,7 +519,10 @@ Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Da
 Provi.Data.Io.PdbLoadWidget = function(params){
     params = _.defaults( params, this.default_params );
     Provi.Data.Io.UrlLoadWidget.call( this, params );
-    $('#' + this.input_id).attr('size', '4');
+    this.load_params_widget = new Provi.Bio.Structure.StructureParamsWidget({
+        parent_id: this.eid('load_params_widget')
+    })
+    this.elm("input").attr('size', '4');
 }
 Provi.Data.Io.PdbLoadWidget.prototype = Utils.extend(Provi.Data.Io.UrlLoadWidget, /** @lends Provi.Data.Io.PdbLoadWidget.prototype */ {
     input_label: 'Pdb id',
@@ -529,13 +531,16 @@ Provi.Data.Io.PdbLoadWidget.prototype = Utils.extend(Provi.Data.Io.UrlLoadWidget
         collapsed: true
     },
     get_url: function(){
-        return 'http://www.rcsb.org/pdb/files/' + $('#'+this.input_id).val() + '.pdb';
+        return 'http://www.rcsb.org/pdb/files/' + this.elm("input").val() + '.pdb';
     },
     get_name: function(){
-        return $('#' + this.input_id).val() + '.pdb';
+        return this.elm("input").val() + '.pdb';
     },
     get_type: function(){
         return 'pdb';
+    },
+    get_params: function(){
+        return this.load_params_widget.params;
     }
 });
 
