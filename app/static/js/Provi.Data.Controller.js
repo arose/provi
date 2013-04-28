@@ -18,72 +18,6 @@ Provi.Data.Controller = {};
 var Utils = Provi.Utils;
 
 
-
-
-/**
- * @class
- */
-Provi.Data.Controller.JmolMixin = {
-    available_widgets: {},
-    init: function( params ){
-        if(params.applet) this.load( params.applet );
-        Provi.Data.Dataset.prototype.init.call(this, params);
-    },
-    load: function( applet ){
-        applet._delete();
-        applet.script('load "' + this.url + '";', { maintain_selection: true, try_catch: true });
-    }
-}
-
-
-
-
-
-
-/**
- * @class
- */
-Provi.Data.Controller.StoryMixin = {
-    available_widgets: {
-        'StoryWidget': Provi.Widget.StoryWidget
-    },
-    init: function( params ){
-        var self = this;
-        new Provi.Widget.StoryWidget( $.extend( params, {
-            parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
-            dataset: self
-        }));
-        Provi.Data.Dataset.prototype.init.call(this, params);
-    }
-}
-
-
-/**
- * @class
- * TODO directly load from jmol
- */
-Provi.Data.Controller.ScriptMixin = {
-    available_widgets: {},
-    init: function( params ){
-        var self = this;
-        this.retrieve_data( function(d){
-            self.set_data( d );
-            if( params.applet ){
-                self.load( params.applet );
-            }
-        });
-        Provi.Data.Dataset.prototype.init.call(this, params);
-    },
-    retrieve_data: function( onload ){
-        $.get( this.url, {}, onload, 'text' );
-    },
-    load: function(applet){
-        applet.script( this.data );
-    }
-}
-
-
-
 /**
  * @class
  */
@@ -223,13 +157,7 @@ Provi.Data.Controller.FeaturesMixin = {
 
 
 
-var get_canonical_type = function( type ){
-    var canonical_type = type;
-    _.each( Provi.Data.types, function( type_list, ct ){
-        if( _.include( type_list, type ) ) canonical_type = ct;
-    });
-    return canonical_type;
-}
+
 
 var type_mixins = {
     "provi": {
@@ -267,9 +195,28 @@ var type_mixins = {
         bio_object: Provi.Bio.MembranePlanes.Mplane,
         raw_type: "text"
     },
+    "jmol": {
+        bio_object: Provi.Bio.Data.JmolFile
+    },
+    "jspt": {
+        bio_object: Provi.Bio.Data.JmolScript,
+        raw_type: "text"
+    },
+    "story": {
+        bio_object: Provi.Bio.Data.Story
+    },
     "dat": {
         bio_object: Provi.Bio.HydrogenBonds.BondSet
     }
+}
+
+
+var get_canonical_type = function( type ){
+    var canonical_type = type;
+    _.each( Provi.Data.types, function( type_list, ct ){
+        if( _.include( type_list, type ) ) canonical_type = ct;
+    });
+    return canonical_type;
 }
 
 
