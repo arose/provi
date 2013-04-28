@@ -646,7 +646,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
  * @constructor
  */
 Provi.Jmol.JmolWidget = function(params){
-    params = _.defaults( params, Provi.Jmol.JmolWidget.prototype.default_params );
+    params = _.defaults( params, this.default_params );
     Widget.call( this, params );
     this.applet = new Provi.Jmol.Applet(params);
     this.applet.widget = this;

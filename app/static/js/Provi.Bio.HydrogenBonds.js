@@ -23,10 +23,7 @@ var Widget = Provi.Widget.Widget;
  * @constructor
  */
 Provi.Bio.HydrogenBonds.BondSet = function( params ){
-    params = _.defaults(
-        params,
-        Provi.Bio.HydrogenBonds.BondSet.prototype.default_params
-    )
+    params = _.defaults( params, this.default_params );
     var p = [ "applet", "dataset" ];
     _.extend( this, _.pick( params, p ) );
     var self = this;
@@ -70,10 +67,7 @@ Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.B
  * @param {Provi.Data.Dataset} params.dataset The dataset the widget will be bond to
  */
 Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.HydrogenBonds.HbondsWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     
     /** Color in which the hydrogen bonds are drawn */
     this.color = params.color;
@@ -196,10 +190,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
  * @extends Provi.Widget.Widget
  */
 Provi.Bio.HydrogenBonds.HbondParamsWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.HydrogenBonds.HbondParamsWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 'filter', 'bond_mode_or', 'angle_min', 'dist_max' ]);
 

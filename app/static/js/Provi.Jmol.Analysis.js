@@ -29,10 +29,7 @@ var Widget = Provi.Widget.Widget;
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Analysis.IsosurfaceConstructionWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     //params.persist_on_applet_delete = false;
     //params.heading = '';
     //params.collapsed = false;
@@ -107,10 +104,7 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Analysis.PlaneConstructionWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jmol.Analysis.PlaneConstructionWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     params.persist_on_applet_delete = true;
     
     Provi.Widget.Widget.call( this, params );
@@ -216,10 +210,7 @@ Provi.Jmol.Analysis.PlaneConstructionWidget.prototype = Utils.extend(Provi.Widge
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jmol.Analysis.PlotWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jmol.Analysis.PlotWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     params.collapsed = true;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([

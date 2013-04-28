@@ -89,10 +89,7 @@ Provi.Bio.Propensities.Propensities.prototype = /** @lends Provi.Bio.Propensitie
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Propensities.PropensitiesWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Propensities.PropensitiesWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     console.log('PROPENSITIES', params);
     if( params.applet ){
         params.persist_on_applet_delete = false;

@@ -89,10 +89,7 @@ Provi.Bio.MembranePlanes.Mplane.prototype = /** @lends Provi.Bio.MembranePlanes.
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.MembranePlanes.MplaneWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.MembranePlanes.MplaneWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     
     this.dataset = params.dataset;
     this.applet = params.applet;

@@ -74,11 +74,7 @@ Provi.Bio.AtomSelection.AtomSelection.prototype = /** @lends Provi.Bio.AtomSelec
  */
 Provi.Bio.AtomSelection.GridWidget = function(params){
     this.invalidate = _.throttle( this._invalidate, 100, false );
-
-    params = _.defaults(
-        params,
-        Provi.Bio.AtomSelection.GridWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     console.log('ATOMSELECTION GRID', params);
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
@@ -854,10 +850,7 @@ Provi.Bio.AtomSelection.SelectionTypeRegistry = {
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.AtomSelection.SelectorWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.AtomSelection.SelectorWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     this.applet = params.applet;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 'selection' ]);

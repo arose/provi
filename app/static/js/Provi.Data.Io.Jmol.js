@@ -27,10 +27,7 @@ var Widget = Provi.Widget.Widget;
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.Io.Jmol.CalculateWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Data.Io.Jmol.CalculateWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     params.persist_on_applet_delete = false;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager( ['applet_selector', 'calculate', 'download', 'size'] );

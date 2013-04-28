@@ -98,10 +98,7 @@ Provi.Data.DatasetManager = {
  * @constructor
  */
 Provi.Data.Dataset = function(params){
-    params = _.defaults(
-        params,
-        Provi.Data.Dataset.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     this.raw_data = params.raw_data;
     this.name = params.name;
     this.url = params.url;
@@ -300,10 +297,7 @@ Provi.Data.DatasetManagerWidget.prototype = Utils.extend(Widget, /** @lends Prov
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Data.DatasetSelectorWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Data.DatasetSelectorWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     params.persist_on_applet_delete = true;
     
     //params.collapsed = false;

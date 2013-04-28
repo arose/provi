@@ -104,10 +104,7 @@ _.each( Provi.Bio.Alignment.substitution_matrices, function(mat,name){
 
 
 Provi.Bio.Alignment.NeedlemanWunsch = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Alignment.NeedlemanWunsch.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     if( params.subst_matrix ){
         this.subst_matrix = Provi.Bio.Alignment.substitution_matrices[ params.subst_matrix ];
     }else{

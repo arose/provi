@@ -328,10 +328,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Widget.StoryWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Widget.StoryWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     params.collapsed = false;
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
@@ -434,10 +431,7 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
 
 
 Provi.Widget.GridWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Widget.GridWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Provi.Widget.Widget.call( this, params );
 
     this._init_eid_manager([ 'grid' ]);

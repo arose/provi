@@ -43,10 +43,7 @@ Provi.Bio.Isosurface.init_isosurface = function(params){
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Isosurface.IsosurfaceWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     params.parent_id = Provi.defaults.dom_parent_ids.DATASET_WIDGET;
 
     this.isosurface_type = params.isosurface_type;

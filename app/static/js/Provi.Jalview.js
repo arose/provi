@@ -263,10 +263,7 @@ Provi.Jalview.Applet.prototype = /** @lends Provi.Jalview.Applet.prototype */ {
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Jalview.JalviewWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Jalview.JalviewWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     
     Provi.Widget.Widget.call( this, params );
     this.applet = new Provi.Jalview.Applet(params);

@@ -25,7 +25,7 @@ var Widget = Provi.Widget.Widget;
  * @class Represents Structure
  */
 Provi.Bio.Structure.Structure = function(params){
-    var self = this;
+    params = _.defaults( params, this.default_params );
     var p = [ "applet", "load_as", "style", "script", "filter", "lattice", "pdb_add_hydrogens", "dataset" ];
     _.extend( this, _.pick( params, p ) );
     this.load();
@@ -104,10 +104,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
  * @constructor
  */
 Provi.Bio.Structure.StructureParamsWidget = function(params){
-    params = _.defaults(
-        params,
-        Provi.Bio.Structure.StructureParamsWidget.prototype.default_params
-    );
+    params = _.defaults( params, this.default_params );
     Provi.Widget.Widget.call( this, params );
 
     this._init_eid_manager([
