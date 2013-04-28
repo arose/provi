@@ -197,9 +197,10 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
     update: function(){
         var self = this;
         var elm = $('#' + this.ds_info_id);
+        var bgcolor = this.dataset.loaded ? 'lightgreen' : ( this.dataset.initialized ? 'orange' : 'lightgrey' );
         elm.empty();
         elm.append(
-            '<div style="background-color: ' + ( this.dataset.initialized ? 'lightgreen' : 'lightgrey' ) + '; margin: 5px; padding: 3px;">' +
+            '<div style="background-color: ' + bgcolor + '; margin: 5px; padding: 3px;">' +
                 '<div>' + this.dataset.id + '. ' + this.dataset.name + ' (' + this.dataset.type + ')</div>' +
                 '<div>Initialized: ' + this.dataset.initialized + '&nbsp;|&nbsp;Ready: ' + this.dataset.loaded + '</div>' +
             '</div>'

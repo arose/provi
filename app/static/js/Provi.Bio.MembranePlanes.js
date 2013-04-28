@@ -81,23 +81,6 @@ Provi.Bio.MembranePlanes.Mplane.prototype = /** @lends Provi.Bio.MembranePlanes.
 
 
 
-    // def distance(self, planes):
-    //     p1 = map( numpy.array, planes[0] )
-    //     p2 = map( numpy.array, planes[1] )
-    //     # http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
-    //     # http://mathworld.wolfram.com/Point-PlaneDistance.html
-    //     n = numpy.cross( p1[1]-p1[0], p1[2]-p1[0] )
-    //     p0 = p2[0]
-    //     v0 = p1[0]
-    //     dist = numpy.abs( numpy.dot( (p0-v0), n )/self.vec_mag(n) )
-    //     if numpy.isnan(dist):
-    //         return 0
-    //     else:
-    //         return dist
-    // def vec_mag( self, v ):
-    //     return math.sqrt( v[0]**2 + v[1]**2 + v[2]**2 )
-
-
 
 /**
  * widget class for controlling a mplane dataset

@@ -16,6 +16,8 @@ Provi.Bio = {};
 (function() {
 
 
+
+
 Provi.Bio.Data = {};
 Provi.Bio.Data.Data = function( params ){
 	this.dataset = params.dataset;
@@ -93,8 +95,18 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
                 });
             }
         });
+
+		var last = ds_dict[ this.dataset.raw_data.length-1 ];
+		if( last.loaded ){
+			this.dataset.set_loaded();
+		}else{
+			$( last ).bind('loaded', function(){
+	            self.dataset.set_loaded();
+	        });
+		}
     }
 };
+
 
 
 Provi.Bio.Data.Tmalign = function( params ){
@@ -135,6 +147,50 @@ Provi.Bio.Data.Tmalign.prototype = /** @lends Provi.Bio.Data.Tmalign.prototype *
         this.applet.script(s, { maintain_selection: true, try_catch: false });
     }
 }
+
+
+
+Provi.Bio.Data.JmolFile = function( params ){
+	var p = [ "applet", "dataset" ];
+	_.extend( this, _.pick( params, p ) );
+	this.load();
+};
+Provi.Bio.Data.JmolFile.prototype = /** @lends Provi.Bio.Data.JmolFile.prototype */ {
+    load: function( sele, applet ){
+    	this.applet._delete();
+    	var s = '' +
+            'load "' + this.dataset.url + '";' +
+            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+        '';
+        this.applet.script(s, { maintain_selection: true, try_catch: false });
+    }
+}
+
+
+
+Provi.Bio.Data.JmolScript = function( params ){
+	var p = [ "applet", "dataset" ];
+	_.extend( this, _.pick( params, p ) );
+	this.load();
+};
+Provi.Bio.Data.JmolScript.prototype = /** @lends Provi.Bio.Data.JmolScript.prototype */ {
+    load: function( sele, applet ){
+    	var s = '' +
+            this.dataset.raw_data + ';' +
+            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+        '';
+        this.applet.script(s, { maintain_selection: true, try_catch: false });
+    }
+}
+
+
+
+Provi.Bio.Data.Story = function( params ){
+	params.parent_id = Provi.defaults.dom_parent_ids.DATASET_WIDGET;
+	new Provi.Widget.StoryWidget( params );
+	this.dataset.set_loaded();
+};
+
 
 
 
