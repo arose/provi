@@ -110,10 +110,8 @@ Provi.Bio.Alignment.NeedlemanWunsch = function(params){
     }else{
         this.subst_matrix = false;
     }
-    this.gap_penalty = params.gap_penalty;
-    this.gap_extension_penalty = params.gap_extension_penalty;
-    this.seq1 = params.seq1;
-    this.seq2 = params.seq2;
+    var p = [ "gap_penalty", "gap_extension_penalty", "seq1", "seq2" ];
+    _.extend( this, _.pick( params, p ) );
 
     this._init();
 }
@@ -122,8 +120,6 @@ Provi.Bio.Alignment.NeedlemanWunsch.prototype = /** @lends Provi.Bio.Alignment.N
         subst_matrix: "blosum62",
         gap_penalty: -10,
         gap_extension_penalty: -1,
-        // seq1: "ACTGGA",
-        // seq2: "ACCATGGA"
         seq1: "HEAGAWGHEE",
         seq2: "PAWHEAE"
     },

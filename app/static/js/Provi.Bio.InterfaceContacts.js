@@ -41,8 +41,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory = function(ids
 
 Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
     var self = this;
-    this.ids = params.ids;
-    this.dataset_id = params.dataset_id;
+    
+    var p = [ "ids", "dataset_id" ];
+    _.extend( this, _.pick( params, p ) );
+
     this.ids.sort();
 
     this.ids = [ 'Membrane', 'Water' ].concat( this.ids );

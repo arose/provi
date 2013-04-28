@@ -103,13 +103,9 @@ Provi.Bio.Propensities.PropensitiesWidget = function(params){
         'tmh_filter', 'applet_selector_widget'
     ]);
     
-    this.dataset = params.dataset;
-    this.applet = params.applet;
-    this.scale = params.scale;
-    this.radius = params.radius;
-    this.cutoff = params.cutoff;
-    this.tmh_filter = params.tmh_filter;
-    this.mphd = params.mphd;
+    var p = [ "dataset", "applet", "scale", "radius", "cutoff", "tmh_filter", "mphd" ];
+    _.extend( this, _.pick( params, p ) );
+
     if( !this.mphd ){
         this.radius = false;
         this.cutoff = false;

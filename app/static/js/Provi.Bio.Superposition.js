@@ -33,9 +33,8 @@ var Widget = Provi.Widget.Widget;
 Provi.Bio.Superposition.SuperposeWidget = function(params){
     params = _.defaults( params, this.default_params );
 
-    this.gap_penalty = params.gap_penalty;
-    this.gap_extension = params.gap_extension;
-    this.no_alignment = false;
+    var p = [ "gap_penalty", "gap_extension", "no_alignment" ];
+    _.extend( this, _.pick( params, p ) );
     
     Widget.call( this, params );
 
@@ -114,7 +113,8 @@ Provi.Bio.Superposition.SuperposeWidget.prototype = Utils.extend(Widget, /** @le
         heading: 'Superposition',
         collapsed: true,
         gap_penalty: -10,
-        gap_extension: -1
+        gap_extension: -1,
+        no_alignment: false
     },
     _init: function () {
         var self = this;

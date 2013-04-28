@@ -27,8 +27,8 @@ var AtomProperty = {};
  * @class Represents atom property
  */
 Provi.Bio.AtomProperty.AtomProperty = function( params ){
-    this.dataset = params.dataset;
-    this.applet = params.applet;
+    var p = [ "dataset", "applet" ];
+    _.extend( this, _.pick( params, p ) );
     // var self = this;
     // $(this.dataset).bind("loaded", function(){self.get_list(); console.log("foobar")});
     this.load();
@@ -77,13 +77,8 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function( params ){
     params = _.defaults( params, this.default_params );
     params.persist_on_applet_delete = false;
 
-    this.dataset = params.dataset;
-    this.applet = params.applet;
-
-    this.property_name = params.property_name;
-    this.color_scheme = params.color_scheme;
-    this.colorize_on_init = params.colorize_on_init;
-    this.fixed_range = params.fixed_range;
+    var p = [ "dataset", "applet", "property_name", "color_scheme", "colorize_on_init", "fixed_range" ];
+    _.extend( this, _.pick( params, p ) );
     
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
@@ -214,12 +209,8 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget = function(params){
     params = _.defaults( params, this.default_params );
     params.persist_on_applet_delete = false;
 
-    this.filter_properties = params.filter_properties;
-    this.colorize_on_init = params.colorize_on_init;
-    this.property_ranges = params.property_ranges;
-
-    this.dataset = params.dataset;
-    this.applet = params.applet;
+    var p = [ "dataset", "applet", "filer_properties", "colorize_on_init", "property_ranges" ];
+    _.extend( this, _.pick( params, p ) );
     
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([

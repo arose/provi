@@ -69,15 +69,8 @@ Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.B
 Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
     params = _.defaults( params, this.default_params );
     
-    /** Color in which the hydrogen bonds are drawn */
-    this.color = params.color;
-    this.filter = params.filter;
-    this.show_hbonds = params.show_hbonds;
-    this.bond_mode_or = params.bond_mode_or;
-    this.tmhelix_atmsele_ds = params.tmhelix_atmsele_ds;
-
-    this.applet = params.applet;
-    this.dataset = params.dataset;
+    var p = [ "applet", "dataset", "color", "filter", "show_hbonds", "bond_mode_or", "tmhelix_atomsele_ds" ];
+    _.extend( this, _.pick( params, p ) );
     
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([

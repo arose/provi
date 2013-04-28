@@ -46,19 +46,13 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     params = _.defaults( params, this.default_params );
     params.parent_id = Provi.defaults.dom_parent_ids.DATASET_WIDGET;
 
-    this.isosurface_type = params.isosurface_type;
-    console.log(params, Provi.Bio.Isosurface.IsosurfaceWidget.prototype.default_params, this.default_params);
-    this.dataset = params.dataset;
-    this.applet = params.applet;
-    this.resolution = parseFloat(params.resolution);
-    this.display_within = params.display_within;
-    this.color = params.color;
-    this.style = params.style;
-    this.sele = params.sele;
+    var p = [ 
+        "isosurface_type", "dataset", "applet", "resolution", "display_within", "color", 
+        "style", "sele", "no_create", "no_init", "translucent", "focus",
+        "colorscheme", "color_range", "frontonly"
+    ];
+    _.extend( this, _.pick( params, p ) );
 
-    this.no_create = params.no_create;
-    this.no_init = params.no_init;
-    
     // this.init_load_params( params );
     
     Widget.call( this, params );
@@ -69,11 +63,6 @@ Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     ]);
     
     this.isosurface_name = params.isosurface_name || 'isosurface_' + this.id;
-    this.translucent = params.translucent;
-    this.focus = params.focus;
-    this.colorscheme = params.colorscheme;
-    this.color_range = params.color_range;
-    this.frontonly = params.frontonly;
     
     var content = '<div class="control_group">' +
         '<div class="control_row">' +
