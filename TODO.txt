@@ -1,25 +1,11 @@
 
 
 
-* Mplane
-* Dataset status
 * Dataset url builder: full path (http...), cookie handling
 * Dataset subtype, i.e. to specialize an atom selection as voronoia hole neighbours 
 * PLupload - needs to have an upload folder
-* UrlLoad - needs to have an upload folder
 * Jmol calculate - for larger images
 * Jmol proxyUrl is a relay url that gets called as PROXYURL?url=...
-
-
-
-Dataset classes: 
-	(1) need url and params, load into jmol
-		- params object
-		- data object
-	(2) nedd url and params, get data and parse, load into jmol (even if only for data storage)
-		- params object
-		- retrieve function
-		- data object
-
+* Isosurface revamp: grid type, loading, ...
 
 
