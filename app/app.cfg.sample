@@ -6,3 +6,4 @@ LOCAL_DATA_DIRS = {
 	"test_data": "/home/arose/dev/test_data/"
 }
 MAX_CONTENT_LENGTH = 64 * 1024 * 1024
+PROXY = 'proxy.charite.de:888'

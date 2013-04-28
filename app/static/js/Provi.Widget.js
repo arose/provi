@@ -16,6 +16,16 @@ Provi.Widget = {};
 var Utils = Provi.Utils;
 
 
+
+Provi.Widget.ui_disable_timeout = function( $elm ){
+    $elm.attr("disabled", true).addClass('ui-state-disabled');
+    setTimeout(function(){
+        $elm.attr("disabled", false).removeClass('ui-state-disabled');
+    }, 2000);
+}
+
+
+
 /**
  * global widget manager object
  * 

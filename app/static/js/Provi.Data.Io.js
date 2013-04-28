@@ -21,6 +21,7 @@ var Utils = Provi.Utils;
 var Widget = Provi.Widget.Widget;
 
 
+
 /**
  * widget class for loading datasets
  * @constructor
@@ -187,7 +188,6 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
  * @returns {Provi.Data.Dataset} dataset instance
  */
 Provi.Data.Io.import_example = function( directory_name, filename, type, params, no_init ){
-    var self = this;
     var dataset = new Provi.Data.Dataset({
         name: filename,
         meta: {
@@ -230,12 +230,9 @@ Provi.Data.Io.ExampleDirectorySelectorWidget = function(params){
 Provi.Data.Io.ExampleDirectorySelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.Io.ExampleDirectorySelectorWidget.prototype */ {
     _init: function(){
         var self = this;
-        //if( $.cookie('example_directory_name') ) $("#" + self.directory_selector_id).val( $.cookie('example_directory_name') );
         this._update();
         $("#" + this.directory_selector_id).change(function(){
             self.directory_name = $("#" + this.directory_selector_id).val();
-            //console.log(self.directory_name,'sds');
-            //$.cookie('example_directory_name', self.directory_name);
         });
         $('#' + this.refresh_id).click(function(){
             self._update();
@@ -335,6 +332,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
         
         // LOAD //
         $( '#' + this.jstree_id + ' button[title="load"]' ).live( 'click', function(e, data){
+            Provi.Widget.ui_disable_timeout( $(this) );
             var ds = self.load_dataset(
                 self.directory_name,
                 $(this).parent().parent().data('path')
@@ -424,41 +422,18 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Utils.extend(Widget, /** @lends Prov
  * function to import a dataset from some url
  * @returns {Provi.Data.Dataset} dataset instance
  */
-Provi.Data.Io.import_url = function(url, name, type, params, success, no_init){
-    var self = this;
+Provi.Data.Io.import_url = function( url, name, type, params, no_init ){
     var dataset = new Provi.Data.Dataset({
-        name: name,
-        status: { local: null, server: 'importing' }
+        name: url,
+        meta: { url: url },
+        type: type || url.split('.').pop(),
+        url: window.location.protocol + '//' + window.location.host +
+            '/urlload/' +
+                '?_id=' + (new Date().getTime()) +
+                '&url=' + url
     });
-    $.ajax({
-        url: '../../urlload/',
-        data: { url: url, name: name, datatype: type },
-        success: function(response){
-            response = $.parseJSON( response );
-            dataset.server_id = response.id;
-            dataset.set_type( response.type );
-            dataset.set_status( 'server', response.status );
-            if( dataset && !no_init ) dataset.init( params );
-            if( $.isFunction(success) ){
-                success( dataset );
-            }
-        }
-    });
+    if(!no_init) dataset.init( params );
     return dataset;
-}
-
-
-Provi.Data.Io.get_pdb_url = function(id){
-    return 'http://www.rcsb.org/pdb/files/' + id + '.pdb';
-}
-
-
-/**
- * function to import a dataset from the pdb
- * @returns {Provi.Data.Dataset} dataset instance
- */
-Provi.Data.Io.import_pdb = function(id, params, success, no_init){
-    return Provi.Data.Io.import_url( Provi.Data.Io.get_pdb_url(id), id + '.pdb', 'pdb', params, success, no_init );
 }
 
 
@@ -505,9 +480,8 @@ Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Da
     },
     init: function(){
         var self = this;
-        
         $("#" + this.load_button_id).button().click(function() {
-            $(this).attr("disabled", true).addClass('ui-state-disabled').button( "option", "label", "importing..." );
+            Provi.Widget.ui_disable_timeout( $(this) );
             self.import_url();
         });
         Widget.prototype.init.call(this);
@@ -532,10 +506,7 @@ Provi.Data.Io.UrlLoadWidget.prototype = Utils.extend(Widget, /** @lends Provi.Da
             filter: this.load_as_selector.get_filter(),
             lattice: this.load_as_selector.get_lattice()
         }
-        Provi.Data.Io.import_url( url, name, type, params, function(dataset){
-            $('#' + self.load_button_id).attr("disabled", false).removeClass('ui-state-disabled').button( "option", "label", "import" );
-            $('#' + self.input_id).val('');
-        })
+        Provi.Data.Io.import_url( url, name, type, params );
     }
 });
 
@@ -558,7 +529,7 @@ Provi.Data.Io.PdbLoadWidget.prototype = Utils.extend(Provi.Data.Io.UrlLoadWidget
         collapsed: true
     },
     get_url: function(){
-        return Provi.Data.Io.get_pdb_url( $('#' + this.input_id).val() );
+        return 'http://www.rcsb.org/pdb/files/' + $('#'+this.input_id).val() + '.pdb';
     },
     get_name: function(){
         return $('#' + this.input_id).val() + '.pdb';
@@ -642,10 +613,7 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
 
         _.each([ 'structure', 'image', 'state', 'isosurface', 'ndx', 'jmol' ], function(name, i){
             self.elm( 'save_' + name ).button().click(function() {
-                $(this).attr("disabled", true).addClass('ui-state-disabled');
-                setTimeout(function(){
-                    self.elm( 'save_' + name ).attr("disabled", false).removeClass('ui-state-disabled');
-                }, 3000);
+                Provi.Widget.ui_disable_timeout( self.elm( 'save_' + name ) );
                 self[ 'save_' + name ]();
             });
         });

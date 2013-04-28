@@ -203,47 +203,46 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
             '</div>'
         );
         
-        if( true || this.dataset.initialized ){
-            if( !this.applet_selector ){
-                this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
-                    parent_id: this.load_widget_id,
-                    allow_new_applets: ( $.inArray(this.dataset.type, Provi.Data.types.structure.concat(Provi.Data.types.isosurface)) >= 0 )
-                });
-            }
-            if(this.dataset.load_params_widget && !this.load_params_widget.length){
-                $.each(this.dataset.load_params_widget, function(i, lpw){
-                    self.load_params_widget.push(
-                        new lpw.obj({ parent_id: self.load_widget_id, dataset: self.dataset, load_params_values: self.load_params_values })
-                    );
-                });
-            }
-            if( !this._load_button_initialized ){
-                this._load_button_initialized = true;
-                $('#' + this.load_widget_id).append(
-                    '<button id="' + this.load_id + '">load</button>'
+        if( !this.applet_selector ){
+            this.applet_selector = new Provi.Jmol.JmolAppletSelectorWidget({
+                parent_id: this.load_widget_id,
+                allow_new_applets: ( $.inArray(this.dataset.type, Provi.Data.types.structure.concat(Provi.Data.types.isosurface)) >= 0 )
+            });
+        }
+        if(this.dataset.load_params_widget && !this.load_params_widget.length){
+            $.each(this.dataset.load_params_widget, function(i, lpw){
+                self.load_params_widget.push(
+                    new lpw.obj({ parent_id: self.load_widget_id, dataset: self.dataset, load_params_values: self.load_params_values })
                 );
-                $("#" + this.load_id).button().click(function() {
-                    var params = {
-                        applet: self.applet_selector.get_value()
-                    }
-                    if(self.load_params_widget.length){
-                        $.each(self.load_params_widget, function(i, lpw){
-                            var ds_lpw = self.dataset.load_params_widget[i];
-                            if( ds_lpw.params ){
-                                $.each(ds_lpw.params, function(i, p){
-                                    console.log(p)
-                                    params[ p.name ] = lpw[ p.getter ]();
-                                });
-                            }else{
-                                params[ ds_lpw.name ] = lpw[ ds_lpw.getter ]();
-                            }
-                        });
-                    }
-                    //console.log('DS LOAD PARAMS', params);
-                    self.dataset.init( params );
-                    $(self).triggerHandler('loaded');
-                });
-            }
+            });
+        }
+        if( !this._load_button_initialized ){
+            this._load_button_initialized = true;
+            $('#' + this.load_widget_id).append(
+                '<button id="' + this.load_id + '">load</button>'
+            );
+            $("#" + this.load_id).button().click(function() {
+                Provi.Widget.ui_disable_timeout( $(this) );
+                var params = {
+                    applet: self.applet_selector.get_value()
+                }
+                if(self.load_params_widget.length){
+                    $.each(self.load_params_widget, function(i, lpw){
+                        var ds_lpw = self.dataset.load_params_widget[i];
+                        if( ds_lpw.params ){
+                            $.each(ds_lpw.params, function(i, p){
+                                console.log(p)
+                                params[ p.name ] = lpw[ p.getter ]();
+                            });
+                        }else{
+                            params[ ds_lpw.name ] = lpw[ ds_lpw.getter ]();
+                        }
+                    });
+                }
+                //console.log('DS LOAD PARAMS', params);
+                self.dataset.init( params );
+                $(self).triggerHandler('loaded');
+            });
         }
     }
 });

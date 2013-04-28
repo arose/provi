@@ -92,14 +92,15 @@ def jalview(filename, flag):
 
 @app.route('/urlload/')
 def urlload():
-    url = request.args.get('key', '')
+    url = request.args.get('url', '')
     print url
-    if '127.0.0.1' in url or 'localhost' in url:
+    if '127.0.0.1' in url or 'localhost' in url or not app.config['PROXY']:
         opener = urllib2.build_opener()
     else:
-        opener = urllib2.build_opener( urllib2.ProxyHandler({'http': 'proxy.charite.de:888'}) )
+        opener = urllib2.build_opener( urllib2.ProxyHandler({ 'http': app.config['PROXY'] }) )
     if url:
-        return opener.open( url ).read()
+        d = opener.open( url ).read()
+        return d
     else:
         return ''
 
