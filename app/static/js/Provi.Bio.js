@@ -193,6 +193,22 @@ Provi.Bio.Data.Story = function( params ){
 
 
 
+Provi.Bio.Data.Fasta = function( params ){
+    new Provi.Jalview.JalviewWidget({ file: this.dataset.url });
+	this.dataset.set_loaded();
+};
+
+
+
+Provi.Bio.Data.Features = function( params ){
+	var self = this;
+	var jalview = Provi.Jalview.get_default_applet();
+	$(this.dataset).bind("initialized", function(){
+		jalview.applet.loadAnnotation( self.dataset.raw_data );
+		this.dataset.set_loaded();
+	});
+};
+
 
 
 
