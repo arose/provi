@@ -42,22 +42,9 @@ Provi.Jmol.Controls.JmolConsole.prototype = /** @lends Provi.Jmol.Controls.JmolC
                     var cmd = this.value.trim();
                     if( cmd.charAt( cmd.length-1 ) != ';' ) cmd += ';';
                     self.print('> ' + cmd);
-                    var out = self.applet.script_wait(
+                    self.applet.script(
                         cmd, { maintain_selection: self.maintain_selection, try_catch: true }
                     );
-                    if( out.search(/ERROR/) != -1 ){
-                        var error = /.*ERROR: (.*)\n.*/.exec(out);
-                        if(error.length){
-                            self.print(error[1] , '#FF0000');
-                        }else{
-                            self.print(out , '#FF0000');
-                        }
-                    }else{
-                        var echo = /.*scriptEcho,0,(.*)\n.*/.exec(out);
-                        if(echo && echo.length){
-                            self.print(echo[1] , 'green');
-                        }
-                    }
                 } catch (e) {
                     self.print(e.toString(), '#ff0000');
                 } finally {
