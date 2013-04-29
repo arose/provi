@@ -41,7 +41,7 @@ Provi.Jmol.Settings.groups = {
     clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", "slab", "depth" ],
     quality: [ "highResolution", "antialiasDisplay", "antialiasTranslucent", "antialiasImages", "wireframeRotation" ],
     picking: [ "atomPicking", "drawPicking", "picking", "pickingStyle", "selectionHalos", "selectionHalosColor", "hoverDelay", "highlightColor" ],
-    style: [ "cartoon", "trace", "line", "stick", "cpk", "spacefill", "backbone", "hermiteLevel", "cartoonRockets", "cartoonFancy", "ribbonAspectRatio", "ribbonBorder", "rocketBarrels", "sheetSmoothing", "traceAlpha", "cartoonBaseEdges", "sidechainHelper", "style" ],
+    style: [ "cartoon", "trace", "line", "stick", "cpk", "spacefill", "backbone", "hermiteLevel", "cartoonRockets", "cartoonFancy", "ribbonAspectRatio", "ribbonBorder", "rocketBarrels", "sheetSmoothing", "traceAlpha", "cartoonBaseEdges", "cartoonLadder", "sidechainHelper", "style" ],
     sys: [ "appletProxy" ],
 }
 
@@ -112,6 +112,7 @@ Provi.Jmol.Settings.dict = {
     sheetSmoothing: { type: "checkbox" },
     traceAlpha: { type: "checkbox" },
     cartoonBaseEdges: { type: "checkbox" },
+    cartoonLadder: { type: "checkbox" },
     sidechainHelper:  { type: "checkbox", provi: true },
     style: { type: "select", options: [ "", "default", "lines", "sticks", "cartoon", "cartoon+sticks", "backbone", "backbone+sticks", "trace" ] },
 
