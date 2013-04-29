@@ -321,9 +321,9 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
                     var ret = [];
                     var n = d.length;
                     for( var i=0; i<m; ++i ){
-                    for( var j=0; j<n; ++j ){
-                        ret.push( d[j] );
-                    }
+                        for( var j=0; j<n; ++j ){
+                            ret.push( d[j] );
+                        }
                     }
                     return ret;
                 },
@@ -338,9 +338,9 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
                     var ret = [];
                     var n = d.length;
                     for( var i=0; i<n; ++i ){
-                    for( var j=0; j<m; ++j ){
-                        ret.push( d[i] );
-                    }
+                        for( var j=0; j<m; ++j ){
+                            ret.push( d[i] );
+                        }
                     }
                     return ret;
                 },
