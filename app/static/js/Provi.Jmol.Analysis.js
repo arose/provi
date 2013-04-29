@@ -276,7 +276,7 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
             '</div>' +
         '</div>' +
         '<div class="control_group">' +
-            '<div class="control_row" style="width:300px; height:300px;" id="${eids.canvas}"></div>' +
+            '<div class="control_row" style="width:350px; height:350px;" id="${eids.canvas}"></div>' +
         '</div>' +
     '';
     
@@ -305,335 +305,333 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
     _init: function(){
         var self = this;
     
-    this.data_types = {
-        'res': {
-        label: 'Residue',
-        format: "'%[group]', '%[resNo]', '%[chain]'",
-        value: function(d){ return d[1]; },
-        min: function(d){ return _.min(d) },
-        max: function(d){ return _.max(d) }
-        },
-        'resres': {
-        label: 'Residue vs. residue (R1,R2,...RN,R1,...)',
-        format: "'%[group]', '%[resNo]', '%[chain]'",
-        value: function(d){ return d[1]; },
-        proc: function(d,m){
-            var ret = [];
-            var n = d.length;
-            for( var i=0; i<m; ++i ){
-            for( var j=0; j<n; ++j ){
-                ret.push( d[j] );
-            }
-            }
-            return ret;
-        },
-        min: function(d){ return _.min(d) },
-        max: function(d){ return _.max(d) }
-        },
-        'resres2': {
-        label: 'Residue vs. residue (R1,R1,...R1,R2,...)',
-        format: "'%[group]', '%[resNo]', '%[chain]'",
-        value: function(d){ return d[1]; },
-        proc: function(d,m){
-            var ret = [];
-            var n = d.length;
-            for( var i=0; i<n; ++i ){
-            for( var j=0; j<m; ++j ){
-                ret.push( d[i] );
-            }
-            }
-            return ret;
-        },
-        min: function(d){ return _.min(d) },
-        max: function(d){ return _.max(d) }
-        },
-        'atom': {
-        label: 'Atom',
-        value: function(d){ return d[0]; },
-        format: "'%[atomno]', '%[group]', '%[resNo]', '%[chain]', '%[atomName]', '%[file]', '%[model]', '%[modelindex]'"
-        },
-        'psi': {
-        label: 'Psi',
-        format: '%[psi]',
-        value: function(d){ return d[0]; },
-        min: function(){ return -180 },
-        max: function(){ return 180 }
-        },
-        'phi': {
-        label: 'Phi',
-        format: '%[phi]',
-        value: function(d){ return d[0]; },
-        min: function(){ return -180 },
-        max: function(){ return 180 }
-        },
-        'bfac': {
-        label: 'B-factor',
-        format: '%[temperature]',
-        value: function(d){ return d[0]; }
-        },
-        'color': {
-        label: 'Color',
-        format: '%[color]',
-        value: function(d){
-            return $.color.make( d[0], d[1], d[2] ).toString();
-        }
-        },
-        'dist': {
-        //script: 'for(var a1 in sele){ for(var a2 in sele){ ret += [ distance(a1,a2) ] } }',
-        script2: '' +
-            'var t = 5.0;' +
-            'for(var a1 in sele2){ ' +
-            'var g1 = {within(GROUP,@a1)};' +
-            'for(var a2 in sele){' +
-                'var g2 = {within(GROUP,@a2)};' +
-                'var g3 = {@g2 and within(@t,@g1)};' +
-                'var tmp = t;' +
-                'if( g3.length > 0 ){' +
-                'for(var ag1 in {@g1 and within(@t,@g3)}){' +
-                    'for(var ag2 in @g3){' +
-                    'var d = distance(ag1,ag2);' +
-                    'if( d<tmp ){' +
-                        'tmp = d;' +
-                        'ret += [ {@ag1}.resno, {@ag2}.resno, d ];' +
+        this.data_types = {
+            'res': {
+                label: 'Residue',
+                format: "'%[group]', '%[resNo]', '%[chain]'",
+                value: function(d){ return parseInt(d[1]); },
+                min: function(d){ return _.min(d) },
+                max: function(d){ return _.max(d) }
+            },
+            'resres': {
+                label: 'Residue vs. residue (R1,R2,...RN,R1,...)',
+                format: "'%[group]', '%[resNo]', '%[chain]'",
+                value: function(d){ return d[1]; },
+                proc: function(d,m){
+                    var ret = [];
+                    var n = d.length;
+                    for( var i=0; i<m; ++i ){
+                    for( var j=0; j<n; ++j ){
+                        ret.push( d[j] );
+                    }
+                    }
+                    return ret;
+                },
+                min: function(d){ return _.min(d) },
+                max: function(d){ return _.max(d) }
+            },
+            'resres2': {
+                label: 'Residue vs. residue (R1,R1,...R1,R2,...)',
+                format: "'%[group]', '%[resNo]', '%[chain]'",
+                value: function(d){ return d[1]; },
+                proc: function(d,m){
+                    var ret = [];
+                    var n = d.length;
+                    for( var i=0; i<n; ++i ){
+                    for( var j=0; j<m; ++j ){
+                        ret.push( d[i] );
+                    }
+                    }
+                    return ret;
+                },
+                min: function(d){ return _.min(d) },
+                max: function(d){ return _.max(d) }
+            },
+            'atom': {
+                label: 'Atom',
+                value: function(d){ return d[0]; },
+                format: "'%[atomno]', '%[group]', '%[resNo]', '%[chain]', '%[atomName]', '%[file]', '%[model]', '%[modelindex]'"
+            },
+            'psi': {
+                label: 'Psi',
+                format: '%[psi]',
+                value: function(d){ return d[0]; },
+                min: function(){ return -180 },
+                max: function(){ return 180 }
+            },
+            'phi': {
+                label: 'Phi',
+                format: '%[phi]',
+                value: function(d){ return d[0]; },
+                min: function(){ return -180 },
+                max: function(){ return 180 }
+            },
+            'bfac': {
+                label: 'B-factor',
+                format: '%[temperature]',
+                value: function(d){ return parseFloat(d[0]); }
+            },
+            'color': {
+                label: 'Color',
+                format: '%[color]',
+                value: function(d){
+                    return $.color.make( d[0], d[1], d[2] ).toString();
+                }
+            },
+            'dist': {
+                //script: 'for(var a1 in sele){ for(var a2 in sele){ ret += [ distance(a1,a2) ] } }',
+                script2: '' +
+                    'var t = 5.0;' +
+                    'for(var a1 in sele2){ ' +
+                    'var g1 = {within(GROUP,@a1)};' +
+                    'for(var a2 in sele){' +
+                        'var g2 = {within(GROUP,@a2)};' +
+                        'var g3 = {@g2 and within(@t,@g1)};' +
+                        'var tmp = t;' +
+                        'if( g3.length > 0 ){' +
+                        'for(var ag1 in {@g1 and within(@t,@g3)}){' +
+                            'for(var ag2 in @g3){' +
+                            'var d = distance(ag1,ag2);' +
+                            'if( d<tmp ){' +
+                                'tmp = d;' +
+                                'ret += [ {@ag1}.resno, {@ag2}.resno, d ];' +
+                            '}' +
+                            '}' +
+                        '}' +
+                        '}' +
                     '}' +
                     '}' +
-                '}' +
-                '}' +
-            '}' +
-            '}' +
-        '',
-        script: '' +
-            'var t = 5.0;' +
-            'var g2 = {within(GROUP,@sele)};' +
-            'for(var a1 in sele2){ ' +
-            'var g1 = {within(GROUP,@a1)};' +
-            'var g3 = {@g2 and within(@t,@g1)};' +
-            'var mindist = t;' +
-            'var tmp = [];' +
-            'if( g3.length > 0 ){' +
-                'for(var ag1 in {@g1 and within(@t,@g3)}){' +
-                'for(var ag2 in @g3){' +
-                    'var d = distance(ag1,ag2);' +
-                    'if( d<mindist ){' +
-                    'mindist = d;' +
-                    'tmp = [ {@ag1}.resno, {@ag2}.resno, mindist ];' +
+                '',
+                script: '' +
+                    'var t = 5.0;' +
+                    'var g2 = {within(GROUP,@sele)};' +
+                    'for(var a1 in sele2){ ' +
+                    'var g1 = {within(GROUP,@a1)};' +
+                    'var g3 = {@g2 and within(@t,@g1)};' +
+                    'var mindist = t;' +
+                    'var tmp = [];' +
+                    'if( g3.length > 0 ){' +
+                        'for(var ag1 in {@g1 and within(@t,@g3)}){' +
+                        'for(var ag2 in @g3){' +
+                            'var d = distance(ag1,ag2);' +
+                            'if( d<mindist ){' +
+                            'mindist = d;' +
+                            'tmp = [ {@ag1}.resno, {@ag2}.resno, mindist ];' +
+                            '}' +
+                        '}' +
+                        '}' +
+                        'ret += tmp;' +
                     '}' +
-                '}' +
-                '}' +
-                'ret += tmp;' +
-            '}' +
-            '}' +
-        '',
-        value: function(dat){
-            dat.push( dat[2] );
-            var d = dat[2];
-            if( d < 1){
-            dat[2] = 'rgb(0,0,0)';
-            }else if( d < 1.5){
-            dat[2] = 'rgb(30,30,30)';
-            }else if( d < 2.0){
-            dat[2] = 'rgb(60,60,60)';
-            }else if( d < 3.5){
-            dat[2] = 'rgb(90,90,90)';
-            }else if( d < 4){
-            dat[2] = 'rgb(120,120,120)';
-            }else if( d <= 5){
-            dat[2] = 'rgb(150,150,150)';
-        //    }else if( d < 6){
-        //  dat[2] = 'rgb(180,180,180)';
-        //    }else if( d < 7){
-        //  dat[2] = 'rgb(210,210,210)';
-            }else{
-            dat[2] = 'rgb(255,255,255)';
+                    '}' +
+                '',
+                value: function(dat){
+                    dat.push( dat[2] );
+                    var d = dat[2];
+                    if( d < 1){
+                    dat[2] = 'rgb(0,0,0)';
+                    }else if( d < 1.5){
+                    dat[2] = 'rgb(30,30,30)';
+                    }else if( d < 2.0){
+                    dat[2] = 'rgb(60,60,60)';
+                    }else if( d < 3.5){
+                    dat[2] = 'rgb(90,90,90)';
+                    }else if( d < 4){
+                    dat[2] = 'rgb(120,120,120)';
+                    }else if( d <= 5){
+                    dat[2] = 'rgb(150,150,150)';
+                //    }else if( d < 6){
+                //  dat[2] = 'rgb(180,180,180)';
+                //    }else if( d < 7){
+                //  dat[2] = 'rgb(210,210,210)';
+                    }else{
+                    dat[2] = 'rgb(255,255,255)';
+                    }
+                    return dat;
+                }
             }
-            return dat;
-        }
-        }
-    };
+        };
     
-    this.bgimages = {
-        'rama_general': [ '../img/ramachandran_plot_empty_General.png', -180, -180, 180, 180 ],
-        'rama_glycine': [ '../img/ramachandran_plot_empty_Glycine.png', -180, -180, 180, 180 ],
-        'rama_pre-pro': [ '../img/ramachandran_plot_empty_Pre-Pro.png', -180, -180, 180, 180 ],
-        'rama_proline': [ '../img/ramachandran_plot_empty_Proline.png', -180, -180, 180, 180 ]
-    }
+        this.bgimages = {
+            'rama_general': [ '../img/ramachandran_plot_empty_General.png', -180, -180, 180, 180 ],
+            'rama_glycine': [ '../img/ramachandran_plot_empty_Glycine.png', -180, -180, 180, 180 ],
+            'rama_pre-pro': [ '../img/ramachandran_plot_empty_Pre-Pro.png', -180, -180, 180, 180 ],
+            'rama_proline': [ '../img/ramachandran_plot_empty_Proline.png', -180, -180, 180, 180 ]
+        }
+        
+        this.elm('draw').button().click(function(){
+                self.draw();
+            });
+            
+        // init axis selects
+        $.each( this.data_types, function( key, elm ){
+            if( elm.label ){
+            var opt = "<option value='" + key + "'>" + elm.label + "</option>";
+            self.elm('xaxis').append( opt );
+            self.elm('yaxis').append( opt );
+            }
+        });
     
-    this.elm('draw').button().click(function(){
+        // init presets
+        this.elm('presets').bind('click change', function(){
+            var preset = self.elm('presets').children("option:selected").val();
+            switch( preset ){
+                case 'rama':
+                    self.elm('xaxis').val( 'phi' );
+                    self.elm('yaxis').val( 'psi' );
+                    self.elm('color').val( 'color' );
+                    self.elm('chart').val( 'points' );
+                    self.elm('bgimage').val( 'rama_general' );
+                    self.selector.set_input( '*.CA and protein' );
+                    self.selector2.set_input( '' );
+                    self.radius = 2;
+                    self.shadow = 3;
+                    break;
+                case 'dist':
+                    self.elm('xaxis').val( 'resres' );
+                    self.elm('yaxis').val( 'resres2' );
+                    self.elm('color').val( 'dist' );
+                    self.elm('chart').val( 'points' );
+                    self.elm('bgimage').val( '' );
+                    self.selector.set_input( '*.CA and protein and resno < 339' );
+                    self.selector2.set_input( '*.CA and protein and resno >= 339' );
+                    self.radius = 'auto';
+                    self.shadow = 0;
+                    break;
+                default:
+                    break;
+            }
             self.draw();
         });
         
-    // init axis selects
-    $.each( this.data_types, function( key, elm ){
-        if( elm.label ){
-        var opt = "<option value='" + key + "'>" + elm.label + "</option>";
-        self.elm('xaxis').append( opt );
-        self.elm('yaxis').append( opt );
-        }
-    });
-    
-    // init presets
-    this.elm('presets').bind('click change', function(){
-        var preset = self.elm('presets').children("option:selected").val();
-        switch( preset ){
-        case 'rama':
-            self.elm('xaxis').val( 'phi' );
-            self.elm('yaxis').val( 'psi' );
-            self.elm('color').val( 'color' );
-            self.elm('chart').val( 'points' );
-            self.elm('bgimage').val( 'rama_general' );
-            self.selector.set_input( '*.CA and protein' );
-            self.selector2.set_input( '' );
-            self.radius = 2;
-            self.shadow = 3;
-            break;
-        case 'dist':
-            self.elm('xaxis').val( 'resres' );
-            self.elm('yaxis').val( 'resres2' );
-            self.elm('color').val( 'dist' );
-            self.elm('chart').val( 'points' );
-            self.elm('bgimage').val( '' );
-            self.selector.set_input( '*.CA and protein and resno < 339' );
-            self.selector2.set_input( '*.CA and protein and resno >= 339' );
-            self.radius = 'auto';
-            self.shadow = 0;
-            break;
-        default:
-            break;
-        }
-        self.draw();
-    });
-    
-    // init select
-    this.elm('canvas').bind("plotselected", function (event, ranges) {
-        self.select( ranges );
-    });
-    
-    Provi.Widget.Widget.prototype.init.call(this);
+        // init select
+        this.elm('canvas').bind("plotselected", function (event, ranges) {
+            self.select( ranges );
+        });
+        
+        Provi.Widget.Widget.prototype.init.call(this);
     },
     get_data: function( type, sele, sele2 ){
-    var dt = this.data_types[ type ];
-    if( dt.format ){
-        var format = dt.format;
-        var data = this.applet.evaluate('"[" + {' + sele + '}.label("[' + format + ']").join(",") + "]"');
-        data = data.replace(/(%\[psi\]|%\[phi\]|\,\])/g,"null");
-        if( type=='color' ){
-        data = data.replace(/\.00/g,",").replace(/\,\]/g, "]");
+        var dt = this.data_types[ type ];
+        if( dt.format ){
+            var format = dt.format;
+            var data = this.applet.evaluate('"[" + {' + sele + '}.label("[' + format + ']").join(",") + "]"');
+            data = data.replace(/(%\[psi\]|%\[phi\]|\,\])/g,"null");
+            if( type=='color' ){
+                data = data.replace(/\.00/g,",").replace(/\,\]/g, "]");
+            }
+            data = eval( data );
+        }else if( dt.script ){
+            var script = '' +
+                'var sele = {' + sele + '}; ' +
+                'var sele2 = {' + sele2 + '}; ' +
+                'var ret = []; ' +
+                dt.script +
+                'print ret; return ret;' +
+            '';
+            var data = this.applet.script_wait_output( script );
+            //console.log( data );
+            data = data.split('\n').slice(0,-1);
+            var n = data.length;
+            var data2 = [];
+            for( var i=0; i<n; i+=3 ){
+                data2.push( [ data[i], data[i+1], data[i+2] ] );
+            }
+            var data = data2;
+            //var data = this.applet.script_wait( script );
+            console.log('JMOL finished');
+            console.log( data );
         }
-        data = eval( data );
-    }else if( dt.script ){
-        var script = '' +
-        'var sele = {' + sele + '}; ' +
-        'var sele2 = {' + sele2 + '}; ' +
-        'var ret = []; ' +
-        dt.script +
-        'print ret; return ret;' +
-        '';
-        var data = this.applet.script_wait_output( script );
-        //console.log( data );
-        data = data.split('\n').slice(0,-1);
-        var n = data.length;
-        var data2 = [];
-        for( var i=0; i<n; i+=3 ){
-        data2.push( [ data[i], data[i+1], data[i+2] ] );
+        data = _.map( data, dt.value );
+        if( _.isFunction(dt.proc) ){
+            //data = dt.proc( data );
         }
-        var data = data2;
-        //var data = this.applet.script_wait( script );
-        console.log('JMOL finished');
-        console.log( data );
-    }
-    data = _.map( data, dt.value );
-    if( _.isFunction(dt.proc) ){
-        //data = dt.proc( data );
-    }
-    
-    return {
-        data: data,
-        min: dt.min ? dt.min( data ) : null,
-        max: dt.max ? dt.max( data ) : null
-    };
+        
+        return {
+            data: data,
+            min: dt.min ? dt.min( data ) : null,
+            max: dt.max ? dt.max( data ) : null
+        };
     },
     _get_options: function(){
-    this.sele = this.selector.get().selection;
-    this.sele2 = this.selector2.get().selection || this.sele;
-    this.chart = this.elm('chart').children("option:selected").val();
-    this.xtype = this.elm('xaxis').children("option:selected").val();
-    this.ytype = this.elm('yaxis').children("option:selected").val();
-    this.ctype = this.elm('color').children("option:selected").val();
-    this.preset = self.elm('presets').children("option:selected").val();
+        this.sele = this.selector.get();
+        this.sele2 = this.selector2.get() || this.sele;
+        this.chart = this.elm('chart').children("option:selected").val();
+        this.xtype = this.elm('xaxis').children("option:selected").val();
+        this.ytype = this.elm('yaxis').children("option:selected").val();
+        this.ctype = this.elm('color').children("option:selected").val();
+        this.preset = this.elm('presets').children("option:selected").val();
     },
     draw: function(){
-    var self = this;
-    var x = this.get_data( this.xtype, this.sele );
-    var y = this.get_data( this.ytype, this.sele2 );
-    var c = this.get_data( this.ctype, this.sele, this.sele2 );
-    
-    if( this.preset == 'dist' ){
-        var xlen = x.data.length;
-        var ylen = y.data.length;
-        x.data = this.data_types[ this.xtype ].proc( x.data, ylen );
-        y.data = this.data_types[ this.ytype ].proc( y.data, xlen );
-        c.data = _.map( c.data, function(e){ return e[2]; } );
-        //x.data = this.data_types[ xtype ].proc( x.data, ylen );
-        //y.data = this.data_types[ ytype ].proc( y.data, xlen );
-        this.symbol = 'rect';
-        this.radius = (300/xlen*0.40);
-        this.radius2 = (300/ylen*0.40);
-        this.grid = false;
-    }else{
-        this.symbol = 'circle';
-        this.radius = 2;
-        this.radius2 = 0;
-        this.grid = true;
-    }
-    
-    //console.log(x);
-    //console.log(y);
-    //console.log(c);
-    
-    
-    
-    var d1 = _.zip( x.data, y.data );
-    
-    var data = [];
-    data.push({
-        data: d1,
-        lines: { show: this.chart=='lines' },
-        points: {
-        show: this.chart=='points',
-        colors: c.data,
-        symbol: this.symbol,
-        radius: this.radius,
-        radius2: this.radius2
-        },
-        bars: { show: this.chart=='bars' },
-        shadowSize: this.shadow
-    });
-    
-    var options = {
-        xaxis: { min: x.min, max: x.max, tickLength: 0 },
-        yaxis: { min: y.min, max: y.max, tickLength: 0 },
-        series: { images: { anchor: null } },
-        grid: {
-        show: true,
-        axisMargin: 3,
-        minBorderMargin: _.max( [this.radius, this.radius2] ),
-        borderWidth: 0
-        },
-        // zoom: { interactive: true },
-        // pan: { interactive: false },
-        selection: { mode: "xy" }
-    }
-    
-    var bgimage = this.elm('bgimage').children("option:selected").val();
-    if( bgimage ){
-        options['grid']['backgroundImage'] = this.bgimages[ bgimage ];
-    }
-    
-    $.plot( this.elm('canvas'), data, options );
+        var self = this;
+        this._get_options();
+
+        var x = this.get_data( this.xtype, this.sele );
+        var y = this.get_data( this.ytype, this.sele2 );
+        var c = this.get_data( this.ctype, this.sele, this.sele2 );
+        
+        if( this.preset == 'dist' ){
+            var xlen = x.data.length;
+            var ylen = y.data.length;
+            x.data = this.data_types[ this.xtype ].proc( x.data, xlen );
+            y.data = this.data_types[ this.ytype ].proc( y.data, ylen );
+            c.data = _.map( c.data, function(e){ return e[2]; } );
+            this.symbol = 'rect';
+            this.radius = (350/xlen*0.40);
+            this.radius2 = (350/ylen*0.40);
+            this.grid = false;
+        }else{
+            this.symbol = 'circle';
+            this.radius = 2;
+            this.radius2 = 0;
+            this.grid = true;
+        }
+        
+        console.log(x);
+        console.log(y);
+        console.log(c);
+        
+        var d1 = _.zip( x.data, y.data );
+        
+        var data = [];
+        data.push({
+            data: d1,
+            lines: { show: this.chart=='lines' },
+            points: {
+                show: this.chart=='points',
+                colors: c.data,
+                symbol: this.symbol,
+                radius: this.radius,
+                radius2: this.radius2
+            },
+            bars: { show: this.chart=='bars' },
+            shadowSize: this.shadow
+        });
+        
+        var options = {
+            xaxis: { min: x.min, max: x.max, tickLength: 0 },
+            yaxis: { min: y.min, max: y.max, tickLength: 0 },
+            series: { images: { anchor: null } },
+            grid: {
+                show: true,
+                axisMargin: 3,
+                minBorderMargin: _.max( [this.radius, this.radius2] ),
+                borderWidth: 0
+            },
+            // zoom: { interactive: true },
+            // pan: { interactive: false },
+            selection: { mode: "xy" }
+        }
+        
+        var bgimage = this.elm('bgimage').children("option:selected").val();
+        if( bgimage ){
+            options['grid']['backgroundImage'] = this.bgimages[ bgimage ];
+        }
+        
+        $.plot( this.elm('canvas'), data, options );
     },
     select: function( s ){
-    // TODO: mapping between xaxis/yaxis and data (data needs to be added first!)
-    console.log( s );
+        // TODO: mapping between xaxis/yaxis and data (data needs to be added first!)
+        console.log( s );
     }
 });
 
