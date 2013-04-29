@@ -29,5 +29,19 @@ var Provi = {};
     Provi.url_for = function( url ){
         return Provi.defaults.base_url + url;
     }
+
+    Provi.config = {
+        debug: $.query.get('debug')
+    };
+
+    Provi.init = function(){
+
+        Provi.Jmol.init("../../jmol/current/55/", !$.query.get('unsigned'));
+        Provi.Jalview.init("../../jalview/current/0/", !$.query.get('unsigned'));
+
+        Provi.Debug.auto();
+        Provi.Utils.event.init();
+
+    }
     
 })();
