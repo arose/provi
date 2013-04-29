@@ -7,5 +7,6 @@
 * Jmol calculate - for larger images
 * Jmol proxyUrl is a relay url that gets called as PROXYURL?url=...
 * Isosurface revamp: grid type, loading, ...
+* Move javascript out of the main html file
 
 
