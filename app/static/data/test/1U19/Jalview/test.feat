@@ -1,0 +1,10 @@
+hole_contact	2d2feb
+test_feature_1	ea0c07
+
+STARTGROUP	Jalview
+test_feature_1 	1U19_A	-1	19	22	test_feature_1	0.0
+test_feature_1	1U19_A	-1	8	8	test_feature_1	0.0
+hole_contact	1U19_A	-1	9	9	hole_contact	0.0
+hole_contact	1U19_A	-1	124	124	hole_contact	0.0
+hole_contact	1U19_A	-1	319	319	hole_contact	0.0
+ENDGROUP	Jalview

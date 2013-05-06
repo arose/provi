@@ -1,0 +1,547 @@
+/**
+ * @fileOverview This file contains the {@link Provi.Widget} Module.
+ * @author <a href="mailto:alexander.rose@charite.de">Alexander Rose</a>
+ * @version 0.0.1
+ */
+
+
+/**
+ * @namespace
+ * Widget base
+ */
+Provi.Widget = {};
+
+(function() {
+
+var Utils = Provi.Utils;
+
+
+
+Provi.Widget.ui_disable_timeout = function( $elm ){
+    $elm.attr("disabled", true).addClass('ui-state-disabled');
+    setTimeout(function(){
+        $elm.attr("disabled", false).removeClass('ui-state-disabled');
+    }, 2000);
+}
+
+
+
+/**
+ * global widget manager object
+ * 
+ */
+Provi.Widget.WidgetManager = {
+    _widget_dict: {},
+    _widget_list: [],
+    get_widget: function(id){
+        return this._widget_dict[id];
+    },
+    get_widget_list: function(){
+        return this._widget_list;
+    },
+    add_widget: function(id, widget){
+        if( typeof(this._widget_dict[id]) != 'undefined' ){
+            throw "id '" + id + "' is already in use";
+        }
+        this._widget_dict[id] = widget;
+        this._widget_list.push(widget);
+    },
+    remove_widget: function(id){
+        delete this._widget_dict[id];
+        this._widget_list = _.without(this._widget_list, id);
+    },
+    get_widget_id: function(id){
+        if( typeof(id) != 'undefined' ){
+            if( typeof(this._widget_dict[id]) != 'undefined' ){
+                throw "id '" + id + "' is already in use";
+            }
+        }else{
+            id = 'widget_' + this._widget_list.length;
+        }
+        return id;
+    }
+};
+Provi.Widget.WidgetManager._widget_dict.size = Utils.object_size_fn;
+
+
+/**
+ * Widget class
+ * @constructor
+ * @param {object} params The configuration object.
+ * @param {string} [params.tag_name="div"] The html tag in which the widget gets enclosed.
+ * @param {string} [params.heading] A heading for the widget.
+ * @param {boolean} [params.collapsed=false] When the widget has a heading, it can be collapsed.
+ * @param {string} params.parent_id The html id of the parent object of this widget
+ * @param {int} [params.id] An id to identify the widget. Though in general not neccesary as it is created automatically.
+ * @param {Provi.Jmol.Applet} [params.applet] A Jmol applet the widget should get bound to.
+ * @param {boolean} [params.persist_on_applet_delete=false] When bound to a Jmol applet, the widget gets automatically destroyed when the applet is destroyed. This flag switches that behavior off.
+ */
+Provi.Widget.Widget = function(params){
+    this.initialized = false;
+    this.eid_dict = {};
+    var tag_name = params.tag_name || 'div';
+    var content = typeof(params.content) != 'undefined' ? params.content : '';
+    this.sort_key = typeof(params.sort_key) != 'undefined' ? params.sort_key : 1000000;
+    params.show_dataset_info = typeof(params.show_dataset_info) != 'undefined' ? params.show_dataset_info : true;
+    /** The text of the widget's heading */
+    this.heading = params.heading;
+    /** Weather the widget is collapsed or not */
+    this.collapsed = params.collapsed;
+    this.info = params.info;
+    this.description = params.description;
+    this.applet = params.applet;
+    this.persist_on_applet_delete = params.persist_on_applet_delete;
+    /** Dom id of the widget itself */
+    this.id = Provi.Widget.WidgetManager.get_widget_id(params.id);
+    
+    this._init_eid_manager( ['info', 'heading', 'description', 'content', 'close'] );
+    
+    /** Id of the parent dom object */
+    this.parent_id = params.parent_id;
+    Provi.Widget.WidgetManager.add_widget(this.id, this);
+    
+    if( !this.parent_id || $('#' + this.parent_id).length == 0 ){
+           throw "Widget is missing a parent object to add to.";
+    }
+    
+    var template = '' +
+        '<div class="ui-widget-header ui-state-active" id="${eids.heading}" ' +
+                'style="{{if !params.heading}}display:none;{{/if}}">' +
+            '<span title="show/hide" class="ui-icon ui-icon-triangle-1-s"></span>' +
+            '<span>${params.heading}</span>' +
+            '<span style="float:right; padding:0.1em; {{if !params.info}}display:none;{{/if}}">' +
+                '<span title="${params.info}" id="${eids.info}" class="ui-icon ui-icon-info">' +
+                    '${params.info}' +
+                '</span>' +
+            '</span>' +
+        '</div>' +
+        '<div class="my-content">' +
+            '<div class="" id="${eids.description}" ' +
+                    'style="{{if !params.description}}display:none;{{/if}}">' +
+                '${params.description}' +
+            '</div>' +
+            '{{if params.show_dataset_info && params.dataset && params.applet}}' +
+                '<div class="" >' +
+                    '<span>Dataset: ${params.dataset.name}</span>&nbsp;|&nbsp;' +
+                    '<span>Applet: ${params.applet.name_suffix}</span>' +
+                '</div>' +
+            '{{/if}}' +
+            '<div class="" id="${eids.content}">${params.content}</div>' +
+        '</div>';
+    
+    var e = document.createElement( tag_name );
+    $.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo(e);
+    e.id = this.id;
+    $('#' + this.parent_id).append( e );
+    /** The dom object */
+    this.dom = e;
+    if( params.hidden ){
+        this.hide();
+    }
+    $(this.dom).addClass( 'ui-container ui-widget' );
+    $('#' + this.parent_id).triggerHandler('Provi.widget_added');
+    
+    // must be called in the subclasses of Widget
+    //this.init();
+};
+Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
+    /** Initialization of the widget */
+    init: function(){
+        var self = this;
+        
+        this.elm('info').qtip({ position: {my: 'top center', at: 'bottom center'} });
+        
+        var heading = this.elm( 'heading' );
+        heading.hover(function(){
+            $(this).toggleClass('ui-state-hover');
+        });
+        heading.children('[title]').qtip({ position: {my: 'top center', at: 'bottom center'} });
+        heading.click(function() {
+            $(this).siblings().toggle();
+            $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-s');
+            $(this).toggleClass('ui-state-active ui-state-default');
+            return false;
+        });
+        if( this.heading && this.collapsed ){
+            heading.triggerHandler('click');
+            heading.siblings().toggle(false);
+        }
+        
+        if( !this.heading ) this.elm( 'heading' ).hide();
+        if( !this.info ) this.elm( 'info' ).hide();
+        if( !this.description ) this.elm( 'description' ).hide();
+        
+        if(this.applet && !this.persist_on_applet_delete){
+            $(this.applet).bind('delete', $.proxy( this.del, this ) );
+        }
+
+        this.initialized = true;
+        $(this).triggerHandler('init');
+    },
+    del: function(){
+        $(this.dom).hide();
+        $(this.dom).appendTo('#trash');
+    },
+    set_heading: function( heading ){
+           this.elm( 'heading' ).text( heading ).show();
+    },
+    set_description: function( description ){
+           this.elm( 'description' ).text( description ).show();
+    },
+    set_info: function( info ){
+           this.elm( 'info' ).text( info ).show();
+    },
+    set_content: function( content ){
+           this.elm( 'content' ).innerHTML( content );
+    },
+    add_content: function( template, params ){
+        var e = this.elm( 'content' );
+        $.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo(e);
+    },
+    /**
+    * Helper function to create unique ids for dom elements that belong to the widget.
+    * The ids are build for each name in names from the following template: this.id + '_' + name.
+    * 
+    * @param {array} names An array containing the names to create ids for.
+    * @returns {void}
+    */
+    _build_element_ids: function( names ){
+        console.error( "_build_element_ids", "deprecated" );
+        var self = this;
+        $.each( names, function(i, name){
+            self[ name + '_id' ] = self.id + '_' + name;
+        });
+    },
+    _make_eid: function( name ){
+        return this.id + '_' + name;
+    },
+    _init_eid_manager: function( eid_list ){
+       this.add_eids( eid_list );
+    },
+    add_eids: function( eid_list ){
+        var self = this;
+        var eid_dict = {};
+        $.each( eid_list, function(i, eid){
+            eid_dict[eid] = self._make_eid(eid);
+        });
+        this.eid_dict = $.extend( this.eid_dict, eid_dict );
+    },
+    eid: function( name, selector ){
+       if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";
+       return (selector ? '#' : '') + this.eid_dict[ name ];
+    },
+    elm: function( name ){
+        return $( '#' + this.eid(name) );
+    },
+    show: function(){
+        $(this.dom).show();
+    },
+    hide: function(){
+        $(this.dom).hide();
+    },
+    block: function( params ){
+        if(this._blocked) return;
+        this._blocked = true;
+        params = $.extend({
+            message: 'loading...'
+        }, params);
+        $(this.dom).block( params );
+    },
+    unblock: function(){
+        this._blocked = false;
+        $(this.dom).unblock();
+    }
+};
+var Widget = Provi.Widget.Widget;
+
+
+
+
+Provi.Widget.form_builder = function( params, value, id, self ){
+
+    var p = params;
+    var $elm = $('<div></div>');
+
+    if( p.type=="checkbox" ){
+
+        $elm.append(
+            $('<input type="checkbox" />')
+                .data( 'id', id )
+                .attr( 'checked', value )
+                .click( _.bind( self.set, self ) ),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
+    }else if( p.type=="select" ){
+
+        $elm.append(
+            $('<select class="ui-state-default">' +
+                _.map( p.options, function( o, l ){
+                    var label = _.isNumber(o) ? o : _.str.humanize( o )
+                    if( !_.isArray( p.options ) ) label = l;
+                    if( p.value=="float" ) o = o.toFixed( p.fixed || 2 );
+                    return '<option value="' + o + '">' + label + '</option>'
+                }) +
+            '</select>')
+                .data( 'id', id )
+                .val( value )
+                .bind( 'change', _.bind( self.set, self )),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
+    }else if( p.type=="text" ){
+
+        $elm.append(
+            $('<input type="text" />')
+                .data( 'id', id )
+                .val( value )
+                .blur( _.bind( self.set, self ) ),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
+    }else if( p.type=="slider" ){
+
+        value = parseFloat(value);
+        if( p.factor ) value *= p.factor;
+        $elm.append( 
+            (function(){
+                var handle, slider;
+                slider = $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
+                    .slider({ min: p.range[0], max: p.range[1], value: value, slide: function(event, ui) {
+                        handle.qtip('option', 'content.text', '' + ui.value);
+                    }})
+                    .data( 'id', id )
+                    .bind( 'slidestop slide', _.bind( self.set, self ) );
+                handle = $('.ui-slider-handle', slider);
+                handle.qtip({
+                    content: '' + slider.slider('option', 'value'),
+                    position: { my: 'bottom center', at: 'top center' },
+                    hide: { delay: 300 }
+                });
+                return slider;
+            })(),
+            '<label>' + _.str.humanize( id ) + '</label>'
+        );
+    }else{
+        $elm.append( _.str.humanize( id ) );
+    }
+
+    return $elm;
+}
+
+
+
+/**
+ * A widget to select params
+ * @constructor
+ */
+Provi.Widget.ParamsWidget = function(params){
+    params = _.defaults( params, this.default_params );
+    Provi.Widget.Widget.call( this, params );
+
+    this.params = {};
+
+    var self = this;
+    _.each( this.params_dict, function( p, id ){
+        var elm = Provi.Widget.form_builder( p, p.default_value, id, self );
+        self.elm( 'content' ).append( elm );
+        self.params[ id ] = p.default_value;
+    });
+
+}
+Provi.Widget.ParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.ParamsWidget.prototype */ {
+    set: function(e){
+        var elm = $(e.currentTarget);
+        var id = elm.data('id');
+        var p = this.params_dict[ id ] || {};
+        var value = '';
+        if( p.type=="checkbox" ){
+            value = elm.is(':checked');
+        }else if( p.type=="select" ){
+            value = elm.children("option:selected").val();
+        }else if( p.type=="text" ){
+            value = elm.val();
+        }else if( p.type=="slider" ){
+            value = elm.slider("value");
+            if( p.factor ) value /= p.factor;
+            if( p.fixed ) value = value.toFixed( p.fixed );
+        }else{
+            return;
+        }
+        this.params[ id ] = value;
+    }
+});
+
+
+
+
+
+/**
+ * A widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Widget.StoryWidget = function(params){
+    params = _.defaults( params, this.default_params );
+    params.collapsed = false;
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([
+        
+    ]);
+    
+    if( this.templates.hasOwnProperty( params.template ) ){
+        params.template = this.templates[ params.template ];
+    }
+    
+    this.add_content( params.template, params.data );
+    
+    this._init();
+}
+Provi.Widget.StoryWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Widget.StoryWidget.prototype */ {
+    default_params: {
+        
+    },
+    templates: {
+        
+    },
+    _init: function(){
+        var self = this;
+        
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+});
+
+
+
+
+/**
+ * A popup widget
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Widget.PopupWidget = function(params){
+    //params.persist_on_applet_delete = false;
+    //params.heading = '';
+    //params.collapsed = false;
+    Widget.call( this, params );
+    this._build_element_ids([ 'data', 'close' ]);
+    
+    this.position_my = params.position_my || 'left top';
+    this.position_at = params.position_at || 'bottom';
+    
+    /** The template that gets filled with changeing data */
+    this.template = $.template( params.template );
+    var content = '<div style="background-color:lightblue; padding:7px; width:300px;">' +
+        '<span title="close" id="' + this.close_id + '" class="ui-icon ui-icon-close" style="float:right;"></span>' +
+        '<div id="' + this.data_id + '"></div>' +
+    '</div>';
+    $(this.dom).append( content ).css('position', 'absolute');
+    this._init();
+};
+Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.Widget.prototype */ {
+    _init: function(){
+        var self = this;
+        $(this.dom).hide();
+        $( '#' + this.close_id ).qtip({ position: {my: 'top center', at: 'bottom center'} }).click( function(){
+            self.hide();
+        });
+        //Widget.prototype.init.call(this);
+    },
+    show: function( target, data, template, position_my, position_at ){
+        if( data ){
+            $( '#' + this.data_id ).empty();
+            this.set_data( data, template );
+        }
+        //console.log( target, position_my, position_at, this.position_my, this.position_at );
+        $(this.dom).show();
+        // TODO FIX arose
+        // for an unknown reason this needs to be called twice to be visible
+        // after the very first call to show
+        this.set_position( target, position_my, position_at );
+        this.set_position( target, position_my, position_at );
+    },
+    hide: function(){
+        $( '#' + this.data_id ).empty();
+        $(this.dom).hide();
+    },
+    set_data: function( data, template ){
+        this.data = data;
+        $.tmpl( template || this.template, this.data ).appendTo( '#' + this.data_id );
+    },
+    set_position: function( target, position_my, position_at ){
+        //console.log('target',target, $(target), $(target).width(), $(target).height(), $(target).css('top'), $(target).css('left'));
+        $(this.dom).position({
+            of: target,
+            my: position_my || this.position_my,
+            at: position_at || this.position_at
+        });
+    },
+    empty: function(){
+        $( '#' + this.data_id ).empty();
+    }
+});
+
+
+
+Provi.Widget.GridWidget = function(params){
+    params = _.defaults( params, this.default_params );
+    Provi.Widget.Widget.call( this, params );
+
+    this._init_eid_manager([ 'grid' ]);
+    
+    var template = '<div id="${eids.grid}"></div>';
+    this.add_content( template, params );
+    this._init();
+};
+Provi.Widget.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Widget.Widget.prototype */ {
+    default_params: {
+
+    },
+    _init: function(){
+
+    }
+});
+
+
+
+
+/**
+ * widget class for managing widgets
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Widget.WidgetManagerWidget = function(params){
+    Provi.Widget.WidgetManagerWidget.change(this.update, this);
+    Widget.call( this, params );
+    this.list_id = this.id + '_list';
+    var content = '<div class="control_group">' +
+        '<div id="' + this.list_id + '"></div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.update();
+}
+Provi.Widget.WidgetManagerWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Widget.WidgetManagerWidget.prototype */ {
+    update: function(){
+        var elm = $("#" + this.list_id);
+        elm.empty();
+        $.each( Provi.Widget.WidgetManager.get_list(), function(){
+            var status = this.get_status();
+            elm.append(
+                '<div class="control_row" style="background-color: lightorange; margin: 5px; padding: 3px;">' +
+                    '<div>ID: ' + this.id + '</div>' +
+                    '<div>Type: ' + this.type + '</div>' +
+                '</div>'
+            );
+        });
+        //$('#'+this.list_id).load('../../data/index/', function() {
+        //    console.log('data list loaded');
+        //});
+    }
+});
+
+
+})();
+

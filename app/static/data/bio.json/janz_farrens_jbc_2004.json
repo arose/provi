@@ -1,0 +1,113 @@
+[
+{
+	"source": {
+		"title": "Role of the Retinal Hydrogen Bond Network in Rhodopsin Schiff Base Stability and Hydrolysis",
+		"author": "Jay M. Janz and David L. Farrens"
+	},
+	"notes": [
+		"UV absorption: All lambda-max values are determined from the first derivative of the raw spectral data and estimated to within +/-1 nm",
+		"MII decay (retinal release) assays performed at 20 °C in buffer A as described under 'Experimental Procedures.'",
+		"The relative initial rate of photo-induced GT activation is represented by the rate of fluorescence increase obtained from the slope of the fluorescence measurements in the first 60 s after addition of GTPgammaS relative to that of WT rhodopsin. The averages of n = 3 experiments are shown except for T94I-ATR (n = 1)",
+		"The t1⁄2 for dark state (DS) thermal decay was obtained from monoexponential fits of dark state thermal hydrolysis absorbance measurements at respective temperatures.",
+		"Activation energies (Ea) obtained from linear regression of Arrhenius plots.",
+		"Hydroxylamine reactivity rates determined from monoexponential fits of dark state thermal hydrolysis experiments performed at pH 6.0, 37 °C in the presence of 50 mM pH-buffered hydroxylamine. For further details see 'Experimental Procedures.'",
+		"T94I-ATR is the T94I opsin mutant regenerated with all-trans-retinal."
+	],
+	"tags": [
+		"bovine rhodopsin"
+	],
+	"data": [
+		{
+			"tags": [ "WT" ],
+			"data": [
+				{ "tags": [ "UV absorption max", "Dark state" ], "value": 500, "unit": "nm" },
+				{ "tags": [ "UV absorption max", "MII state" ], "value": 381, "unit": "nm" },
+				{ "tags": [ "MII state", "Decay t1/2" ], "value": 13.5, "unit": "min" },
+				{ "tags": [ "Gt activation rate" ], "value": 100, "unit": "%" },
+				{ 
+					"tags": [ "Dark state", "Decay t1/2" ],
+					"data": [ 
+						{ "value": [ 3100, 37 ], "unit": [ "min", "°C" ], "deviation": [ 45, null ] },
+						{ "value": [ 38.5, 55 ], "unit": [ "min", "°C" ] }
+					]
+				},
+				{ 
+					"tags": [ "Dark state", "SB hydrolysis" ],
+					"data": [ 
+						{ "value": [ 16.1, 37 ], "unit": [ "kcal/mol", "°C" ] },
+						{ "value": [ 103, 55 ], "unit": [ "kcal/mol", "°C" ] }
+					]
+				},
+				{ "tags": [ "MII state", "SB hydrolysis" ], "value": 20.5, "unit": "kcal/mol" },
+				{ "tags": [ "Hydroxylamine reactivity" ], "value": 3100, "unit": "min" }
+			]
+		},
+		{
+			"tags": [ "T91I", "91" ],
+			"data": [
+				{ "tags": [ "UV absorption max", "Dark state" ], "value": 478, "unit": "nm" },
+				{ "tags": [ "UV absorption max", "MII state" ], "value": 381, "unit": "nm" },
+				{ "tags": [ "MII decay t1/2" ], "value": 95.4, "unit": "min" },
+				{ "tags": [ "Gt activation rate" ], "value": 97, "unit": "%" }
+			]
+		},
+		{
+			"tags": [ "T91I-ATR", "91" ],
+			"data": [
+				{ "tags": [ "UV absorption max", "Dark state" ], "value": 464, "unit": "nm" },
+				{ "tags": [ "UV absorption max", "MII state" ], "value": 380, "unit": "nm" },
+				{ "tags": [ "MII decay t1/2" ], "value": 66.6, "unit": "min" },
+				{ "tags": [ "Gt activation rate" ], "value": 98, "unit": "%" }
+			]
+		},
+		{
+			"tags": [ "E113Q", "113" ],
+			"data": [
+				{ 
+					"tags": [ "UV absorption max", "Dark state" ], "value": [ 385, 495 ], "unit": [ "nm", "nm" ], 
+					"notes": "The lambda-max of mutant E113Q is pH dependent (see 'Results')." 
+				},
+				{ "tags": [ "UV absorption max", "MII state" ], "value": 378, "unit": "nm" },
+				{ "tags": [ "MII decay t1/2" ], "value": 126.2, "unit": "min" },
+				{ "tags": [ "Gt activation rate" ], "value": 96, "unit": "%" }
+			]
+		},
+		{
+			"tags": [ "E181Q", "181" ],
+			"data": [
+				{ "tags": [ "UV absorption max", "Dark state" ], "value": 508, "unit": "nm" },
+				{ "tags": [ "UV absorption max", "MII state" ], "value": 381, "unit": "nm" },
+				{ "tags": [ "MII decay t1/2" ], "value": 6.8, "unit": "min" },
+				{ "tags": [ "Gt activation rate" ], "value": 78, "unit": "%" }
+			]
+		},
+		{
+			"tags": [ "S186A", "186" ],
+			"data": [
+				{ "tags": [ "UV absorption max", "Dark state" ], "value": 500, "unit": "nm" },
+				{ "tags": [ "UV absorption max", "MII state" ], "value": 384, "unit": "nm" },
+				{ "tags": [ "MII decay t1/2" ], "value": 51.4, "unit": "min" },
+				{ "tags": [ "Gt activation rate" ], "value": 95, "unit": "%" }
+			]
+		},
+		{
+			"tags": [ "Y192F", "192" ],
+			"data": [
+				{ "tags": [ "UV absorption max", "Dark state" ], "value": 491, "unit": "nm" },
+				{ "tags": [ "UV absorption max", "MII state" ], "value": 386, "unit": "nm" },
+				{ "tags": [ "MII decay t1/2" ], "value": 5.8, "unit": "min" },
+				{ "tags": [ "Gt activation rate" ], "value": 38, "unit": "%" }
+			]
+		},
+		{
+			"tags": [ "Y268F", "268" ],
+			"data": [
+				{ "tags": [ "UV absorption max", "Dark state" ], "value": 495, "unit": "nm" },
+				{ "tags": [ "UV absorption max", "MII state" ], "value": 386, "unit": "nm" },
+				{ "tags": [ "MII decay t1/2" ], "value": 6.8, "unit": "min" },
+				{ "tags": [ "Gt activation rate" ], "value": 19, "unit": "%" }
+			]
+		}
+	]
+}
+]

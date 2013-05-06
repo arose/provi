@@ -1,0 +1,106 @@
+[
+    {
+        "filename": "pdb/1U19_OPM_mod.pdb"
+    },
+    {
+        "filename": "dowser/dowserwat.pdb", 
+        "params": { 
+            "load_as": "append"
+        }
+    },
+    {
+        "filename": "TMalign/matrix.txt", 
+        "type": "tmalign",
+        "params": {
+            "sele": "file=1 or file=2"
+        }
+    },
+    {
+        "name": "vol_atomprop",
+        "filename": "vol/1U19_OPM_mod.vol.atmprop"
+    },
+    {
+        "widget": "Provi.Bio.AtomProperty.AtomPropertyGroupWidget",
+        "params": {
+            "dataset": "DATASET_vol_atomprop", 
+            "filter_properties": [
+                "packing_density", 
+                "z_score"
+            ], 
+            "heading": "Packing", 
+            "parent_id": "tab_widgets"
+        }
+    }, 
+    {
+        "name": "vol_atomsele",
+        "filename": "vol/1U19_OPM_mod.vol.atmsele"
+    }, 
+    {
+        "function": "Provi.Bio.Voronoia.register", 
+        "params": {
+            "holes_ds": "DATASET_vol_atomsele"
+        }
+    },
+    {
+        "widget": "Provi.Bio.AtomSelection.GridWidget",
+        "params": {
+            "heading": "Cavities", 
+            "hide_eids": [
+                "filter", 
+                "sort", 
+                "type", 
+                "property"
+            ], 
+            "parent_id": "tab_widgets", 
+            "type": "voronoia"
+        }
+    },
+    {
+        "name": "tmhelix",
+        "filename": "helix/1U19_OPM.opmhelix.atmsele"
+    }, 
+    {
+        "name": "hbx",
+        "filename": "HBX/1U19_OPM_mod_hbx.anal.bonds"
+    },
+    {
+        "widget": "Provi.Bio.HydrogenBonds.HbondsWidget",
+        "params": {
+            "dataset": "DATASET_hbx", 
+            "parent_id": "tab_widgets", 
+            "tmhelix_atmsele_ds": "DATASET_tmhelix"
+        }
+    },
+    {
+        "name": "mbn",
+        "filename": "mbn/1U19_OPM_mod_1.4.mbn.atmsele"
+    },
+    {
+        "name": "mbn_contacts",
+        "filename": "mbn/1U19_OPM_mod_1.4.mbn_contact.atmsele"
+    },
+    {
+        "function": "Provi.Bio.InterfaceContacts.register", 
+        "params": {
+            "contacts_ds": "DATASET_mbn",
+            "contacts_ds2": "DATASET_mbn_contacts"
+        }
+    }, 
+    {
+        "widget": "Provi.Bio.AtomSelection.GridWidget",
+        "params": {
+            "heading": "Interface contacts", 
+            "hide_eids": [
+                "filter", 
+                "sort", 
+                "type", 
+                "property"
+            ], 
+            "parent_id": "tab_widgets", 
+            "type": "interface_contacts"
+        }
+    },
+    {
+        "filename": "mplane/1U19_OPM.mplane"
+    }
+]
