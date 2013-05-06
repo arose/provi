@@ -3,17 +3,25 @@ import urllib2
 import json
 import StringIO
 import tempfile
+import functools
 
 from flask import Flask
 from flask import send_from_directory
 from flask import send_file
 from flask import request, Request
+from flask import make_response
 
 from werkzeug import secure_filename
 
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
+
+
+@app.after_request
+def add_no_cache(response):
+    response.cache_control.no_cache = True
+    return response
 
 
 ############################
@@ -49,6 +57,12 @@ def decode( data, encoding ):
             print str(e)
     return data
 
+def nocache(f):
+    def new_func(*args, **kwargs):
+        resp = make_response(f(*args, **kwargs))
+        resp.cache_control.no_cache = True
+        return resp
+    return functools.update_wrapper(new_func, f)
 
 
 ############################
@@ -205,7 +219,7 @@ def save_download():
 
 
 if __name__ == '__main__':
-    app.run( debug=True, host='127.0.0.1' )
+    app.run( debug=True, host='127.0.0.1', processes=2, extra_files=['app.cfg'] )
 
 
 
