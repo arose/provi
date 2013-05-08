@@ -7,3 +7,4 @@ LOCAL_DATA_DIRS = {
 }
 MAX_CONTENT_LENGTH = 64 * 1024 * 1024
 PROXY = 'proxy.charite.de:888'
+REQUIRE_AUTH = False

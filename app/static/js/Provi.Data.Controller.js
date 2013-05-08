@@ -35,6 +35,10 @@ var type_mixins = {
     "atmsele": {
         bio_object: Provi.Bio.AtomSelection.AtomSelection
     },
+    "atmvec": {
+        bio_object: Provi.Bio.Data.AtomVector,
+        params_object: Provi.Bio.Data.AtomVectorLoadParamsWidget
+    },
     "bonds": {
         bio_object: Provi.Bio.HydrogenBonds.BondSet
     },
@@ -87,6 +91,9 @@ var type_mixins = {
                 obj: Provi.Bio.Isosurface.SurfaceParamsWidget
             }
         ],
+    },
+    "pse": {
+        bio_object: Provi.Bio.Data.Pymol
     },
     "fasta": {
         bio_object: Provi.Bio.Data.Fasta

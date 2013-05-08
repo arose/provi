@@ -1,12 +1,12 @@
 
 
 function provi_init(){
-	provi_data = {};
+    provi_data = {};
     provi_datasets = {};
-	provi_property = {}; # not used?
-	provi_selection = {};
+    provi_property = {}; # not used?
+    provi_selection = {};
     provi_settings = {};
-	provi_uid_counter = 0;
+    provi_uid_counter = 0;
     provi_settings_init();
     provi_bind_init();
 }
@@ -69,8 +69,8 @@ function provi_settings_init(){
 
 
 function provi_load_property( url, sele, dataset_id ){
-	if( !url ) return false;
-	if( !sele ) sele = {*};
+    if( !url ) return false;
+    if( !sele ) sele = {*};
     var x = load( url );
     var line1_end = x.find("\n");
     var line1 = x[1][line1_end-1];
@@ -91,7 +91,7 @@ function provi_load_property( url, sele, dataset_id ){
     if( dataset_id ){
         provi_datasets[ dataset_id ] = names;
         print "provi dataset: " + dataset_id + " loaded";
-    	#print "provi dataset: " + dataset_id + " loaded | provi property ds " + dataset_id + ": " + names.join(" ");
+        #print "provi dataset: " + dataset_id + " loaded | provi property ds " + dataset_id + ": " + names.join(" ");
     }
     select none;
     return true;
@@ -99,8 +99,8 @@ function provi_load_property( url, sele, dataset_id ){
 
 
 function provi_load_selection( url, dataset_id ){
-	if( !url ) return false;
-	var x = load( url );
+    if( !url ) return false;
+    var x = load( url );
     var lines = x.split();
     var names = [];
     for(l in lines){
@@ -121,27 +121,51 @@ function provi_load_selection( url, dataset_id ){
 
 
 function provi_load_bonds( url, hide_initially, dataset_id ){
-	if( !url ) return false;
-	x = load( url ); # must be global for script INLINE
+    if( !url ) return false;
+    x = load( url ); # must be global for script INLINE
     var bond_count_before = {*}.bonds.size;
     script INLINE @x;
     var bond_count_after = {*}.bonds.size;
     var bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";
     if( hide_initially ) hide add @bs;
     if( dataset_id ){
-    	print "provi dataset: " + dataset_id + " loaded | provi bonds ds " + dataset_id + ": " + bond_count_before + " " + bond_count_after;
-	}
-	return true;
+        print "provi dataset: " + dataset_id + " loaded | provi bonds ds " + dataset_id + ": " + bond_count_before + " " + bond_count_after;
+    }
+    return true;
+}
+
+
+function provi_load_vector( url, scale2 ){
+    if( !url ) return false;
+    var x = load( url );
+    var line1_end = x.find("\n");
+    var line1 = x[1][line1_end-1];
+    script INLINE @line1;
+    if(!id) id = "vec";
+    if(!colr) colr = "red";
+    if(!diameter) diameter = 0.15;
+    if(!scale) scale = 1.0;
+    if(scale2) scale = scale2;
+    var d = x[line1_end][0];
+    var i = 0;
+    for(l in d.split('\n')){
+        var row = l.split(" ");
+        var atm = "({" + row[1] + "})";
+        var vec = "{" + row[2] + " " + row[3] + " " + row[4] + "}";
+        draw ID @{id+i} vector @atm @vec color @colr diameter @diameter scale @scale;
+        ++i;
+    }
+    return true;
 }
 
 
 function provi_load_structure(){
-	
+    
 }
 
 
 function provi_load_isosurface(){
-	
+    
 }
 
 
