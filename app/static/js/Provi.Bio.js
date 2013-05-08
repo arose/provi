@@ -20,7 +20,7 @@ Provi.Bio = {};
 
 Provi.Bio.Data = {};
 Provi.Bio.Data.Data = function( params ){
-	this.dataset = params.dataset;
+    this.dataset = params.dataset;
 };
 Provi.Bio.Data.Data.prototype = /** @lends Provi.Bio.Data.Data.prototype */ {
 
@@ -29,8 +29,8 @@ Provi.Bio.Data.Data.prototype = /** @lends Provi.Bio.Data.Data.prototype */ {
 
 
 Provi.Bio.Data.DotProvi = function( params ){
-	this.dataset = params.dataset;
-	this.load();
+    this.dataset = params.dataset;
+    this.load();
 };
 Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype */ {
     load: function(){
@@ -40,9 +40,9 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
         var applet = Provi.Jmol.get_default_applet(true).widget.applet;
 
         _.each( this.dataset.raw_data, function(data, i){
-        	console.log("ProviMixin load", i, data.type, data);
+            console.log("ProviMixin load", i, data.type, data);
             
-        	var params = _.defaults( ( data.params || {} ), {
+            var params = _.defaults( ( data.params || {} ), {
                 applet: applet
             });
 
@@ -56,7 +56,7 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
             ds_dict[i] = { loaded: false };
             if( data.widget ){
                 var func = function(){
-                	var widget = eval( data.widget );
+                    var widget = eval( data.widget );
                     new widget( params );
                     ds_dict[i].loaded = true;
                     $( ds_dict[i] ).triggerHandler("loaded");
@@ -78,7 +78,7 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
                     data.dir, data.filename, data.type, params, true 
                 );
                 if( data.name ){
-                	name_dict[ data.name ] = ds_dict[i];
+                    name_dict[ data.name ] = ds_dict[i];
                 }
                 var func = function(){
                     var ds = ds_dict[i];
@@ -87,36 +87,36 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
             }
 
             var prev = ds_dict[ i-1 ];
-        	if( i==0 || prev.loaded ){
-        		func();
-        	}else{
+            if( i==0 || prev.loaded ){
+                func();
+            }else{
                 $( prev ).one('loaded', function(){
                     func();
                 });
             }
         });
 
-		var last = ds_dict[ this.dataset.raw_data.length-1 ];
-		if( last.loaded ){
-			this.dataset.set_loaded();
-		}else{
-			$( last ).one('loaded', function(){
-	            self.dataset.set_loaded();
-	        });
-		}
+        var last = ds_dict[ this.dataset.raw_data.length-1 ];
+        if( last.loaded ){
+            this.dataset.set_loaded();
+        }else{
+            $( last ).one('loaded', function(){
+                self.dataset.set_loaded();
+            });
+        }
     }
 };
 
 
 
 Provi.Bio.Data.Tmalign = function( params ){
-	params = _.defaults(
-		params,
-		Provi.Bio.Data.Tmalign.prototype.default_params
-	)
-	var p = [ "applet", "dataset", "sele" ];
-	_.extend( this, _.pick( params, p ) );
-	this.load();
+    params = _.defaults(
+        params,
+        Provi.Bio.Data.Tmalign.prototype.default_params
+    )
+    var p = [ "applet", "dataset", "sele" ];
+    _.extend( this, _.pick( params, p ) );
+    this.load();
 };
 Provi.Bio.Data.Tmalign.prototype = /** @lends Provi.Bio.Data.Tmalign.prototype */ {
     default_params: {
@@ -149,16 +149,15 @@ Provi.Bio.Data.Tmalign.prototype = /** @lends Provi.Bio.Data.Tmalign.prototype *
 }
 
 
-
-Provi.Bio.Data.JmolFile = function( params ){
-	var p = [ "applet", "dataset" ];
-	_.extend( this, _.pick( params, p ) );
-	this.load();
+Provi.Bio.Data.JmolLoad = function( params ){
+    var p = [ "applet", "dataset" ];
+    _.extend( this, _.pick( params, p ) );
+    this.load();
 };
-Provi.Bio.Data.JmolFile.prototype = /** @lends Provi.Bio.Data.JmolFile.prototype */ {
+Provi.Bio.Data.JmolLoad.prototype = {
     load: function( sele, applet ){
-    	this.applet._delete();
-    	var s = '' +
+        this.applet._delete();
+        var s = '' +
             'load "' + this.dataset.url + '";' +
             'print "provi dataset: ' + this.dataset.id + ' loaded";' +
         '';
@@ -167,15 +166,26 @@ Provi.Bio.Data.JmolFile.prototype = /** @lends Provi.Bio.Data.JmolFile.prototype
 }
 
 
+Provi.Bio.Data.JmolFile = function( params ){
+    Provi.Bio.Data.JmolLoad.call( this, params );
+};
+Provi.Bio.Data.JmolFile.prototype = Provi.Utils.extend(Provi.Bio.Data.JmolLoad, {});
+
+
+Provi.Bio.Data.Pymol = function( params ){
+    Provi.Bio.Data.JmolLoad.call( this, params );
+};
+Provi.Bio.Data.Pymol.prototype = Provi.Utils.extend(Provi.Bio.Data.JmolLoad, {});
+
 
 Provi.Bio.Data.JmolScript = function( params ){
-	var p = [ "applet", "dataset" ];
-	_.extend( this, _.pick( params, p ) );
-	this.load();
+    var p = [ "applet", "dataset" ];
+    _.extend( this, _.pick( params, p ) );
+    this.load();
 };
 Provi.Bio.Data.JmolScript.prototype = /** @lends Provi.Bio.Data.JmolScript.prototype */ {
     load: function( sele, applet ){
-    	var s = '' +
+        var s = '' +
             this.dataset.raw_data + ';' +
             'print "provi dataset: ' + this.dataset.id + ' loaded";' +
         '';
@@ -185,28 +195,59 @@ Provi.Bio.Data.JmolScript.prototype = /** @lends Provi.Bio.Data.JmolScript.proto
 
 
 
+
+/**
+ * A widget to select a structure loading type
+ * @constructor
+ */
+Provi.Bio.Data.AtomVectorLoadParamsWidget = function(params){
+    Provi.Widget.ParamsWidget.call( this, params );
+}
+Provi.Bio.Data.AtomVectorLoadParamsWidget.prototype = Provi.Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Data.AtomVectorLoadParamsWidget.prototype */ {
+    params_dict: {
+        scale: { default_value: 1, type: "slider", range: [ -10, 10 ], fixed: true }
+    }
+});
+
+Provi.Bio.Data.AtomVector = function( params ){
+    var p = [ "applet", "dataset", "scale" ];
+    _.extend( this, _.pick( params, p ) );
+    this.load();
+};
+Provi.Bio.Data.AtomVector.prototype = /** @lends Provi.Bio.Data.AtomVector.prototype */ {
+    load: function( sele, applet ){
+        var s = '' +
+            'provi_load_vector("' + this.dataset.url + '", ' + this.scale + ');' +
+            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+        '';
+        this.applet.script(s, { maintain_selection: true, try_catch: false });
+    }
+}
+
+
+
 Provi.Bio.Data.Story = function( params ){
-	params.parent_id = Provi.defaults.dom_parent_ids.DATASET_WIDGET;
-	new Provi.Widget.StoryWidget( params );
-	this.dataset.set_loaded();
+    params.parent_id = Provi.defaults.dom_parent_ids.DATASET_WIDGET;
+    new Provi.Widget.StoryWidget( params );
+    this.dataset.set_loaded();
 };
 
 
 
 Provi.Bio.Data.Fasta = function( params ){
     new Provi.Jalview.JalviewWidget({ file: this.dataset.url });
-	this.dataset.set_loaded();
+    this.dataset.set_loaded();
 };
 
 
 
 Provi.Bio.Data.Features = function( params ){
-	var self = this;
-	var jalview = Provi.Jalview.get_default_applet();
-	$(this.dataset).bind("initialized", function(){
-		jalview.applet.loadAnnotation( self.dataset.raw_data );
-		this.dataset.set_loaded();
-	});
+    var self = this;
+    var jalview = Provi.Jalview.get_default_applet();
+    $(this.dataset).bind("initialized", function(){
+        jalview.applet.loadAnnotation( self.dataset.raw_data );
+        this.dataset.set_loaded();
+    });
 };
 
 

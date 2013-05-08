@@ -8,7 +8,7 @@ import functools
 from flask import Flask
 from flask import send_from_directory
 from flask import send_file
-from flask import request, Request
+from flask import request, Request, Response
 from flask import make_response
 
 from werkzeug import secure_filename
@@ -65,6 +65,38 @@ def nocache(f):
     return functools.update_wrapper(new_func, f)
 
 
+
+
+############################
+# basic auth
+############################
+
+def check_auth(username, password):
+    """This function is called to check if a username /
+    password combination is valid.
+    """
+    return username == 'test' and password == 'test'
+
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+    'Could not verify your access level for that URL.\n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+# use as after a route decorator
+def requires_auth(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        if app.config['REQUIRE_AUTH']:
+            auth = request.authorization
+            if not auth or not check_auth(auth.username, auth.password):
+                return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+
+
 ############################
 # static routes
 ############################
@@ -81,6 +113,7 @@ def favicon():
     )
 
 @app.route('/static/<path:filename>')
+@requires_auth
 def static(filename):
     return send_from_directory( app.config['STATIC_DIR'], filename )
 
