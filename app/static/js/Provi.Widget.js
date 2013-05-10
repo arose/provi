@@ -322,6 +322,17 @@ Provi.Widget.form_builder = function( params, value, id, self ){
             })(),
             '<label>' + _.str.humanize( id ) + '</label>'
         );
+
+    }else if( p.type=="file" ){
+
+        $elm.append(
+            $('<input type="file" name="' + id + '" />')
+                .data( 'id', id )
+                .val( value )
+                .blur( _.bind( self.set, self ) ),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
     }else{
         $elm.append( _.str.humanize( id ) );
     }

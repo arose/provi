@@ -195,12 +195,11 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
             filename: filename
         },
         type: type || filename.split('.').pop(),
-        url: window.location.protocol + '//' + window.location.host +
-            '/example/data/' +
-                '?directory_name=' + directory_name + 
-                '&_id=' + (new Date().getTime()) +
-                '&path=' + filename
-            
+        url: Provi.url_for( '/example/data/' +
+            '?directory_name=' + directory_name + 
+            '&_id=' + (new Date().getTime()) +
+            '&path=' + filename
+        )
     });
     if(!no_init) dataset.init( params );
     return dataset;

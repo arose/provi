@@ -59,6 +59,10 @@ Provi.Debug.off = function(){
     _.each( Provi.Debug._logging_func, function(f){
         window.console[f] = function(){};
     });
+
+    $.ajaxSetup({
+        error: function(){}
+    });
     
     Provi.Debug._status = false;
 }
@@ -70,6 +74,10 @@ Provi.Debug.off = function(){
 Provi.Debug.on = function(){
     _.each( Provi.Debug._logging_func, function(f){
         window.console[f] = Provi.Debug._console_bak[f];
+    });
+
+    $.ajaxSetup({
+        error: function(e){ console.error(e); }
     });
 
     Provi.Debug._status = true;

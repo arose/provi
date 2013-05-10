@@ -4,24 +4,29 @@ import json
 import StringIO
 import tempfile
 import functools
+import uuid
+import multiprocessing
+import signal
+import logging
+import Queue
+import threading
+import time
 
 from flask import Flask
 from flask import send_from_directory
 from flask import send_file
-from flask import request, Request, Response
-from flask import make_response
+from flask import request, Request
+from flask import make_response, Response
+from flask import jsonify
 
 from werkzeug import secure_filename
+
 
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
 
-@app.after_request
-def add_no_cache(response):
-    response.cache_control.no_cache = True
-    return response
 
 
 ############################
@@ -57,13 +62,23 @@ def decode( data, encoding ):
             print str(e)
     return data
 
+
+
+############################
+# cache control
+############################
+
+@app.after_request
+def add_no_cache(response):
+    response.cache_control.no_cache = True
+    return response
+
 def nocache(f):
     def new_func(*args, **kwargs):
         resp = make_response(f(*args, **kwargs))
         resp.cache_control.no_cache = True
         return resp
     return functools.update_wrapper(new_func, f)
-
 
 
 
@@ -246,22 +261,97 @@ def save_download():
     )
 
 
+############################
+# job handling
+############################
+
+# !important - allows one to abort via CTRL-C
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+multiprocessing.log_to_stderr( logging.ERROR )
+nworkers = app.config.get( 'JOB_WORKERS', multiprocessing.cpu_count() )
+JOB_POOL = multiprocessing.Pool( nworkers )
+
+# JOB_QUEUE = Queue.Queue()
+
+# def worker():
+#     while True:
+#         print "foobar"
+#         try:
+#             tool_instance = JOB_QUEUE.get_nowait()
+#             print "sdfiogo"
+#             tool_instance()
+#             print tool_instance
+#             JOB_QUEUE.task_done()
+#         except:
+#             pass
+#         time.sleep( 10 )
+
+# for i in range(nworkers):
+#     t = threading.Thread(target=worker)
+#     t.daemon = True
+#     t.start()
+
+@app.route('/job/status/<string:jobname>')
+def job_status( jobname ):
+    jobtype, jobid = jobname.split("_")
+    Tool = app.config['TOOLS'].get( jobtype, None )
+    if Tool:
+        jobid = secure_filename( jobid )
+        output_dir = os.path.join( app.config['JOB_DIR'] , jobid )
+        instance = Tool( output_dir=output_dir, fileargs=True, run=False )
+        return jsonify({ "check": instance.check( full=True ) })
+    return ""
+
+@app.route('/job/tools')
+def job_tools():
+    tools = {}
+    for name, Tool in app.config['TOOLS'].iteritems():
+        tools[ name ] = Tool.args
+    return jsonify( tools )
+
+@app.route('/job/submit/', methods=['POST'])
+def job_submit():
+    jobtype = request.form.get('type', None)
+    Tool = app.config['TOOLS'][ jobtype ]
+    if Tool:
+        jobid = str( uuid.uuid4() )
+        output_dir = os.path.join( app.config['JOB_DIR'], jobid )
+        output_dir = os.path.abspath( output_dir )
+        if not os.path.exists( output_dir ):
+            os.makedirs( output_dir )
+
+        args = []
+        for name, params in Tool.args.iteritems():
+            if params["type"]=="file":
+                ext = params.get("ext", "dat")
+                fpath = os.path.join( output_dir, "input_%s.%s" % ( name, ext ) )
+                request.files[ name ].save( fpath )
+                args.append( fpath )
+            else:
+                args.append( request.form[name] )
+
+        args = tuple(args)
+        kwargs = { "output_dir": output_dir, "run": False }
+        instance = Tool( *args, **kwargs )
+        # instance()
+
+        # print JOB_QUEUE
+        # JOB_QUEUE.put( instance )
+        JOB_POOL.apply_async( instance )
+
+        return jsonify({ "jobid": jobid })
+    return ""
 
 
 
 
+
+
+############################
+# main
+############################
 
 if __name__ == '__main__':
-    app.run( debug=True, host='127.0.0.1', processes=2, extra_files=['app.cfg'] )
-
-
-
-
-
-
-
-
-
-
+    app.run( debug=True, host='127.0.0.1', threaded=True, processes=1, extra_files=['app.cfg'] )
 
 

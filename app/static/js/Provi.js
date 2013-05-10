@@ -27,7 +27,7 @@ var Provi = {};
     Provi.defaults.base_url = ''
     
     Provi.url_for = function( url ){
-        return Provi.defaults.base_url + url;
+        return window.location.protocol + '//' + window.location.host + url;
     }
 
     Provi.config = {
