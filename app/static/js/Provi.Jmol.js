@@ -722,6 +722,11 @@ Provi.Jmol.JmolWidget = function(params){
         });
     }
 
+    this.job_widget = new Provi.Job.JobWidget({
+        parent_id: "tab_io",
+        applet: this.applet
+    });
+
     layout_main();
 };
 Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.JmolWidget.prototype */ {
