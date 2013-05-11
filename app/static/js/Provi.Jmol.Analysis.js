@@ -74,20 +74,20 @@ Provi.Jmol.Analysis.IsosurfaceConstructionWidget.prototype = Utils.extend(Provi.
         $( '#' + this.construct_id ).button().click( function(){
             var applet = self.applet_selector.get_value();
             if( applet ){
-                console.log('IsosurfaceConstructionWidget');
-                // new Provi.Bio.Isosurface.SurfaceWidget({
-                Provi.Bio.Isosurface.init_isosurface({
-                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET,
-                    dataset: self,
-                    applet: applet,
-                    within: self.isosurface_params.get_within(),
-                    type: self.surface_params.get_type(),
-                    resolution: self.surface_params.get_resolution(),
-                    select: self.surface_params.get_select(),
-                    ignore: self.surface_params.get_ignore(),
-                    slab: self.surface_params.get_slab(),
-                    map: self.surface_params.get_map()
-                });
+                var params = { applet: applet };
+                _.extend( params, self.isosurface_params.params );
+                console.log('IsosurfaceConstructionWidget', params);
+                new Provi.Bio.Isosurface.Isosurface( params );
+                // Provi.Bio.Isosurface.Isosurface({
+                //     applet: applet,
+                //     within: self.isosurface_params.get_within(),
+                //     type: self.surface_params.get_type(),
+                //     resolution: self.surface_params.get_resolution(),
+                //     select: self.surface_params.get_select(),
+                //     ignore: self.surface_params.get_ignore(),
+                //     slab: self.surface_params.get_slab(),
+                //     map: self.surface_params.get_map()
+                // });
             }
         });
         

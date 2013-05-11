@@ -53,40 +53,41 @@ var type_mixins = {
         bio_object: Provi.Bio.Data.Story
     },
     "isosurface": {
-        bio_object: Provi.Bio.Isosurface.IsosurfaceWidget,
+        bio_object: Provi.Bio.Isosurface.Isosurface,
         params_object: Provi.Bio.Isosurface.LoadParamsWidget
     },
     "volume": {
-        bio_object: Provi.Bio.Isosurface.VolumeWidget,
-        load_params_widget: [
-            {
-                params: [
-                    { name: 'within', getter: 'get_within' },
-                    { name: 'insideout', getter: 'get_insideout' },
-                    { name: 'reload_widget', getter: 'get_reload_widget' }
-                ],
-                obj: Provi.Bio.Isosurface.LoadParamsWidget
-            },
-            {
-                params: [
-                    { name: 'sigma', getter: 'get_sigma' },
-                    { name: 'cutoff', getter: 'get_cutoff' },
-                    { name: 'sign', getter: 'get_sign' },
-                    { name: 'color_density', getter: 'get_color_density' },
-                    { name: 'downsample', getter: 'get_downsample' }
-                ],
-                obj: Provi.Bio.Isosurface.VolumeParamsWidget
-            },
-            {
-                params: [
-                    { name: 'resolution', getter: 'get_resolution' },
-                    { name: 'select', getter: 'get_select' },
-                    { name: 'ignore', getter: 'get_ignore' },
-                    { name: 'type', getter: 'get_type' }
-                ],
-                obj: Provi.Bio.Isosurface.SurfaceParamsWidget
-            }
-        ],
+        bio_object: Provi.Bio.Isosurface.Volume,
+        params_object: Provi.Bio.Isosurface.VolumeLoadParamsWidget
+        // load_params_widget: [
+        //     {
+        //         params: [
+        //             { name: 'within', getter: 'get_within' },
+        //             { name: 'insideout', getter: 'get_insideout' },
+        //             { name: 'reload_widget', getter: 'get_reload_widget' }
+        //         ],
+        //         obj: Provi.Bio.Isosurface.LoadParamsWidget
+        //     },
+        //     {
+        //         params: [
+        //             { name: 'sigma', getter: 'get_sigma' },
+        //             { name: 'cutoff', getter: 'get_cutoff' },
+        //             { name: 'sign', getter: 'get_sign' },
+        //             { name: 'color_density', getter: 'get_color_density' },
+        //             { name: 'downsample', getter: 'get_downsample' }
+        //         ],
+        //         obj: Provi.Bio.Isosurface.VolumeParamsWidget
+        //     },
+        //     {
+        //         params: [
+        //             { name: 'resolution', getter: 'get_resolution' },
+        //             { name: 'select', getter: 'get_select' },
+        //             { name: 'ignore', getter: 'get_ignore' },
+        //             { name: 'type', getter: 'get_type' }
+        //         ],
+        //         obj: Provi.Bio.Isosurface.SurfaceParamsWidget
+        //     }
+        // ],
     },
     "fasta": {
         bio_object: Provi.Bio.Data.Fasta

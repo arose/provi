@@ -112,7 +112,7 @@ Provi.Jmol.Settings.dict = {
     sheetSmoothing: { type: "checkbox" },
     traceAlpha: { type: "checkbox" },
     cartoonBaseEdges: { type: "checkbox" },
-    cartoonLadder: { type: "checkbox" },
+    cartoonLadders: { type: "checkbox" },
     sidechainHelper:  { type: "checkbox", provi: true },
     style: { type: "select", options: [ "", "default", "lines", "sticks", "cartoon", "cartoon+sticks", "backbone", "backbone+sticks", "trace" ] },
 
@@ -145,19 +145,12 @@ Provi.Jmol.Settings.SettingsParamsWidget.prototype = Utils.extend(Widget, /** @l
 
 
 
-Provi.Jmol.Settings.SettingsSelectionType = function(params){
-    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+Provi.Jmol.Settings.SettingsDatalist = function(params){
+    Provi.Bio.AtomSelection.Datalist.call( this, params );
     this.handler = {};
 }
-Provi.Jmol.Settings.SettingsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Jmol.Settings.SettingsSelectionType.prototype */ {
-    _init: function(grid){
-        this.grid = grid;
-        grid.elm("widgets").empty();
-        this.params_widget = new Provi.Jmol.Settings.SettingsParamsWidget({
-            parent_id: grid.eid('widgets')
-        });
-        var self = this;
-    },
+Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Jmol.Settings.SettingsDatalist.prototype */ {
+    name: "SettingsDatalist",
     get_ids: function(){
         return _.keys( Provi.Jmol.Settings.dict );
     },
@@ -196,13 +189,13 @@ Provi.Jmol.Settings.SettingsSelectionType.prototype = Utils.extend(Provi.Bio.Ato
         if( e.type=="slide" ){
             this.applet.script( s );
         }else{
-            this.applet.script_callback( s, {}, _.bind( this.grid.invalidate, this.grid ) );
+            this.applet.script_callback( s, {}, _.bind( this.invalidate, this ) );
         }
     }    
 });
-Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-    'settings', Provi.Jmol.Settings.SettingsSelectionType
-);
+// Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
+//     'settings', Provi.Jmol.Settings.SettingsSelectionType
+// );
 
 
 

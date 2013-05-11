@@ -21,19 +21,196 @@ var Utils = Provi.Utils;
 var Widget = Provi.Widget.Widget;
 
 
-Provi.Bio.Isosurface.init_isosurface = function(params){
-    if(!params.select) params.select = '*';
-    if(!params.type) params.type = 'sasurface';
-    params.applet.script(
-        'isosurface id "iso_' + Provi.Utils.uuid() + '" ' +
-        (params.resolution ? 'resolution ' + params.resolution + ' ' : '') +
-        (params.select ? 'select {' + params.select + '} ' : '') +
-        (params.ignore ? 'ignore {' + params.ignore + '} ' : '') +
-        (params.slab ? 'SLAB ' + params.slab + ' ' : '') +
-        (params.type ? params.type + ' ' : '') +
-        (params.map ? 'MAP ' + params.map + ' ' : '') +
-    ';', true);
+
+Provi.Bio.Isosurface.LoadParamsWidget = function(params){
+    Provi.Widget.ParamsWidget.call( this, params );
 }
+Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Isosurface.LoadParamsWidget.prototype */ {
+    params_dict: {
+        within: { default_value: 2, type: "slider", range: [ 1, 10 ] },
+        insideout: { default_value: false, type: "checkbox" },
+        resolution: { default_value: 2, type: "slider", range: [ 1, 10 ], fixed: true },
+        select: { default_value: "*", type: "text" },
+        ignore: { default_value: "", type: "text" }
+    }
+});
+
+
+
+Provi.Bio.Isosurface.VolumeLoadParamsWidget = function(params){
+    Provi.Widget.ParamsWidget.call( this, params );
+}
+Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype */ {
+    params_dict: {
+        within: { default_value: 2, type: "slider", range: [ 1, 10 ] },
+        insideout: { default_value: false, type: "checkbox" },
+        sigma: { default_value: 1, type: "slider", range: [ 1, 50 ], factor: 10 },
+        color_density: { default_value: false, type: "checkbox" },
+        sign: { default_value: true, type: "checkbox" },
+        downsample: { default_value: 1, type: "slider", range: [ 1, 10 ] },
+        type: { default_value: "", type: "select", options: [ 
+            "", "sasurface", "molecular", "cavity", "solvent 1.4", "solvent 1.0", "solvent 0.8",
+            "cavity 1.0 8", "interior cavity 1.0 8", "pocket cavity 1.0 8"
+        ] },
+        resolution: { default_value: 2, type: "slider", range: [ 1, 10 ], fixed: true },
+        select: { default_value: "*", type: "text" },
+        ignore: { default_value: "", type: "text" }
+    }
+});
+//                     { name: 'cutoff', getter: 'get_cutoff' },
+
+
+
+
+Provi.Bio.Isosurface.Isosurface = function(params){
+    params = _.defaults( params, this.default_params );
+    var p = [ 
+        "applet", "dataset", "color", "within", "insideout", "frontonly", "style", 
+        "resolution", "select", "ignore", "slab", "type", "map"
+    ];
+    _.extend( this, _.pick( params, p ) );
+
+    if( this.dataset ){
+        this.load();    
+    }else{
+        this.create();
+    }
+};
+Provi.Bio.Isosurface.Isosurface.prototype = /** @lends Provi.Bio.Isosurface.Isosurface.prototype */ {
+    default_params: {
+        select: "*",
+        type: "sasurface"
+    },
+    load: function(){
+
+        // TODO use dataset id for isosurface id?
+        var s = 'isosurface ID "iso_' + Provi.Utils.uuid() + '" ' +
+            ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
+            ( this.within ? 'WITHIN ' + this.within + ' { protein } ' : '' ) +
+            ( this.insideout ? 'INSIDEOUT ' : '' ) + 
+            ( this.frontonly ? 'FRONTONLY ' : '' ) + 
+            '"' + this.dataset.url + '" ' +
+            ( this.style ? this.style : '' ) + 
+        ';'
+
+        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, function(){
+            // TODO why is this not in the original script call?
+            var post_script = "";
+            if( self.dataset ){
+                post_script += 'print "provi dataset: ' + self.dataset.id + ' loaded";';
+            }
+            self.applet.script( post_script, { maintain_selection: true, try_catch: false } );
+        });
+    },
+    create: function(){
+        console.log("fobar");
+        var s = 'isosurface ID "iso_' + Provi.Utils.uuid() + '" ' +
+            (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
+            (this.select ? 'select {' + this.select + '} ' : '') +
+            (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
+            (this.slab ? 'SLAB ' + this.slab + ' ' : '') +
+            (this.type ? this.type + ' ' : '') +
+            (this.map ? 'MAP ' + this.map + ' ' : '') +
+        ';'
+
+        this.applet.script( s , { maintain_selection: true, try_catch: true } );
+    }
+};
+
+
+
+Provi.Bio.Isosurface.Volume = function(params){
+    params = _.defaults( params, this.default_params );
+    var p = [ 
+        "applet", "dataset", "color_density", "within", "insideout", "cutoff", "sigma", 
+        "resolution", "select", "ignore", "type", "sign"
+    ];
+    _.extend( this, _.pick( params, p ) );
+
+    if( this.dataset ){
+        this.load();    
+    }else{
+        this.create();
+    }
+};
+Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.prototype */ {
+    default_params: {
+        
+    },
+    load: function(){
+        this.iso_id = 'vol_' + Provi.Utils.uuid();
+        var s = 'isosurface ID "' + this.iso_id + '" ';
+
+        if( this.color_density ){
+            if( !this.cutoff ){
+                this.cutoff = '[-1000,1000]';
+            }
+            s += '' +
+                ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
+                //( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
+                (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
+                //(this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
+                (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
+                'color density ' +
+                '"' + this.dataset.url + '" ' +
+                ';' +
+                'color $"' + this.isosurface_name + '" "rwb" range -20 20;' +
+            '';
+        }else{
+            if( !this.cutoff ){
+                this.cutoff = '[-1000,1000]';
+            }
+            s += '' +
+                ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
+                //( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
+                (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
+                (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
+                (this.sign ? 'SIGN blue red ' : '') +
+                //(this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
+                (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
+                (this.select ? 'select {' + this.select + '} ' : '') +
+                (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
+                'colorscheme "bwr" color absolute -20 20 ' +
+                (this.type ? this.type + ' ' : '') +
+                (this.type ? 'MAP ' : '') +
+                ( (!this.type && this.insideout) ? 'INSIDEOUT ' : '' ) + 
+                '"' + this.dataset.url + '" ' +
+                (this.style ? this.style + ' ' : '') +
+            ';';
+        }
+
+        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, function(){
+            // TODO why is this not in the original script call?
+            var post_script = "";
+            if( self.dataset ){
+                post_script += 'print "provi dataset: ' + self.dataset.id + ' loaded";';
+            }
+            self.applet.script( post_script, { maintain_selection: true, try_catch: false } );
+        });
+    }
+};
+
+
+
+Provi.Bio.Isosurface.IsosurfaceDatalist = function(params){
+    Provi.Bio.AtomSelection.Datalist.call( this, params );
+}
+Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.ChainlabelDatalist.prototype */ {
+    get_ids: function(){
+        var shape_info = this.applet.get_property_as_array('shapeInfo');
+        return _.pluck( shape_info['Isosurface'], "ID" );
+    },
+    get_data: function(id){
+        
+    },
+    make_row: function(id){
+        return id;
+    },
+    selection: function(id){
+        
+    }
+});
+
 
 
 /**
@@ -589,255 +766,9 @@ Provi.Bio.Isosurface.SurfaceWidget.prototype = Utils.extend(Provi.Bio.Isosurface
 
 
 
-/**
- * A widget to select a structure loading type
- * @constructor
- */
-Provi.Bio.Isosurface.LoadParamsWidget = function(params){
-    Provi.Widget.ParamsWidget.call( this, params );
-}
-Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Isosurface.LoadParamsWidget.prototype */ {
-    params_dict: {
-        within: {
-            default_value: 2,
-            type: "slider", 
-            range: [ 1, 10 ]
-        },
-        insideout: {
-            default_value: false,
-            type: "checkbox" 
-        }
-    }
-});
 
 
 
-/**
- * A widget to get volume load params
- * @constructor
- * @extends Provi.Widget.Widget
- */
-Provi.Bio.Isosurface.VolumeParamsWidget = function(params){
-    this.dataset = params.dataset;
-    Widget.call( this, params );
-    this._build_element_ids([ 'sigma', 'cutoff', 'downsample', 'color_density', 'sign' ]);
-    var content = '<div>' +
-    '<div class="control_row">' +
-        '<label for="' + this.sigma_id + '">Sigma:</label>' +
-        '<input id="' + this.sigma_id + '" type="text" size="4" value=""/>' +
-    '</div>' +
-    '<div class="control_row">' +
-        '<label for="' + this.cutoff_id + '">Cutoff:</label>' +
-        '<input id="' + this.cutoff_id + '" type="text" size="4" value=""/>' +
-    '</div>' +
-    '<div class="control_row">' +
-        '<label for="' + this.downsample_id + '">Downsample:</label>' +
-        '<input id="' + this.downsample_id + '" type="text" size="4" value="3"/>' +
-    '</div>' +
-    '<div class="control_row">' +
-            '<input id="' + this.color_density_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.color_density_id + '" style="display:inline-block;">Color density</label>' +
-        '</div>' +
-    '<div class="control_row">' +
-            '<input id="' + this.sign_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.sign_id + '" style="display:inline-block;">Sign</label>' +
-        '</div>' +
-    '</div>';
-    $(this.dom).append( content );
-    
-    if( this.dataset && $.inArray( this.dataset.type, ['cube', 'ccp4', 'mrc', 'map']) == -1 ){
-        $('#' + this.sigma_id).parent().hide();
-    }else{
-        $('#' + this.sigma_id).val('1');
-        $('#' + this.downsample_id).parent().hide();
-        $('#' + this.cutoff_id).parent().hide();
-        $('#' + this.sign_id).parent().hide();
-        $('#' + this.as_map_id).parent().hide();
-    }
-    if( this.dataset && $.inArray( this.dataset.type, ['cube']) != -1 ){
-        $('#' + this.sigma_id).parent().hide();
-        $('#' + this.cutoff_id).parent().show();
-    }
-}
-Provi.Bio.Isosurface.VolumeParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Isosurface.VolumeParamsWidget.prototype */ {
-    get_sigma: function(){
-        return parseFloat( $("#" + this.sigma_id).val() );
-    },
-    get_cutoff: function(){
-        return parseFloat( $("#" + this.cutoff_id).val() );
-    },
-    get_downsample: function(){
-        return parseInt( $("#" + this.downsample_id).val() );
-    },
-    get_color_density: function(){
-        return $("#" + this.color_density_id).is(':checked');
-    },
-    get_sign: function(){
-        return $("#" + this.sign_id).is(':checked');
-    }
-});
-
-
-/**
- * A widget to get surface construction params
- * @constructor
- * @extends Provi.Widget.Widget
- */
-Provi.Bio.Isosurface.SurfaceParamsWidget = function(params){
-    this.dataset = params.dataset;
-    Widget.call( this, params );
-    this._build_element_ids([ 'select', 'ignore', 'negate_ignore', 'resolution', 'type', 'map', 'slab', 'opposite_slab', 'select_selector', 'ignore_selector', 'negate_select_as_ignore' ]);
-    var content = '<div>' +
-        //'<div class="control_row">' +
-        //    '<label for="' + this.select_id + '">Select:</label>' +
-        //    '<input id="' + this.select_id + '" type="text" size="10" value="protein"/>' +
-        //'</div>' +
-        //'<div class="control_row">' +
-        //    '<label for="' + this.ignore_id + '">Ignore:</label>' +
-        //    '<input id="' + this.ignore_id + '" type="text" size="10" value="protein"/>' +
-        //'</div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.select_selector_id + '">Select </label>' +
-            '<span id="' + this.select_selector_id + '"></span>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<input id="' + this.negate_select_as_ignore_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-                '<label for="' + this.negate_select_as_ignore_id + '" style="display:block;">negated select as ignore</label>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.ignore_selector_id + '">Ignore </label>' +
-            '<span id="' + this.ignore_selector_id + '"></span>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<input id="' + this.negate_ignore_id + '" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-                '<label for="' + this.negate_ignore_id + '" style="display:block;">negate ignore</label>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.resolution_id + '">Resolution:</label>' +
-            '<input id="' + this.resolution_id + '" type="text" size="4" value="1.0"/>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.type_id + '">Type:</label>' +
-            '<select id="' + this.type_id + '" class="ui-state-default">' +
-                '<option value=""></option>' +
-                '<option value="SASURFACE">SASURFACE</option>' +
-                '<option value="SOLVENT 1.4">SOLVENT 1.4</option>' +
-                '<option value="SOLVENT 1.0">SOLVENT 1.0</option>' +
-                '<option value="SOLVENT 0.8">SOLVENT 0.8</option>' +
-                '<option value="CAVITY 1.0 8">CAVITY 1.0 8</option>' +
-                '<option value="INTERIOR CAVITY 1.0 8">INTERIOR CAVITY 1.0 8</option>' +
-                '<option value="POCKET CAVITY 1.0 8">POCKET CAVITY 1.0 8</option>' +
-            '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.map_id + '">Map:</label>' +
-            '<select id="' + this.map_id + '" class="ui-state-default">' +
-                '<option value=""></option>' +
-                '<option value="PROPERTY temperature">PROPERTY temperature</option>' +
-                '<option value="PROPERTY partialCharge">PROPERTY partialCharge</option>' +
-                '<option value="MEP">[1/d] MEP</option>' +
-                '<option value="MEP 1">[e^(-d/2)] MLP?</option>' +
-                '<option value="MEP 2">[1/(1+d)] MLP</option>' +
-                '<option value="MEP 3">[e^(-d)] Hydrophobicity potential</option>' +
-            '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<label for="' + this.slab_id + '">Slab:</label>' +
-            '<select id="' + this.slab_id + '" class="ui-state-default">' +
-                '<option value=""></option>' +
-            '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<input id="' + this.opposite_slab_id + '" type="checkbox" style="float:left; margin-top: 0.5em;"/>' +
-            '<label for="' + this.opposite_slab_id + '" style="display:block;">opposite facing plane</label>' +
-        '</div>' +
-    '</div>';
-    $(this.dom).append( content );
-    
-    this.select_selector = new Provi.Bio.AtomSelection.SelectorWidget({
-        parent_id: this.select_selector_id,
-        applet: params.applet, tag_name: 'span'
-    });
-    this.ignore_selector = new Provi.Bio.AtomSelection.SelectorWidget({
-        parent_id: this.ignore_selector_id,
-        applet: params.applet, tag_name: 'span'
-    });
-    
-    if( this.dataset && this.dataset.type != 'dx' ){
-        $('#' + this.type_id).parent().hide();
-    }
-    if( this.dataset ){
-        $('#' + this.map_id).parent().hide();
-    }
-    if( this.dataset && $.inArray( this.dataset.type, ['cube', 'ccp4', 'mrc', 'map']) >= 0 ){
-        $('#' + this.select_selector_id).parent().hide();
-        $('#' + this.ignore_selector_id).parent().hide();
-        $('#' + this.resolution_id).parent().hide();
-    }
-    
-    var self = this;
-    $(Provi.Data.DatasetManager).bind('change', function(){ self._init_plane_selector() });
-    this._init_plane_selector();
-}
-Provi.Bio.Isosurface.SurfaceParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.Isosurface.SurfaceParamsWidget.prototype */ {
-    _init_plane_selector: function(){
-        var self = this;
-        var elm = $('#' + this.slab_id);
-        elm.empty();
-        elm.append("<option value=''></option>");
-        $.each( Provi.Data.DatasetManager.get_list(), function(i, dataset){
-            if( dataset.type == 'mplane' && dataset.data && _.contains(dataset.applet_list, self.applet) ){
-                elm.append("<option value='" + this.id + ",0'>" + this.name + ' PLANE 1 (' + this.id + ')' + "</option>");
-                elm.append("<option value='" + this.id + ",1'>" + this.name + ' PLANE 2 (' + this.id + ')' + "</option>");
-                self.mplane_list = dataset.data.tmh_list;
-                return false;
-            }else{
-                return true;
-            }
-        });
-    },
-    get_select: function(){
-        return this.select_selector.get().selection;
-        //return $("#" + this.select_id).val();
-    },
-    get_ignore: function(){
-        if( $("#" + this.negate_select_as_ignore_id).is(':checked') ){
-            var ignore = this.select_selector.get();
-            var negate = true;
-        }else{
-            var ignore = this.ignore_selector.get();
-            //var ignore = $("#" + this.ignore_id).val();
-            var negate = $("#" + this.negate_ignore_id).is(':checked');
-        }
-        return ( negate && ignore ) ? ('not (' + ignore + ')' ) : ignore;
-    },
-    get_resolution: function(){
-        return parseFloat( $("#" + this.resolution_id).val() );
-    },
-    get_type: function(){
-        return $("#" + this.type_id + " option:selected").val();
-    },
-    get_map: function(){
-        return $("#" + this.map_id + " option:selected").val();
-    },
-    get_slab: function(){
-        var plane = $("#" + this.slab_id + " option:selected").val().split(',');
-        var ds_id = plane[0];
-        var plane_id = plane[1]
-        if(ds_id){
-            var ds = Provi.Data.DatasetManager.get( ds_id );
-            var sign = $("#" + this.opposite_slab_id).is(':checked') ? '- ' : '';
-            return sign + ds.data.format_as_jmol_planes()[ plane_id ];
-        }else{
-            return '';
-        }
-    },
-    set_applet: function( applet ){
-        this.applet = applet;
-        this.select_selector.set_applet( applet );
-        this.ignore_selector.set_applet( applet );
-    }
-});
 
 
 })();
