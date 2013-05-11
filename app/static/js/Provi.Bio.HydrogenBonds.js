@@ -238,8 +238,8 @@ Provi.Bio.HydrogenBonds.HbondParamsWidget.prototype = Utils.extend(Widget, /** @
 
 
 
-Provi.Bio.HydrogenBonds.HbondsSelectionType = function(params){
-    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+Provi.Bio.HydrogenBonds.HbondsDatalist = function(params){
+    Provi.Bio.AtomSelection.Datalist.call( this, params );
     this.handler = _.defaults({
         "show_hbres": {
             "selector": 'input[cell="hbres"]',
@@ -253,7 +253,7 @@ Provi.Bio.HydrogenBonds.HbondsSelectionType = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype */ {
+Provi.Bio.HydrogenBonds.HbondsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.HydrogenBonds.HbondsDatalist.prototype */ {
     _init: function(grid){
         grid.elm("widgets").empty();
         this.params_widget = new Provi.Bio.HydrogenBonds.HbondParamsWidget({
@@ -350,10 +350,10 @@ Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.A
         var s = this._show_hbond(id, flag, params);
         this.applet.script_callback( s, { maintain_selection: true }, callback );
     },
-    hbres_cell: Provi.Bio.AtomSelection.CellFactory({
+    hbres_cell: Provi.Widget.Grid.CellFactory({
         "name": "hbres", "color": "tomato"
     }),
-    hbond_cell: Provi.Bio.AtomSelection.CellFactory({
+    hbond_cell: Provi.Widget.Grid.CellFactory({
         "name": "hbond", "color": "skyblue"
     }),
     selection: function(id){
@@ -365,9 +365,9 @@ Provi.Bio.HydrogenBonds.HbondsSelectionType.prototype = Utils.extend(Provi.Bio.A
         }
     }
 });
-Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-    'hbonds', Provi.Bio.HydrogenBonds.HbondsSelectionType
-);
+// Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
+//     'hbonds', Provi.Bio.HydrogenBonds.HbondsSelectionType
+// );
 
 
 

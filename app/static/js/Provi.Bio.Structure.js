@@ -86,6 +86,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         console.log(s);
 
         this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, function(){
+            // TODO why is this not in the original script call?
             post_script = 'provi_settings_init();' + post_script;
             if( this.load_as != 'trajectory+append' && this.load_as != 'trajectory'  ){
                 post_script = 'frame all;' + post_script;
