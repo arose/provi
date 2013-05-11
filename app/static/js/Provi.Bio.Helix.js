@@ -57,8 +57,8 @@ Provi.Bio.Helix.HelixorientParamsWidget.prototype = Utils.extend(Widget, /** @le
 
 
 
-Provi.Bio.Helix.HelixorientSelectionType = function(params){
-    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+Provi.Bio.Helix.HelixorientDatalist = function(params){
+    Provi.Bio.AtomSelection.Datalist.call( this, params );
     this.handler = _.defaults({
         show_axis: {
             selector: 'input[cell="axis"]',
@@ -72,7 +72,7 @@ Provi.Bio.Helix.HelixorientSelectionType = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.Helix.HelixorientSelectionType.prototype */ {
+Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.Helix.HelixorientDatalist.prototype */ {
     _init: function(grid){
         grid.elm("widgets").empty();
         this.params_widget = new Provi.Bio.Helix.HelixorientParamsWidget({
@@ -197,16 +197,16 @@ Provi.Bio.Helix.HelixorientSelectionType.prototype = Utils.extend(Provi.Bio.Atom
         var s = this._colorize_axis(id, flag, params);
         this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
     },
-    axis_cell: Provi.Bio.AtomSelection.CellFactory({
+    axis_cell: Provi.Widget.Grid.CellFactory({
         name: "axis", color: "skyblue"
     }),
-    colorize_cell: Provi.Bio.AtomSelection.CellFactory({
+    colorize_cell: Provi.Widget.Grid.CellFactory({
         name: "colorize", color: "tomato"
     })
 });
-Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-    'helixorient', Provi.Bio.Helix.HelixorientSelectionType
-);
+// Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
+//     'helixorient', Provi.Bio.Helix.HelixorientSelectionType
+// );
 
 
 
@@ -216,7 +216,7 @@ Provi.Bio.Helix.HelixcrossingWidget = function(params){
     params = _.defaults( params, this.default_params );
     Provi.Bio.AtomSelection.GridWidget.call( this, params );
 }
-Provi.Bio.Helix.HelixcrossingWidget.prototype = Utils.extend(Provi.Bio.AtomSelection.GridWidget, /** @lends Provi.Bio.Helix.HelixcrossingWidget.prototype */ {
+Provi.Bio.Helix.HelixcrossingWidget.prototype = Utils.extend(Provi.Widget.Grid.GridWidget, /** @lends Provi.Bio.Helix.HelixcrossingWidget.prototype */ {
     default_params: {
         heading: 'Helixcrossing Grid',
         collapsed: false,
@@ -229,8 +229,8 @@ Provi.Bio.Helix.HelixcrossingWidget.prototype = Utils.extend(Provi.Bio.AtomSelec
 
 
 
-Provi.Bio.Helix.HelixcrossingSelectionType = function(params){
-    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+Provi.Bio.Helix.HelixcrossingDatalist = function(params){
+    Provi.Bio.AtomSelection.Datalist.call( this, params );
     this.handler = _.defaults({
         show_crossing: {
             selector: 'input[cell="crossing"]',
@@ -244,7 +244,7 @@ Provi.Bio.Helix.HelixcrossingSelectionType = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionType, /** @lends Provi.Bio.Helix.HelixcrossingSelectionType.prototype */ {
+Provi.Bio.Helix.HelixcrossingDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.Helix.HelixcrossingDatalist.prototype */ {
     _init: function(grid){
         var self = this;
         this.initialized = false;
@@ -377,16 +377,16 @@ Provi.Bio.Helix.HelixcrossingSelectionType.prototype = Utils.extend(Provi.Bio.At
         var s = this._show_contacts(id, flag, params);
         this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
     },
-    crossing_cell: Provi.Bio.AtomSelection.CellFactory({
+    crossing_cell: Provi.Widget.Grid.CellFactory({
         name: "crossing", color: "skyblue"
     }),
-    contacts_cell: Provi.Bio.AtomSelection.CellFactory({
+    contacts_cell: Provi.Widget.Grid.CellFactory({
         name: "helixcontacts", color: "tomato"
     })
 });
-Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-    'helixcrossing', Provi.Bio.Helix.HelixcrossingSelectionType
-);
+// Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
+//     'helixcrossing', Provi.Bio.Helix.HelixcrossingSelectionType
+// );
 
 
 

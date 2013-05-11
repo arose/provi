@@ -308,13 +308,13 @@ Provi.Widget.form_builder = function( params, value, id, self ){
                 var handle, slider;
                 slider = $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
                     .slider({ min: p.range[0], max: p.range[1], value: value, slide: function(event, ui) {
-                        handle.qtip('option', 'content.text', '' + ui.value);
+                        handle.qtip('option', 'content.text', '' + (p.factor ? ui.value/p.factor : ui.value) );
                     }})
                     .data( 'id', id )
                     .bind( 'slidestop slide', _.bind( self.set, self ) );
                 handle = $('.ui-slider-handle', slider);
                 handle.qtip({
-                    content: '' + slider.slider('option', 'value'),
+                    content: '' + (p.factor ? slider.slider('option', 'value')/p.factor : slider.slider('option', 'value')),
                     position: { my: 'bottom center', at: 'top center' },
                     hide: { delay: 300 }
                 });
@@ -341,12 +341,11 @@ Provi.Widget.ParamsWidget = function(params){
 
     this.params = {};
 
-    var self = this;
     _.each( this.params_dict, function( p, id ){
-        var elm = Provi.Widget.form_builder( p, p.default_value, id, self );
-        self.elm( 'content' ).append( elm );
-        self.params[ id ] = p.default_value;
-    });
+        var elm = Provi.Widget.form_builder( p, p.default_value, id, this );
+        this.elm( 'content' ).append( elm );
+        this.params[ id ] = p.default_value;
+    }, this);
 
 }
 Provi.Widget.ParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.ParamsWidget.prototype */ {
@@ -369,6 +368,7 @@ Provi.Widget.ParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widg
             return;
         }
         this.params[ id ] = value;
+        $(this).triggerHandler("change");
     }
 });
 

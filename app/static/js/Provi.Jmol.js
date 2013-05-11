@@ -445,7 +445,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
      * executes a jmol asynchronously
      */
     script: function(script, params){
-        if(this.loaded){
+        if(this.loaded || params.force){
             return this._script(script, params);
         }else{
             console.warn('Jmol script DEFERED');
@@ -474,7 +474,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             }
         }
         $(this).bind('message', handler);
-        if(this.loaded){
+        if(this.loaded || params.force){
             return this._script(script, params);
         }else{
             var self = this;
@@ -486,10 +486,12 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     _load: function(){
         var self = this;
-        this.loaded = true;
         var prevent_cache = '?_id=' + (new Date().getTime());
-        this.script_callback('script "../data/jmol_script/provi.jspt' + prevent_cache + '"; provi_init();', {}, function(){
+        var s = 'script "../data/jmol_script/provi.jspt' + prevent_cache + '"; provi_init();'
+        this.script_callback(s, { force: true }, function(){
             self.init_listeners();
+            self.loaded = true;
+            console.log("applet loaded");
             $(self).triggerHandler('load');
         });
     },
@@ -708,10 +710,26 @@ Provi.Jmol.JmolWidget = function(params){
     }
     
     if( !params.no_grid_widget ){
-        this.grid_widget = new Provi.Bio.AtomSelection.GridWidget({
+
+        // this.grid_widget = new Provi.Widget.Grid.GridWidget({
+        //     parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+        //     datalist: new Provi.Bio.AtomSelection.AtomindexDatalist({
+        //         applet: this.applet,
+        //         sele: "*"
+        //     })
+        // });
+
+        this.grid_widget = new Provi.Widget.Grid.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-            applet: this.applet,
-            persist_on_applet_delete: true
+            datalist: new Provi.Bio.Isosurface.IsosurfaceDatalist({
+                applet: this.applet
+            })
+        });
+
+        this.settings_datalist = new Provi.Jmol.Settings.SettingsDatalist({ applet: this.applet });
+        this.settings_widget = new Provi.Widget.Grid.GridWidget({
+            parent_id: Provi.defaults.dom_parent_ids.SETTINGS_WIDGET,
+            datalist: this.settings_datalist
         });
     }
     

@@ -52,13 +52,13 @@ Provi.Bio.Voronoia.VoronoiaSelectionTypeFactory = function(ids){
     }
 }
 
-Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
+Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
     params = _.defaults( params, this.default_params );
     
     var p = [ "resolution", "cavity_probe_radius", "exterior_probe_radius", "cavity_color", "ids" ];
     _.extend( this, _.pick( params, p ) );
 
-    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+    Provi.Bio.AtomSelection.Datalist.call( this, params );
     this.handler = _.defaults({
         "show_hole": {
             "selector": 'input[cell="hole"]',
@@ -77,7 +77,7 @@ Provi.Bio.Voronoia.VoronoiaSelectionType = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableSelectionType, /** @lends Provi.Bio.Voronoia.VoronoiaSelectionType.prototype */ {
+Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, /** @lends Provi.Bio.Voronoia.VoronoiaDatalist.prototype */ {
     default_params: {
         resolution: 2.0,
         cavity_probe_radius: 0.6,
@@ -200,13 +200,13 @@ Provi.Bio.Voronoia.VoronoiaSelectionType.prototype = Utils.extend(Provi.Bio.Atom
     show_neighbours: function(id, flag, params, callback){
         this.applet.script_callback( this._show_neighbours(id, flag), { maintain_selection: true }, callback );
     },
-    hole_cell: Provi.Bio.AtomSelection.CellFactory({
+    hole_cell: Provi.Widget.Grid.CellFactory({
         "name": "hole", "color": "skyblue"
     }),
-    cavity_cell: Provi.Bio.AtomSelection.CellFactory({
+    cavity_cell: Provi.Widget.Grid.CellFactory({
         "name": "cavity", "color": "tomato"
     }),
-    neighbours_cell: Provi.Bio.AtomSelection.CellFactory({
+    neighbours_cell: Provi.Widget.Grid.CellFactory({
         "name": "neighbours", "color": "lightgreen"
     })
 });

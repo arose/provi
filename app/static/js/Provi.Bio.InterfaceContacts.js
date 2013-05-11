@@ -39,7 +39,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory = function(ids
     }
 }
 
-Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
+Provi.Bio.InterfaceContacts.InterfaceContactsDatalist = function(params){
     var self = this;
     
     var p = [ "ids", "dataset_id" ];
@@ -84,7 +84,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
     ];
     this.atm_cutoff.reverse();
 
-    Provi.Bio.AtomSelection.SelectionType.call( this, params );
+    Provi.Bio.AtomSelection.Datalist.call( this, params );
     this.handler = _.defaults({
         "show_consurf": {
             "selector": 'input[cell="consurf"]',
@@ -109,7 +109,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableSelectionType, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype */ {
+Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype */ {
     _init: function(grid){
         var self = this;
         this.initialized = false;
@@ -280,10 +280,10 @@ Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType.prototype = Utils.ext
         var s = this._show_contacts(id, flag);
         this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, callback );
     },
-    consurf_cell: Provi.Bio.AtomSelection.CellFactory({
+    consurf_cell: Provi.Widget.Grid.CellFactory({
         "name": "consurf", "color": "tomato",
     }),
-    intersurf_cell: Provi.Bio.AtomSelection.CellFactory({
+    intersurf_cell: Provi.Widget.Grid.CellFactory({
         "name": "intersurf", "color": "skyblue"
     }),
     contacts_cell: function(id, contacts){
