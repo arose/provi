@@ -55,6 +55,7 @@
     <script type="text/javascript" src="../js/Provi.Debug.js"></script>
     <script type="text/javascript" src="../js/Provi.Utils.js"></script>
     <script type="text/javascript" src="../js/Provi.Widget.js"></script>
+    <script type="text/javascript" src="../js/Provi.Widget.Grid.js"></script>
     
     <script type="text/javascript" src="../js/Provi.Bio.js"></script>
     <script type="text/javascript" src="../js/Provi.Bio.AtomProperty.js"></script>
@@ -112,7 +113,7 @@
         });
 
         _.extend(
-            Provi.Bio.Voronoia.VoronoiaSelectionType.prototype.default_params,
+            Provi.Bio.Voronoia.VoronoiaDatalist.prototype.default_params,
             {
                 cavity_color: 'skyblue'
             }
@@ -219,10 +220,12 @@
             //     parent_id: 'tab_tree',
             //     collapsed: true
             // });
-                
-            new Provi.Jmol.Analysis.IsosurfaceConstructionWidget({
-                parent_id: 'tab_tree'
-            });
+               
+
+            // TODO 
+            // new Provi.Jmol.Analysis.IsosurfaceConstructionWidget({
+            //     parent_id: 'tab_tree'
+            // });
         
             new Provi.Jmol.Controls.JmolAnimationWidget({
                 parent_id: 'tab_controls',
