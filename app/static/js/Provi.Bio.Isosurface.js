@@ -22,6 +22,37 @@ var Widget = Provi.Widget.Widget;
 
 
 
+// load_params_widget: [
+//     {
+//         params: [
+//             { name: 'within', getter: 'get_within' },
+//             { name: 'insideout', getter: 'get_insideout' },
+//             { name: 'reload_widget', getter: 'get_reload_widget' }
+//         ],
+//         obj: Provi.Bio.Isosurface.LoadParamsWidget
+//     },
+//     {
+//         params: [
+//             { name: 'sigma', getter: 'get_sigma' },
+//             { name: 'cutoff', getter: 'get_cutoff' },
+//             { name: 'sign', getter: 'get_sign' },
+//             { name: 'color_density', getter: 'get_color_density' },
+//             { name: 'downsample', getter: 'get_downsample' }
+//         ],
+//         obj: Provi.Bio.Isosurface.VolumeParamsWidget
+//     },
+//     {
+//         params: [
+//             { name: 'resolution', getter: 'get_resolution' },
+//             { name: 'select', getter: 'get_select' },
+//             { name: 'ignore', getter: 'get_ignore' },
+//             { name: 'type', getter: 'get_type' }
+//         ],
+//         obj: Provi.Bio.Isosurface.SurfaceParamsWidget
+//     }
+// ],
+
+
 Provi.Bio.Isosurface.LoadParamsWidget = function(params){
     Provi.Widget.ParamsWidget.call( this, params );
 }
@@ -193,9 +224,9 @@ Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.p
 
 
 Provi.Bio.Isosurface.IsosurfaceDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Data.Datalist.call( this, params );
 }
-Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.ChainlabelDatalist.prototype */ {
+Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
     type: "IsosurfaceDatalist",
     get_ids: function(){
         var shape_info = this.applet.get_property_as_array('shapeInfo');

@@ -32,7 +32,7 @@ Provi.Bio.AtomSelection.AtomSelection = function( params ){
     _.extend( this, _.pick( params, p ) );
     this.load();
 };
-Provi.Bio.AtomSelection.AtomSelection.prototype = /** @lends Provi.Bio.AtomSelection.AtomSelection.prototype */ {
+Provi.Bio.AtomSelection.AtomSelection.prototype = {
     load: function(){
         var s = 'provi_load_selection("' + this.dataset.url + '", "' + this.dataset.id + '");';
         this.applet.script(s, { maintain_selection: true, try_catch: false });
@@ -51,47 +51,13 @@ var jmol_properties = [
 
 
 
-/**
- * Singleton datalist manager object.
- * @class
- * @final
- */
-Provi.Bio.AtomSelection.DatalistManager = {
-    _datalist_dict: {},
-    _datalist_list: [],
-    _datalist_counter: 0,
-    add: function( datalist ){
-        this._datalist_counter += 1;
-        this._datalist_dict[this._datalist_counter] = datalist;
-        this._datalist_list.push(datalist);
-        datalist.name = this._datalist_counter + "_" + datalist.type;
-        $(this).triggerHandler('add', [datalist]);
-        return this._datalist_counter;
-    },
-    get_list: function( params ){
-        params = params || {};
-
-        if( params.name_list ){
-            return _.filter( this._datalist_list, function(dl, i){
-                return _.include( params.name_list, dl.name );
-            });
-        }else{
-            return this._datalist_list;
-        }
-    },
-    get: function( id ){
-        return this._datalist_dict[ id ];
-    }
-};
-
-
-
-
-Provi.Bio.AtomSelection.Datalist = function(params){
-    var p = [ "applet", "parent_id", "sele", "filter", "sort", "property" ];
+Provi.Bio.AtomSelection.SelectionDatalist = function(params){
+    var p = [ "sele", "filter", "sort", "property" ];
     _.extend( this, _.pick( params, p ) );
 
-    this.handler = {
+    Provi.Data.Datalist.call( this, params );
+
+    this.handler = _.defaults({
         "select": {
             "selector": 'input[cell="selected"]',
             "click": this.select,
@@ -113,41 +79,11 @@ Provi.Bio.AtomSelection.Datalist = function(params){
                 return "Highlight";
             }
         }
-    };
-
-    // also sets this.name = this.id + "_" + this.type;
-    this.id = Provi.Bio.AtomSelection.DatalistManager.add( this );
-
-    if( params.load_struct ){
-        $(this.applet).bind( "load_struct", _.bind( this.calculate, this ) );
-    }
-    $(this).bind("init_ready", _.bind( this.calculate, this ) );
-
-    if( !params.no_init ) this._init();
+    }, this.handler);
 }
-Provi.Bio.AtomSelection.Datalist.prototype = {
-    type: "Datalist",
-    handler: {},
-    params_object: undefined,
-    _init: function(){
-        console.log( this.name, "_init" );
-        if( this.applet.loaded ){
-            this.initialized = true;
-            $(this).trigger("init_ready");
-        }else{
-            $(this.applet).bind("load", _.bind( this._init, this ))
-        }
-    },
-    calculate: function(){
-        console.log( this.name, "calculate" );
-        if( this.initialized ){
-            this.ready = true;
-            $(this).trigger("calculate_ready");
-        }
-    },
-    get_ids: function(){},
+Provi.Bio.AtomSelection.SelectionDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
+    type: "SelectionDatalist",
     get_data: function(id){},
-    make_row: function(id){},
     selection: function(id){
         // needs to respect this.sele and this.filter
         // must cope with id==='all'
@@ -221,30 +157,8 @@ Provi.Bio.AtomSelection.Datalist.prototype = {
             property +
         "</span>");
         return $property;
-    },
-    invalidate: function(){
-        $(this).triggerHandler('invalidate');
-    }
-};
-
-
-// fill with IsosurfaceDatalist + ParseDatalist + VariableDatalist + ModelindexDatalist
-Provi.Bio.AtomSelection.ObjectDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
-}
-Provi.Bio.AtomSelection.ObjectDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.AtomindexDatalist.prototype */ {
-    type: "ObjectDatalist",
-    get_ids: function(){
-        return this.ids;
-    },
-    get_data: function(id){
-        return id[0].get_data.apply( id[o], id[1] );
-    },
-    make_row: function(id){
-        return id[0].make_row.apply( id[o], id[1] );
     }
 });
-
 
 
 
@@ -252,7 +166,7 @@ Provi.Bio.AtomSelection.ObjectDatalist.prototype = Utils.extend(Provi.Bio.AtomSe
 Provi.Bio.AtomSelection.AtomindexParamsWidget = function(params){
     Provi.Widget.ParamsWidget.call( this, params );
 }
-Provi.Bio.AtomSelection.AtomindexParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.AtomSelection.AtomindexParamsWidget.prototype */ {
+Provi.Bio.AtomSelection.AtomindexParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
         property: { default_value: "", type: "select",  options: jmol_properties },
         sort: { default_value: "", type: "select", options: jmol_properties }
@@ -261,9 +175,9 @@ Provi.Bio.AtomSelection.AtomindexParamsWidget.prototype = Utils.extend(Provi.Wid
 
 
 Provi.Bio.AtomSelection.AtomindexDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
 }
-Provi.Bio.AtomSelection.AtomindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.AtomindexDatalist.prototype */ {
+Provi.Bio.AtomSelection.AtomindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "AtomindexDatalist",
     params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
     get_ids: function(){
@@ -321,7 +235,7 @@ Provi.Bio.AtomSelection.AtomindexDatalist.prototype = Utils.extend(Provi.Bio.Ato
 Provi.Bio.AtomSelection.GroupindexParamsWidget = function(params){
     Provi.Widget.ParamsWidget.call( this, params );
 }
-Provi.Bio.AtomSelection.GroupindexParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.AtomSelection.GroupindexParamsWidget.prototype */ {
+Provi.Bio.AtomSelection.GroupindexParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
         property: { default_value: "", type: "select",  options: jmol_properties }
     }
@@ -329,9 +243,9 @@ Provi.Bio.AtomSelection.GroupindexParamsWidget.prototype = Utils.extend(Provi.Wi
 
 
 Provi.Bio.AtomSelection.GroupindexDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
 }
-Provi.Bio.AtomSelection.GroupindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.GroupindexDatalist.prototype */ {
+Provi.Bio.AtomSelection.GroupindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "GroupindexDatalist",
     params_object: Provi.Bio.AtomSelection.GroupindexParamsWidget,
     get_ids: function(sele){
@@ -382,9 +296,9 @@ Provi.Bio.AtomSelection.GroupindexDatalist.prototype = Utils.extend(Provi.Bio.At
 
 
 Provi.Bio.AtomSelection.ChainlabelDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
 }
-Provi.Bio.AtomSelection.ChainlabelDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.ChainlabelDatalist.prototype */ {
+Provi.Bio.AtomSelection.ChainlabelDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "ChainlabelDatalist",
     get_ids: function(){
         var s = '' +
@@ -432,9 +346,9 @@ Provi.Bio.AtomSelection.ChainlabelDatalist.prototype = Utils.extend(Provi.Bio.At
 
 
 Provi.Bio.AtomSelection.ModelindexDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
 }
-Provi.Bio.AtomSelection.ModelindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.ModelindexDatalist.prototype */ {
+Provi.Bio.AtomSelection.ModelindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "ModelindexDatalist",
     get_ids: function(){
         var s = '{' + this.filtered() + '}.modelindex.all.count().join("")';
@@ -481,9 +395,9 @@ Provi.Bio.AtomSelection.ModelindexDatalist.prototype = Utils.extend(Provi.Bio.At
 
 
 Provi.Bio.AtomSelection.VariableDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
 }
-Provi.Bio.AtomSelection.VariableDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.VariableDatalist.prototype */ {
+Provi.Bio.AtomSelection.VariableDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "VariableDatalist",
     get_ids: function(){
         // TODO respect this.filter by checking if there is
@@ -534,9 +448,9 @@ Provi.Bio.AtomSelection.VariableDatalist.prototype = Utils.extend(Provi.Bio.Atom
 
 
 Provi.Bio.AtomSelection.StrucnoDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
 }
-Provi.Bio.AtomSelection.StrucnoDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.StrucnoDatalist.prototype */ {
+Provi.Bio.AtomSelection.StrucnoDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "StrucnoDatalist",
     get_ids: function(){
         var s = '{' + this.filtered() + '}.modelindex.all' +
@@ -587,27 +501,6 @@ Provi.Bio.AtomSelection.StrucnoDatalist.prototype = Utils.extend(Provi.Bio.AtomS
 
 
 
-
-// Provi.Bio.AtomSelection.SelectionTypeRegistry = {
-//     _dict: {
-//         'atomindex': Provi.Bio.AtomSelection.AtomindexSelectionType,
-//         'groupindex': Provi.Bio.AtomSelection.GroupindexSelectionType,
-//         'chainlabel': Provi.Bio.AtomSelection.ChainlabelSelectionType,
-//         'modelindex': Provi.Bio.AtomSelection.ModelindexSelectionType,
-//         'variable': Provi.Bio.AtomSelection.VariableSelectionType,
-//         'strucno': Provi.Bio.AtomSelection.StrucnoSelectionType,
-//         // 'filelabel': Provi.Bio.AtomSelection.FilelabelSelectionType,
-//         // 'strucnolabel': Provi.Bio.AtomSelection.ScrucnolabelSelectionType,
-//         // 'moleculelabel': Provi.Bio.AtomSelection.MoleculelabelSelectionType,
-//     },
-//     add: function( name, obj ){
-//         Provi.Bio.AtomSelection.SelectionTypeRegistry._dict[ name ] = obj;
-//     },
-//     get: function( name ){
-//         // console.log( Provi.Bio.AtomSelection.SelectionTypeRegistry._dict );
-//         return Provi.Bio.AtomSelection.SelectionTypeRegistry._dict[ name ];
-//     }
-// };
 
 
 /**

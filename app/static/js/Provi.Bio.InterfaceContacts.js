@@ -52,7 +52,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist = function(params){
     var p = [ "ids", "dataset_id", "contacts_ds", "contacts_ds2" ];
     _.extend( this, _.pick( params, p ) );
 
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.VariableDatalist.call( this, params );
     this.handler = _.defaults({
         "show_consurf": {
             "selector": 'input[cell="consurf"]',
@@ -77,7 +77,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype */ {
+Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, {
     type: "InterfaceContactsDatalist",
     params_object: Provi.Bio.InterfaceContacts.InterfaceContactsParamsWidget,
     _init: function(){

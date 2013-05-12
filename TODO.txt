@@ -1,6 +1,10 @@
 
 
 
+* Datalists should be destroyed when their applet is destroyed
+* Datalists: jspt script loading should be a feature of the base class
+
+
 * Dataset url builder: full path (http...), cookie handling
 * Dataset subtype, i.e. to specialize an atom selection as voronoia hole neighbours 
 * PLupload - needs to have an upload folder
