@@ -201,6 +201,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
                 elm.qtip({
                     overwrite: false,
                     content: '?',
+                    position: { my: 'top left', at: 'bottom center' },
                     show: { event: event.type, ready: true }
                 }, e);
                 elm.qtip('option', 'content.text', d["label"]( elm.prop('checked'), elm.data("id") ) );

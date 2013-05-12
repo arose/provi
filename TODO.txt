@@ -2,14 +2,16 @@
 
 
 * Datalists should be destroyed when their applet is destroyed
+* Jmol calculate - for larger images => make this a tool in basekit
+* Isosurface revamp: grid type, loading, builder, ...
+* Grid.RowWidget esp. for settings
+* one-line console below the widget
 
 
 * Dataset url builder: full path (http...), cookie handling
 * Dataset subtype, i.e. to specialize an atom selection as voronoia hole neighbours 
 * PLupload - needs to have an upload folder
-* Jmol calculate - for larger images
 * Jmol proxyUrl is a relay url that gets called as PROXYURL?url=...
-* Isosurface revamp: grid type, loading, ...
 * Move javascript out of the main html file
 
 
