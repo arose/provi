@@ -177,68 +177,27 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
 
 
 
-/**
- * A widget to get params
- * @constructor
- * @extends Provi.Widget.Widget
- */
+
+
 Provi.Bio.HydrogenBonds.HbondParamsWidget = function(params){
-    params = _.defaults( params, this.default_params );
-    Provi.Widget.Widget.call( this, params );
-    this._init_eid_manager([ 'filter', 'bond_mode_or', 'angle_min', 'dist_max' ]);
-
-    var template = '' +
-        '<div class="control_row">' +
-            '<input id="${eids.bond_mode_or}" type="checkbox" />' +
-            '<label for="${eids.bond_mode_or}">bond mode "OR"</label>&nbsp;' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<label for="${eids.filter}">filter</label>' +
-            '&nbsp;' +
-            '<select id="${eids.filter}" class="ui-state-default">' +
-                '<option value="all">all</option>' +
-                '<option value="backbone">backbone</option>' +
-                '<option value="sidechain">sidechain</option>' +
-            '</select>' +
-        '</div>' +
-        '<div class="control_row">' +
-            '<input size="4" id="${eids.angle_min}" type="text" class="ui-state-default"/>' +
-            '<label for="${eids.angle_min}" >min angle</label> ' +
-            '<input size="4" id="${eids.dist_max}" type="text" class="ui-state-default"/>' +
-            '<label for="${eids.dist_max}" >max distance</label> ' +
-        '</div>' +
-    '';
-    this.add_content( template, params );
-
-    this.elm('bond_mode_or').attr( 'checked', params.bond_mode_or );
-    this.elm('filter').val( params.filter );
-    this.elm('angle_min').val( params.angle_min );
-    this.elm('dist_max').val( params.dist_max );
+    Provi.Widget.ParamsWidget.call( this, params );
 }
-Provi.Bio.HydrogenBonds.HbondParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Bio.HydrogenBonds.HbondParamsWidget.prototype */ {
-    default_params: {
-        bond_mode_or: false,
-        filter: 'sidechain',
-        angle_min: 60,
-        dist_max: 3.9
-    },
-    filter: function(){
-        return this.elm('filter').val();
-    },
-    bond_mode_or: function(){
-        return this.elm('bond_mode_or').is(':checked');
-    },
-    angle_min: function(){
-        return this.elm('angle_min').val();
-    },
-    dist_max: function(){
-        return this.elm('dist_max').val();
+Provi.Bio.HydrogenBonds.HbondParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
+    params_dict: {
+        bond_mode_or: { default_value: false, type: "checkbox" },
+        filter: { default_value: "sidechain", type: "select", options: [ 'all', 'backbone', 'sidechain' ] },
+        angle_min: { default_value: 60, type: "slider", range: [ 20, 120 ] },
+        dist_max: { default_value: 3.9, type: "slider", range: [ 20, 50 ], factor: 10, fixed: true }
     }
 });
 
 
-
 Provi.Bio.HydrogenBonds.HbondsDatalist = function(params){
+    params = _.defaults( params, this.default_params );
+
+    var p = [ "filter", "bond_mode_or", "angle_min", "dist_max" ];
+    _.extend( this, _.pick( params, p ) );
+
     Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
     this.handler = _.defaults({
         "show_hbres": {
@@ -256,32 +215,23 @@ Provi.Bio.HydrogenBonds.HbondsDatalist = function(params){
 Provi.Bio.HydrogenBonds.HbondsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "HbondsDatalist",
     params_object: Provi.Bio.HydrogenBonds.HbondParamsWidget,
-    _init: function(){
-        this.initialized = false;
-        this.applet.script_callback('' +
-            'script "../data/jmol_script/hbond.jspt";' +
-        '', {}, _.bind( function(){
-            this.initialized = true;
-            $(this).trigger("init_ready");
-        }, this ) );
+    jspt_url: "../data/jmol_script/hbond.jspt",
+    default_params: {
+        filter: 'sidechain',
+        bond_mode_or: false,
+        angle_min: 60,
+        dist_max: 3.9
     },
     calculate: function(){
-        var self = this;
+        if( !this.initialized ) return;
         this.ready = false;
-        var filtered = this.filtered() + ' and ' + this.params_widget.filter();
-        var s = '' +
-            'provi_data["hbonds"] = provi_hbonds(' +
-                '{' + filtered + '}, ' +
-                this.params_widget.angle_min() + ', ' +
-                this.params_widget.dist_max() + ', ' +
-                ( this.params_widget.bond_mode_or() ? 'true' : 'false' ) +
-            ');' +
-        '';
-        console.log(s);
-        this.applet.script_callback(s, {}, function(){
-            self.ready = true;
-            $(self).trigger("calculate_ready");
-        });
+        var s = 'provi_data["hbonds"] = provi_hbonds(' +
+            '{' + this.filtered() + ' and ' + this.filter + '}, ' +
+            this.angle_min + ', ' +
+            this.dist_max + ', ' +
+            ( this.bond_mode_or ? 'true' : 'false' ) +
+        ');';
+        this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
     },
     get_ids: function(){
         if( !this.ready ) return [];
@@ -299,7 +249,7 @@ Provi.Bio.HydrogenBonds.HbondsDatalist.prototype = Utils.extend(Provi.Bio.AtomSe
     },
     make_row: function(id){
         var a = this.get_data(id);
-        console.log(id, a)
+        // console.log(id, a)
         var selected = a[0];
         var hbond = a[1];
         var hbres = a[2];
@@ -362,10 +312,6 @@ Provi.Bio.HydrogenBonds.HbondsDatalist.prototype = Utils.extend(Provi.Bio.AtomSe
         }
     }
 });
-// Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-//     'hbonds', Provi.Bio.HydrogenBonds.HbondsSelectionType
-// );
-
 
 
 

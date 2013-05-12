@@ -2,7 +2,6 @@
 
 
 * Datalists should be destroyed when their applet is destroyed
-* Datalists: jspt script loading should be a feature of the base class
 
 
 * Dataset url builder: full path (http...), cookie handling

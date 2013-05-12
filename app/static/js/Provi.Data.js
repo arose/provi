@@ -391,19 +391,33 @@ Provi.Data.Datalist.prototype = {
     params_object: undefined,
     _init: function(){
         console.log( this.name, "_init" );
+        this.initialized = false;
+
         if( this.applet.loaded ){
-            this.initialized = true;
-            $(this).trigger("init_ready");
+            if( this.jspt_url ){
+                var s = 'script "' + this.jspt_url + '";';
+                this.applet.script_callback( s, {}, _.bind( this.set_initialized, this ) );
+            }else{
+                this.set_initialized();
+            }
         }else{
             $(this.applet).bind("load", _.bind( this._init, this ))
         }
     },
+    set_initialized: function(){
+        this.initialized = true;
+        $(this).trigger("init_ready");
+    },
     calculate: function(){
         console.log( this.name, "calculate" );
+        this.ready = false;
         if( this.initialized ){
-            this.ready = true;
-            $(this).trigger("calculate_ready");
+            this.set_ready();
         }
+    },
+    set_ready: function(){
+        this.ready = true;
+        $(this).trigger("calculate_ready");
     },
     get_ids: function(){},
     make_row: function(id){
