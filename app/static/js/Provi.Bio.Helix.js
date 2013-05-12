@@ -23,11 +23,7 @@ var Widget = Provi.Widget.Widget;
 
 
 
-/**
- * A widget to get params
- * @constructor
- * @extends Provi.Widget.Widget
- */
+// TODO not working anymore
 Provi.Bio.Helix.HelixorientParamsWidget = function(params){
     params = _.defaults( params, this.default_params );
     Provi.Widget.Widget.call( this, params );
@@ -73,19 +69,16 @@ Provi.Bio.Helix.HelixorientDatalist = function(params){
     }, this.handler );
 }
 Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.Helix.HelixorientDatalist.prototype */ {
+    type: "HelixorientDatalist",
+    params_object: Provi.Bio.Helix.HelixorientParamsWidget,
     _init: function(grid){
-        grid.elm("widgets").empty();
-        this.params_widget = new Provi.Bio.Helix.HelixorientParamsWidget({
-            parent_id: grid.eid('widgets')
-        });
-        var self = this;
         this.initialized = false;
         this.applet.script_callback('' +
             'script "../data/jmol_script/helixorient.jspt";' +
-        '', {}, function(){
-            self.initialized = true;
-            $(self).trigger("init_ready");
-        });
+        '', {}, _.bind( function(){
+            this.initialized = true;
+            $(this).trigger("init_ready");
+        }, this ) );
     },
     calculate: function(){
         if( !this.initialized ) return;
@@ -212,21 +205,6 @@ Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
 
 
 
-Provi.Bio.Helix.HelixcrossingWidget = function(params){
-    params = _.defaults( params, this.default_params );
-    Provi.Bio.AtomSelection.GridWidget.call( this, params );
-}
-Provi.Bio.Helix.HelixcrossingWidget.prototype = Utils.extend(Provi.Widget.Grid.GridWidget, /** @lends Provi.Bio.Helix.HelixcrossingWidget.prototype */ {
-    default_params: {
-        heading: 'Helixcrossing Grid',
-        collapsed: false,
-        type: 'helixcrossing',
-        hide_eids: []
-    },
-
-})
-
-
 
 
 Provi.Bio.Helix.HelixcrossingDatalist = function(params){
@@ -245,16 +223,16 @@ Provi.Bio.Helix.HelixcrossingDatalist = function(params){
     }, this.handler );
 }
 Provi.Bio.Helix.HelixcrossingDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.Helix.HelixcrossingDatalist.prototype */ {
+    type: "HelixcrossingDatalist",
     _init: function(grid){
-        var self = this;
         this.initialized = false;
         this.applet.script_callback('' +
             'script "../data/jmol_script/helixorient.jspt";' +
-        '', {}, function(){
+        '', {}, _.bind( function(){
             console.log("helixcrossing", "initialized");
-            self.initialized = true;
-            $(self).trigger("init_ready");
-        });
+            this.initialized = true;
+            $(this).trigger("init_ready");
+        }, this ) );
     },
     calculate: function(){
         if( !this.initialized ) return;

@@ -51,6 +51,38 @@ var jmol_properties = [
 
 
 
+/**
+ * Singleton datalist manager object.
+ * @class
+ * @final
+ */
+Provi.Bio.AtomSelection.DatalistManager = {
+    _datalist_dict: {},
+    _datalist_list: [],
+    _datalist_counter: 0,
+    add: function( datalist ){
+        this._datalist_counter += 1;
+        this._datalist_dict[this._datalist_counter] = datalist;
+        this._datalist_list.push(datalist);
+        datalist.name = this._datalist_counter + "_" + datalist.type;
+        $(this).triggerHandler('add', [datalist]);
+        return this._datalist_counter;
+    },
+    get_list: function( params ){
+        params = params || {};
+
+        if( params.name_list ){
+            return _.filter( this._datalist_list, function(dl, i){
+                return _.include( params.name_list, dl.name );
+            });
+        }else{
+            return this._datalist_list;
+        }
+    },
+    get: function( id ){
+        return this._datalist_dict[ id ];
+    }
+};
 
 
 
@@ -83,15 +115,22 @@ Provi.Bio.AtomSelection.Datalist = function(params){
         }
     };
 
-    var self = this;
-    $(this).bind("init_ready", _.bind( self.calculate, this ) );
-    this._init();
+    // also sets this.name = this.id + "_" + this.type;
+    this.id = Provi.Bio.AtomSelection.DatalistManager.add( this );
+
+    if( params.load_struct ){
+        $(this.applet).bind( "load_struct", _.bind( this.calculate, this ) );
+    }
+    $(this).bind("init_ready", _.bind( this.calculate, this ) );
+
+    if( !params.no_init ) this._init();
 }
 Provi.Bio.AtomSelection.Datalist.prototype = {
-    name: "Datalist",
+    type: "Datalist",
     handler: {},
     params_object: undefined,
     _init: function(){
+        console.log( this.name, "_init" );
         if( this.applet.loaded ){
             this.initialized = true;
             $(this).trigger("init_ready");
@@ -100,8 +139,11 @@ Provi.Bio.AtomSelection.Datalist.prototype = {
         }
     },
     calculate: function(){
-        this.ready = true;
-        $(this).trigger("calculate_ready");
+        console.log( this.name, "calculate" );
+        if( this.initialized ){
+            this.ready = true;
+            $(this).trigger("calculate_ready");
+        }
     },
     get_ids: function(){},
     get_data: function(id){},
@@ -191,7 +233,7 @@ Provi.Bio.AtomSelection.ObjectDatalist = function(params){
     Provi.Bio.AtomSelection.Datalist.call( this, params );
 }
 Provi.Bio.AtomSelection.ObjectDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.AtomindexDatalist.prototype */ {
-    name: "ObjectDatalist",
+    type: "ObjectDatalist",
     get_ids: function(){
         return this.ids;
     },
@@ -220,12 +262,12 @@ Provi.Bio.AtomSelection.AtomindexParamsWidget.prototype = Utils.extend(Provi.Wid
 
 Provi.Bio.AtomSelection.AtomindexDatalist = function(params){
     Provi.Bio.AtomSelection.Datalist.call( this, params );
-    $(this.applet).bind( "load_struct", _.bind( this.calculate, this ) );
 }
 Provi.Bio.AtomSelection.AtomindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.AtomindexDatalist.prototype */ {
-    name: "AtomindexDatalist",
+    type: "AtomindexDatalist",
     params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
     get_ids: function(){
+        console.log(this.name, "get_ids");
         if( this.sort ){
             var s = 'sort_by_prop( {' + this.filtered() + '}, "' + this.sort + '" ).join(",")';
             var a = this.applet.evaluate(s);
@@ -290,7 +332,7 @@ Provi.Bio.AtomSelection.GroupindexDatalist = function(params){
     Provi.Bio.AtomSelection.Datalist.call( this, params );
 }
 Provi.Bio.AtomSelection.GroupindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.GroupindexDatalist.prototype */ {
-    name: "GroupindexDatalist",
+    type: "GroupindexDatalist",
     params_object: Provi.Bio.AtomSelection.GroupindexParamsWidget,
     get_ids: function(sele){
         var s = '{' + this.filtered() + '}.groupindex.all.count().join("")';
@@ -343,6 +385,7 @@ Provi.Bio.AtomSelection.ChainlabelDatalist = function(params){
     Provi.Bio.AtomSelection.Datalist.call( this, params );
 }
 Provi.Bio.AtomSelection.ChainlabelDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.ChainlabelDatalist.prototype */ {
+    type: "ChainlabelDatalist",
     get_ids: function(){
         var s = '' +
             '{' + this.filtered() + '}.file.all' +
@@ -392,9 +435,11 @@ Provi.Bio.AtomSelection.ModelindexDatalist = function(params){
     Provi.Bio.AtomSelection.Datalist.call( this, params );
 }
 Provi.Bio.AtomSelection.ModelindexDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.ModelindexDatalist.prototype */ {
+    type: "ModelindexDatalist",
     get_ids: function(){
         var s = '{' + this.filtered() + '}.modelindex.all.count().join("")';
         var data = this.applet.evaluate(s);
+        console.log(this.name, s, data);
         if(data) data = data.trim().split('\t');
         data = _.filter(data, function(val, i){
             return i % 2 == 0;
@@ -439,6 +484,7 @@ Provi.Bio.AtomSelection.VariableDatalist = function(params){
     Provi.Bio.AtomSelection.Datalist.call( this, params );
 }
 Provi.Bio.AtomSelection.VariableDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.VariableDatalist.prototype */ {
+    type: "VariableDatalist",
     get_ids: function(){
         // TODO respect this.filter by checking if there is
         // at least one atom in a selection that is also in this.filter
@@ -491,6 +537,7 @@ Provi.Bio.AtomSelection.StrucnoDatalist = function(params){
     Provi.Bio.AtomSelection.Datalist.call( this, params );
 }
 Provi.Bio.AtomSelection.StrucnoDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.StrucnoDatalist.prototype */ {
+    type: "StrucnoDatalist",
     get_ids: function(){
         var s = '{' + this.filtered() + '}.modelindex.all' +
             '.add("/", {' + this.filtered() + '}.strucno.all )' +

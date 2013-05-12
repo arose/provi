@@ -254,19 +254,16 @@ Provi.Bio.HydrogenBonds.HbondsDatalist = function(params){
     }, this.handler );
 }
 Provi.Bio.HydrogenBonds.HbondsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.HydrogenBonds.HbondsDatalist.prototype */ {
-    _init: function(grid){
-        grid.elm("widgets").empty();
-        this.params_widget = new Provi.Bio.HydrogenBonds.HbondParamsWidget({
-            parent_id: grid.eid('widgets')
-        });
-        var self = this;
+    type: "HbondsDatalist",
+    params_object: Provi.Bio.HydrogenBonds.HbondParamsWidget,
+    _init: function(){
         this.initialized = false;
         this.applet.script_callback('' +
             'script "../data/jmol_script/hbond.jspt";' +
-        '', {}, function(){
-            self.initialized = true;
-            $(self).trigger("init_ready");
-        });
+        '', {}, _.bind( function(){
+            this.initialized = true;
+            $(this).trigger("init_ready");
+        }, this ) );
     },
     calculate: function(){
         var self = this;

@@ -19,70 +19,38 @@ var Utils = Provi.Utils;
 /** @exports Widget as Provi.Widget.Widget */
 var Widget = Provi.Widget.Widget;
 
-Provi.Bio.InterfaceContacts.register = function( params ){
-    var contacts_ds = params.contacts_ds;
-    var contacts_ds2 = params.contacts_ds2;
-    console.log( "InterfaceContacts.register", contacts_ds, contacts_ds2 );
-    Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-        'interface_contacts', Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory(
-            contacts_ds.bio.get_list(),
-            contacts_ds2.id
-        )
-    )
-}
 
-Provi.Bio.InterfaceContacts.InterfaceContactsSelectionTypeFactory = function(ids, dataset_id){
-    return function(params){
-        params.ids = ids;
-        params.dataset_id = dataset_id;
-        return new Provi.Bio.InterfaceContacts.InterfaceContactsSelectionType(params);
-    }
+
+
+
+Provi.Bio.InterfaceContacts.InterfaceContactsParamsWidget = function(params){
+    Provi.Widget.ParamsWidget.call( this, params );
+
+    var template = '' +
+        '<div class="control_row">' +
+            '<span style="background-color:#FFFF00; padding: 1px 3px;">&#8209;0.5</span>' +
+            '<span style="background-color:#FFA500; padding: 1px 3px;">0.0</span>' +
+            '<span style="background-color:#EB8900; padding: 1px 3px;">0.5</span>' +
+            '<span style="background-color:#D86E00; padding: 1px 3px;">1.0</span>' +
+            '<span style="background-color:#C55200; padding: 1px 3px;">1.5</span>' +
+            '<span style="background-color:#B13700; padding: 1px 3px; color: white;">2.0</span>' +
+            '<span style="background-color:#9E1B00; padding: 1px 3px; color: white;">2.5</span>' +
+            '<span style="background-color:#8B0000; padding: 1px 3px; color: white;">2.8</span>' +
+            '&nbsp;contact cutoff' +
+        '</div>' +
+    '';
+    this.add_content( template );
 }
+Provi.Bio.InterfaceContacts.InterfaceContactsParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
+    params_dict: {}
+});
+
 
 Provi.Bio.InterfaceContacts.InterfaceContactsDatalist = function(params){
     var self = this;
     
-    var p = [ "ids", "dataset_id" ];
+    var p = [ "ids", "dataset_id", "contacts_ds", "contacts_ds2" ];
     _.extend( this, _.pick( params, p ) );
-
-    this.ids.sort();
-
-    this.ids = [ 'Membrane', 'Water' ].concat( this.ids );
-
-    var type_count = { 'H': 1, 'C': 1, 'E': 1, 'W': 1, 'O': 1 };
-    var type_names = {
-        'H': 'Helix',
-        'C': 'Coil',
-        'E': 'Sheet',
-        'W': 'Water',
-        'O': 'Hetero'
-    }
-
-    this.id_names = {};
-
-    _.each( this.ids, function(id){
-        var c = id.charAt(0)
-        if( type_names[ c ] && /[0-9]/.test(id.charAt(1)) ){
-            self.id_names[id] = '' + 
-                type_names[ c ] + ' ' + 
-                type_count[ c ] + 
-                // ' (' + id + ')' +
-            '';
-            type_count[ c ] += 1;
-        }
-    })
-
-    this.atm_cutoff = [
-        [ '-0.5', '[xFFFF00]' ],
-        [ '0.0', '[xFFA500]' ],
-        [ '0.5', '[xEB8900]' ],
-        [ '1.0', '[xD86E00]' ],
-        [ '1.5', '[xC55200]' ],
-        [ '2.0', '[xB13700]' ],
-        [ '2.5', '[x9E1B00]' ],
-        [ '2.8', '[x8B0000]' ]
-    ];
-    this.atm_cutoff.reverse();
 
     Provi.Bio.AtomSelection.Datalist.call( this, params );
     this.handler = _.defaults({
@@ -110,32 +78,62 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist = function(params){
     }, this.handler );
 }
 Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, /** @lends Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype */ {
-    _init: function(grid){
-        var self = this;
+    type: "InterfaceContactsDatalist",
+    params_object: Provi.Bio.InterfaceContacts.InterfaceContactsParamsWidget,
+    _init: function(){
+        if( this.contacts_ds && this.contacts_ds2 ){
+            this.ids = this.contacts_ds.bio.get_list();
+            this.dataset_id = this.contacts_ds2.id;
+        }
+
+        this.ids.sort();
+        this.ids = [ 'Membrane', 'Water' ].concat( this.ids );
+
+        var type_count = { 'H': 1, 'C': 1, 'E': 1, 'W': 1, 'O': 1 };
+        var type_names = {
+            'H': 'Helix',
+            'C': 'Coil',
+            'E': 'Sheet',
+            'W': 'Water',
+            'O': 'Hetero'
+        }
+
+        this.id_names = {};
+        _.each( this.ids, function(id){
+            var c = id.charAt(0)
+            if( type_names[ c ] && /[0-9]/.test(id.charAt(1)) ){
+                this.id_names[id] = '' + 
+                    type_names[ c ] + ' ' + 
+                    type_count[ c ] + 
+                    // ' (' + id + ')' +
+                '';
+                type_count[ c ] += 1;
+            }
+        }, this );
+
+        this.atm_cutoff = [
+            [ '-0.5', '[xFFFF00]' ],
+            [ '0.0', '[xFFA500]' ],
+            [ '0.5', '[xEB8900]' ],
+            [ '1.0', '[xD86E00]' ],
+            [ '1.5', '[xC55200]' ],
+            [ '2.0', '[xB13700]' ],
+            [ '2.5', '[x9E1B00]' ],
+            [ '2.8', '[x8B0000]' ]
+        ];
+        this.atm_cutoff.reverse();
+
         this.initialized = false;
         this.applet.script_callback('' +
             'script "../data/jmol_script/interface_contacts.jspt";' +
-        '', {}, function(){
-            self.initialized = true;
-            $(self).trigger("init_ready");
-        });
-        var template = '' +
-            '<div class="control_row">' +
-                '<span style="background-color:#FFFF00; padding: 1px 3px;">&#8209;0.5</span>' +
-                '<span style="background-color:#FFA500; padding: 1px 3px;">0.0</span>' +
-                '<span style="background-color:#EB8900; padding: 1px 3px;">0.5</span>' +
-                '<span style="background-color:#D86E00; padding: 1px 3px;">1.0</span>' +
-                '<span style="background-color:#C55200; padding: 1px 3px;">1.5</span>' +
-                '<span style="background-color:#B13700; padding: 1px 3px; color: white;">2.0</span>' +
-                '<span style="background-color:#9E1B00; padding: 1px 3px; color: white;">2.5</span>' +
-                '<span style="background-color:#8B0000; padding: 1px 3px; color: white;">2.8</span>' +
-                '&nbsp;contact cutoff' +
-            '</div>' +
-        '';
-        grid.elm("widgets").append( template );
-        $(this).bind("calculate_ready", function(){
-            self.show_contacts( 'Membrane', undefined, {}, _.bind( grid.invalidate, grid ) );
-        });
+        '', {}, _.bind( function(){
+            this.initialized = true;
+            $(this).trigger("init_ready");
+        }, this ) );
+
+        $(this).bind("calculate_ready", _.bind( function(){
+            this.show_contacts( 'Membrane', undefined, {}, _.bind( this.invalidate, this ) );
+        }, this ) );
     },
     tmp_prop_cmd: function(id){
         var self = this;

@@ -196,6 +196,7 @@ Provi.Bio.Isosurface.IsosurfaceDatalist = function(params){
     Provi.Bio.AtomSelection.Datalist.call( this, params );
 }
 Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.AtomSelection.ChainlabelDatalist.prototype */ {
+    type: "IsosurfaceDatalist",
     get_ids: function(){
         var shape_info = this.applet.get_property_as_array('shapeInfo');
         return _.pluck( shape_info['Isosurface'], "ID" );
