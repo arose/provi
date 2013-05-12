@@ -85,7 +85,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
 
         var self = this;
         this.elm('update').button().click( _.bind( this.update_grid, this ) );
-        this.elm('calc').button().click( this.datalist.calculate );
+        this.elm('calc').button().click( function(){ self.datalist.calculate() } );
         this.elm('init').button().click( function(){ self.datalist._init( self ) } );
         
         Provi.Widget.Widget.prototype.init.call(this);
@@ -96,7 +96,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
         console.log(id, elm);
         if( id=="DatalistSelector" ){
             var datalist_id = elm.children("option:selected").val().split("_")[0];
-            this.datalist = Provi.Bio.AtomSelection.DatalistManager.get( datalist_id );
+            this.datalist = Provi.Data.DatalistManager.get( datalist_id );
             this.init_datalist();
         }
     },

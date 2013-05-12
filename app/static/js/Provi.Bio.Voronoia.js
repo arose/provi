@@ -74,14 +74,10 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         if( this.holes_ds ){
             this.ids = this.holes_ds.bio.get_list();
         }
-        this.initialized = false;
 
-        this.applet.script_callback('' +
-            'script "../data/jmol_script/voronoia.jspt";' +
-        '', {}, _.bind( function(){
-            this.initialized = true;
-            $(this).trigger("init_ready");
-        }, this ) );
+        this.initialized = false;
+        var s = 'script "../data/jmol_script/voronoia.jspt";';
+        this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
         
         $(this).bind("calculate_ready", _.bind( function(){
             this.show_hole( 'all', undefined, {}, _.bind( this.invalidate, this ) );

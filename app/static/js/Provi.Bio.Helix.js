@@ -71,26 +71,12 @@ Provi.Bio.Helix.HelixorientDatalist = function(params){
 Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "HelixorientDatalist",
     params_object: Provi.Bio.Helix.HelixorientParamsWidget,
-    _init: function(grid){
-        this.initialized = false;
-        this.applet.script_callback('' +
-            'script "../data/jmol_script/helixorient.jspt";' +
-        '', {}, _.bind( function(){
-            this.initialized = true;
-            $(this).trigger("init_ready");
-        }, this ) );
-    },
+    jspt_url: "../data/jmol_script/helixorient.jspt",
     calculate: function(){
         if( !this.initialized ) return;
-        var self = this;
         this.ready = false;
-        this.applet.script_callback('' +
-            'provi_data["helixorient"] = calc_helices({' + this.filtered() + '});' +
-        '', {}, function(){
-            console.log("helixorient", "calculate_ready");
-            self.ready = true;
-            $(self).trigger("calculate_ready");
-        });
+        var s = 'provi_data["helixorient"] = calc_helices({' + this.filtered() + '});';
+        this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
     },
     get_ids: function(){
         if( !this.ready ) return [];
@@ -221,27 +207,12 @@ Provi.Bio.Helix.HelixcrossingDatalist = function(params){
 }
 Provi.Bio.Helix.HelixcrossingDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "HelixcrossingDatalist",
-    _init: function(grid){
-        this.initialized = false;
-        this.applet.script_callback('' +
-            'script "../data/jmol_script/helixorient.jspt";' +
-        '', {}, _.bind( function(){
-            console.log("helixcrossing", "initialized");
-            this.initialized = true;
-            $(this).trigger("init_ready");
-        }, this ) );
-    },
+    jspt_url: "../data/jmol_script/helixorient.jspt",
     calculate: function(){
         if( !this.initialized ) return;
-        var self = this;
         this.ready = false;
-        this.applet.script_callback('' +
-            'provi_data["helixcrossing"] = helix_pairs({' + this.filtered() + '});' +
-        '', {}, function(){
-            console.log("helixcrossing", "calculate_ready");
-            self.ready = true;
-            $(self).trigger("calculate_ready");
-        });
+        var s = 'provi_data["helixcrossing"] = helix_pairs({' + this.filtered() + '});';
+        this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
     },
     get_ids: function(){
         if( !this.ready ) return [];

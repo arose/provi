@@ -124,12 +124,8 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
         this.atm_cutoff.reverse();
 
         this.initialized = false;
-        this.applet.script_callback('' +
-            'script "../data/jmol_script/interface_contacts.jspt";' +
-        '', {}, _.bind( function(){
-            this.initialized = true;
-            $(this).trigger("init_ready");
-        }, this ) );
+        var s = 'script "../data/jmol_script/interface_contacts.jspt";';
+        this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
 
         $(this).bind("calculate_ready", _.bind( function(){
             this.show_contacts( 'Membrane', undefined, {}, _.bind( this.invalidate, this ) );
