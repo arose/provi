@@ -85,6 +85,43 @@ Provi.Data.DatasetManager = {
 
 
 /**
+ * widget class for managing datasets
+ * @constructor
+ * @extends Provi.Widget.Widget
+ * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
+ */
+Provi.Data.DatasetManagerWidget = function(params){
+    this._widget_list = [];
+    Widget.call( this, params );
+    this.list_id = this.id + '_list';
+    var content = '<div>' +
+        '<div id="' + this.list_id + '"></div>' +
+    '</div>';
+    $(this.dom).append( content );
+    this.init();
+}
+Provi.Data.DatasetManagerWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.DatasetManagerWidget.prototype */ {
+    init: function(){
+        $("#" + this.list_id).empty();
+        var self = this;
+        $.each( Provi.Data.DatasetManager.get_list(), function(){
+            self.add( this );
+        });
+        $( Provi.Data.DatasetManager ).bind('add', function(event, dataset){
+            self.add( dataset );
+        });
+    },
+    add: function(dataset){
+        this._widget_list.push( new Provi.Data.DatasetWidget({
+            parent_id: this.list_id,
+            dataset: dataset
+        }));
+    }
+});
+
+
+
+/**
  * Fired when a dataset is changed.
  *
  * @name Provi.Data.Dataset#change
@@ -116,7 +153,7 @@ Provi.Data.Dataset = function(params){
     this.detect_type();
 };
 Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
-    bio_object: Provi.Bio.Data.Data,
+    bio_object: undefined,
     raw_type: false, // [ false, "text", "json" ]
     default_params: {
         name: "unnamed",
@@ -234,46 +271,6 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
 
 
 /**
- * widget class for managing datasets
- * @constructor
- * @extends Provi.Widget.Widget
- * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
- */
-Provi.Data.DatasetManagerWidget = function(params){
-    this._widget_list = [];
-    Widget.call( this, params );
-    this.list_id = this.id + '_list';
-    var content = '<div>' +
-        '<div id="' + this.list_id + '"></div>' +
-    '</div>';
-    $(this.dom).append( content );
-    this.init();
-}
-Provi.Data.DatasetManagerWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.DatasetManagerWidget.prototype */ {
-    init: function(){
-        $("#" + this.list_id).empty();
-        var self = this;
-        $.each( Provi.Data.DatasetManager.get_list(), function(){
-            self.add( this );
-        });
-        $( Provi.Data.DatasetManager ).bind('add', function(event, dataset){
-            self.add( dataset );
-        });
-    },
-    add: function(dataset){
-        this._widget_list.push( new Provi.Data.DatasetWidget({
-            parent_id: this.list_id,
-            dataset: dataset
-        }));
-    }
-});
-
-
-
-
-
-
-/**
  * A widget
  * @constructor
  * @extends Provi.Widget.Widget
@@ -335,6 +332,107 @@ Provi.Data.DatasetSelectorWidget.prototype = Utils.extend(Provi.Widget.Widget, /
         return Provi.Data.DatasetManager.get( ds_id );
     }
 });
+
+
+
+
+/**
+ * Singleton datalist manager object.
+ * @class
+ * @final
+ */
+Provi.Data.DatalistManager = {
+    _datalist_dict: {},
+    _datalist_list: [],
+    _datalist_counter: 0,
+    add: function( datalist ){
+        this._datalist_counter += 1;
+        this._datalist_dict[this._datalist_counter] = datalist;
+        this._datalist_list.push(datalist);
+        datalist.name = this._datalist_counter + "_" + datalist.type;
+        $(this).triggerHandler('add', [datalist]);
+        return this._datalist_counter;
+    },
+    get_list: function( params ){
+        params = params || {};
+
+        if( params.name_list ){
+            return _.filter( this._datalist_list, function(dl, i){
+                return _.include( params.name_list, dl.name );
+            });
+        }else{
+            return this._datalist_list;
+        }
+    },
+    get: function( id ){
+        return this._datalist_dict[ id ];
+    }
+};
+
+
+
+Provi.Data.Datalist = function(params){
+    var p = [ "applet" ];
+    _.extend( this, _.pick( params, p ) );
+
+    // also sets this.name = this.id + "_" + this.type;
+    this.id = Provi.Data.DatalistManager.add( this );
+
+    if( params.load_struct ){
+        $(this.applet).bind( "load_struct", _.bind( this.calculate, this ) );
+    }
+    $(this).bind("init_ready", _.bind( this.calculate, this ) );
+
+    if( !params.no_init ) this._init();
+}
+Provi.Data.Datalist.prototype = {
+    type: "Datalist",
+    handler: {},
+    params_object: undefined,
+    _init: function(){
+        console.log( this.name, "_init" );
+        if( this.applet.loaded ){
+            this.initialized = true;
+            $(this).trigger("init_ready");
+        }else{
+            $(this.applet).bind("load", _.bind( this._init, this ))
+        }
+    },
+    calculate: function(){
+        console.log( this.name, "calculate" );
+        if( this.initialized ){
+            this.ready = true;
+            $(this).trigger("calculate_ready");
+        }
+    },
+    get_ids: function(){},
+    make_row: function(id){
+        return id.toString();
+    },
+    invalidate: function(){
+        $(this).triggerHandler('invalidate');
+    }
+};
+
+
+// fill with IsosurfaceDatalist + ParseDatalist + VariableDatalist + ModelindexDatalist
+Provi.Data.ObjectDatalist = function(params){
+    Provi.Data.Datalist.call( this, params );
+}
+Provi.Data.ObjectDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
+    type: "ObjectDatalist",
+    get_ids: function(){
+        return this.ids;
+    },
+    get_data: function(id){
+        return id[0].get_data.apply( id[o], id[1] );
+    },
+    make_row: function(id){
+        return id[0].make_row.apply( id[o], id[1] );
+    }
+});
+
+
 
 
 })();

@@ -54,7 +54,7 @@ Provi.Bio.Helix.HelixorientParamsWidget.prototype = Utils.extend(Widget, /** @le
 
 
 Provi.Bio.Helix.HelixorientDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
     this.handler = _.defaults({
         show_axis: {
             selector: 'input[cell="axis"]',
@@ -68,7 +68,7 @@ Provi.Bio.Helix.HelixorientDatalist = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.Helix.HelixorientDatalist.prototype */ {
+Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "HelixorientDatalist",
     params_object: Provi.Bio.Helix.HelixorientParamsWidget,
     _init: function(grid){
@@ -197,9 +197,6 @@ Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         name: "colorize", color: "tomato"
     })
 });
-// Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-//     'helixorient', Provi.Bio.Helix.HelixorientSelectionType
-// );
 
 
 
@@ -208,7 +205,7 @@ Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
 
 
 Provi.Bio.Helix.HelixcrossingDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
     this.handler = _.defaults({
         show_crossing: {
             selector: 'input[cell="crossing"]',
@@ -222,7 +219,7 @@ Provi.Bio.Helix.HelixcrossingDatalist = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.Helix.HelixcrossingDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.Helix.HelixcrossingDatalist.prototype */ {
+Provi.Bio.Helix.HelixcrossingDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "HelixcrossingDatalist",
     _init: function(grid){
         this.initialized = false;
@@ -362,11 +359,6 @@ Provi.Bio.Helix.HelixcrossingDatalist.prototype = Utils.extend(Provi.Bio.AtomSel
         name: "helixcontacts", color: "tomato"
     })
 });
-// Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-//     'helixcrossing', Provi.Bio.Helix.HelixcrossingSelectionType
-// );
-
-
 
 
 
@@ -530,28 +522,6 @@ Provi.Bio.Helix.GromacsHelixorientWidget.prototype = Utils.extend(Provi.Widget.W
     }
 });
 
-
-// $(document).ready(function(){
-//     $.ajax({
-//         type: "GET",
-//         url: "sites.xml",
-//         dataType: "xml",
-//         success: function(xml) {
-//             $(xml).find('site').each(function(){
-//                 var id = $(this).attr('id');
-//                 var title = $(this).find('title').text();
-//                 var url = $(this).find('url').text();
-//                 $('<div class="items" id="link_'+id+'"></div>').html('<a href="'+url+'">'+title+'</a>').appendTo('#page-wrap');
-//                 $(this).find('desc').each(function(){
-//                     var brief = $(this).find('brief').text();
-//                     var long = $(this).find('long').text();
-//                     $('<div class="brief"></div>').html(brief).appendTo('#link_'+id);
-//                     $('<div class="long"></div>').html(long).appendTo('#link_'+id);
-//                 });
-//             });
-//         }
-//     });
-// });
 
 
 

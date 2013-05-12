@@ -711,20 +711,15 @@ Provi.Jmol.JmolWidget = function(params){
     
     if( !params.no_grid_widget ){
 
-        // this.grid_widget = new Provi.Widget.Grid.GridWidget({
-        //     parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-        //     datalist: new Provi.Bio.AtomSelection.AtomindexDatalist({
-        //         applet: this.applet,
-        //         sele: "*"
-        //     })
-        // });
-
         this.datalist_list = [];
         var datalist_classes = [
+            Provi.Bio.AtomSelection.GroupindexDatalist,
             Provi.Bio.AtomSelection.ChainlabelDatalist,
             Provi.Bio.AtomSelection.ModelindexDatalist,
+            Provi.Bio.AtomSelection.VariableDatalist,
+            Provi.Bio.AtomSelection.StrucnoDatalist,
+            Provi.Bio.HydrogenBonds.HbondsDatalist,
             Provi.Bio.AtomSelection.AtomindexDatalist,
-            Provi.Bio.AtomSelection.GroupindexDatalist,
             Provi.Bio.Isosurface.IsosurfaceDatalist,
             Provi.Bio.HydrogenBonds.HbondsDatalist,
             Provi.Bio.Helix.HelixorientDatalist,
@@ -754,7 +749,7 @@ Provi.Jmol.JmolWidget = function(params){
         });
     }
 
-    this.job_widget = new Provi.Job.JobWidget({
+    this.job_widget = new Provi.Data.Job.JobWidget({
         parent_id: "tab_io",
         applet: this.applet
     });

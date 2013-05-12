@@ -43,7 +43,7 @@ Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
     var p = [ "resolution", "cavity_probe_radius", "exterior_probe_radius", "cavity_color", "ids", "holes_ds" ];
     _.extend( this, _.pick( params, p ) );
 
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.VariableDatalist.call( this, params );
     this.handler = _.defaults({
         "show_hole": {
             "selector": 'input[cell="hole"]',
@@ -62,7 +62,7 @@ Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, /** @lends Provi.Bio.Voronoia.VoronoiaDatalist.prototype */ {
+Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, {
     type: "VoronoiaDatalist",
     default_params: {
         resolution: 2.0,

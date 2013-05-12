@@ -239,7 +239,7 @@ Provi.Bio.HydrogenBonds.HbondParamsWidget.prototype = Utils.extend(Widget, /** @
 
 
 Provi.Bio.HydrogenBonds.HbondsDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
     this.handler = _.defaults({
         "show_hbres": {
             "selector": 'input[cell="hbres"]',
@@ -253,7 +253,7 @@ Provi.Bio.HydrogenBonds.HbondsDatalist = function(params){
         }
     }, this.handler );
 }
-Provi.Bio.HydrogenBonds.HbondsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Bio.HydrogenBonds.HbondsDatalist.prototype */ {
+Provi.Bio.HydrogenBonds.HbondsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
     type: "HbondsDatalist",
     params_object: Provi.Bio.HydrogenBonds.HbondParamsWidget,
     _init: function(){

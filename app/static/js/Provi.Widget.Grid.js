@@ -17,17 +17,6 @@ var Utils = Provi.Utils;
 var Widget = Provi.Widget.Widget;
 
 
-// '<option value="atomindex">Atoms</option>' +
-// '<option value="groupindex">Groups</option>' +
-// '<option value="chainlabel">Chains</option>' +
-// '<option value="modelindex">Models</option>' +
-// '<option value="variable">Selections</option>' +
-// '<option value="strucno">Structures</option>' +
-// '<option value="helixorient">Helixorient</option>' +
-// '<option value="helixcrossing">Helixcrossing</option>' +
-// '<option value="hbonds">Hydrogen bonds</option>' +
-// '<option value="settings">Settings</option>' +
-
 
 
 
@@ -82,7 +71,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
     _init: function(){
 
         if( this.datalist_list=="all" ){
-            $( Provi.Bio.AtomSelection.DatalistManager )
+            $( Provi.Data.DatalistManager )
                 .bind( "add", _.bind( this.init_selector, this ) );
         }else if( this.datalist_list ){
             this.datalist_list = [ this.datalist ].concat( this.datalist_list );
@@ -114,7 +103,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
     init_selector: function(){
         var dl_list = this.datalist_list;
         if( dl_list=="all" ){
-            dl_list = Provi.Bio.AtomSelection.DatalistManager.get_list();
+            dl_list = Provi.Data.DatalistManager.get_list();
         }
         console.log(dl_list, "dl_list");
         var p = { type: "select", options: _.pluck( dl_list, "name" ) };
@@ -223,7 +212,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
     update_grid: function(){
         var ids = this.datalist.get_ids();
         var data = _.map( ids, function(val){ return { id: val } });
-        console.log( this.datalist.name, "update_grid", data );
+        // console.log( this.datalist.name, "update_grid", data );
         this.grid.setData( data );
         this.grid.updateRowCount();
         this.grid.render();

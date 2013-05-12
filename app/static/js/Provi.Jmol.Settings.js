@@ -27,7 +27,7 @@ Provi.Jmol.Settings.Packing.vdw = {"C4H1b":[1.88,0.78],"DEFAULT":[1.70,0.77],"O2
 
 Provi.Jmol.Settings.Packing.resdb = {"C4H1b":["ILE.CB","G.C1*","G.C4*","PRO.CA","A.C1*","A.C4*","C.C1*","C.C4*","VAL.CB","THR.CB","U.C1*","U.C4*","T.C1*","T.C4*","ALA.CA","LEU.CG"],"O2H0b":["G.O5*","G.O3*","A.O5*","A.O3*","C.O5*","C.O3*","U.O5*","U.O3*","T.O5*","T.O3*"],"N3H1b":["HIS.ND1","HIS.NE2","TRP.NE1","ARG.NE"],"S2H0u":["CSS.SG","MET.SD"],"C4H1s":["ILE.CA","GLN.CA","G.C3*","G.C2*","GLU.CA","CYS.CA","HIS.CA","SER.CA","LYS.CA","ASN.CA","A.C3*","A.C2*","C.C3*","C.C2*","VAL.CA","THR.CA","ASP.CA","U.C3*","U.C2*","T.C3*","T.C2*","TRP.CA","CSS.CA","PHE.CA","MET.CA","LEU.CA","ARG.CA","TYR.CA"],"O2H2u":["HOH.OW","HOH.O","WAT.OW","WAT.O"],"C4H3u":["ILE.CD1","ILE.CG2","VAL.CG1","VAL.CG2","THR.CG","THR.CG2","T.C7","ALA.CB","MET.CE","ACE.CH3","LEU.CD1","LEU.CD2"],"O2H0s":["G.O4*","A.O4*","C.O4*","U.O4*","T.O4*"],"N3H1s":["ILE.N","GLN.N","G.N1","GLY.N","GLU.N","CYS.N","HIS.N","SER.N","LYS.N","ASN.N","VAL.N","THR.N","ASP.N","U.N3","T.N3","TRP.N","CSS.N","PHE.N","ALA.N","MET.N","LEU.N","ARG.N","TYR.N"],"Z2ION":["ZN.ZN"],"N2H0s":["A.N1","C.N3"],"C3H1b":["C.C5","U.C5","TRP.CZ2","TRP.CH2","TRP.CE3","TRP.CZ3","TRP.CEH2","PHE.CE1","PHE.CZ","PHE.CD2","PHE.CE2"],"N2H0b":["G.N3","G.N7","A.N3","A.N7"],"C3H1t":["C.C6","U.C6","T.C6"],"C3H1s":["G.C8","HIS.CE1","HIS.CD2","A.C8","A.C2","TRP.CD1","PHE.CD1","TYR.CE1","TYR.CD1","TYR.CD2","TYR.CE2"],"N3H2u":["GLN.NE2","G.N2","ASN.ND2","A.N6","C.N4","ARG.NH1","ARG.NH2"],"P4H0u":["G.P","A.P","C.P","U.P","T.P"],"C4H2b":["ILE.CG1","CYS.CB","LYS.CE","PRO.CB","PRO.CG","CSS.CB","MET.CG"],"O2H1u":["G.O2*","SER.OG","SER.OG1","A.O2*","C.O2*","THR.OG1","U.O2*","T.O2*","TYR.OH"],"N3H0u":["G.N9","PRO.N","A.N9","C.N1","U.N1","T.N1"],"O1H0u":["ILE.O","GLN.O","GLN.OE1","G.O6","G.O1P","G.O2P","GLY.O","GLU.O","GLU.OE2","GLU.OE1","CYS.O","HIS.O","SER.O","LYS.O","PRO.O","ASN.O","ASN.OD1","A.O1P","A.O2P","C.O1P","C.O2P","C.O2","VAL.O","THR.O","ASP.O","ASP.OD1","ASP.OD2","U.O1P","U.O2P","U.O4","U.O2","T.O1P","T.O2P","T.O4","T.O2","TRP.O","CSS.O","PHE.O","ALA.O","MET.O","LEU.O","ARG.O","TYR.O"],"C3H0b":["GLN.CD","GLY.C","GLU.CD","HIS.CG","ASN.CG","ASP.CG","T.C5","TRP.CG","TRP.CE2","TRP.CD2","PHE.CG","ARG.CZ","TYR.CG","TYR.CZ"],"S2H1u":["CYS.SG"],"C3H0s":["ILE.C","GLN.C","G.C2","G.C6","G.C5","G.C4","GLU.C","CYS.C","HIS.C","SER.C","LYS.C","PRO.C","ASN.C","A.C6","A.C5","A.C4","C.C2","C.C4","VAL.C","THR.C","ASP.C","U.C2","U.C4","T.C2","T.C4","TRP.C","CSS.C","PHE.C","ALA.C","MET.C","LEU.C","ARG.C","TYR.C"],"C4H2s":["GLN.CB","GLN.CG","G.C5*","GLY.CA","GLU.CB","GLU.CG","HIS.CB","SER.CB","LYS.CB","LYS.CG","LYS.CD","PRO.CD","ASN.CB","A.C5*","C.C5*","ASP.CB","U.C5*","T.C5*","TRP.CB","PHE.CB","MET.CB","LEU.CB","ARG.CB","ARG.CG","ARG.CD","TYR.CB"],"N4H3u":["LYS.NZ"]};
 
-
+// TODO are these used anywhere anymore?
 Provi.Jmol.Settings.Radii = {};
 Provi.Jmol.Settings.Radii['jmol'] = {'C':1.95,'N':1.85,'O':1.7,'S':2,'Mg':1.73,'Fe':1.7,'Zn':1.39};
 Provi.Jmol.Settings.Radii['babel'] = {'C':1.7,'N':1.6,'O':1.55,'S':1.8,'Mg':2.2,'Fe':2.05,'Zn':2.1};
@@ -121,35 +121,12 @@ Provi.Jmol.Settings.dict = {
 
 
 
-/**
- * A widget to get params
- * @constructor
- * @extends Provi.Widget.Widget
- */
-Provi.Jmol.Settings.SettingsParamsWidget = function(params){
-    params = _.defaults( params, this.default_params );
-    Provi.Widget.Widget.call( this, params );
-    this._init_eid_manager([  ]);
-
-    var template = '' +
-        
-    '';
-    //this.add_content( template, params );
-}
-Provi.Jmol.Settings.SettingsParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Settings.SettingsParamsWidget.prototype */ {
-    default_params: {
-        
-    }
-});
-
-
-
 
 Provi.Jmol.Settings.SettingsDatalist = function(params){
-    Provi.Bio.AtomSelection.Datalist.call( this, params );
+    Provi.Data.Datalist.call( this, params );
     this.handler = {};
 }
-Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Jmol.Settings.SettingsDatalist.prototype */ {
+Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
     type: "SettingsDatalist",
     get_ids: function(){
         return _.keys( Provi.Jmol.Settings.dict );
@@ -193,9 +170,7 @@ Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Bio.AtomSele
         }
     }    
 });
-// Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-//     'settings', Provi.Jmol.Settings.SettingsSelectionType
-// );
+
 
 
 
