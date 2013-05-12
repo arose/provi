@@ -34,28 +34,13 @@ var Utils = Provi.Utils;
 var Widget = Provi.Widget.Widget;
 
 
-Provi.Bio.Voronoia.register = function( params ){
-    var holes_ds = params.holes_ds;
-    Provi.Bio.AtomSelection.SelectionTypeRegistry.add(
-        'voronoia', Provi.Bio.Voronoia.VoronoiaSelectionTypeFactory(
-            holes_ds.bio.get_list()
-        )
-    )
-}
-
-
-
-Provi.Bio.Voronoia.VoronoiaSelectionTypeFactory = function(ids){
-    return function(params){
-        params.ids = ids;
-        return new Provi.Bio.Voronoia.VoronoiaSelectionType(params);
-    }
-}
 
 Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
     params = _.defaults( params, this.default_params );
+
+    console.log( "VoronoiaDatalist", params );
     
-    var p = [ "resolution", "cavity_probe_radius", "exterior_probe_radius", "cavity_color", "ids" ];
+    var p = [ "resolution", "cavity_probe_radius", "exterior_probe_radius", "cavity_color", "ids", "holes_ds" ];
     _.extend( this, _.pick( params, p ) );
 
     Provi.Bio.AtomSelection.Datalist.call( this, params );
@@ -78,24 +63,29 @@ Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
     }, this.handler );
 }
 Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, /** @lends Provi.Bio.Voronoia.VoronoiaDatalist.prototype */ {
+    type: "VoronoiaDatalist",
     default_params: {
         resolution: 2.0,
         cavity_probe_radius: 0.6,
         exterior_probe_radius: 5.0,
         cavity_color: 'skyblue'
     },
-    _init: function(grid){
-        var self = this;
+    _init: function(){
+        if( this.holes_ds ){
+            this.ids = this.holes_ds.bio.get_list();
+        }
         this.initialized = false;
+
         this.applet.script_callback('' +
             'script "../data/jmol_script/voronoia.jspt";' +
-        '', {}, function(){
-            self.initialized = true;
-            $(self).trigger("init_ready");
-        });
-        $(this).bind("calculate_ready", function(){
-            self.show_hole( 'all', undefined, {}, _.bind( grid.invalidate, grid ) );
-        });
+        '', {}, _.bind( function(){
+            this.initialized = true;
+            $(this).trigger("init_ready");
+        }, this ) );
+        
+        $(this).bind("calculate_ready", _.bind( function(){
+            this.show_hole( 'all', undefined, {}, _.bind( this.invalidate, this ) );
+        }, this ) );
     },
     get_ids: function(sele){
         return this.ids;

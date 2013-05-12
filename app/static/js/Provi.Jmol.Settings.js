@@ -150,7 +150,7 @@ Provi.Jmol.Settings.SettingsDatalist = function(params){
     this.handler = {};
 }
 Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.Datalist, /** @lends Provi.Jmol.Settings.SettingsDatalist.prototype */ {
-    name: "SettingsDatalist",
+    type: "SettingsDatalist",
     get_ids: function(){
         return _.keys( Provi.Jmol.Settings.dict );
     },

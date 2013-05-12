@@ -50,18 +50,19 @@ Provi.Widget.Grid.GridWidget = function(params){
     Provi.Widget.Widget.call( this, params );
 
     this._init_eid_manager([ 
-        'grid', 'update', 'widgets', 'calc', 'init'
+        'grid', 'update', 'widgets', 'calc', 'init', 'selector'
     ]);
     
-    var p = [ "datalist" ];
+    var p = [ "datalist", "datalist_list" ];
     _.extend( this, _.pick( params, p ) );
-    
+
     var template = '' +
         '<div class="control_row">' +
             '<button id="${eids.update}">update</button>&nbsp;' +
             '<button id="${eids.calc}">calc</button>&nbsp;' +
-            '<button id="${eids.init}">init</button>' +
+            '<button id="${eids.init}">init</button>&nbsp;' +
         '</div>' +
+        '<div class="control_row" id="${eids.selector}"></div>' +
         '<div class="control_row" id="${eids.widgets}"></div>' +
         '<div class="control_row">' +
             '<div style="height:500px;" id="${eids.grid}"></div>' +
@@ -75,9 +76,21 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
     default_params: {
         heading: 'Grid',
         collapsed: false,
-        persist_on_applet_delete: false
+        persist_on_applet_delete: false,
+        lists: []
     },
     _init: function(){
+
+        if( this.datalist_list=="all" ){
+            $( Provi.Bio.AtomSelection.DatalistManager )
+                .bind( "add", _.bind( this.init_selector, this ) );
+        }else if( this.datalist_list ){
+            this.datalist_list = [ this.datalist ].concat( this.datalist_list );
+            this.init_selector();
+        }else{
+            this.elm("selector").hide();
+        }
+
         this.create_grid();
         this.init_datalist();
 
@@ -87,6 +100,26 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
         this.elm('init').button().click( function(){ self.datalist._init( self ) } );
         
         Provi.Widget.Widget.prototype.init.call(this);
+    },
+    set: function(e){
+        var elm = $(e.currentTarget);
+        var id = elm.data('id');
+        console.log(id, elm);
+        if( id=="DatalistSelector" ){
+            var datalist_id = elm.children("option:selected").val().split("_")[0];
+            this.datalist = Provi.Bio.AtomSelection.DatalistManager.get( datalist_id );
+            this.init_datalist();
+        }
+    },
+    init_selector: function(){
+        var dl_list = this.datalist_list;
+        if( dl_list=="all" ){
+            dl_list = Provi.Bio.AtomSelection.DatalistManager.get_list();
+        }
+        console.log(dl_list, "dl_list");
+        var p = { type: "select", options: _.pluck( dl_list, "name" ) };
+        var select = Provi.Widget.form_builder( p, "", "DatalistSelector", this );
+        this.elm("selector").empty().show().append( select );
     },
     create_grid: function(){
         var self = this;
@@ -131,7 +164,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
 
         var datalist = this.datalist;
 
-        if( !datalist.ready ){
+        if( !datalist || !datalist.ready ){
             $(datalist).bind("calculate_ready", _.bind( this.init_datalist, this ) );
             return;
         }
@@ -190,7 +223,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
     update_grid: function(){
         var ids = this.datalist.get_ids();
         var data = _.map( ids, function(val){ return { id: val } });
-        // console.log( "update_grid", data );
+        console.log( this.datalist.name, "update_grid", data );
         this.grid.setData( data );
         this.grid.updateRowCount();
         this.grid.render();

@@ -36,6 +36,7 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
     load: function(){
         var self = this;
         var ds_dict = {};
+        var dl_dict = {};
         var name_dict = {};
         var applet = Provi.Jmol.get_default_applet(true).widget.applet;
 
@@ -48,8 +49,11 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
 
             _.each( params , function(value, key){
                 if( _.isString(value) ){
-                    var m = value.match(/DATASET_(.+)/i);
-                    if(m) params[ key ] = name_dict[ m[1] ];
+                    var m = value.match(/DATA(?:SET|LIST)_(.+)/i);
+                    if(m){
+                        params[ key ] = name_dict[ m[1] ];
+                        console.log(key, name_dict[ m[1] ]);
+                    }
                 }
             });
 
@@ -64,6 +68,18 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
             }else if( data.function ){
                 var func = function(){
                     eval( data.function )( params );
+                    ds_dict[i].loaded = true;
+                    $( ds_dict[i] ).triggerHandler("loaded");
+                }
+            }else if( data.datalist ){
+                var dl = eval( data.datalist );
+                params.no_init = true;
+                dl_dict[i] = new dl( params );
+                if( data.name ){
+                    name_dict[ data.name ] = dl_dict[i];
+                }
+                var func = function(){
+                    dl_dict[i]._init();
                     ds_dict[i].loaded = true;
                     $( ds_dict[i] ).triggerHandler("loaded");
                 }

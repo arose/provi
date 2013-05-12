@@ -719,11 +719,25 @@ Provi.Jmol.JmolWidget = function(params){
         //     })
         // });
 
+        this.datalist_list = [];
+        var datalist_classes = [
+            Provi.Bio.AtomSelection.ChainlabelDatalist,
+            Provi.Bio.AtomSelection.ModelindexDatalist,
+            Provi.Bio.AtomSelection.AtomindexDatalist,
+            Provi.Bio.AtomSelection.GroupindexDatalist,
+            Provi.Bio.Isosurface.IsosurfaceDatalist,
+            Provi.Bio.HydrogenBonds.HbondsDatalist,
+            Provi.Bio.Helix.HelixorientDatalist,
+            Provi.Bio.Helix.HelixcrossingDatalist
+        ];
+        _.each( datalist_classes, _.bind( function( cl ){
+            this.datalist_list.push( new cl({ applet: this.applet, sele: "*", load_struct: true }));
+        }, this ));
+
         this.grid_widget = new Provi.Widget.Grid.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-            datalist: new Provi.Bio.Isosurface.IsosurfaceDatalist({
-                applet: this.applet
-            })
+            datalist: this.datalist_list[0],
+            datalist_list: "all"
         });
 
         this.settings_datalist = new Provi.Jmol.Settings.SettingsDatalist({ applet: this.applet });

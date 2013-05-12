@@ -36,23 +36,18 @@
         "filename": "vol/1U19_OPM_mod.vol.atmsele"
     }, 
     {
-        "function": "Provi.Bio.Voronoia.register", 
+        "name": "vol_datalist",
+        "datalist": "Provi.Bio.Voronoia.VoronoiaDatalist", 
         "params": {
             "holes_ds": "DATASET_vol_atomsele"
         }
     },
     {
-        "widget": "Provi.Bio.AtomSelection.GridWidget",
+        "widget": "Provi.Widget.Grid.GridWidget",
         "params": {
-            "heading": "Cavities", 
-            "hide_eids": [
-                "filter", 
-                "sort", 
-                "type", 
-                "property"
-            ], 
-            "parent_id": "tab_widgets", 
-            "type": "voronoia"
+            "heading": "Cavities",
+            "parent_id": "tab_widgets",
+            "datalist": "DATALIST_vol_datalist"
         }
     },
     {
@@ -80,24 +75,19 @@
         "filename": "mbn/1U19_OPM_mod_1.4.mbn_contact.atmsele"
     },
     {
-        "function": "Provi.Bio.InterfaceContacts.register", 
+        "name": "contacts_datalist",
+        "datalist": "Provi.Bio.InterfaceContacts.InterfaceContactsDatalist", 
         "params": {
             "contacts_ds": "DATASET_mbn",
             "contacts_ds2": "DATASET_mbn_contacts"
         }
     }, 
     {
-        "widget": "Provi.Bio.AtomSelection.GridWidget",
+        "widget": "Provi.Widget.Grid.GridWidget",
         "params": {
             "heading": "Interface contacts", 
-            "hide_eids": [
-                "filter", 
-                "sort", 
-                "type", 
-                "property"
-            ], 
             "parent_id": "tab_widgets", 
-            "type": "interface_contacts"
+            "datalist": "DATALIST_contacts_datalist"
         }
     },
     {
