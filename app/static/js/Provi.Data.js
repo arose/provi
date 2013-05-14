@@ -136,10 +136,9 @@ Provi.Data.DatasetManagerWidget.prototype = Utils.extend(Widget, /** @lends Prov
  */
 Provi.Data.Dataset = function(params){
     params = _.defaults( params, this.default_params );
-    this.raw_data = params.raw_data;
-    this.name = params.name;
-    this.url = params.url;
-    this.type = params.type;
+
+    var p = [ "raw_data", "name", "url", "type" ];
+    _.extend( this, _.pick( params, p ) );
 
     // can be polluted by other functions for temp storage, i.e.
     // plupload_id for the plupload widget
@@ -185,8 +184,14 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
     _init: function( params ){
         params.dataset = this;
         this.bio = new this.bio_object( params );
-        this.initialized = true;
-        $(this).triggerHandler("initialized");
+        if( this.bio.delegate ){
+            this.type = this.bio.delegate;
+            Provi.Data.Controller.extend_by_type( this, this.type );
+            this._init( params );
+        }else{
+            this.initialized = true;
+            $(this).triggerHandler("initialized");
+        }
     },
     init: function( params ){
         if( this.raw_type ){
