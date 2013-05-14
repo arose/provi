@@ -56,6 +56,10 @@ var type_mixins = {
     "story": {
         bio_object: Provi.Bio.Data.Story
     },
+    "tmdet": {
+        bio_object: Provi.Bio.Data.Tmdet,
+        raw_type: "xml"
+    },
     "isosurface": {
         bio_object: Provi.Bio.Isosurface.Isosurface,
         params_object: Provi.Bio.Isosurface.LoadParamsWidget
@@ -73,6 +77,14 @@ var type_mixins = {
     "features": {
         bio_object: Provi.Bio.Data.Features,
         raw_type: "text"
+    },
+    "txt": {
+        bio_object: Provi.Bio.Data.Txt,
+        raw_type: "txt"
+    },
+    "xml": {
+        bio_object: Provi.Bio.Data.Xml,
+        raw_type: "xml"
     },
     "dat": {
         bio_object: Provi.Bio.Data.Data

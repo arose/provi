@@ -126,10 +126,7 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
 
 
 Provi.Bio.Data.Tmalign = function( params ){
-    params = _.defaults(
-        params,
-        Provi.Bio.Data.Tmalign.prototype.default_params
-    )
+    params = _.defaults( params, this );
     var p = [ "applet", "dataset", "sele" ];
     _.extend( this, _.pick( params, p ) );
     this.load();
@@ -238,6 +235,33 @@ Provi.Bio.Data.AtomVector.prototype = /** @lends Provi.Bio.Data.AtomVector.proto
         '';
         this.applet.script(s, { maintain_selection: true, try_catch: false });
     }
+}
+
+
+Provi.Bio.Data.Txt = function( params ){
+    var txt = params.dataset.raw_data;
+    // TODO detect Tmalign files
+}
+
+
+
+Provi.Bio.Data.Xml = function( params ){
+    var xml = params.dataset.raw_data;
+    if( $("pdbtm", xml).attr("xmlns")=="http://pdbtm.enzim.hu" ){
+        console.log("XML detected as tmdet", params.dataset);
+        this.delegate = "tmdet";
+    }
+}
+
+
+Provi.Bio.Data.Tmdet = function( params ){
+    var p = [ "applet", "dataset" ];
+    _.extend( this, _.pick( params, p ) );
+
+    var xml = this.dataset.raw_data;
+    console.log( "TMDET", $("MEMBRANE", xml) );
+
+    this.dataset.set_loaded();
 }
 
 
