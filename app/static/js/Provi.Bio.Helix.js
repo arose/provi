@@ -147,11 +147,11 @@ Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             }).join(' ');
         }
     },
-    show_axis: function(id, flag, params, callback){
+    show_axis: function(id, flag, params){
         // params.show_local_axes = this.params_widget.show_local_axes();
         var s = this._show_axis(id, flag, params);
         console.log("show_axis", s);
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
+        this.script( s, true, true );
     },
     _colorize_axis: function(id, flag, params){
         params = params || {};
@@ -172,9 +172,9 @@ Provi.Bio.Helix.HelixorientDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             }).join(' ');
         }
     },
-    colorize_axis: function(id, flag, params, callback){
+    colorize_axis: function(id, flag, params){
         var s = this._colorize_axis(id, flag, params);
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
+        this.script( s, true, true );
     },
     axis_cell: Provi.Widget.Grid.CellFactory({
         name: "axis", color: "skyblue"
@@ -293,10 +293,10 @@ Provi.Bio.Helix.HelixcrossingDatalist.prototype = Utils.extend(Provi.Bio.AtomSel
             }).join(' ');
         }
     },
-    show_crossing: function(id, flag, params, callback){
+    show_crossing: function(id, flag, params){
         var s = this._show_crossing(id, flag, params);
         console.log("show_crossing", s);
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
+        this.script( s, true, true );
     },
     _show_contacts: function(id, flag, params){
         params = params || {};
@@ -319,9 +319,9 @@ Provi.Bio.Helix.HelixcrossingDatalist.prototype = Utils.extend(Provi.Bio.AtomSel
             }).join(' ');
         }
     },
-    show_contacts: function(id, flag, params, callback){
+    show_contacts: function(id, flag, params){
         var s = this._show_contacts(id, flag, params);
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, callback );
+        this.script( s, true, true );
     },
     crossing_cell: Provi.Widget.Grid.CellFactory({
         name: "crossing", color: "skyblue"

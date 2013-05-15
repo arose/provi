@@ -33,13 +33,13 @@ Provi.Widget.Grid.RowWidget = function(params){
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Widget.Grid.GridWidget = function(params){
-    this.invalidate = _.throttle( this._invalidate, 100, false );
+    this.invalidate = _.throttle( this._invalidate, 500, false );
     params = _.defaults( params, this.default_params );
 
     Provi.Widget.Widget.call( this, params );
 
     this._init_eid_manager([ 
-        'grid', 'update', 'widgets', 'calc', 'init', 'selector'
+        'grid', 'update', 'widgets', 'calc', 'init', 'selector', 'details'
     ]);
     
     var p = [ "datalist", "datalist_list" ];
@@ -54,8 +54,9 @@ Provi.Widget.Grid.GridWidget = function(params){
         '<div class="control_row" id="${eids.selector}"></div>' +
         '<div class="control_row" id="${eids.widgets}"></div>' +
         '<div class="control_row">' +
-            '<div style="height:500px;" id="${eids.grid}"></div>' +
+            '<div style="height:${params.grid_height};" id="${eids.grid}"></div>' +
         '</div>' +
+        '<div class="control_row" id="${eids.details}"></div>' +
     '';
     this.add_content( template, params );
 
@@ -66,7 +67,8 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
         heading: 'Grid',
         collapsed: false,
         persist_on_applet_delete: false,
-        lists: []
+        lists: [],
+        grid_height: "500px"
     },
     _init: function(){
 
@@ -93,7 +95,6 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
     set: function(e){
         var elm = $(e.currentTarget);
         var id = elm.data('id');
-        console.log(id, elm);
         if( id=="DatalistSelector" ){
             var datalist_id = elm.children("option:selected").val().split("_")[0];
             this.datalist = Provi.Data.DatalistManager.get( datalist_id );
@@ -105,7 +106,6 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
         if( dl_list=="all" ){
             dl_list = Provi.Data.DatalistManager.get_list();
         }
-        console.log(dl_list, "dl_list");
         var p = { type: "select", options: _.pluck( dl_list, "name" ) };
         var select = Provi.Widget.form_builder( p, "", "DatalistSelector", this );
         this.elm("selector").empty().show().append( select );
@@ -140,6 +140,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
     _invalidate: function(){
         this.grid.invalidate();
         this.header();
+        this.show_details();
         this.grid.resizeCanvas();
     },
     header: function(){
@@ -148,6 +149,16 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
             this.datalist.make_row('all')
         );
         $(header).css('padding', '1px 3px 2px 1px');
+    },
+    show_details: function(id){
+        console.log("show_details", id);
+        if( _.isUndefined(id) ){
+            if( _.isUndefined(this.details_id) ) return;
+            id = this.details_id;
+        }
+        this.details_id = id;
+        var details = this.datalist.make_details( id );
+        this.elm('details').empty().append( details );
     },
     init_datalist: function(){
 
@@ -158,8 +169,10 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
             return;
         }
 
-        // watch for changes
+        // listen for changes
+        $(datalist).bind('update', _.bind( this.update_grid, this ) );
         $(datalist).bind('invalidate', _.bind( this.invalidate, this ) );
+        $(datalist).bind('request_details', _.bind( function(e, id){ this.show_details(id) }, this ) );
 
         // params widget
         this.elm("widgets").empty();
@@ -174,7 +187,6 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
         }
 
         // register handlers
-        var invalidate = _.bind( this.invalidate, this );
         this.elm('grid').off( 'click.grid' );
         _.each( datalist.handler, function(d, i){
             this.elm('grid').on( 'click.grid', d["selector"], function(e){
@@ -182,7 +194,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
                 elm.qtip('hide');
                 var id = elm.data("id");
                 var flag = !elm.prop('checked');
-                d["click"].apply( datalist, [ id, flag, {}, invalidate ]);
+                d["click"].apply( datalist, [ id, flag ]);
             });
 
             if( !_.isFunction(d["label"]) ){

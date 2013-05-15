@@ -79,9 +79,7 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         var s = 'script "../data/jmol_script/voronoia.jspt";';
         this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
         
-        $(this).bind("calculate_ready", _.bind( function(){
-            this.show_hole( 'all', undefined, {}, _.bind( this.invalidate, this ) );
-        }, this ) );
+        $(this).bind("calculate_ready", _.bind( this.show_hole, this, 'all', false ) );
     },
     get_ids: function(sele){
         return this.ids;
@@ -141,8 +139,9 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             }).join(' ');
         }
     },
-    show_hole: function(id, flag, params, callback){
-        this.applet.script_callback( this._show_hole(id, flag), { maintain_selection: true }, callback );
+    show_hole: function(id, flag){
+        var s = this._show_hole(id, flag);
+        this.script( s, true, true );
     },
     _show_cavity: function(id, flag, params){
         params = params || {};
@@ -175,16 +174,16 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             }).join(' ');
         }
     },
-    show_cavity: function(id, flag, params, callback){
-        this.applet.script_callback( this._show_cavity(id, flag, params), { maintain_selection: true }, callback );
+    show_cavity: function(id, flag, params){
+        this.script( this._show_cavity(id, flag, params), true );
     },
     _show_neighbours: function(id, flag){
         return 'select ' + this.selection(id) + ';' +
             'wireframe ' + (flag ? 'off' : '0.2') + ';' +
             'cpk ' + (flag ? 'off' : '0.2') + ';';
     },
-    show_neighbours: function(id, flag, params, callback){
-        this.applet.script_callback( this._show_neighbours(id, flag), { maintain_selection: true }, callback );
+    show_neighbours: function(id, flag){
+        this.script( this._show_neighbours(id, flag), true );
     },
     hole_cell: Provi.Widget.Grid.CellFactory({
         "name": "hole", "color": "skyblue"

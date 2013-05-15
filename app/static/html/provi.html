@@ -109,7 +109,8 @@
             CANVAS_WIDGET: 'main',
             SELECTION_WIDGET: 'tab_tree',
             BUILDER_WIDGET: 'tab_tree',
-            SETTINGS_WIDGET: 'tab_settings'
+            SETTINGS_WIDGET: 'tab_settings',
+            JOBS_WIDGET: 'tab_jobs'
         });
 
         _.extend(
@@ -396,6 +397,9 @@
                         <li><a title="Save/Load data" href="#tab_io">
                             <span style="height:19px; display:block;">I/O</span>
                         </a></li>
+                        <li><a title="Job handling" href="#tab_jobs">
+                            <span style="height:19px; display:block;">Jobs</span>
+                        </a></li>
                         <li><a title="A list of all imported data" href="#tab_data">
                             <span style="height:19px; display:block;">Data</span>
                         </a></li>
@@ -436,6 +440,7 @@
                         <div id="tab_controls"></div>
                         <div id="tab_tree"></div>
                         <div id="tab_io"></div>
+                        <div id="tab_jobs"></div>
                         <div id="tab_data"></div>
                         <div id="tab_widgets"></div>
                         <div id="tab_settings"></div>

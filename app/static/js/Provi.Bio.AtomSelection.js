@@ -105,20 +105,20 @@ Provi.Bio.AtomSelection.SelectionDatalist.prototype = Utils.extend(Provi.Data.Da
         var d = '{' + this.selection(id) + '}.' + this.property + '';
         return this.applet.evaluate(d);
     },
-    select: function(id, flag, params, callback){
+    select: function(id, flag){
         var selection = this.selection( id );
         var s = 'select ' + (flag ? 'remove' : 'add') + ' ' + selection;
-        this.applet.script_callback( s, {}, callback );
+        this.script( s, true );
     },
-    display: function(id, flag, params, callback){
+    display: function(id, flag){
         var selection = this.selection( id );
         var s = 'display ' + (flag ? 'remove' : 'add') + ' ' + selection;
-        this.applet.script_callback( s, {}, callback );
+        this.script( s, true );
     },
     highlight: function(id){
+        this.details( id );
         var s = "provi_highlight({" + this.selection( id ) + "});";
-        console.log( "highlight", id, s );
-        this.applet.script( s, {} );
+        this.script( s );
     },
     label_cell: function(label, id){
         var $label = $('<span cell="label" style="float:left; width:120px;">' +

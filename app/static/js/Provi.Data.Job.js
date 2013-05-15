@@ -16,6 +16,99 @@ Provi.Data.Job = {};
 
 
 /**
+ * Singleton job manager object.
+ * @class
+ * @final
+ */
+Provi.Data.Job.JobManager = {
+    _job_dict: {},
+    _job_list: [],
+    _job_counter: 0,
+    add: function( job ){
+        this._job_counter += 1;
+        this._job_dict[this._job_counter] = job;
+        this._job_list.push(job);
+        job.id = this._job_counter;
+        $(job).bind('status', _.bind( this.change, this ) );
+        $(this).triggerHandler('add', [job]);
+        return this._job_counter;
+    },
+    get_list: function( params ){
+        params = params || {};
+
+        if( params.name_list ){
+            return _.filter( this._job_list, function(dl, i){
+                return _.include( params.name_list, dl.name );
+            });
+        }else{
+            return this._job_list;
+        }
+    },
+    get: function( id ){
+        return this._job_dict[ id ];
+    },
+    change: function(){
+        $(this).triggerHandler('change');
+    }
+};
+
+
+/**
+ * job class
+ * @constructor
+ */
+Provi.Data.Job.Job = function(params){
+    params = _.defaults( params, this.default_params );
+    this.id = Provi.Data.Job.JobManager.add( this );
+
+    var p = [ "applet", "tool", "submitted", "running", "check", "jobname" ];
+    _.extend( this, _.pick( params, p ) );
+
+    this.check = false;
+    if( this.submitted ){
+        this.running = true;
+        this.status_interval = setInterval( _.bind( function(){
+            this.retrieve_status();
+        }, this ), 1000);
+    }else{
+        this.running = false;
+    }
+};
+Provi.Data.Job.Job.prototype = {
+    default_params: {
+        submitted: false,
+        tool: false,
+        jobname: false,
+    },
+    set_jobname: function( jobname ){
+        this.jobname = jobname;
+        var tmp = jobname.split("_")
+        this.tool = tmp[0];
+        this.jobid = tmp[1];
+        $(this).triggerHandler("jobname");
+    },
+    retrieve_status: function(){
+        if( this.submitted && !this.running ){
+            clearInterval( this.status_interval );
+            return;
+        }
+        if( this.jobname ){
+            $.ajax({
+                dataType: "json",
+                url: Provi.url_for( "/job/status/" + this.jobname ),
+                success: _.bind( function( data ){
+                    console.log(data);
+                    this.check = data["check"];
+                    this.running = data["running"];
+                    $(this).triggerHandler("status");
+                }, this )
+            });
+        }
+    }
+};
+
+
+/**
  * A widget
  * @constructor
  * @extends Provi.Widget.Widget
@@ -49,8 +142,8 @@ Provi.Data.Job.JobWidget = function(params){
 }
 Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
     default_params: {
-        heading: 'Job',
-        persist_on_applet_delete: false
+        // heading: 'Job',
+        // persist_on_applet_delete: false
     },
     _init: function(){
         this.get_tools();
@@ -58,7 +151,24 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
     },
     submit: function(){
         Provi.Widget.ui_disable_timeout( this.elm('submit') );
-        this.elm('form').submit();
+        var job = new Provi.Data.Job.Job({ 
+            applet: this.applet,
+            submitted: true
+        });
+        var elm = document.getElementById( this.eid('form') )
+        var data = new FormData( elm );
+        console.log("FormData", data);
+        $.ajax({
+            url: '../../job/submit/',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            type: 'POST',
+            success:function(data){
+                job.set_jobname( data["jobname"] );
+            }
+        });
     },
     get_tools: function(){
         $.ajax({
@@ -92,6 +202,51 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
         this.elm('form').children('input[name=type]').val( tool );
     }
 });
+
+
+Provi.Data.Job.JobDatalist = function(params){
+    Provi.Data.Datalist.call( this, params );
+    this.handler = _.defaults({
+        "details": {
+            "selector": 'span[cell="label"]',
+            "click": this.details,
+            "label": "Show details"
+        }
+    }, this.handler);
+    $(Provi.Data.Job.JobManager).bind("add", _.bind( this.update, this ) );
+    $(Provi.Data.Job.JobManager).bind("change", _.bind( this.invalidate, this ) );
+}
+Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist, {
+    type: "JobDatalist",
+    params_object: Provi.Data.Job.JobWidget,
+    get_ids: function(){
+        return _.pluck( Provi.Data.Job.JobManager.get_list(), "id" );
+    },
+    make_row: function(id){
+        if( id=="all" ) return;
+        var job = Provi.Data.Job.JobManager.get( id );
+        var label = "[" + job.id + "] " +
+            "tool: " + job.tool + ", " +
+            "running: " + job.running + ", " +
+            "check: " + job.check +
+        "";
+
+        var $row = $('<div></div>').append(
+            this.label_cell( label, id )
+        );
+        return $row;
+    },
+    label_cell: function(label, id){
+        var $label = $('<span cell="label" style="float:left; width:120px;">' +
+            label +
+        '</span>').data( 'id', id );
+        return $label;
+    },
+    make_details: function(id){
+        return id.toString();
+    }
+});
+
 
 
 })();

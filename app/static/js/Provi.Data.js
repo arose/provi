@@ -63,6 +63,7 @@ Provi.Data.DatasetManager = {
         var self = this;
         this._dataset_dict[this._dataset_counter] = dataset;
         this._dataset_list.push(dataset);
+        dataset.id = this._dataset_counter;
         $(this).triggerHandler('add', [dataset]);
         return this._dataset_counter;
     },
@@ -355,6 +356,7 @@ Provi.Data.DatalistManager = {
         this._datalist_dict[this._datalist_counter] = datalist;
         this._datalist_list.push(datalist);
         datalist.name = this._datalist_counter + "_" + datalist.type;
+        datalist.id = this._datalist_counter;
         $(this).triggerHandler('add', [datalist]);
         return this._datalist_counter;
     },
@@ -428,8 +430,25 @@ Provi.Data.Datalist.prototype = {
     make_row: function(id){
         return id.toString();
     },
+    details: function(id){
+        $(this).triggerHandler("request_details", [id]);
+    },
+    make_details: function(id){
+        return id.toString();
+    },
+    update: function(){
+        $(this).triggerHandler('update');
+    },
     invalidate: function(){
         $(this).triggerHandler('invalidate');
+    },
+    script: function( s, invalidate, no_try_catch ){
+        var params = { maintain_selection: true, try_catch: !no_try_catch };
+        if( invalidate ){
+            this.applet.script_callback( s, params, _.bind( this.invalidate, this ) );
+        }else{
+            this.applet.script( s, params );
+        }
     }
 };
 
