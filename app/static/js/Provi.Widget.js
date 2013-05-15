@@ -305,20 +305,28 @@ Provi.Widget.form_builder = function( params, value, id, self ){
         if( p.factor ) value *= p.factor;
         $elm.append( 
             (function(){
-                var handle, slider;
+                var handle, slider, input;
+                input = $('<input type="hidden" name="' + id + '" />').val( value );
                 slider = $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
                     .slider({ min: p.range[0], max: p.range[1], value: value, slide: function(event, ui) {
                         handle.qtip('option', 'content.text', '' + (p.factor ? ui.value/p.factor : ui.value) );
                     }})
                     .data( 'id', id )
-                    .bind( 'slidestop slide', _.bind( self.set, self ) );
+                    .bind( 'slidestop slide', function(e){
+                        var elm = $(e.currentTarget);
+                        var svalue = elm.slider("value");
+                        if( p.factor ) svalue /= p.factor;
+                        if( p.fixed ) svalue = svalue.toFixed( p.fixed );
+                        input.val( svalue );
+                        _.bind( self.set, self )
+                    } );
                 handle = $('.ui-slider-handle', slider);
                 handle.qtip({
                     content: '' + (p.factor ? slider.slider('option', 'value')/p.factor : slider.slider('option', 'value')),
                     position: { my: 'bottom center', at: 'top center' },
                     hide: { delay: 300 }
                 });
-                return slider;
+                return slider.append(input);
             })(),
             '<label>' + _.str.humanize( id ) + '</label>'
         );

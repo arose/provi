@@ -210,14 +210,14 @@ Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.p
             ';';
         }
 
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, function(){
+        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, _.bind( function(){
             // TODO why is this not in the original script call?
             var post_script = "";
-            if( self.dataset ){
-                post_script += 'print "provi dataset: ' + self.dataset.id + ' loaded";';
+            if( this.dataset ){
+                post_script += 'print "provi dataset: ' + this.dataset.id + ' loaded";';
             }
-            self.applet.script( post_script, { maintain_selection: true, try_catch: false } );
-        });
+            this.applet.script( post_script, { maintain_selection: true, try_catch: false } );
+        }, this ) );
     }
 };
 

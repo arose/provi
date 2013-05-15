@@ -21,7 +21,8 @@ var Provi = {};
         CANVAS_WIDGET: undefined,
         SELECTION_WIDGET: undefined,
         BUILDER_WIDGET: undefined,
-        SETTINGS_WIDGET: undefined
+        SETTINGS_WIDGET: undefined,
+        JOBS_WIDGET: undefined
     };
     
     Provi.defaults.base_url = ''

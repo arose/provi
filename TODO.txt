@@ -6,6 +6,7 @@
 * Isosurface revamp: grid type, loading, builder, ...
 * Grid.RowWidget esp. for settings
 * one-line console below the widget
+* merge Datalist handlers and cells
 
 
 * Dataset url builder: full path (http...), cookie handling

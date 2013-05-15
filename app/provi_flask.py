@@ -22,6 +22,11 @@ from flask import jsonify
 from werkzeug import secure_filename
 
 
+logging.basicConfig( level=logging.DEBUG )
+LOG = logging.getLogger('provi')
+LOG.setLevel( logging.DEBUG )
+
+
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
@@ -265,41 +270,38 @@ def save_download():
 # job handling
 ############################
 
+RUNNING_JOBS = {}
+
+def job_done( tool ):
+    jobname = os.path.split( tool.output_dir )[-1]
+    LOG.info( "JOB DONE: %s" % jobname )
+    RUNNING_JOBS[ jobname ] = False
+
+def job_start( tool ):
+    jobname = os.path.split( tool.output_dir )[-1]
+    LOG.info( "JOB STARTED: %s" % jobname )
+    RUNNING_JOBS[ jobname ] = True
+    JOB_POOL.apply_async( tool, callback=job_done )
+
 # !important - allows one to abort via CTRL-C
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 multiprocessing.log_to_stderr( logging.ERROR )
 nworkers = app.config.get( 'JOB_WORKERS', multiprocessing.cpu_count() )
 JOB_POOL = multiprocessing.Pool( nworkers )
 
-# JOB_QUEUE = Queue.Queue()
-
-# def worker():
-#     while True:
-#         print "foobar"
-#         try:
-#             tool_instance = JOB_QUEUE.get_nowait()
-#             print "sdfiogo"
-#             tool_instance()
-#             print tool_instance
-#             JOB_QUEUE.task_done()
-#         except:
-#             pass
-#         time.sleep( 10 )
-
-# for i in range(nworkers):
-#     t = threading.Thread(target=worker)
-#     t.daemon = True
-#     t.start()
 
 @app.route('/job/status/<string:jobname>')
 def job_status( jobname ):
     jobtype, jobid = jobname.split("_")
     Tool = app.config['TOOLS'].get( jobtype, None )
     if Tool:
-        jobid = secure_filename( jobid )
-        output_dir = os.path.join( app.config['JOB_DIR'] , jobid )
-        instance = Tool( output_dir=output_dir, fileargs=True, run=False )
-        return jsonify({ "check": instance.check( full=True ) })
+        jobname = secure_filename( jobname )
+        output_dir = os.path.join( app.config['JOB_DIR'] , jobname )
+        tool = Tool( output_dir=output_dir, fileargs=True, run=False )
+        return jsonify({
+            "running": RUNNING_JOBS.get( jobname, False ),
+            "check": tool.check( full=False ) 
+        })
     return ""
 
 @app.route('/job/tools')
@@ -314,32 +316,31 @@ def job_submit():
     jobtype = request.form.get('type', None)
     Tool = app.config['TOOLS'][ jobtype ]
     if Tool:
-        jobid = str( uuid.uuid4() )
-        output_dir = os.path.join( app.config['JOB_DIR'], jobid )
+        jobname = jobtype + "_" + str( uuid.uuid4() )
+        output_dir = os.path.join( app.config['JOB_DIR'], jobname )
         output_dir = os.path.abspath( output_dir )
         if not os.path.exists( output_dir ):
             os.makedirs( output_dir )
 
         args = []
         for name, params in Tool.args.iteritems():
+            print name, params
             if params["type"]=="file":
                 ext = params.get("ext", "dat")
                 fpath = os.path.join( output_dir, "input_%s.%s" % ( name, ext ) )
                 request.files[ name ].save( fpath )
                 args.append( fpath )
+            elif params["type"]=="slider":
+                print request.form.get( name, params.get( "default_value", "" ) )
+                args.append( float( request.form.get( name, params.get( "default_value", "" ) ) ) )
             else:
                 args.append( request.form[name] )
 
         args = tuple(args)
         kwargs = { "output_dir": output_dir, "run": False }
-        instance = Tool( *args, **kwargs )
-        # instance()
+        job_start( Tool( *args, **kwargs ) )
 
-        # print JOB_QUEUE
-        # JOB_QUEUE.put( instance )
-        JOB_POOL.apply_async( instance )
-
-        return jsonify({ "jobid": jobid })
+        return jsonify({ "jobname": jobname })
     return ""
 
 

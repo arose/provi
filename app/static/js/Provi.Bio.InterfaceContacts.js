@@ -127,9 +127,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
         var s = 'script "../data/jmol_script/interface_contacts.jspt";';
         this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
 
-        $(this).bind("calculate_ready", _.bind( function(){
-            this.show_contacts( 'Membrane', undefined, {}, _.bind( this.invalidate, this ) );
-        }, this ) );
+        $(this).bind("calculate_ready", _.bind( this.show_contacts, this, 'Membrane', false ) );
     },
     tmp_prop_cmd: function(id){
         var self = this;
@@ -212,9 +210,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
             }).join(' ');
         }
     },
-    show_consurf: function(id, flag, params, callback){
+    show_consurf: function(id, flag, params){
         var s = this._show_consurf(id, flag, params);
-        this.applet.script_callback( s, { maintain_selection: true }, callback );
+        this.script( s, true );
     },
     _show_intersurf: function(id, flag, params){
         params = params || {};
@@ -240,9 +238,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
             }).join(' ');
         }
     },
-    show_intersurf: function(id, flag, params, callback){
+    show_intersurf: function(id, flag, params){
         var s = this._show_intersurf(id, flag, params);
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, callback );
+        this.script( s, true );
     },
     _show_contacts: function(id, flag){
         if( flag || id =="all" ){
@@ -265,14 +263,14 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
             'color atoms pink;' +
         '';
     },
-    show_contacts: function(id, flag, params, callback){
+    show_contacts: function(id, flag, params){
         if(flag){
             this.shown_contact_id = undefined;
         }else{
             this.shown_contact_id = id;
         }
         var s = this._show_contacts(id, flag);
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, callback );
+        this.script( s, true );
     },
     consurf_cell: Provi.Widget.Grid.CellFactory({
         "name": "consurf", "color": "tomato",

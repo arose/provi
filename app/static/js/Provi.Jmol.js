@@ -735,6 +735,13 @@ Provi.Jmol.JmolWidget = function(params){
             datalist_list: "all"
         });
 
+        this.job_datalist = new Provi.Data.Job.JobDatalist({ applet: this.applet });
+        this.settings_widget = new Provi.Widget.Grid.GridWidget({
+            parent_id: Provi.defaults.dom_parent_ids.JOBS_WIDGET,
+            datalist: this.job_datalist,
+            grid_height: "200px"
+        });
+
         this.settings_datalist = new Provi.Jmol.Settings.SettingsDatalist({ applet: this.applet });
         this.settings_widget = new Provi.Widget.Grid.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.SETTINGS_WIDGET,
@@ -748,11 +755,6 @@ Provi.Jmol.JmolWidget = function(params){
             applet: this.applet
         });
     }
-
-    this.job_widget = new Provi.Data.Job.JobWidget({
-        parent_id: "tab_io",
-        applet: this.applet
-    });
 
     layout_main();
 };
