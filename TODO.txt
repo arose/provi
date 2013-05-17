@@ -3,7 +3,7 @@
 
 * Datalists should be destroyed when their applet is destroyed
 * Jmol calculate - for larger images => make this a tool in basekit
-* Isosurface revamp: grid type, loading, builder, ...
+* Isosurface revamp: grid type, loading, builder, MODEL n (modelindex), ...
 * Grid.RowWidget esp. for settings
 * one-line console below the widget
 * merge Datalist handlers and cells
