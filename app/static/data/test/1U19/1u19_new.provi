@@ -1,5 +1,17 @@
 [
     {
+        "widget": "Provi.Widget.StoryWidget",
+        "params": {
+            "template": "mphd",
+            "data": {
+                "family": "G Protein-Coupled Receptors (GPCRs)", 
+                "mphd_url": "http://proteinformatics.charite.de/dmpc/go?pdb=1u19", 
+                "pdb_id": "1u19", 
+                "probe_radius": "1.4"
+            }
+        }
+    },
+    {
         "filename": "pdb/1U19_OPM_mod.pdb"
     },
     {

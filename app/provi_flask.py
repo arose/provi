@@ -49,7 +49,7 @@ def boolean(string):
     >>> boolean('false')
     False
     """
-    string = string.lower()
+    string = str(string).lower()
     if string in ['0', 'f', 'false', 'no', 'off']:
         return False
     elif string in ['1', 't', 'true', 'yes', 'on']:
@@ -221,29 +221,41 @@ def local_data():
 # save data
 ############################
 
+def write_data( name, directory_name, data, append=False ):
+    directory = app.config['LOCAL_DATA_DIRS'].get( directory_name )
+    if not directory:
+        return 'ERROR: directory not available.'
+    path = os.path.join( directory, name )
+    path = os.path.abspath( path )
+    directory = os.path.abspath( directory )
+    if directory == os.path.commonprefix([ path, directory ]):
+        parent = os.path.split( path )[0]
+        if os.path.isdir( parent ):
+            mode = 'a' if boolean(append) else 'w'
+            with open( path, mode ) as fp:
+                fp.write( data )
+            return 'OK'
+        else:
+            return 'ERROR: directory not available.'
+    else:
+        return 'ERROR: access restriction.'
+
 @app.route('/save/jmol/', methods=['POST'])
 def save_jmol():
     # receives the PNGJBIN send by Jmol
     directory_name = request.args.get('directory_name', '')
-    name = secure_filename( request.args.get('name', '') )
-    filepath = app.config['LOCAL_DATA_DIRS'][ directory_name ]
-    with open( os.path.join( filepath, name ), 'w' ) as fp:
-        fp.write( request.stream.read() )
-    return 'OK'
-
+    name = request.args.get('name', '')
+    return write_data( name, directory_name, request.stream.read() )
+    
 @app.route('/save/local/', methods=['POST'])
 def save_local():
     directory_name = request.form.get('directory_name', '')
-    name = secure_filename( request.form.get('name', '') )
+    name = request.form.get('name', '')
     append = request.form.get('append', '')
     encoding = request.form.get('encoding', '')
     data = request.form.get('data', '')
     data = decode( data, encoding )
-    mode = 'a' if boolean(append) else 'w'
-    filepath = app.config['LOCAL_DATA_DIRS'][ directory_name ]
-    with open( os.path.join( filepath, name ), mode ) as fp:
-        fp.write( data )
-    return 'OK'
+    return write_data( name, directory_name, data, append=append )
 
 @app.route('/save/download/', methods=['POST'])
 def save_download():
