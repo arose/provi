@@ -301,14 +301,20 @@ multiprocessing.log_to_stderr( logging.ERROR )
 nworkers = app.config.get( 'JOB_WORKERS', multiprocessing.cpu_count() )
 JOB_POOL = multiprocessing.Pool( nworkers )
 
+def job_dir( jobname, create=False ):
+    output_dir = os.path.join( app.config['JOB_DIR'], jobname )
+    output_dir = os.path.abspath( output_dir )
+    if not os.path.exists( output_dir ):
+        os.makedirs( output_dir )
+    return output_dir
 
 @app.route('/job/status/<string:jobname>')
 def job_status( jobname ):
+    jobname = secure_filename( jobname )
     jobtype, jobid = jobname.split("_")
     Tool = app.config['TOOLS'].get( jobtype, None )
     if Tool:
-        jobname = secure_filename( jobname )
-        output_dir = os.path.join( app.config['JOB_DIR'] , jobname )
+        output_dir = job_dir( jobname )
         tool = Tool( output_dir=output_dir, fileargs=True, run=False )
         return jsonify({
             "running": RUNNING_JOBS.get( jobname, False ),
@@ -323,35 +329,51 @@ def job_tools():
         tools[ name ] = Tool.args
     return jsonify( tools )
 
-@app.route('/job/submit/', methods=['POST'])
+def input_path( name, params, output_dir ):
+    ext = params.get("ext", "dat")
+    return os.path.join( output_dir, "input_%s.%s" % ( name, ext ) )
+
+@app.route('/job/submit/', methods=['POST', 'GET'])
 def job_submit():
-    jobtype = request.form.get('type', None)
-    Tool = app.config['TOOLS'][ jobtype ]
+    is_form = request.args.get("POST")!="_PNGJBIN_"
+    print "is_form: " + str(is_form)
+    def get( name, params ):
+        default = params.get( "default_value", "" )
+        attr = "form" if is_form else "args"
+        return getattr( request, attr ).get( name, default )
+    jobtype = get( 'type', {} )
+    Tool = app.config['TOOLS'].get( jobtype )
     if Tool:
         jobname = jobtype + "_" + str( uuid.uuid4() )
-        output_dir = os.path.join( app.config['JOB_DIR'], jobname )
-        output_dir = os.path.abspath( output_dir )
-        if not os.path.exists( output_dir ):
-            os.makedirs( output_dir )
-
+        output_dir = job_dir( jobname, create=True )
         args = []
+        kwargs = {}
         for name, params in Tool.args.iteritems():
-            print name, params
             if params["type"]=="file":
-                ext = params.get("ext", "dat")
-                fpath = os.path.join( output_dir, "input_%s.%s" % ( name, ext ) )
-                request.files[ name ].save( fpath )
-                args.append( fpath )
+                fpath = input_path( name, params, output_dir )
+                if is_form:
+                    for file_storage in request.files.getlist( name ):
+                        if file_storage: 
+                            file_storage.save( fpath )
+                            break   # only save the first file
+                else:
+                    if params["ext"]=="jmol":
+                        with open( fpath, "w" ) as fp:
+                            fp.write( request.stream.read() )
+                d = fpath
             elif params["type"]=="slider":
-                print request.form.get( name, params.get( "default_value", "" ) )
-                args.append( float( request.form.get( name, params.get( "default_value", "" ) ) ) )
+                d = float( get( name, params ) )
+            elif params["type"]=="checkbox":
+                d = boolean( get( name, { "default_value": False } ) )
             else:
-                args.append( request.form[name] )
-
+                d = get( name, params )
+            if "default_value" in params:
+                kwargs[ name ] = d
+            else:
+                args.append( d )
         args = tuple(args)
-        kwargs = { "output_dir": output_dir, "run": False }
+        kwargs.update({ "output_dir": output_dir, "run": False })
         job_start( Tool( *args, **kwargs ) )
-
         return jsonify({ "jobname": jobname })
     return ""
 
