@@ -178,7 +178,8 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
         this.elm("widgets").empty();
         if( datalist.params_object ){
             this.datalist_params = new datalist.params_object({
-                parent_id: this.eid("widgets")
+                parent_id: this.eid("widgets"),
+                datalist: datalist
             });
             $(this.datalist_params).bind("change", _.bind( function(){ 
                 _.extend( datalist, this.datalist_params.params );

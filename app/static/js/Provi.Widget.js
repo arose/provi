@@ -265,7 +265,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
     if( p.type=="checkbox" ){
 
         $elm.append(
-            $('<input type="checkbox" />')
+            $('<input type="checkbox" name="' + id + '" />')
                 .data( 'id', id )
                 .attr( 'checked', value )
                 .click( _.bind( self.set, self ) ),
@@ -275,7 +275,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
     }else if( p.type=="select" ){
 
         $elm.append(
-            $('<select class="ui-state-default">' +
+            $('<select class="ui-state-default" name="' + id + '">' +
                 _.map( p.options, function( o, l ){
                     var label = _.isNumber(o) ? o : _.str.humanize( o )
                     if( !_.isArray( p.options ) ) label = l;
@@ -292,7 +292,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
     }else if( p.type=="text" ){
 
         $elm.append(
-            $('<input type="text" />')
+            $('<input type="text" name="' + id + '" />')
                 .data( 'id', id )
                 .val( value )
                 .blur( _.bind( self.set, self ) ),
@@ -336,10 +336,20 @@ Provi.Widget.form_builder = function( params, value, id, self ){
         $elm.append(
             $('<input type="file" name="' + id + '" />')
                 .data( 'id', id )
-                .val( value )
                 .blur( _.bind( self.set, self ) ),
             '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
         );
+
+        if( p.ext=="pdb" ){
+            var id2 = '__sele__' + id;
+            $elm.append(
+                $('<input type="text" name="' + id2 + '" />')
+                    .data( 'id', id2 )
+                    .val( value )
+                    .blur( _.bind( self.set, self ) ),
+                '&nbsp;<label>Selection</label>'
+            )
+        }
 
     }else{
         $elm.append( _.str.humanize( id ) );

@@ -29,7 +29,7 @@ Provi.Data.types = {
     isosurface: ['jvxl', 'obj', 'vert'],
     volume: ['cube', 'mrc', 'cub', 'ccp4', 'dx', 'map'],
     interface_contacts: ['sco', 'mbn'],
-    jmol: ['jmol', 'png']
+    jmol: ['jmol', 'png', 'pngj']
 }
 
 
