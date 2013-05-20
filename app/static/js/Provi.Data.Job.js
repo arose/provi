@@ -257,7 +257,7 @@ Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist, {
             applet: this.applet
         });
         console.log(e);
-        return $('<div></div>').append(
+        return $('<div class="control_row"></div>').append(
             '<div>[' + id.toString() + "] " + job.jobname + '</div>',
             e.dom
         );
