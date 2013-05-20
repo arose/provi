@@ -451,36 +451,45 @@ Provi.Widget.StoryWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lend
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
 Provi.Widget.PopupWidget = function(params){
-    //params.persist_on_applet_delete = false;
-    //params.heading = '';
-    //params.collapsed = false;
-    Widget.call( this, params );
-    this._build_element_ids([ 'data', 'close' ]);
-    
-    this.position_my = params.position_my || 'left top';
-    this.position_at = params.position_at || 'bottom';
-    
+    params = _.defaults( params, this.default_params );
+
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([ 'data', 'close' ]);
+
+    var p = [ "position_my", "position_at" ];
+    _.extend( this, _.pick( params, p ) );
     /** The template that gets filled with changeing data */
     this.template = $.template( params.template );
-    var content = '<div style="background-color:lightblue; padding:7px; width:300px;">' +
-        '<span title="close" id="' + this.close_id + '" class="ui-icon ui-icon-close" style="float:right;"></span>' +
-        '<div id="' + this.data_id + '"></div>' +
-    '</div>';
-    $(this.dom).append( content ).css('position', 'absolute');
+    
+    var template = '' +
+        '<span title="close" id="${eids.close}" class="ui-icon ui-icon-close" style="float:right;"></span>' +
+        '<div id="${eids.data}"></div>' +
+    '';
+    this.add_content( template, params );
+
+    $(this.dom).css({ 
+        'position': 'absolute', 'width': '300px', 
+        'background-color': 'lightblue', 'padding': '7px'
+    });
+
     this._init();
 };
-Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.Widget.prototype */ {
+Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, {
+    default_params: {
+        template: '',
+        position_my: 'left top',
+        position_at: 'bottom'
+    },
     _init: function(){
-        var self = this;
         $(this.dom).hide();
-        $( '#' + this.close_id ).qtip({ position: {my: 'top center', at: 'bottom center'} }).click( function(){
-            self.hide();
-        });
-        //Widget.prototype.init.call(this);
+        this.elm('close')
+            .qtip({ position: {my: 'top center', at: 'bottom center'} })
+            .click( _.bind( this.hide, this ) );
+        Widget.prototype.init.call(this);
     },
     show: function( target, data, template, position_my, position_at ){
         if( data ){
-            $( '#' + this.data_id ).empty();
+            this.elm('data').empty();
             this.set_data( data, template );
         }
         //console.log( target, position_my, position_at, this.position_my, this.position_at );
@@ -492,15 +501,14 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
         this.set_position( target, position_my, position_at );
     },
     hide: function(){
-        $( '#' + this.data_id ).empty();
+        this.elm('data').empty();
         $(this.dom).hide();
     },
     set_data: function( data, template ){
-        this.data = data;
-        $.tmpl( template || this.template, this.data ).appendTo( '#' + this.data_id );
+        this.data = data || {};
+        $.tmpl( template || this.template, this.data ).appendTo( this.eid('data', true) );
     },
     set_position: function( target, position_my, position_at ){
-        //console.log('target',target, $(target), $(target).width(), $(target).height(), $(target).css('top'), $(target).css('left'));
         $(this.dom).position({
             of: target,
             my: position_my || this.position_my,
@@ -508,7 +516,7 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widge
         });
     },
     empty: function(){
-        $( '#' + this.data_id ).empty();
+        this.elm('data').empty();
     }
 });
 
