@@ -1,8 +1,12 @@
 
 
+* Local data tree revamp: set root tree, add download button
+* Job datalist details: file import/download
+* Isosurface builder in iso datalist params widget
+* Selection builder in variable sele datalist params widget
+
 
 * Datalists should be destroyed when their applet is destroyed
-* Jmol calculate - for larger images => make this a tool in basekit
 * Isosurface revamp: grid type, loading, builder, MODEL n (modelindex), ...
 * Grid.RowWidget esp. for settings
 * one-line console below the widget
