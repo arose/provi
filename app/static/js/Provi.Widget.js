@@ -28,40 +28,8 @@ Provi.Widget.ui_disable_timeout = function( $elm ){
 
 /**
  * global widget manager object
- * 
  */
-Provi.Widget.WidgetManager = {
-    _widget_dict: {},
-    _widget_list: [],
-    get_widget: function(id){
-        return this._widget_dict[id];
-    },
-    get_widget_list: function(){
-        return this._widget_list;
-    },
-    add_widget: function(id, widget){
-        if( typeof(this._widget_dict[id]) != 'undefined' ){
-            throw "id '" + id + "' is already in use";
-        }
-        this._widget_dict[id] = widget;
-        this._widget_list.push(widget);
-    },
-    remove_widget: function(id){
-        delete this._widget_dict[id];
-        this._widget_list = _.without(this._widget_list, id);
-    },
-    get_widget_id: function(id){
-        if( typeof(id) != 'undefined' ){
-            if( typeof(this._widget_dict[id]) != 'undefined' ){
-                throw "id '" + id + "' is already in use";
-            }
-        }else{
-            id = 'widget_' + this._widget_list.length;
-        }
-        return id;
-    }
-};
-Provi.Widget.WidgetManager._widget_dict.size = Utils.object_size_fn;
+Provi.Widget.WidgetManager = new Provi.Utils.ObjectManager({ prefix: "widget" });
 
 
 /**
@@ -77,31 +45,21 @@ Provi.Widget.WidgetManager._widget_dict.size = Utils.object_size_fn;
  * @param {boolean} [params.persist_on_applet_delete=false] When bound to a Jmol applet, the widget gets automatically destroyed when the applet is destroyed. This flag switches that behavior off.
  */
 Provi.Widget.Widget = function(params){
+    params = _.defaults( params, Provi.Widget.Widget.prototype.default_params );
+
+    var p = [ 
+        "tag_name", "content", "sort_key", "show_dataset_info", "heading", "collapsed",
+        "info", "description", "applet", "persist_on_applet_delete", "parent_id"
+    ];
+    _.extend( this, _.pick( params, p ) );
+
     this.initialized = false;
-    this.eid_dict = {};
-    var tag_name = params.tag_name || 'div';
-    var content = typeof(params.content) != 'undefined' ? params.content : '';
-    this.sort_key = typeof(params.sort_key) != 'undefined' ? params.sort_key : 1000000;
-    params.show_dataset_info = typeof(params.show_dataset_info) != 'undefined' ? params.show_dataset_info : true;
-    /** The text of the widget's heading */
-    this.heading = params.heading;
-    /** Weather the widget is collapsed or not */
-    this.collapsed = params.collapsed;
-    this.info = params.info;
-    this.description = params.description;
-    this.applet = params.applet;
-    this.persist_on_applet_delete = params.persist_on_applet_delete;
-    /** Dom id of the widget itself */
-    this.id = Provi.Widget.WidgetManager.get_widget_id(params.id);
+    Provi.Widget.WidgetManager.add( this );
     
-    this._init_eid_manager( ['info', 'heading', 'description', 'content', 'close'] );
+    this._init_eid_manager([ 'info', 'heading', 'description', 'content', 'close' ]);
     
-    /** Id of the parent dom object */
-    this.parent_id = params.parent_id;
-    Provi.Widget.WidgetManager.add_widget(this.id, this);
-    
-    if( !this.parent_id || $('#' + this.parent_id).length == 0 ){
-           throw "Widget is missing a parent object to add to.";
+    if( this.parent_id && $('#' + this.parent_id).length == 0 ){
+        throw "Widget parent object (" + this.parent_id + ") does not exist.";
     }
     
     var template = '' +
@@ -127,28 +85,35 @@ Provi.Widget.Widget = function(params){
                 '</div>' +
             '{{/if}}' +
             '<div class="" id="${eids.content}">${params.content}</div>' +
-        '</div>';
+        '</div>' +
+    '';
     
-    var e = document.createElement( tag_name );
+    var e = document.createElement( this.tag_name );
     $.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo(e);
     e.id = this.id;
-    $('#' + this.parent_id).append( e );
+
     /** The dom object */
     this.dom = e;
-    if( params.hidden ){
-        this.hide();
-    }
+    if( params.hidden ) this.hide();
     $(this.dom).addClass( 'ui-container ui-widget' );
-    $('#' + this.parent_id).triggerHandler('Provi.widget_added');
-    
-    // must be called in the subclasses of Widget
-    //this.init();
+
+    if( this.parent_id ){
+        $('#' + this.parent_id).append( e );
+    }else{
+        $('#temp').append( e );
+        return e;
+    }
 };
-Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
-    /** Initialization of the widget */
+Provi.Widget.Widget.prototype = {
+    default_params: {
+        tag_name: 'div',
+        content: '',
+        sort_key: 1000000,
+        show_dataset_info: false
+    },
     init: function(){
-        var self = this;
-        
+        // must be called in the subclasses of Widget
+
         this.elm('info').qtip({ position: {my: 'top center', at: 'bottom center'} });
         
         var heading = this.elm( 'heading' );
@@ -172,7 +137,7 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
         if( !this.description ) this.elm( 'description' ).hide();
         
         if(this.applet && !this.persist_on_applet_delete){
-            $(this.applet).bind('delete', $.proxy( this.del, this ) );
+            $(this.applet).bind('delete', $.bind( this.del, this ) );
         }
 
         this.initialized = true;
@@ -183,20 +148,20 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
         $(this.dom).appendTo('#trash');
     },
     set_heading: function( heading ){
-           this.elm( 'heading' ).text( heading ).show();
+        this.elm( 'heading' ).text( heading ).show();
     },
     set_description: function( description ){
-           this.elm( 'description' ).text( description ).show();
+        this.elm( 'description' ).text( description ).show();
     },
     set_info: function( info ){
-           this.elm( 'info' ).text( info ).show();
+        this.elm( 'info' ).text( info ).show();
     },
     set_content: function( content ){
-           this.elm( 'content' ).innerHTML( content );
+        this.elm( 'content' ).innerHTML( content );
     },
     add_content: function( template, params ){
         var e = this.elm( 'content' );
-        $.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo(e);
+        $.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo( e );
     },
     /**
     * Helper function to create unique ids for dom elements that belong to the widget.
@@ -207,31 +172,26 @@ Provi.Widget.Widget.prototype = /** @lends Provi.Widget.Widget.prototype */ {
     */
     _build_element_ids: function( names ){
         console.error( "_build_element_ids", "deprecated" );
-        var self = this;
-        $.each( names, function(i, name){
-            self[ name + '_id' ] = self.id + '_' + name;
-        });
-    },
-    _make_eid: function( name ){
-        return this.id + '_' + name;
+        _.each( names, function( name ){
+            this[ name + '_id' ] = this.id + '_' + name;
+        }, this );
     },
     _init_eid_manager: function( eid_list ){
-       this.add_eids( eid_list );
+        this.add_eids( eid_list );
     },
     add_eids: function( eid_list ){
-        var self = this;
         var eid_dict = {};
-        $.each( eid_list, function(i, eid){
-            eid_dict[eid] = self._make_eid(eid);
-        });
-        this.eid_dict = $.extend( this.eid_dict, eid_dict );
+        _.each( eid_list, function( eid, x ){
+            eid_dict[eid] = this.id + '_' + eid;
+        }, this );
+        this.eid_dict = _.extend( this.eid_dict || {}, eid_dict );
     },
     eid: function( name, selector ){
-       if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";
-       return (selector ? '#' : '') + this.eid_dict[ name ];
+        if( !this.eid_dict[ name ] ) throw "Eid '" + name + "' not found.";
+        return ( selector ? '#' : '' ) + this.eid_dict[ name ];
     },
     elm: function( name ){
-        return $( '#' + this.eid(name) );
+        return $( '#' + this.eid( name ) );
     },
     show: function(){
         $(this.dom).show();

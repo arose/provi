@@ -1,9 +1,11 @@
 
 
-* Local data tree revamp: set root tree, add download button
-* Job datalist details: file import/download
+* Local data tree revamp: add download button
+* Job datalist details: file download
 * Isosurface builder in iso datalist params widget
 * Selection builder in variable sele datalist params widget
+* Job form: jmol type - only POST from applet when no file is supplied
+
 
 
 * Datalists should be destroyed when their applet is destroyed

@@ -17,40 +17,8 @@ Provi.Data.Job = {};
 
 /**
  * Singleton job manager object.
- * @class
- * @final
  */
-Provi.Data.Job.JobManager = {
-    _job_dict: {},
-    _job_list: [],
-    _job_counter: 0,
-    add: function( job ){
-        this._job_counter += 1;
-        this._job_dict[this._job_counter] = job;
-        this._job_list.push(job);
-        job.id = this._job_counter;
-        $(job).bind('status', _.bind( this.change, this ) );
-        $(this).triggerHandler('add', [job]);
-        return this._job_counter;
-    },
-    get_list: function( params ){
-        params = params || {};
-
-        if( params.name_list ){
-            return _.filter( this._job_list, function(dl, i){
-                return _.include( params.name_list, dl.name );
-            });
-        }else{
-            return this._job_list;
-        }
-    },
-    get: function( id ){
-        return this._job_dict[ id ];
-    },
-    change: function(){
-        $(this).triggerHandler('change');
-    }
-};
+Provi.Data.Job.JobManager = new Provi.Utils.ObjectManager();
 
 
 /**
@@ -59,7 +27,9 @@ Provi.Data.Job.JobManager = {
  */
 Provi.Data.Job.Job = function(params){
     params = _.defaults( params, this.default_params );
-    this.id = Provi.Data.Job.JobManager.add( this );
+    Provi.Data.Job.JobManager.add( this, function( job ){
+        $(job).bind('status', Provi.Data.Job.JobManager.change );
+    });
 
     var p = [ "applet", "tool", "submitted", "running", "check", "jobname" ];
     _.extend( this, _.pick( params, p ) );
@@ -148,6 +118,8 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
     _init: function(){
         this.get_tools();
         this.elm('submit').button().hide().click( _.bind( this.submit, this ) );
+
+        Provi.Widget.Widget.prototype.init.call(this);
     },
     submit: function(){
         Provi.Widget.ui_disable_timeout( this.elm('submit') );
@@ -275,7 +247,20 @@ Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist, {
     },
     make_details: function(id){
         var job = Provi.Data.Job.JobManager.get( id );
-        return id.toString() + " - " + job.jobname;
+        // return id.toString() + " - " + job.jobname;
+        var e = new Provi.Data.Io.ExampleLoadWidget({
+            collapsed: false,
+            heading: false,
+            all_buttons: false,
+            directory_name: '__job__',
+            root_dir: job.jobname + '/',
+            applet: this.applet
+        });
+        console.log(e);
+        return $('<div></div>').append(
+            '<div>[' + id.toString() + "] " + job.jobname + '</div>',
+            e.dom
+        );
     }
 });
 

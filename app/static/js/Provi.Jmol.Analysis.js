@@ -211,7 +211,7 @@ Provi.Jmol.Analysis.PlaneConstructionWidget.prototype = Utils.extend(Provi.Widge
  */
 Provi.Jmol.Analysis.PlotWidget = function(params){
     params = _.defaults( params, this.default_params );
-    params.collapsed = true;
+    
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
         'canvas', 'draw', 'selector', 'selector2', 'xaxis', 'yaxis', 'bgimage', 
@@ -281,7 +281,7 @@ Provi.Jmol.Analysis.PlotWidget = function(params){
     '';
     
     this.add_content( template, params );
-    
+    console.log( this.eid('selector'), this.eid('selector2'), this.eid_dict );
     this.selector = new Provi.Bio.AtomSelection.SelectorWidget({
         parent_id: this.eid('selector'),
         selection_label: 'Selection A',
@@ -300,7 +300,7 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
     default_params: {
         heading: 'Plot',
         collapsed: true,
-        persist_on_applet_delete: true
+        persist_on_applet_delete: false
     },
     _init: function(){
         var self = this;
@@ -459,8 +459,8 @@ Provi.Jmol.Analysis.PlotWidget.prototype = Utils.extend(Provi.Widget.Widget, /**
         }
         
         this.elm('draw').button().click(function(){
-                self.draw();
-            });
+            //self.draw();
+        });
             
         // init axis selects
         $.each( this.data_types, function( key, elm ){

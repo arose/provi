@@ -177,6 +177,16 @@ def urlload():
 # local data provider
 ############################
 
+def get_path( directory_name, path ):
+    if directory_name=="__job__":
+        if not path: return ''
+        directory = app.config['JOB_DIR']
+    else:
+        directory = app.config['LOCAL_DATA_DIRS'].get( directory_name )
+        if not directory: return ''
+        pass
+    return os.path.join( directory, path )
+
 @app.route('/example/directory_list/')
 def local_data_dirs():
     dirs = app.config['LOCAL_DATA_DIRS'].keys()
@@ -186,10 +196,10 @@ def local_data_dirs():
 @app.route('/example/dataset_list2/')
 def local_data_list():
     directory_name = request.args.get('directory_name', '')
+    if not directory_name: return ''
     path = request.args.get('path', '')
-    if not directory_name:
-        directory_name = app.config['LOCAL_DATA_DIRS'].iterkeys().next()
-    dirpath = os.path.join( app.config['LOCAL_DATA_DIRS'][ directory_name ], path )
+    dirpath = get_path( directory_name, path )
+    if not dirpath: return ''
     jstree = []
     for fname in sorted( os.listdir( dirpath ) ):
         if not fname.startswith('.') and not (fname.startswith('#') and fname.endswith('#')):
@@ -210,10 +220,10 @@ def local_data_list():
 @app.route('/example/data/')
 def local_data():
     directory_name = request.args.get('directory_name', '')
-    fname = request.args.get('path', '')
-    fpath = os.path.join( app.config['LOCAL_DATA_DIRS'][ directory_name ], fname )
-    print fpath
-    return send_file( fpath, mimetype='text/plain', as_attachment=True )
+    path = request.args.get('path', '')
+    dirpath = get_path( directory_name, path )
+    if not dirpath: return ''
+    return send_file( dirpath, mimetype='text/plain', as_attachment=True )
 
 
 
