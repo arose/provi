@@ -739,7 +739,7 @@ Provi.Jmol.JmolWidget = function(params){
         this.settings_widget = new Provi.Widget.Grid.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.JOBS_WIDGET,
             datalist: this.job_datalist,
-            grid_height: "200px"
+            grid_height: "300px"
         });
 
         this.settings_datalist = new Provi.Jmol.Settings.SettingsDatalist({ applet: this.applet });

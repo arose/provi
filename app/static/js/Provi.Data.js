@@ -45,44 +45,8 @@ Provi.Data.types = {
 
 /**
  * Singleton dataset manager object.
- * @class
- * @final
  */
-Provi.Data.DatasetManager = {
-    _dataset_dict: {},
-    _dataset_list: [],
-    _dataset_counter: 0,
-    /**
-     * Adds a dataset.
-     * Fires the {@link Provi.Data.DatasetManager#event:add} event.
-     * @param {Provi.Data.Dataset} dataset The dataset to be added.
-     * @returns {int} The unique id of dataset.
-     */
-    add: function( dataset ){
-        this._dataset_counter += 1;
-        var self = this;
-        this._dataset_dict[this._dataset_counter] = dataset;
-        this._dataset_list.push(dataset);
-        dataset.id = this._dataset_counter;
-        $(this).triggerHandler('add', [dataset]);
-        return this._dataset_counter;
-    },
-    get_list: function( params ){
-        params = params || {};
-
-        if( params.ext_list ){
-            return _.filter( this._dataset_list, function(ds, i){
-                return _.include( params.ext_list, ds.type );
-            });
-        }else{
-            return this._dataset_list;
-        }
-    },
-    get: function( id ){
-        return this._dataset_dict[ id ];
-    }
-};
-
+Provi.Data.DatasetManager = new Provi.Utils.ObjectManager();
 
 
 /**
@@ -265,10 +229,7 @@ Provi.Data.DatasetWidget.prototype = Utils.extend(Widget, /** @lends Provi.Data.
                 var params = self.load_params_widget ? self.load_params_widget.params : {};
                 params.applet = self.applet_selector.get_value();
 
-                console.log("DatasetWidget", params, self.load_params_widget ? _.clone( self.load_params_widget.params ) : {});
-
                 self.dataset.init( params );
-                $(self).triggerHandler('loaded');
             });
         }
     }
@@ -344,46 +305,17 @@ Provi.Data.DatasetSelectorWidget.prototype = Utils.extend(Provi.Widget.Widget, /
 
 /**
  * Singleton datalist manager object.
- * @class
- * @final
  */
-Provi.Data.DatalistManager = {
-    _datalist_dict: {},
-    _datalist_list: [],
-    _datalist_counter: 0,
-    add: function( datalist ){
-        this._datalist_counter += 1;
-        this._datalist_dict[this._datalist_counter] = datalist;
-        this._datalist_list.push(datalist);
-        datalist.name = this._datalist_counter + "_" + datalist.type;
-        datalist.id = this._datalist_counter;
-        $(this).triggerHandler('add', [datalist]);
-        return this._datalist_counter;
-    },
-    get_list: function( params ){
-        params = params || {};
-
-        if( params.name_list ){
-            return _.filter( this._datalist_list, function(dl, i){
-                return _.include( params.name_list, dl.name );
-            });
-        }else{
-            return this._datalist_list;
-        }
-    },
-    get: function( id ){
-        return this._datalist_dict[ id ];
-    }
-};
-
+Provi.Data.DatalistManager = new Provi.Utils.ObjectManager();
 
 
 Provi.Data.Datalist = function(params){
     var p = [ "applet" ];
     _.extend( this, _.pick( params, p ) );
 
-    // also sets this.name = this.id + "_" + this.type;
-    this.id = Provi.Data.DatalistManager.add( this );
+    Provi.Data.DatalistManager.add( this, function( datalist ){
+        datalist.name = datalist.id + "_" + datalist.type;
+    });
 
     if( params.load_struct ){
         $(this.applet).bind( "load_struct", _.bind( this.calculate, this ) );
@@ -397,7 +329,7 @@ Provi.Data.Datalist.prototype = {
     handler: {},
     params_object: undefined,
     _init: function(){
-        console.log( this.name, "_init" );
+        //console.log( this.name, "_init" );
         this.initialized = false;
 
         if( this.applet.loaded ){

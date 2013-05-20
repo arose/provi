@@ -526,7 +526,7 @@ Provi.Bio.AtomSelection.SelectorWidget.prototype = Utils.extend(Widget, /** @len
         selection_label: "Selection"
     },
     init: function(){
-        
+        Provi.Widget.Widget.prototype.init.call(this);
     },
     get: function(selection){
         return this.elm('selection').val() || "";
