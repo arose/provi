@@ -141,7 +141,7 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
     },
     show_hole: function(id, flag){
         var s = this._show_hole(id, flag);
-        this.script( s, true, true );
+        this.script( s, true, { try_catch: false } );
     },
     _show_cavity: function(id, flag, params){
         params = params || {};

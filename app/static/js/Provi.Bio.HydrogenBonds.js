@@ -284,18 +284,18 @@ Provi.Bio.HydrogenBonds.HbondsDatalist.prototype = Utils.extend(Provi.Bio.AtomSe
         var ids = (id==='all') ? this.get_ids() : [ id ];
         return 'provi_toggle_hbond_residues(["' + ids.join('","') + '"], ' + flag + ');';
     },
-    show_hbres: function(id, flag, params, callback){
+    show_hbres: function(id, flag, params){
         var s = this._show_hbres(id, flag, params);
-        this.applet.script_callback( s, { maintain_selection: true }, callback );
+        this.script( s, true );
     },
     _show_hbond: function(id, flag, params){
         var self = this;
         var ids = (id==='all') ? this.get_ids() : [ id ];
         return 'provi_toggle_hbond(["' + ids.join('","') + '"], ' + flag + ');';
     },
-    show_hbond: function(id, flag, params, callback){
+    show_hbond: function(id, flag, params){
         var s = this._show_hbond(id, flag, params);
-        this.applet.script_callback( s, { maintain_selection: true }, callback );
+        this.script( s, true );
     },
     hbres_cell: Provi.Widget.Grid.CellFactory({
         "name": "hbres", "color": "tomato"

@@ -130,12 +130,11 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
         $(this).bind("calculate_ready", _.bind( this.show_contacts, this, 'Membrane', false ) );
     },
     tmp_prop_cmd: function(id){
-        var self = this;
         var tmp_prop = '{*}.property_tmp = NaN;';
         _.each(this.atm_cutoff, function(d){
-            tmp_prop += '{ @provi_selection["' + id.split('_')[0] + '_' + d[0] + '_' + self.dataset_id + '"] }' +
+            tmp_prop += '{ @provi_selection["' + id.split('_')[0] + '_' + d[0] + '_' + this.dataset_id + '"] }' +
                 '.property_tmp = ' + d[0] + ';';
-        });
+        }, this );
         return tmp_prop;
     },
     is_virtual: function(id){
@@ -162,7 +161,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
         var $row = $('<div></div>').append(
             this.selected_cell( id, a[0], this.is_virtual(id) ),
             this.label_cell( label, id ),
-            this.contacts_cell( id, this.shown_contact_id === id ),
+            this.contacts_cell( id, this.shown_contact_id===id ),
             this.consurf_cell( id, a[1] ),
             this.intersurf_cell( id, a[2] )
         );
