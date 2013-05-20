@@ -376,6 +376,16 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Provi.Utils.extend( Provi.Widget.Wid
             this._popup.show( elm.parent().children('ins') );
         }, this ) );
         
+        // DOWNLOAD //
+        this.elm('jstree').on( 'click', 'button[title="download"]', _.bind( function(e, data){
+            var elm = $(e.currentTarget);
+            var url = Provi.url_for( '/example/data/' +
+                '?directory_name=' + this.directory_name + 
+                '&path=' + elm.parent().parent().data('path')
+            );
+            window.location.assign( url );
+        }, this ) );
+
         Provi.Widget.Widget.prototype.init.call(this);
     },
     update: function( directory_name ) {
@@ -426,7 +436,8 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Provi.Utils.extend( Provi.Widget.Wid
                 if( !$n.data('dir') ){
                     $n.children('a').children('span').before(
                         '<button title="load">load</button>' +
-                        '<button title="params">p</button>'
+                        '<button title="params">p</button>' +
+                        '<button title="download">d</button>'
                     );
                     $n.children('a').children('button').button();
                 }
