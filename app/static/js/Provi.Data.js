@@ -348,7 +348,6 @@ Provi.Data.Datalist.prototype = {
         $(this).trigger("init_ready");
     },
     calculate: function(){
-        console.log( this.name, "calculate" );
         this.ready = false;
         if( this.initialized ){
             this.set_ready();
@@ -374,8 +373,8 @@ Provi.Data.Datalist.prototype = {
     invalidate: function(){
         $(this).triggerHandler('invalidate');
     },
-    script: function( s, invalidate, no_try_catch ){
-        var params = { maintain_selection: true, try_catch: !no_try_catch };
+    script: function( s, invalidate, params ){
+        _.defaults( params || {}, { maintain_selection: true, try_catch: true } );
         if( invalidate ){
             this.applet.script_callback( s, params, _.bind( this.invalidate, this ) );
         }else{

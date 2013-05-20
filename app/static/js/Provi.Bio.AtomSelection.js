@@ -108,7 +108,8 @@ Provi.Bio.AtomSelection.SelectionDatalist.prototype = Utils.extend(Provi.Data.Da
     select: function(id, flag){
         var selection = this.selection( id );
         var s = 'select ' + (flag ? 'remove' : 'add') + ' ' + selection;
-        this.script( s, true );
+        console.log(s);
+        this.script( s, true, { maintain_selection: false } );
     },
     display: function(id, flag){
         var selection = this.selection( id );
@@ -442,7 +443,7 @@ Provi.Bio.AtomSelection.VariableDatalist.prototype = Utils.extend(Provi.Bio.Atom
     highlight: function(id){
         var s = "provi_highlight(" + this.selection( id, true ) + ");";
         console.log( "highlight", id, s );
-        this.applet.script( s, {} );
+        this.script( s );
     }
 });
 
