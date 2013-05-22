@@ -278,13 +278,13 @@ Provi.Widget.form_builder = function( params, value, id, self ){
                         if( p.factor ) svalue /= p.factor;
                         if( p.fixed ) svalue = svalue.toFixed( p.fixed );
                         input.val( svalue );
-                        _.bind( self.set, self )
-                    } );
+                        _.bind( self.set, self )(e);
+                    });
                 handle = $('.ui-slider-handle', slider);
                 handle.qtip({
                     content: '' + (p.factor ? slider.slider('option', 'value')/p.factor : slider.slider('option', 'value')),
                     position: { my: 'bottom center', at: 'top center' },
-                    hide: { delay: 300 }
+                    hide: { delay: 200 }
                 });
                 return slider.append(input);
             })(),
