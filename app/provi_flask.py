@@ -1,16 +1,22 @@
+from __future__ import with_statement
+
 import os
 import urllib2
-import json
 import StringIO
 import tempfile
 import functools
 import uuid
-import multiprocessing
 import signal
 import logging
 import Queue
 import threading
 import time
+import multiprocessing
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 from flask import Flask
 from flask import send_from_directory

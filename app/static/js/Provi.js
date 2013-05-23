@@ -25,10 +25,14 @@ var Provi = {};
         JOBS_WIDGET: undefined
     };
     
-    Provi.defaults.base_url = ''
+    Provi.defaults.base_url = '';
+    var pathname = window.location.pathname;
+    var base_idx = pathname.indexOf("/static/html/");
+    if( base_idx>0 ) Provi.defaults.base_url = pathname.substring( 0, base_idx );
     
     Provi.url_for = function( url ){
-        return window.location.protocol + '//' + window.location.host + url;
+        return window.location.protocol + '//' + window.location.host + 
+            Provi.defaults.base_url + url;
     }
 
     Provi.config = {
