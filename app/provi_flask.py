@@ -1,5 +1,6 @@
 from __future__ import with_statement
 
+import sys
 import os
 import urllib2
 import StringIO
@@ -33,9 +34,12 @@ LOG = logging.getLogger('provi')
 LOG.setLevel( logging.DEBUG )
 
 
+cfg_file = 'app.cfg'
+if len( sys.argv )>1:
+    cfg_file = sys.argv[1]
 
 app = Flask(__name__)
-app.config.from_pyfile('app.cfg')
+app.config.from_pyfile( cfg_file )
 
 
 
@@ -114,7 +118,7 @@ def authenticate():
 def requires_auth(f):
     @functools.wraps(f)
     def decorated(*args, **kwargs):
-        if app.config['REQUIRE_AUTH']:
+        if app.config.get('REQUIRE_AUTH', False):
             auth = request.authorization
             if not auth or not check_auth(auth.username, auth.password):
                 return authenticate()
@@ -138,8 +142,12 @@ def favicon():
         mimetype='image/vnd.microsoft.icon'
     )
 
-@app.route('/static/<path:filename>')
+@app.route('/static/html/<path:filename>')
 @requires_auth
+def static_html(filename):
+    return send_from_directory( app.config['STATIC_DIR'], os.path.join( "html", filename ) )
+
+@app.route('/static/<path:filename>')
 def static(filename):
     return send_from_directory( app.config['STATIC_DIR'], filename )
 
@@ -166,7 +174,6 @@ def jalview(filename, flag):
 @app.route('/urlload/')
 def urlload():
     url = request.args.get('url', '')
-    print url
     if '127.0.0.1' in url or 'localhost' in url or not app.config['PROXY']:
         opener = urllib2.build_opener()
     else:
@@ -403,6 +410,13 @@ def job_submit():
 ############################
 
 if __name__ == '__main__':
-    app.run( debug=True, host='127.0.0.1', threaded=True, processes=1, extra_files=['app.cfg'] )
+    app.run( 
+        debug=app.config.get('DEBUG', False),
+        host=app.config.get('HOST', '127.0.0.1'),
+        port=app.config.get('PORT', 5000),
+        threaded=True, 
+        processes=1, 
+        extra_files=['app.cfg', 'app2.cfg']
+    )
 
 

@@ -3,4 +3,4 @@
 cd `dirname $0`
 cd app/
 
-python provi_flask.py
+python provi_flask.py $1
