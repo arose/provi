@@ -198,10 +198,14 @@ Provi.Bio.Data.JmolScript = function( params ){
 };
 Provi.Bio.Data.JmolScript.prototype = /** @lends Provi.Bio.Data.JmolScript.prototype */ {
     load: function( sele, applet ){
+        var ds = this.dataset;
+        var idx = Math.max( ds.url.lastIndexOf("/"), ds.url.lastIndexOf("=") );
+        var base_url = '"' + ds.url.substring( 0, idx+1 ) + '"';
         var s = '' +
-            this.dataset.raw_data + ';' +
+            ds.raw_data.replace("PROVI_BASEURL", base_url) + ';' +
             'print "provi dataset: ' + this.dataset.id + ' loaded";' +
         '';
+        console.log(s);
         this.applet.script(s, { maintain_selection: true, try_catch: false });
     }
 }
@@ -227,7 +231,7 @@ Provi.Bio.Data.AtomVector = function( params ){
     _.extend( this, _.pick( params, p ) );
     this.load();
 };
-Provi.Bio.Data.AtomVector.prototype = /** @lends Provi.Bio.Data.AtomVector.prototype */ {
+Provi.Bio.Data.AtomVector.prototype = {
     load: function( sele, applet ){
         var s = '' +
             'provi_load_vector("' + this.dataset.url + '", ' + this.scale + ');' +

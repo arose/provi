@@ -159,6 +159,25 @@ function provi_load_vector( url, scale2 ){
 }
 
 
+function provi_load_distance( url ){
+    if( !url ) return false;
+    var x = load( url );
+    var line1_end = x.find("\n");
+    var line1 = x[1][line1_end-1];
+    script INLINE @line1;
+    var d = x[line1_end][0];
+    var i = 0;
+    for(l in d.split('\n')){
+        var row = l.split(" ");
+        var atm = "({" + row[1] + "})";
+        var vec = "{" + row[2] + " " + row[3] + " " + row[4] + "}";
+        draw ID @{id+i} vector @atm @vec color @colr diameter @diameter scale @scale;
+        ++i;
+    }
+    return true;
+}
+
+
 function provi_load_structure(){
     
 }
