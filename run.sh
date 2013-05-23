@@ -1,5 +1,6 @@
 #!/bin/sh
 
 cd `dirname $0`
+cd app/
 
-python ./scripts/paster.py serve provi_wsgi.ini $@
+python provi_flask.py
