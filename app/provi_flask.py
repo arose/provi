@@ -307,16 +307,14 @@ def save_download():
 
 RUNNING_JOBS = {}
 
-def job_done( tool ):
-    jobname = os.path.split( tool.output_dir )[-1]
-    LOG.info( "JOB DONE: %s" % jobname )
+def job_done( jobname, tool ):
+    LOG.info( "JOB DONE: %s - %s" % (jobname, tool.output_dir) )
     RUNNING_JOBS[ jobname ] = False
 
-def job_start( tool ):
-    jobname = os.path.split( tool.output_dir )[-1]
-    LOG.info( "JOB STARTED: %s" % jobname )
+def job_start( jobname, tool ):
+    LOG.info( "JOB STARTED: %s - %s" % (jobname, tool.output_dir) )
     RUNNING_JOBS[ jobname ] = True
-    JOB_POOL.apply_async( tool, callback=job_done )
+    JOB_POOL.apply_async( tool, callback=functools.partial( job_done, jobname ) )
 
 # !important - allows one to abort via CTRL-C
 signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -334,6 +332,7 @@ def job_dir( jobname, create=False ):
 @app.route('/job/status/<string:jobname>')
 def job_status( jobname ):
     jobname = secure_filename( jobname )
+    #print jobname
     jobtype, jobid = jobname.split("_")
     Tool = app.config['TOOLS'].get( jobtype, None )
     if Tool:
@@ -396,7 +395,7 @@ def job_submit():
                 args.append( d )
         args = tuple(args)
         kwargs.update({ "output_dir": output_dir, "run": False })
-        job_start( Tool( *args, **kwargs ) )
+        job_start( jobname, Tool( *args, **kwargs ) )
         return jsonify({ "jobname": jobname })
     return ""
 

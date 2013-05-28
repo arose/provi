@@ -66,6 +66,7 @@ Provi.Data.Job.Job.prototype = {
             $.ajax({
                 dataType: "json",
                 url: Provi.url_for( "/job/status/" + this.jobname ),
+                cache: false,
                 success: _.bind( function( data ){
                     console.log(data);
                     this.check = data["check"];
@@ -158,7 +159,8 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
                 }
             });
         }else{
-            var params = $.param( this.elm('form').serializeArray() );
+            var params = $.param( this.elm('form').serializeArray() ) +
+                '&_id=' + (new Date().getTime());
             var s = 'load("../../job/submit/?POST?_PNGJBIN_&' + params + '");';
             var data = JSON.parse( this.datalist.applet.evaluate( s ) );
             console.log( s, "_PNGJBIN_", data );
