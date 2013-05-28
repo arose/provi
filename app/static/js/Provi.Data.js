@@ -134,6 +134,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
         $.ajax({
             dataType: this.raw_type,
             url: this.url,
+            cache: false,
             success: function( d ){
                 self.raw_data = d;
                 self._init( params );
