@@ -49,6 +49,10 @@ var type_mixins = {
     "jmol": {
         bio_object: Provi.Bio.Data.JmolFile
     },
+    "json": {
+        bio_object: Provi.Bio.Data.Json,
+        raw_type: "json"
+    },
     "jspt": {
         bio_object: Provi.Bio.Data.JmolScript,
         raw_type: "text"

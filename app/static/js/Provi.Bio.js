@@ -246,8 +246,15 @@ Provi.Bio.Data.AtomVector.prototype = {
 Provi.Bio.Data.Txt = function( params ){
     var txt = params.dataset.raw_data;
     // TODO detect Tmalign files
+    params.dataset.set_loaded();
 }
 
+
+Provi.Bio.Data.Json = function( params ){
+    var json = params.dataset.raw_data;
+    // TODO
+    params.dataset.set_loaded();
+}
 
 
 Provi.Bio.Data.Xml = function( params ){
@@ -255,6 +262,8 @@ Provi.Bio.Data.Xml = function( params ){
     if( $("pdbtm", xml).attr("xmlns")=="http://pdbtm.enzim.hu" ){
         console.log("XML detected as tmdet", params.dataset);
         this.delegate = "tmdet";
+    }else{
+        params.dataset.set_loaded();
     }
 }
 
