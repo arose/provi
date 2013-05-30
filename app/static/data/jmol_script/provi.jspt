@@ -178,8 +178,24 @@ function provi_load_distance( url ){
 }
 
 
-function provi_load_structure(){
+function provi_load_structure( script, style, dataset_id ){
+    script INLINE @script;
+    var current_file_number = _currentFileNumber;
     
+    subset file = _currentFileNumber;
+    if( style ){
+        script INLINE @style;
+    }else{
+        provi_style();
+    }
+    subset;
+    
+    provi_settings_init();
+    frame all;
+    if( dataset_id ){
+        provi_datasets[ dataset_id ] = current_file_number;
+        print "provi dataset: " + dataset_id + " loaded";
+    }
 }
 
 

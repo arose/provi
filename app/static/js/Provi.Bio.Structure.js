@@ -22,7 +22,7 @@ var Widget = Provi.Widget.Widget;
 
 
 /**
- * @class Represents Structure
+ * @class Structure
  */
 Provi.Bio.Structure.Structure = function(params){
     params = _.defaults( params, this.default_params );
@@ -30,7 +30,7 @@ Provi.Bio.Structure.Structure = function(params){
     _.extend( this, _.pick( params, p ) );
     this.load();
 };
-Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structure.prototype */ {
+Provi.Bio.Structure.Structure.prototype = {
     default_params: {
         style: '',
         load_as: undefined,
@@ -40,8 +40,6 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         pdb_add_hydrogens: false
     },
     load: function(){
-        var self = this;
-        var style = this.style;
         var post_script = this.script || '';
         var type = this.dataset.type;
         
@@ -55,11 +53,7 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         type = jmol_types[type];
         type = type ? (type + '::') : '';
         type = '';
-        if( !style ){
-            style = 'provi_style();';
-        }else{
-            style = 'select all; ' + style;
-        }
+
         if( this.load_as != 'append' && this.load_as != 'trajectory+append' ){
             this.applet._delete();
         }
@@ -69,33 +63,24 @@ Provi.Bio.Structure.Structure.prototype = /** @lends Provi.Bio.Structure.Structu
         if( this.lattice ) path += ' ' + this.lattice + '';
         
         // add hydrogens and multiple bonding (fetches ligand data from rcsb pdb)
-        var s = 'set pdbAddHydrogens ' + ( this.pdb_add_hydrogens ? 'true' : 'false' ) + ';';
+        var s = 'set pdbAddHydrogens ' + ( this.pdb_add_hydrogens ? 'true' : 'false' ) + '; ';
 
         // load structural data into the jmol applet
-        if( this.load_as == 'trajectory' ){
-            s += 'load TRAJECTORY ' + path + '; ' + style;
-        }else if( this.load_as == 'trajectory+append' ){
-            s += 'load APPEND TRAJECTORY ' + path + '; ' +
-                'subset file = _currentFileNumber; ' + style + '; subset;';
-        }else if( this.load_as == 'append' ){
-            s += 'load APPEND ' + path + '; ' +
-                'subset file = _currentFileNumber; ' + style + '; subset; ';
-        }else{
-            s += 'load ' + path + '; ' + style;
-        }
-        console.log(s);
+        var load_types = {
+            "trajectory": "TRAJECTORY ",
+            "trajectory+append": "APPEND TRAJECTORY ",
+            "append": "APPEND "
+        };
+        s += 'load ' + (load_types[this.load_as] || '') + path + '; ';
 
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: false }, function(){
-            // TODO why is this not in the original script call?
-            post_script = 'provi_settings_init();' + post_script;
-            if( this.load_as != 'trajectory+append' && this.load_as != 'trajectory'  ){
-                post_script = 'frame all;' + post_script;
-            }
-            if( self.dataset ){
-                post_script += 'print "provi dataset: ' + self.dataset.id + ' loaded";';
-            }
-            self.applet.script( post_script, { maintain_selection: true, try_catch: false } );
-        });
+        var style = '';
+        if( this.style ){
+            style = 'select all; ' + this.style + 'select none; ';
+        }
+        style += post_script;
+        
+        s = "provi_load_structure('" + s + "', '" + style + "', " + this.dataset.id + ");";
+        this.applet.script( s, { maintain_selection: true, try_catch: false } );
     }
 };
 
