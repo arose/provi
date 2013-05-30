@@ -39,7 +39,7 @@ Provi.Data.Job.Job = function(params){
         this.running = true;
         this.status_interval = setInterval( _.bind( function(){
             this.retrieve_status();
-        }, this ), 1000);
+        }, this ), 10000);
     }else{
         this.running = false;
     }
