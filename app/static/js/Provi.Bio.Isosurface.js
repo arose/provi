@@ -75,7 +75,8 @@ Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype = Utils.extend(Provi.Widge
     params_dict: {
         within: { default_value: 2, type: "slider", range: [ 1, 10 ] },
         insideout: { default_value: false, type: "checkbox" },
-        sigma: { default_value: 1, type: "slider", range: [ 1, 50 ], factor: 10 },
+        sigma: { default_value: 1, type: "slider", range: [ 0, 50 ], factor: 10 },
+        cutoff: { default_value: 0, type: "slider", range: [ 0, 255 ] },
         color_density: { default_value: false, type: "checkbox" },
         sign: { default_value: true, type: "checkbox" },
         downsample: { default_value: 1, type: "slider", range: [ 1, 10 ] },
@@ -154,7 +155,8 @@ Provi.Bio.Isosurface.Volume = function(params){
     params = _.defaults( params, this.default_params );
     var p = [ 
         "applet", "dataset", "color_density", "within", "insideout", "cutoff", "sigma", 
-        "resolution", "select", "ignore", "type", "sign"
+        "resolution", "select", "ignore", "type", "sign", 
+        "color", "style", "frontonly"
     ];
     _.extend( this, _.pick( params, p ) );
 
@@ -185,7 +187,7 @@ Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.p
                 'color density ' +
                 '"' + this.dataset.url + '" ' +
                 ';' +
-                'color $"' + this.isosurface_name + '" "rwb" range -20 20;' +
+                'color $"' + this.iso_id + '" "rwb" range -20 20;' +
             '';
         }else{
             if( !this.cutoff ){
@@ -197,7 +199,7 @@ Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.p
                 (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
                 (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
                 (this.sign ? 'SIGN blue red ' : '') +
-                //(this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
+                (this.sigma ? 'sigma ' + this.sigma + ' ' : '') +
                 (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
                 (this.select ? 'select {' + this.select + '} ' : '') +
                 (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
@@ -208,6 +210,16 @@ Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.p
                 '"' + this.dataset.url + '" ' +
                 (this.style ? this.style + ' ' : '') +
             ';';
+        }
+
+        if( this.style ){
+            s += 'isosurface ID "' + this.iso_id + '" ' + this.style + ';';
+        }
+        if( this.frontonly ){
+            s += 'isosurface ID "' + this.iso_id + '" frontonly;';
+        }
+        if( this.color ){
+            s += 'color $"' + this.iso_id + '" ' + this.color + ';';
         }
 
         this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, _.bind( function(){
