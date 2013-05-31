@@ -305,7 +305,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
             $elm.append(
                 $('<input type="text" name="' + id2 + '" />')
                     .data( 'id', id2 )
-                    .val( value )
+                    .val( value || "*" )
                     .blur( _.bind( self.set, self ) ),
                 '&nbsp;<label>Selection</label>'
             )
@@ -480,26 +480,6 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, {
     }
 });
 
-
-
-Provi.Widget.GridWidget = function(params){
-    params = _.defaults( params, this.default_params );
-    Provi.Widget.Widget.call( this, params );
-
-    this._init_eid_manager([ 'grid' ]);
-    
-    var template = '<div id="${eids.grid}"></div>';
-    this.add_content( template, params );
-    this._init();
-};
-Provi.Widget.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Widget.Widget.prototype */ {
-    default_params: {
-
-    },
-    _init: function(){
-
-    }
-});
 
 
 
