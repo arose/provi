@@ -320,6 +320,10 @@
                     });
        
                 }
+            }else if( $.query.get('dir') && $.query.get('file') ){
+                Provi.Data.Io.import_example( $.query.get('dir'), $.query.get('file'), 'provi', {
+                    applet: Provi.Jmol.get_default_applet( true )
+                });
             }
             
             // add some showcase examples
