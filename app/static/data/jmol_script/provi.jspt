@@ -135,7 +135,7 @@ function provi_load_bonds( url, hide_initially, dataset_id ){
 }
 
 
-function provi_load_vector( url, scale2 ){
+function provi_load_vector( url, scale2, id, colr, diameter, scale ){
     if( !url ) return false;
     var x = load( url );
     var line1_end = x.find("\n");
@@ -216,7 +216,7 @@ function provi_write_pdb( sele ){
 function provi_sele_test( ids ){
     var sele_l = [];
     var displayed_l = [];
-    for(id in ids){
+    for(var id in ids){
         sele_l += provi_selection[id].selected.join("");
     }
     return [ sele_l.average, displayed_l.average ];
