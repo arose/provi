@@ -2,7 +2,7 @@
 
 function provi_isosurface_test(ids){
     var l = [];
-    for(id in ids){
+    for(var id in ids){
         l += (getProperty("shapeInfo", "Isosurface", "ID")
             .find(id+"_iso__no_widget__") & true)+0;
     }
@@ -16,7 +16,7 @@ function provi_hole_test(ids){
     var cpk_l = [];
     var draw_l = [];
     var iso_l = [];
-    for(id in ids){
+    for(var id in ids){
         sele_l += provi_selection[id].selected.join("");
         var p = provi_selection[id];
         cpk_l += provi_selection[id].cpk.join("");

@@ -154,7 +154,7 @@ Provi.Bio.Data.Tmalign.prototype = /** @lends Provi.Bio.Data.Tmalign.prototype *
             'rotateSelected @m;' +
             'translateSelected {' + t + '};' +
             'center selected;' +
-            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+            'provi_dataset_loaded( ' + this.dataset.id + ' );' +
         '';
         console.log(s);
         this.applet.script(s, { maintain_selection: true, try_catch: false });
@@ -173,7 +173,7 @@ Provi.Bio.Data.JmolLoad.prototype = {
         var s = '' +
             'load "' + this.dataset.url + '";' +
             'select *; calculate structure; provi_style("default");' +
-            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+            'provi_dataset_loaded( ' + this.dataset.id + ' );' +
         '';
         this.applet.script(s, { maintain_selection: true, try_catch: false });
     }
@@ -204,7 +204,7 @@ Provi.Bio.Data.JmolScript.prototype = /** @lends Provi.Bio.Data.JmolScript.proto
         var base_url = '"' + ds.url.substring( 0, idx+1 ) + '"';
         var s = '' +
             ds.raw_data.replace("PROVI_BASEURL", base_url) + ';' +
-            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+            'provi_dataset_loaded( ' + this.dataset.id + ' );' +
         '';
         console.log(s);
         this.applet.script(s, { maintain_selection: true, try_catch: false });
@@ -236,7 +236,7 @@ Provi.Bio.Data.AtomVector.prototype = {
     load: function( sele, applet ){
         var s = '' +
             'provi_load_vector("' + this.dataset.url + '", ' + this.scale + ');' +
-            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+            'provi_dataset_loaded( ' + this.dataset.id + ' );' +
         '';
         this.applet.script(s, { maintain_selection: true, try_catch: false });
     }

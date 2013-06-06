@@ -34,7 +34,7 @@ function view_plane( p ){
 function mindist( s1, s2 ){
     var min_dist = 10000;
     var min_contact = false;
-    for( a1 in s1 ){
+    for( var a1 in s1 ){
         for( a2 in s2 ){
             var d = distance( a1, a2 );
             if( d<min_dist ){
@@ -67,7 +67,7 @@ function _get_bonds( a, f, depth, prev, i, bond_acc ){
     var bonds = connected(prev, f);
     var ab = bonds.atoms;
     var bondlist = [];
-    for(b in ab){
+    for(var b in ab){
         if( prev.atomno != b.atomno ){
             var bonddata = [];
             bonddata += b.atomno;
@@ -116,7 +116,7 @@ function flatland_polar( sele ){
     var hb = { none };
     var hbonds = flatland_hbond( sele );
     var pi = hbonds.atoms;
-    for(a in pi){
+    for(var a in pi){
         var x1 = connected(@a, @sele).atoms;
         var x2 = connected("hbond").atoms;
         #var x3 = connected(@sele, @a).atoms;
@@ -156,7 +156,7 @@ function flatland_focus( sele, sele2, pplane, hb, split_contact_residues ){
 
     var focusdata = [];
 
-    for(a in sele2){
+    for(var a in sele2){
         var bonds = connected(a, sele2);
         var ab = bonds.atoms;
         var bondlist = [];
@@ -164,7 +164,7 @@ function flatland_focus( sele, sele2, pplane, hb, split_contact_residues ){
         var bondlist3 = [];
         var bondlist4 = [];
         var bondlist5 = [];
-        for(b in ab){
+        for(var b in ab){
             if( a.atomno != b.atomno && ( {@a and @sele}.count || {@b and @sele}.count || a.resno == b.resno || !split_contact_residues ) ){
                 draw_bond_intersection( pplane, a, b );
                 var bonddata = [];
@@ -173,7 +173,7 @@ function flatland_focus( sele, sele2, pplane, hb, split_contact_residues ){
                 bondlist += [bonddata];
                 var bonds2 = connected(b, sele2);
                 var ab2 = bonds2.atoms;
-                for(b2 in ab2){
+                for(var b2 in ab2){
                     if( b.atomno != b2.atomno ){
                         var bonddata2 = [];
                         bonddata2 += b2.atomno;
@@ -181,7 +181,7 @@ function flatland_focus( sele, sele2, pplane, hb, split_contact_residues ){
                         bondlist2 += [bonddata2];
                         var bonds3 = connected(b2, sele2);
                         var ab3 = bonds3.atoms;
-                        for(b3 in ab3){
+                        for(var b3 in ab3){
                             if( b2.atomno != b3.atomno ){
                                 var bonddata3 = [];
                                 bonddata3 += b3.atomno;
@@ -189,7 +189,7 @@ function flatland_focus( sele, sele2, pplane, hb, split_contact_residues ){
                                 bondlist3 += [bonddata3];
                                 var bonds4 = connected(b3, sele2);
                                 var ab4 = bonds4.atoms;
-                                for(b4 in ab4){
+                                for(var b4 in ab4){
                                     if( b3.atomno != b4.atomno ){
                                         var bonddata4 = [];
                                         bonddata4 += b4.atomno;
@@ -197,7 +197,7 @@ function flatland_focus( sele, sele2, pplane, hb, split_contact_residues ){
                                         bondlist4 += [bonddata4];
                                         var bonds5 = connected(b4, sele2);
                                         var ab5 = bonds5.atoms;
-                                        for(b5 in ab5){
+                                        for(var b5 in ab5){
                                             if( b4.atomno != b5.atomno ){
                                                 var bonddata5 = [];
                                                 bonddata5 += b5.atomno;
@@ -251,7 +251,7 @@ function flatland_vdw( sele, sele2, pplane ){
     var vdwdata = [];
     var hi = { within(GROUP, within(4.0, @sele)) and *.CA and not @sele2 };
     select { within(GROUP, @hi) }; wireframe 0.1; cpk off;
-    for(a in hi){
+    for(var a in hi){
         var ag = { within(GROUP, @a) };
         var ac = ag.XYZ;
         var md = mindist( ag, sele );
@@ -267,7 +267,7 @@ function flatland_vdw( sele, sele2, pplane ){
         var i0 = point(0, i*av, i*bv);
         
         var plist = [];
-        for(ba in hi){
+        for(var ba in hi){
             if( a.resno != ba.resno ){
                 var pdata = [];
                 pdata += ba.resno;
@@ -278,7 +278,7 @@ function flatland_vdw( sele, sele2, pplane ){
         #plist = [];
 
         var alist = [];
-        for(aag in ag){
+        for(var aag in ag){
             var md_aag = mindist( aag, sele );
             var adata = [];
             adata += [md_aag];

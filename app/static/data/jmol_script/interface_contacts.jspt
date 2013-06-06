@@ -5,7 +5,7 @@ function provi_intercon_test(ids){
     var consurf_l = [];
     var intersurf_l = [];
     var displayed_l = [];
-    for(id in ids){
+    for(var id in ids){
         if(id!="Water" & id!="Membrane"){
             sele_l += provi_selection[id].selected.join("");
         }

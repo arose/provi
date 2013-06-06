@@ -29,8 +29,6 @@ var AtomProperty = {};
 Provi.Bio.AtomProperty.AtomProperty = function( params ){
     var p = [ "dataset", "applet" ];
     _.extend( this, _.pick( params, p ) );
-    // var self = this;
-    // $(this.dataset).bind("loaded", function(){self.get_list(); console.log("foobar")});
     this.load();
 };
 Provi.Bio.AtomProperty.AtomProperty.prototype = /** @lends Provi.Bio.AtomProperty.AtomProperty.prototype */ {
@@ -40,7 +38,6 @@ Provi.Bio.AtomProperty.AtomProperty.prototype = /** @lends Provi.Bio.AtomPropert
     },
     get_list: function(){
         var d = this.applet.evaluate( "provi_datasets[" + this.dataset.id + "].join(',')" ).split(",");
-        // console.log("AtomProperty", d);
         return d;
     }
 };
