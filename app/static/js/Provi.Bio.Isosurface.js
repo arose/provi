@@ -56,7 +56,7 @@ var Widget = Provi.Widget.Widget;
 Provi.Bio.Isosurface.LoadParamsWidget = function(params){
     Provi.Widget.ParamsWidget.call( this, params );
 }
-Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Isosurface.LoadParamsWidget.prototype */ {
+Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
         within: { default_value: 2, type: "slider", range: [ 1, 10 ] },
         insideout: { default_value: false, type: "checkbox" },
@@ -71,7 +71,7 @@ Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Provi.Widget.Para
 Provi.Bio.Isosurface.VolumeLoadParamsWidget = function(params){
     Provi.Widget.ParamsWidget.call( this, params );
 }
-Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype */ {
+Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
         within: { default_value: 2, type: "slider", range: [ 1, 10 ] },
         insideout: { default_value: false, type: "checkbox" },
@@ -89,7 +89,6 @@ Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype = Utils.extend(Provi.Widge
         ignore: { default_value: "", type: "text" }
     }
 });
-//                     { name: 'cutoff', getter: 'get_cutoff' },
 
 
 
@@ -114,7 +113,6 @@ Provi.Bio.Isosurface.Isosurface.prototype = /** @lends Provi.Bio.Isosurface.Isos
         type: "sasurface"
     },
     load: function(){
-
         // TODO use dataset id for isosurface id?
         var s = 'isosurface ID "iso_' + Provi.Utils.uuid() + '" ' +
             ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
@@ -124,27 +122,18 @@ Provi.Bio.Isosurface.Isosurface.prototype = /** @lends Provi.Bio.Isosurface.Isos
             '"' + this.dataset.url + '" ' +
             ( this.style ? this.style : '' ) + 
         ';'
-
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, function(){
-            // TODO why is this not in the original script call?
-            var post_script = "";
-            if( self.dataset ){
-                post_script += 'print "provi dataset: ' + self.dataset.id + ' loaded";';
-            }
-            self.applet.script( post_script, { maintain_selection: true, try_catch: false } );
-        });
+        s += 'provi_dataset_loaded( ' + this.dataset.id + ' );';
+        this.applet.script( s, { maintain_selection: true, try_catch: true } );
     },
     create: function(){
-        console.log("fobar");
         var s = 'isosurface ID "iso_' + Provi.Utils.uuid() + '" ' +
             (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
             (this.select ? 'select {' + this.select + '} ' : '') +
             (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
-            (this.slab ? 'SLAB ' + this.slab + ' ' : '') +
             (this.type ? this.type + ' ' : '') +
             (this.map ? 'MAP ' + this.map + ' ' : '') +
         ';'
-
+        console.log('Provi.Bio.Isosurface.Isosurface.create', s);
         this.applet.script( s , { maintain_selection: true, try_catch: true } );
     }
 };
@@ -221,17 +210,67 @@ Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.p
         if( this.color ){
             s += 'color $"' + this.iso_id + '" ' + this.color + ';';
         }
-
-        this.applet.script_callback( s, { maintain_selection: true, try_catch: true }, _.bind( function(){
-            // TODO why is this not in the original script call?
-            var post_script = "";
-            if( this.dataset ){
-                post_script += 'print "provi dataset: ' + this.dataset.id + ' loaded";';
-            }
-            this.applet.script( post_script, { maintain_selection: true, try_catch: false } );
-        }, this ) );
+        s += 'provi_dataset_loaded( ' + this.dataset.id + ' );';
+        this.applet.script( s, { maintain_selection: true, try_catch: true } );
     }
 };
+
+
+
+
+Provi.Bio.Isosurface.ConstructParamsWidget = function(params){
+    Provi.Widget.ParamsWidget.call( this, params );
+}
+Provi.Bio.Isosurface.ConstructParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
+    params_dict: {
+        resolution: { default_value: 2, type: "slider", range: [ 1, 10 ], fixed: true },
+        select: { default_value: "*", type: "text" },
+        ignore: { default_value: "", type: "text" },
+        type: { default_value: "", type: "select", options: [ 
+            "", "sasurface", "molecular", "cavity", "solvent 1.4", "solvent 1.0", "solvent 0.8",
+            "cavity 1.0 8", "interior cavity 1.0 8", "pocket cavity 1.0 8"
+        ] }
+    }
+});
+
+
+Provi.Bio.Isosurface.ConstructionWidget = function(params){
+    params = _.defaults( params, this.default_params );
+
+    var p = [ "datalist" ];
+    _.extend( this, _.pick( params, p ) );
+    
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([ 'construct_params_widget', 'construct' ]);
+    
+    var template = '' +
+        '<div class="control_row" id="${eids.construct_params_widget}"></div>' +
+        '<div class="control_row">' +
+            '<button id="${eids.construct}">construct</button>' +
+        '</div>' + 
+    '';
+    this.add_content( template, params );
+    
+    this.construct_params_widget = new Provi.Bio.Isosurface.ConstructParamsWidget({
+        parent_id: this.eid('construct_params_widget')
+    });
+    this._init();
+}
+Provi.Bio.Isosurface.ConstructionWidget.prototype = Utils.extend(Provi.Widget.Widget, {
+    default_params: {
+        
+    },
+    _init: function(){
+        this.elm('construct').button().click( _.bind( this.construct, this ) );
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    construct: function(){
+        var params = { applet: this.datalist.applet };
+        _.extend( params, this.construct_params_widget.params );
+        console.log('IsosurfaceConstructionWidget', params);
+        new Provi.Bio.Isosurface.Isosurface( params );
+    }
+});
 
 
 
@@ -240,6 +279,7 @@ Provi.Bio.Isosurface.IsosurfaceDatalist = function(params){
 }
 Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
     type: "IsosurfaceDatalist",
+    params_object: Provi.Bio.Isosurface.ConstructionWidget,
     get_ids: function(){
         var shape_info = this.applet.get_property_as_array('shapeInfo');
         return _.pluck( shape_info['Isosurface'], "ID" );
@@ -254,6 +294,13 @@ Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Data
         
     }
 });
+
+// new Provi.Bio.Isosurface.SurfaceWidget({
+//     isosurface_name: iso_id,
+//     applet: self,
+//     no_create: true,
+//     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
+// });
 
 
 

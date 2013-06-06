@@ -12,7 +12,7 @@ function provi_hbonds( sele, angle_min, dist_max, bond_mode_or ){
     var bond_count_before = {*}.bonds.size;
     calculate hbonds;
     var bond_count_after = {*}.bonds.size;
-    bs = [];
+    bs = []; # global for script inline
     var s = "bs = [{" + (bond_count_before) + ":" + (bond_count_after-1) + "}];";
     script INLINE @s;
     hide add @bs;
@@ -30,10 +30,10 @@ function provi_hbond_test(ids){
     var sele_l = [];
     var hbond_l = [];
     var cpk_l = [];
-    for(id in ids){
-        pair = id.split("_");
-        a = pair[1]*1; b = pair[2]*1; # convert to int
-        tmp = {atomindex=@a or atomindex=@b};
+    for(var id in ids){
+        var pair = id.split("_");
+        var a = pair[1]*1; b = pair[2]*1; # convert to int
+        var tmp = {atomindex=@a or atomindex=@b};
         sele_l += tmp.selected.join("");
         hbond_l += { connected( 'hbond', @tmp ) }.size >= 2;
         cpk_l += tmp.cpk.join("")/0.2;
@@ -44,11 +44,11 @@ function provi_hbond_test(ids){
 
 function provi_toggle_hbond( ids, flag ){
     select none;
-    for(id in ids){
-        pair = id.split("_");
-        a = pair[1]*1; b = pair[2]*1; # convert to int
-        as = {atomindex=@a};
-        bs = {atomindex=@b};
+    for(var id in ids){
+        var pair = id.split("_");
+        var a = pair[1]*1; var b = pair[2]*1; # convert to int
+        var as = {atomindex=@a};
+        var bs = {atomindex=@b};
         if( flag ){
             connect (@as) (@bs) hbond delete;
         }else{
@@ -63,9 +63,9 @@ function provi_toggle_hbond( ids, flag ){
 
 function provi_toggle_hbond_residues( ids, flag ){
     select none;
-    for(id in ids){
-        pair = id.split("_");
-        a = pair[1]*1; b = pair[2]*1; # convert to int
+    for(var id in ids){
+        var pair = id.split("_");
+        var a = pair[1]*1; var b = pair[2]*1; # convert to int
         select add {atomindex=@a or atomindex=@b};
     }
     select within(GROUP, selected);

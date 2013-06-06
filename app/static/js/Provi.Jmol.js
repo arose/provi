@@ -46,25 +46,6 @@ var jmol_load_struct_callback = function(applet_name, fullPathName, fileName, mo
     Provi.Jmol.get_applet_by_id( applet_name+'' )._load_struct_callback( fullPathName+'', fileName+'', modelName+'', ptLoad+'', previousCurrentModelNumberDotted+'', lastLoadedModelNumberDotted+'' );
 };
 
-/**
- * Function to delegate a jmol message callback to the corresponding applet wrapper.
- * Also available as a global function because Jmol would not accept it otherwise.
- * @memberOf Provi.Jmol
- */
-var jmol_message_callback = function(applet_name, msg1, msg2, msg3, msg4){
-    // console.log( 'MESSAGE CALLBACK', applet_name+'', msg1+'', msg2+'', msg3+'', msg4+'' );
-    Provi.Jmol.get_applet_by_id( applet_name+'' )._message_callback( msg1+'', msg2+'', msg3+'', msg4+'' );
-};
-
-/**
- * Function to delegate a jmol script callback to the corresponding applet wrapper.
- * Also available as a global function because Jmol would not accept it otherwise.
- * @memberOf Provi.Jmol
- */
-var jmol_script_callback = function(applet_name, status, message, millisec, errorUntranslated){
-    //console.log( applet_name+'', status+'', message+'', millisec+'', errorUntranslated+'' );
-    Provi.Jmol.get_applet_by_id( applet_name+'' )._script_callback( status+'', message+'', millisec+'', errorUntranslated+'' );
-};
 
 /**
  * Function to delegate a jmol pick callback to the corresponding applet wrapper.
@@ -88,10 +69,17 @@ function jmol_hover_callback (applet_name, text, foo, id, x, y, z){
  * @memberOf Provi.Jmol
  */
 function jmol_applet_ready_callback (applet_name, id, status, applet){
-    console.log('foo');
     console.log( applet_name+'', id+'', status+'', applet );
     Provi.Jmol.get_applet_by_id( applet_name+'' )._applet_ready_callback( status+'', applet );
 };
+
+function jmol_dataset_loaded( dataset_id, status ){
+    Provi.Data.DatasetManager.get( dataset_id ).set_loaded();
+};
+
+function jmol_async_script( id ){
+    $(Provi.Jmol).triggerHandler('async_script', [id]);
+}
 
 
 
@@ -238,45 +226,6 @@ Provi.Jmol = $.extend(Provi.Jmol, /** @lends Provi.Jmol */ {
 
 
 
-/**
- * Fired when an applet is fully loaded
- *
- * @name Provi.Jmol.Applet#load
- * @event
- * @param {object} event A jQuery event object.
- */
-
-/**
- * Fired when there is a change in the display or composition of Jmol frames.
- *
- * @name Provi.Jmol.Applet#anim_frame
- * @event 
- * @param {object} event A jQuery event object.
- * @param {string} frameNo The current frame index number (starting with 0).
- * @param {string} fileNo The current file number (starting with 1)
- * @param {string} modelNo The current model number within the current file (starting with 1)
- * @param {string} firstNo The first frame of the animation range, expressed as fileNo x 1000000 + modelNo
- * @param {string} lastNo The last frame of the animation range, expressed as fileNo x 1000000 + modelNo
- * @param {string} isAnimationRunning 0 (animation is off) or 1 (animation is on)
- * @param {string} animationDirection The current animation direction, either 1 or -1
- * @param {string} currentDirection The current direction, either 1 (forward) or -1 (reverse)
- */
-
-/**
- * Fired when a structure is loaded into Jmol.
- *
- * @name Provi.Jmol.Applet#load_struct
- * @event
- * @param {object} event A jQuery event object.
- * @param {string} fullPathName The URL of the loaded file (full path+filename). 
- * @param {string} fileName The filename of the loaded file (without the path). 
- * @param {string} modelName The internal title of the model in the loaded file. 
- * @param {string} ptLoad A numeric code: 3 when the file loaded successfully, 0 when the model was zapped, -1 when the loading failed. 
- * @param {string} previousCurrentModelNumberDotted A text string with the frame number prior to loading the current model, in file.model syntax (for example, "3.1" or "1.1 - 3.31" if a whole range of models was framed). 
- * @param {string} lastLoadedModelNumberDotted A text string with the last frame number after loading the current model, in file.model syntax. 
- */
-
-
 
 /**
  * Jmol Applet class
@@ -356,16 +305,14 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             appletReadyCallback: "jmol_applet_ready_callback",
             animFrameCallback: "jmol_anim_frame_callback",
             loadStructCallback: "jmol_load_struct_callback",
-            messageCallback: "jmol_message_callback",
-            scriptCallback: "jmol_script_callback",
             pickCallback: "jmol_pick_callback",
-            hoverCallback: "jmol_hover_callback",
+            // hoverCallback: "jmol_hover_callback",
             boxbgcolor: "white",
             boxfgcolor: "white",
             progresscolor: "lightgreen",
             progressbar: "true",
             syncId: this.default_params.sync_id,
-            boxmessage: "Downloading JmolApplet ...",
+            boxmessage: "Downloading Jmol Applet ...",
             java_arguments: "-Xmx1024m"
         };
         var t = "";
@@ -379,38 +326,14 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     _create_dom: function(){
         var e = document.createElement("span");
         e.innerHTML = this.html;
-            this.dom = e;
+        this.dom = e;
         this.applet = e.firstChild;
-    },
-    dom: function(){
-        return this.dom;
     },
     set_loaded: function(){
         if( this.loaded || this._determining_load_status  ) return;
         this._determining_load_status = true;
         console.log('done loading');
         this._load();
-    },
-    _evalJSON: function(s,key){
-        // from Jmol.js
-        s=s+"";
-        if(!s)return [];
-        if(s.charAt(0)!="{"){
-            if(s.indexOf(" | ")>=0)s=s.replace(/\ \|\ /g, "\n");
-            return s;
-        }
-        try{
-            var A = eval("("+s+")");
-        }catch(e){
-            console.error('evalJSON ERROR', e, s, key);
-        }
-        if(!A){
-            return undefined;
-        }
-        if(key && A[key]){
-            A=A[key];
-        }
-        return A;
     },
     _prepare_script: function( script, params ){
         params = _.defaults( params || {}, {
@@ -420,7 +343,13 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         });
         if( !script ) script = '';
         if(params.maintain_selection){
-            script = 'save selection provi_tmp; ' + script + ' restore selection provi_tmp;';
+            script = '' +
+                'provi_tmp_sele = {*}.selected; ' +
+                // 'save selection "provi_tmp"; ' +
+                script + ' ' +
+                // 'restore selection "provi_tmp";' +
+                '{*}.selected = provi_tmp_sele; ' +
+            '';
         }
         if(false && params.echo_message){
             script = 'set echo top left; font echo 20 sansserif;color echo red; ' +
@@ -458,38 +387,36 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     script_callback: function(script, params, callback){
         var id = Provi.Utils.uuid();
-        var self = this;
-        script += '; print "provi async script: ' + id + '";';
-        var handler = function(e, msg1, msg2, msg3){
-            if( msg1.search(/provi async script:/) != -1 ){
-                var m = msg1.match(/provi async script: ([\w-]+)/);
-                if( id==m[1] ){
-                    if(!callback){
-                        console.error('missing callback', script, params);
-                    }else{
-                        callback();
-                    }
-                    $(self).unbind('message', handler);
+        script += '; var js = "jmol_async_script(\'' + id + '\')"; javascript @js;';
+        var handler = function(e, script_id){
+            if( id==script_id ){
+                if(!callback){
+                    console.error('missing callback', script, params);
+                }else{
+                    callback();
                 }
+                $(Provi.Jmol).unbind('async_script', handler);
             }
         }
-        $(this).bind('message', handler);
+        $(Provi.Jmol).bind('async_script', handler);
         if(this.loaded || params.force){
             return this._script(script, params);
         }else{
-            var self = this;
-            $(this).bind('load', function(){
-                  self.script(script, params);
-            });
+            $(this).bind('load', _.bind( function(){
+                  this.script(script, params);
+            }, this ) );
             return -1;
         }
     },
     _load: function(){
         var self = this;
         var prevent_cache = '?_id=' + (new Date().getTime());
-        var s = 'script "../data/jmol_script/provi.jspt' + prevent_cache + '"; provi_init();'
+        var s = '' +
+            'cache remove all; ' +
+            'script "../data/jmol_script/provi.jspt' + prevent_cache + '"; ' +
+            'provi_init();' +
+        '';
         this.script_callback(s, { force: true }, function(){
-            self.init_listeners();
             self.loaded = true;
             console.log("applet loaded");
             $(self).triggerHandler('load');
@@ -511,7 +438,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         if(!value) value = '';
         if(this.loaded){
             try{
-                return this.applet.getPropertyAsJSON(property, value) + '';
+                return $.parseJSON( this.applet.getPropertyAsJSON(property, value) + '' );
             }catch(e){
                 console.error('ERROR', e);
             }
@@ -520,6 +447,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     get_property_as_string: function(property, value){
         if(!value) value = '';
+        console.warn('get_property_as_string', property, value);
         if(this.loaded){
             try{
                 return this.applet.getPropertyAsString(property, value) + '';
@@ -533,7 +461,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         if(!value) value = '';
         if(this.loaded){
             try{
-                return this._evalJSON( this.get_property_as_json(property, value) + '', property );
+                return this.get_property_as_json(property, value)[ property ];
             }catch(e){
                 console.error('ERROR', e);
             }
@@ -580,14 +508,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         //console.log( fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted );
         $(this).triggerHandler('load_struct', [ fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ]);
     },
-    _message_callback: function( msg1, msg2, msg3 ){
-        //console.log(msg1, msg2, msg3);
-        $(this).triggerHandler('message', [ msg1, msg2, msg3 ]);
-    },
-    _script_callback: function( status, message, millisec, errorUntranslated ){
-        //console.log(status, message, millisec, errorUntranslated);
-        $(this).triggerHandler('script', [ status, message, millisec, errorUntranslated ]);
-    },
     _pick_callback: function( info, id ){
            console.log( 'pick_callback', info, id );
         // [ARG]193:B.CZ #4197 40.248 -4.2279997 38.332996
@@ -611,34 +531,6 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     large_atom_count: function(){
         return this.evaluate( 'provi_get("largeAtomCount");' );
-    },
-    init_listeners: function(){
-        var self = this;
-        $(this).bind('message', function(e, msg1, msg2, msg3){
-            if( msg1.search(/^ERROR:/) != -1 ){
-                console.error(msg1, msg2, msg3);
-            }
-            if( msg1.search(/isosurface count/) != -1 && msg1.search(/__no_widget__/) == -1 ){
-                //console.log(msg1, msg2, msg3);
-                var iso_id = msg1.match(/^([\w-\.]+) created .* isosurface count/)[1];
-                //console.log(iso_id);
-                new Provi.Bio.Isosurface.SurfaceWidget({
-                    isosurface_name: iso_id,
-                    applet: self,
-                    no_create: true,
-                    parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
-                });
-            }
-            // needs to be last!
-            if( msg1.search(/provi dataset:/) != -1 ){
-                //console.log(msg1, msg2, msg3);
-                var m = msg1.match(/provi dataset: ([\w]+) ([\w]+)/);
-                var dataset_id = m[1];
-                var status = m[2];
-                console.log('DS', dataset_id, status);
-                Provi.Data.DatasetManager.get( dataset_id ).set_loaded();
-            }
-        });
     }
 };
 

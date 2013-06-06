@@ -286,7 +286,7 @@ function provi_helixcrossing_test(ids){
     var draw_l = [];
     var contact_l = [];
     var s = 0; var pair = 0; var a = 0; var b = 0;
-    for(id in ids){
+    for(var id in ids){
         pair = id.split("_");
         a = pair[1]*1; b = pair[2]*1; # convert to int
         sele_l += {strucno=@a or strucno=@b}.selected.join("");
@@ -318,7 +318,7 @@ function provi_helixorient_test(ids){
     var sele_l = [];
     var draw_l = [];
     var helix_sele = 0; var s = 0;
-    for(id in ids){
+    for(var id in ids){
         helix_sele = provi_data["helixorient"][id]["sele"];
         sele_l += helix_sele.selected.join("");
         try{

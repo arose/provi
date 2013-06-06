@@ -36,14 +36,14 @@ Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.B
     },
     load: function( applet ){
         var s = '' +
-            'x = load("' + this.dataset.url + '");' +
-            'bond_count_before = {*}.bonds.size;' +
+            'var x = load("' + this.dataset.url + '");' +
+            'var bond_count_before = {*}.bonds.size;' +
             'script INLINE @x;' +
-            'bond_count_after = {*}.bonds.size;' +
-            'bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";' +
+            'var bond_count_after = {*}.bonds.size;' +
+            'var bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";' +
             'hide add @bs;' +
             'provi_datasets[' + this.dataset.id + '] = bs;' + 
-            'print "provi dataset: ' + this.dataset.id + ' loaded";' +
+            'provi_dataset_loaded( ' + this.dataset.id + ' );' +
         '';
         console.log(s);
         this.applet.script(s, { maintain_selection: true, try_catch: false });

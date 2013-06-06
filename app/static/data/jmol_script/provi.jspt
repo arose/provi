@@ -68,6 +68,12 @@ function provi_settings_init(){
 }
 
 
+function provi_dataset_loaded( dataset_id ){
+    var js = "jmol_dataset_loaded(" + dataset_id + ", 'loaded')";
+    javascript @js;
+}
+
+
 function provi_load_property( url, sele, dataset_id ){
     if( !url ) return false;
     if( !sele ) sele = {*};
@@ -90,8 +96,7 @@ function provi_load_property( url, sele, dataset_id ){
     }
     if( dataset_id ){
         provi_datasets[ dataset_id ] = names;
-        print "provi dataset: " + dataset_id + " loaded";
-        #print "provi dataset: " + dataset_id + " loaded | provi property ds " + dataset_id + ": " + names.join(" ");
+        provi_dataset_loaded( dataset_id );
     }
     select none;
     return true;
@@ -103,7 +108,7 @@ function provi_load_selection( url, dataset_id ){
     var x = load( url );
     var lines = x.split();
     var names = [];
-    for(l in lines){
+    for(var l in lines){
         var fields = l.split(" ");
         var name = fields[1] + "_" + dataset_id;
         names = names + name;
@@ -113,8 +118,7 @@ function provi_load_selection( url, dataset_id ){
     }
     if( dataset_id ){
         provi_datasets[ dataset_id ] = names;
-        print "provi dataset: " + dataset_id + " loaded";
-        #print "provi dataset: " + dataset_id + " loaded | provi selection ds " + dataset_id + ": " + names.join(" ");
+        provi_dataset_loaded( dataset_id );
     }
     return true;
 }
@@ -122,14 +126,15 @@ function provi_load_selection( url, dataset_id ){
 
 function provi_load_bonds( url, hide_initially, dataset_id ){
     if( !url ) return false;
-    x = load( url ); # must be global for script INLINE
+    var x = load( url ); # must be global for script INLINE; TODO???
     var bond_count_before = {*}.bonds.size;
     script INLINE @x;
     var bond_count_after = {*}.bonds.size;
     var bs = "[{" + (bond_count_before) + ":" + (bond_count_after-1) + "}]";
     if( hide_initially ) hide add @bs;
     if( dataset_id ){
-        print "provi dataset: " + dataset_id + " loaded | provi bonds ds " + dataset_id + ": " + bond_count_before + " " + bond_count_after;
+        provi_datasets[ dataset_id ] = bs;
+        provi_dataset_loaded( dataset_id );
     }
     return true;
 }
@@ -148,7 +153,7 @@ function provi_load_vector( url, scale2, id, colr, diameter, scale ){
     if(scale2) scale = scale2;
     var d = x[line1_end][0];
     var i = 0;
-    for(l in d.split('\n')){
+    for(var l in d.split('\n')){
         var row = l.split(" ");
         var atm = "({" + row[1] + "})";
         var vec = "{" + row[2] + " " + row[3] + " " + row[4] + "}";
@@ -167,7 +172,7 @@ function provi_load_distance( url ){
     script INLINE @line1;
     var d = x[line1_end][0];
     var i = 0;
-    for(l in d.split('\n')){
+    for(var l in d.split('\n')){
         var row = l.split(" ");
         var atm = "({" + row[1] + "})";
         var vec = "{" + row[2] + " " + row[3] + " " + row[4] + "}";
@@ -194,7 +199,7 @@ function provi_load_structure( script, style, dataset_id ){
     frame all;
     if( dataset_id ){
         provi_datasets[ dataset_id ] = current_file_number;
-        print "provi dataset: " + dataset_id + " loaded";
+        provi_dataset_loaded( dataset_id );
     }
 }
 
@@ -244,7 +249,7 @@ function provi_center( sele ){
 
 function sort_by_prop( sele, prop ){
     var x = sele.atomindex.all;
-    prop_arr = [];
+    var prop_arr = [];
     var s = "prop_arr = sele." + prop + ".all;";
     script INLINE @s;
     var n = x.length;
@@ -308,7 +313,7 @@ function provi_get( name ){
         return value;
     }else{
         tmp = '';
-        s = "tmp = " + name + ";";
+        var s = "tmp = " + name + ";";
         script INLINE @s;
         return tmp;
     }
@@ -339,7 +344,8 @@ function provi_set( name, value, message, nostyle ){
         provi_style( provi_get( "style" ) );
     }
     if( message ){
-        print 'provi setting changed: ' + name + ' "' + tmp + '" "' + value + '"';
+        var js = "jmol_setting_changed('" + name + "', '" + tmp + "', '" + value + "')";
+        javascript @js;
     }
 }
 

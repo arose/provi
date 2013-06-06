@@ -335,7 +335,8 @@ Provi.Data.Datalist.prototype = {
 
         if( this.applet.loaded ){
             if( this.jspt_url ){
-                var s = 'script "' + this.jspt_url + '";';
+                var prevent_cache = '?_id=' + (new Date().getTime());
+                var s = 'script "' + this.jspt_url + '' + prevent_cache + '";';
                 this.applet.script_callback( s, {}, _.bind( this.set_initialized, this ) );
             }else{
                 this.set_initialized();
