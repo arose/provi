@@ -70,6 +70,7 @@ function provi_settings_init(){
 
 function provi_dataset_loaded( dataset_id ){
     var js = "jmol_dataset_loaded(" + dataset_id + ", 'loaded')";
+    print "dataset_id " + dataset_id;
     javascript @js;
 }
 
