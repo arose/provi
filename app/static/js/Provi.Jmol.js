@@ -385,7 +385,11 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     script_callback: function(script, params, callback){
         var id = Provi.Utils.uuid();
-        script += '; var js = "jmol_script_callback(\'' + id + '\')"; javascript @js;';
+        script += '; ' +
+            'var js = "jmol_script_callback(\'' + id + '\')"; ' +
+            'print "callback ' + id + '"; ' +
+            'javascript @js;' + 
+        '';
         var handler = function(e, script_id){
             if( id==script_id ){
                 if(!callback){
@@ -610,10 +614,9 @@ Provi.Jmol.JmolWidget = function(params){
             Provi.Bio.AtomSelection.StrucnoDatalist,
             Provi.Bio.HydrogenBonds.HbondsDatalist,
             Provi.Bio.AtomSelection.AtomindexDatalist,
-            Provi.Bio.Isosurface.IsosurfaceDatalist,
-            Provi.Bio.HydrogenBonds.HbondsDatalist,
-            Provi.Bio.Helix.HelixorientDatalist,
-            Provi.Bio.Helix.HelixcrossingDatalist
+            Provi.Bio.Isosurface.IsosurfaceDatalist
+            // Provi.Bio.Helix.HelixorientDatalist,
+            // Provi.Bio.Helix.HelixcrossingDatalist
         ];
         _.each( datalist_classes, _.bind( function( cl ){
             this.datalist_list.push( new cl({ applet: this.applet, sele: "*", load_struct: true }));
