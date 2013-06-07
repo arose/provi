@@ -172,7 +172,6 @@ Provi.Bio.Data.JmolLoad.prototype = {
         this.applet._delete();
         var s = '' +
             'load "' + this.dataset.url + '";' +
-            'select *; calculate structure; provi_style("default");' +
             'provi_dataset_loaded( ' + this.dataset.id + ' );' +
         '';
         this.applet.script(s, { maintain_selection: true, try_catch: false });

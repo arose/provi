@@ -205,6 +205,7 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
                         'MAP property_tmp;' +
                     'color $' + id + '_consurf__no_widget__ "ic" ' +
                         ' RANGE -0.5 2.8;' +
+                    'select none; ' +
                 '';
             }).join(' ');
         }

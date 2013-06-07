@@ -208,7 +208,7 @@ function _calc_helices( sele ){
     var j = 2;
     helices += { "sele": {@sele and strucno=@x} };
     for(var i = 2; i<n; i++){
-        print i;
+        # print i;
         sx = helices[i-1]["sele"];
         y = (struc_helices[i])[1];
         sy = {@sele and strucno=@y};

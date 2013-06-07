@@ -77,8 +77,8 @@ function jmol_dataset_loaded( dataset_id, status ){
     Provi.Data.DatasetManager.get( dataset_id ).set_loaded();
 };
 
-function jmol_async_script( id ){
-    $(Provi.Jmol).triggerHandler('async_script', [id]);
+function jmol_script_callback( id ){
+    $(Provi.Jmol).triggerHandler('script_callback', [id]);
 }
 
 
@@ -344,11 +344,9 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         if( !script ) script = '';
         if(params.maintain_selection){
             script = '' +
-                'provi_tmp_sele = {*}.selected; ' +
-                // 'save selection "provi_tmp"; ' +
+                'save selection provi_tmp; ' +
                 script + ' ' +
-                // 'restore selection "provi_tmp";' +
-                '{*}.selected = provi_tmp_sele; ' +
+                'restore selection provi_tmp;' +
             '';
         }
         if(false && params.echo_message){
@@ -380,14 +378,14 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             console.warn('Jmol script DEFERED');
             var self = this;
             $(this).bind('load', function(){
-                  self.script(script, params);
+                self.script(script, params);
             });
             return -1;
         }
     },
     script_callback: function(script, params, callback){
         var id = Provi.Utils.uuid();
-        script += '; var js = "jmol_async_script(\'' + id + '\')"; javascript @js;';
+        script += '; var js = "jmol_script_callback(\'' + id + '\')"; javascript @js;';
         var handler = function(e, script_id){
             if( id==script_id ){
                 if(!callback){
@@ -395,10 +393,10 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
                 }else{
                     callback();
                 }
-                $(Provi.Jmol).unbind('async_script', handler);
+                $(Provi.Jmol).unbind('script_callback', handler);
             }
         }
-        $(Provi.Jmol).bind('async_script', handler);
+        $(Provi.Jmol).bind('script_callback', handler);
         if(this.loaded || params.force){
             return this._script(script, params);
         }else{
