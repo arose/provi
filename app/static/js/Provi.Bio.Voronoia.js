@@ -40,7 +40,10 @@ Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
 
     console.log( "VoronoiaDatalist", params );
     
-    var p = [ "resolution", "cavity_probe_radius", "exterior_probe_radius", "cavity_color", "ids", "holes_ds" ];
+    var p = [ 
+        "resolution", "cavity_probe_radius", "exterior_probe_radius", 
+        "cavity_color", "ids", "holes_ds", "translucent", "tmh_ds"
+    ];
     _.extend( this, _.pick( params, p ) );
 
     Provi.Bio.AtomSelection.VariableDatalist.call( this, params );
@@ -68,18 +71,45 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         resolution: 2.0,
         cavity_probe_radius: 0.6,
         exterior_probe_radius: 5.0,
-        cavity_color: 'skyblue'
+        cavity_color: 'skyblue',
+        translucent: 0.3
     },
     _init: function(){
         if( this.holes_ds ){
             this.ids = this.holes_ds.bio.get_list();
         }
 
+        this.id_names = {};
+        var cav_count = 1
+        _.each( this.ids, function(id){
+            this.id_names[id] = 'Cavity ' + cav_count;
+            cav_count += 1;
+            if( this.tmh_ds ){
+                var tmh_tags = [];
+                var tmh_count = 1;
+                _.each( this.tmh_ds.bio.get_list(), function(id2){ 
+                    var s = 'provi_sele_intersect(' +
+                        '"' + id + '", "' + id2 + '"' +
+                    ');';
+                    var d = this.applet.evaluate( s );
+                    if(d>0){
+                        tmh_tags.push( tmh_count );
+                    }
+                    tmh_count += 1;
+                }, this);
+                if( tmh_tags.length ){
+                    this.id_names[id] += " (TMH " + tmh_tags.join(", ") + ")";
+                }
+            }
+        }, this );
+
         this.initialized = false;
         var s = 'script "../data/jmol_script/voronoia.jspt";';
         this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
         
-        $(this).bind("calculate_ready", _.bind( this.show_hole, this, 'all', false ) );
+        $(this).bind("calculate_ready", _.bind( 
+            this.show_hole, this, 'all', false ) 
+        );
     },
     get_ids: function(sele){
         return this.ids;
@@ -100,7 +130,8 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             }
             var label = 'Cavities'
         }else{
-            var label = 'Cavity ' + id.split('_')[2];
+            // var label = 'Cavity ' + id.split('_')[2];
+            var label = this.id_names[id];
         }
         var a = this.get_data(id); // selected, neighbours, hole, cavity
 
@@ -113,9 +144,11 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         );
         return $row;
     },
-    _show_hole: function(id, flag){
+    _show_hole: function(id, flag, params){
+        params = params || {};
         var self = this;
-        var color = this.cavity_color;
+        var color = params.cavity_color || this.cavity_color;
+        var translucent = params.translucent || this.translucent;
         var ids = (id==='all') ? this.get_ids() : [ id ];
         if(flag){
             return _.map( ids, function(id){
@@ -132,6 +165,7 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
                         'draw ID ' + hole_id + '_draw__no_widget__ "Cavity ' + hole_id.split('_')[2] + '" ' +
                             'DIAMETER @dia ' +
                             'COLOR ' + color + ' ' +
+                            'TRANSLUCENT ' + translucent + ' ' +
                             '@sele;' +
                     '}catch(e){' +
                         'print "ERROR: " + e' +
@@ -139,8 +173,8 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             }).join(' ');
         }
     },
-    show_hole: function(id, flag){
-        var s = this._show_hole(id, flag);
+    show_hole: function(id, flag, params){
+        var s = this._show_hole(id, flag, params);
         this.script( s, true, { try_catch: false } );
     },
     _show_cavity: function(id, flag, params){
@@ -149,6 +183,7 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         var cavity_probe_radius = params.cavity_probe_radius || this.cavity_probe_radius;
         var exterior_probe_radius = params.exterior_probe_radius || this.exterior_probe_radius;
         var color = params.cavity_color || this.cavity_color;
+        var translucent = params.translucent || this.translucent;
         var self = this;
         var ids = (id==='all') ? this.get_ids() : [ id ];
         if(flag){
@@ -162,12 +197,15 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
                 return 'set drawHover true;' +
                     'isosurface id "' + hole_id + '_iso__no_widget__" ' +
                         //'"Hole ' + hole_id.split('_')[2] + '" ' +
-                    'select {' + self.selection(id) + '} ' +
-                    'ignore { not ' + self.selection(id) + '} ' +
-                    'resolution ' + resolution + ' ' +
-                    'color ' + color + ' ' +
-                    'cavity ' + cavity_probe_radius + ' ' + 
-                        exterior_probe_radius + ';' +
+                        'select {' + self.selection(id) + '} ' +
+                        'ignore { not ' + self.selection(id) + '} ' +
+                        'resolution ' + resolution + ' ' +
+                        'color ' + color + ' ' +
+                        'cavity ' + cavity_probe_radius + ' ' + 
+                            exterior_probe_radius +
+                        'FRONTONLY ' +
+                        'TRANSLUCENT ' + translucent + ' ' +
+                    ';' +
                     // 'isosurface id "' + hole_id + '_iso__no_widget__" ' +
                     //     'triangles; ' +
                 '';

@@ -81,6 +81,9 @@ function jmol_script_callback( id ){
     $(Provi.Jmol).triggerHandler('script_callback', [id]);
 }
 
+function jmol_error( error ){
+    console.error( error );
+}
 
 
 
@@ -354,6 +357,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
                 'echo "' + message + '";' + script + ' set echo off;';
         }
         if(params.try_catch){
+            // script = 'try{ ' + script + ' }catch(e){ javascript "jmol_error(\'" + e + "\')"; }';
             script = 'try{ ' + script + ' }catch(){}';
         }
         return script;
@@ -619,7 +623,9 @@ Provi.Jmol.JmolWidget = function(params){
             // Provi.Bio.Helix.HelixcrossingDatalist
         ];
         _.each( datalist_classes, _.bind( function( cl ){
-            this.datalist_list.push( new cl({ applet: this.applet, sele: "*", load_struct: true }));
+            this.datalist_list.push( new cl({ 
+                applet: this.applet, sele: "*", load_struct: true 
+            }));
         }, this ));
 
         this.grid_widget = new Provi.Widget.Grid.GridWidget({
@@ -629,7 +635,7 @@ Provi.Jmol.JmolWidget = function(params){
         });
 
         this.job_datalist = new Provi.Data.Job.JobDatalist({ applet: this.applet });
-        this.settings_widget = new Provi.Widget.Grid.GridWidget({
+        this.job_widget = new Provi.Widget.Grid.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.JOBS_WIDGET,
             datalist: this.job_datalist,
             grid_height: "300px"

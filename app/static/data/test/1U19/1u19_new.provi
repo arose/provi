@@ -2,22 +2,29 @@
     {
         "widget": "Provi.Widget.StoryWidget",
         "params": {
-            "template": "mphd",
+            "sort_key": -1,
+            "parent_id": "tab_widgets",
+            "template": "<ul><li>PDB ID: <a target='_blank' href='http://www.rcsb.org/pdb/explore/explore.do?structureId=${params.pdb_id}'>${params.pdb_id}</a></li><li>Probe radius: ${params.probe_radius}</li><li>Family: ${params.family}</li><li><a target='_blank' href='${params.mppd_url}''>MPPD entry</a></li></ul>",
             "data": {
                 "family": "G Protein-Coupled Receptors (GPCRs)", 
-                "mphd_url": "http://proteinformatics.charite.de/dmpc/go?pdb=1u19", 
+                "mppd_url": "http://proteinformatics.charite.de/mppd/go?pdb=1u19", 
                 "pdb_id": "1u19", 
                 "probe_radius": "1.4"
             }
         }
     },
     {
-        "filename": "pdb/1U19_OPM_mod.pdb"
+        "filename": "pdb/1U19_OPM_mod.pdb",
+        "params": {
+            "load_as": "new",
+            "script": "provi_set(\"style\", \"cartoon+lines\")"
+        }
     },
     {
         "filename": "dowser/dowserwat.pdb", 
         "params": { 
-            "load_as": "append"
+            "load_as": "append",
+            "style": "spacefill 70%;"
         }
     },
     {
@@ -34,15 +41,23 @@
     {
         "widget": "Provi.Bio.AtomProperty.AtomPropertyGroupWidget",
         "params": {
+            "sort_key": 1,
             "dataset": "DATASET_vol_atomprop", 
             "filter_properties": [
                 "packing_density", 
                 "z_score"
-            ], 
+            ],
+            "property_ranges": {
+                "packing_density": [0.0, 1.0]
+            },
             "heading": "Packing", 
             "parent_id": "tab_widgets"
         }
-    }, 
+    },
+    {
+        "name": "tmhelix",
+        "filename": "helix/1U19_OPM.opmhelix.atmsele"
+    },  
     {
         "name": "vol_atomsele",
         "filename": "vol/1U19_OPM_mod.vol.atmsele"
@@ -51,21 +66,19 @@
         "name": "vol_datalist",
         "datalist": "Provi.Bio.Voronoia.VoronoiaDatalist", 
         "params": {
-            "holes_ds": "DATASET_vol_atomsele"
+            "holes_ds": "DATASET_vol_atomsele",
+            "tmh_ds": "DATASET_tmhelix"
         }
     },
     {
         "widget": "Provi.Widget.Grid.GridWidget",
         "params": {
+            "sort_key": 2,
             "heading": "Cavities",
             "parent_id": "tab_widgets",
             "datalist": "DATALIST_vol_datalist"
         }
     },
-    {
-        "name": "tmhelix",
-        "filename": "helix/1U19_OPM.opmhelix.atmsele"
-    }, 
     {
         "name": "hbx",
         "filename": "HBX/1U19_OPM_mod_hbx.anal.bonds"
@@ -73,6 +86,7 @@
     {
         "widget": "Provi.Bio.HydrogenBonds.HbondsWidget",
         "params": {
+            "sort_key": 4,
             "dataset": "DATASET_hbx", 
             "parent_id": "tab_widgets", 
             "tmhelix_atmsele_ds": "DATASET_tmhelix"
@@ -91,18 +105,24 @@
         "datalist": "Provi.Bio.InterfaceContacts.InterfaceContactsDatalist", 
         "params": {
             "contacts_ds": "DATASET_mbn",
-            "contacts_ds2": "DATASET_mbn_contacts"
+            "contacts_ds2": "DATASET_mbn_contacts",
+            "tmh_ds": "DATASET_tmhelix",
+            "filter_ids": [ "T", "M" ]
         }
     }, 
     {
         "widget": "Provi.Widget.Grid.GridWidget",
         "params": {
+            "sort_key": 3,
             "heading": "Interface contacts", 
             "parent_id": "tab_widgets", 
             "datalist": "DATALIST_contacts_datalist"
         }
     },
     {
-        "filename": "mplane/1U19_OPM.mplane"
+        "filename": "mplane/1U19_OPM.mplane",
+        "params": {
+            "sort_key": 5
+        }
     }
 ]

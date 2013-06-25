@@ -105,28 +105,32 @@ Provi.Bio.MembranePlanes.MplaneWidget = function(params){
             'The distance between the membrane planes is: ' +
             '<span id="${eids.distance}"></span>&nbsp;&#8491;' +
         '</div>' +
-        '<div class="control_row">' +
-            '<select id="${eids.size}" class="ui-state-default">' +
-                '<option value="0">hide</option>' +
-                '<option value="-2" selected="selected">boundbox</option>' +
-                '<option id="${eids.size_slider_option}" value="-1">slider</option>' +
-                '<option value="100">100</option>' +
-                '<option value="200">200</option>' + 
-                '<option value="300">300</option>' +
-                '<option value="400">400</option>' +
-                '<option value="500">500</option>' +
-                '<option value="600">600</option>' +
-                '<option value="700">700</option>' +
-                '<option value="800">800</option>' +
-                '<option value="1000">1000</option>' +
-                '<option value="1200">1200</option>' +
-                '<option value="1400">1400</option>' +
-            '</select>&nbsp;' +
-            '<label for="${eids.size}">membrane plane size</label>' +
-        '</div>' +
+        // '<div class="control_row">' +
+        //     '<select id="${eids.size}" class="ui-state-default">' +
+        //         '<option value="0">hide</option>' +
+        //         '<option value="-2" selected="selected">boundbox</option>' +
+        //         '<option id="${eids.size_slider_option}" value="-1">slider</option>' +
+        //         '<option value="100">100</option>' +
+        //         '<option value="200">200</option>' + 
+        //         '<option value="300">300</option>' +
+        //         '<option value="400">400</option>' +
+        //         '<option value="500">500</option>' +
+        //         '<option value="600">600</option>' +
+        //         '<option value="700">700</option>' +
+        //         '<option value="800">800</option>' +
+        //         '<option value="1000">1000</option>' +
+        //         '<option value="1200">1200</option>' +
+        //         '<option value="1400">1400</option>' +
+        //     '</select>&nbsp;' +
+        //     '<label for="${eids.size}">membrane plane size</label>' +
+        // '</div>' +
+        // '<div class="control_row">' +
+        //     '<input id="${eids.visibility}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
+        //     '<div id="${eids.size_slider}"></div>' +
+        // '</div>' +
         '<div class="control_row">' +
             '<input id="${eids.visibility}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>' +
-            '<div id="${eids.size_slider}"></div>' +
+            '<label for="${eids.visibility}" >show/hide</label>' +
         '</div>' +
         '<div class="control_row">' +
             '<input id="${eids.modelbased}" type="checkbox" checked="checked" style="float:left; margin-top: 0.5em;"/>&nbsp;' +
@@ -166,19 +170,19 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
             self.visibility = self.elm("visibility").is(':checked');
             self.draw();
         });
-        this.elm("size").change( function() {
-            self.size = self.elm("size").children("option:selected").val();
-            self.elm("size_slider").slider('option', 'value', self.size);
-            self.elm("size_slider_option").hide();
-            self.draw();
-        });
-        this.elm("size_slider")
-            .slider({min: 1, max: 1400})
-            .bind( 'slidestop slide', function(event, ui){
-                self.size = ui.value;
-                self.update_size_slider();
-            });
-        this.elm("size_slider").slider('option', 'value', this.size);
+        // this.elm("size").change( function() {
+        //     self.size = self.elm("size").children("option:selected").val();
+        //     self.elm("size_slider").slider('option', 'value', self.size);
+        //     self.elm("size_slider_option").hide();
+        //     self.draw();
+        // });
+        // this.elm("size_slider")
+        //     .slider({min: 1, max: 1400})
+        //     .bind( 'slidestop slide', function(event, ui){
+        //         self.size = ui.value;
+        //         self.update_size_slider();
+        //     });
+        // this.elm("size_slider").slider('option', 'value', this.size);
         
         // init color picker
         this.elm("color").colorPicker();
@@ -230,7 +234,6 @@ Provi.Bio.MembranePlanes.MplaneWidget.prototype = Utils.extend(Widget, /** @lend
         var base_name = 'plane_' + this.id;
         if(this.visibility){
             var mp = this.dataset.bio;
-            console.log(mp, this.dataset);
             var mp_f = mp.format_as_jmol_planes();
             var color = 'color TRANSLUCENT ' + this.translucency + ' ' +
                 (this.color.charAt(0) == '#' ? '[x' + this.color.substring(1) + ']' : this.color);

@@ -376,9 +376,14 @@ Provi.Data.Datalist.prototype = {
         $(this).triggerHandler('invalidate');
     },
     script: function( s, invalidate, params ){
-        _.defaults( params || {}, { maintain_selection: true, try_catch: true } );
+        _.defaults( params || {}, { 
+            maintain_selection: true, 
+            try_catch: true 
+        });
         if( invalidate ){
-            this.applet.script_callback( s, params, _.bind( this.invalidate, this ) );
+            this.applet.script_callback( 
+                s, params, _.bind( this.invalidate, this ) 
+            );
         }else{
             this.applet.script( s, params );
         }

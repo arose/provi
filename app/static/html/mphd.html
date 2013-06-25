@@ -212,11 +212,16 @@
             $('#tabs_panel a[title]:last').qtip({ position: {my: 'top right', at: 'bottom center'} });
             $('#tabs_panel a[title]:first').qtip({ position: {my: 'top left', at: 'bottom center'} });
             
-            $('#tab_widgets').bind('Provi.widget_added', function(event, data){
+            $(Provi.Widget.WidgetManager).bind('add', function(e, data){
+                console.log("foobar");
                 $('#tab_widgets').children().sortElements( function(a, b){
-                    var widget_a = Provi.Widget.WidgetManager.get_widget( $(a).attr('id') );
-                    var widget_b = Provi.Widget.WidgetManager.get_widget( $(b).attr('id') );
-                    return widget_a.sort_key > widget_b.sort_key ? 1 : -1;
+                    var widget_a = Provi.Widget.WidgetManager.get( 
+                        $(a).attr('id') 
+                    );
+                    var widget_b = Provi.Widget.WidgetManager.get(
+                        $(b).attr('id') 
+                    );
+                    return widget_a.sort_key < widget_b.sort_key ? -1 : 1;
                 });
             });
         
