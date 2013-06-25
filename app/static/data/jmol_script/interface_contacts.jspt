@@ -6,7 +6,7 @@ function provi_intercon_test(ids){
     var intersurf_l = [];
     var displayed_l = [];
     for(var id in ids){
-        if(id!="Water" & id!="Membrane"){
+        if(id!="Water" & id!="Membrane" & id!="Tmh"){
             sele_l += provi_selection[id].selected.join("");
         }
         tmp = 0;
@@ -20,4 +20,6 @@ function provi_intercon_test(ids){
     }
     return [ sele_l.average, consurf_l.average, intersurf_l.average, displayed_l.average ];
 };
+
+
 

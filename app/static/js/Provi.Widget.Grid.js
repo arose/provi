@@ -119,7 +119,7 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
         }
         
         var columns = [{ 
-            id:"id", name:"Id", field:"id", width:350,
+            id:"id", name:"Id", field:"id", width:320,
             rerenderOnResize: true,
             asyncPostRender: render_row
         }];

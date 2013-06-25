@@ -84,6 +84,16 @@ Provi.Bio.AtomSelection.SelectionDatalist = function(params){
 Provi.Bio.AtomSelection.SelectionDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
     type: "SelectionDatalist",
     get_data: function(id){},
+    get_ids: function(id){},
+    listify_id: function(id){
+        if( id==='all' ){
+            return this.get_ids();
+        }else if( _.isArray( id ) ){
+            return id;
+        }else{
+            return [ id ];
+        }
+    },
     selection: function(id){
         // needs to respect this.sele and this.filter
         // must cope with id==='all'
@@ -426,12 +436,16 @@ Provi.Bio.AtomSelection.VariableDatalist.prototype = Utils.extend(Provi.Bio.Atom
         return $row;
     },
     selection: function(id, flag){
-        var ids = (id==='all') ? this.get_ids() : [ id ];
+        var ids = this.listify_id( id );
         var sele = _.map( ids, function(id){
             return 'provi_selection["' + id + '"]';
         });
-        if(flag){
+        if(flag==true){
             var ret = sele.join(' OR '); 
+        }else if(flag==-1){
+            var ret = '@' + sele.join(' OR @') + '';
+        }else if(flag==-2){
+            var ret = 'provi_sele_or(["' + ids.join('","') + '"])';
         }else{
             var ret = '@{ ' + sele.join(' } OR @{ ') + ' }';
         }
@@ -441,8 +455,7 @@ Provi.Bio.AtomSelection.VariableDatalist.prototype = Utils.extend(Provi.Bio.Atom
         return ret;
     },
     highlight: function(id){
-        var s = "provi_highlight(" + this.selection( id, true ) + ");";
-        console.log( "highlight", id, s );
+        var s = "provi_highlight(" + this.selection( id, -2 ) + ");";
         this.script( s );
     }
 });

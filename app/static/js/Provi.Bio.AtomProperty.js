@@ -77,6 +77,8 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function( params ){
     var p = [ "dataset", "applet", "property_name", "color_scheme", "colorize_on_init", "fixed_range" ];
     _.extend( this, _.pick( params, p ) );
     
+    params.name = params.property_name.split('_').slice(1, -1).join('_');
+
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([
         'property_name', 'color_scheme', 'min', 'max', 'set',
@@ -86,7 +88,7 @@ Provi.Bio.AtomProperty.AtomPropertyWidget = function( params ){
     var template = '' +
         '<div class="control_row">' + 
             '<div id="${eids.property_name}">' +
-                'Name: <span>${params.property_name.substr(9)}</span>' +
+                'Name: <span>${params.name}</span>' +
             '</div>' +
         '</div>' +
         '<div class="control_row">' +
@@ -206,7 +208,7 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget = function(params){
     params = _.defaults( params, this.default_params );
     params.persist_on_applet_delete = false;
 
-    var p = [ "dataset", "applet", "filer_properties", "colorize_on_init", "property_ranges" ];
+    var p = [ "dataset", "applet", "filter_properties", "colorize_on_init", "property_ranges" ];
     _.extend( this, _.pick( params, p ) );
     
     Provi.Widget.Widget.call( this, params );
@@ -228,10 +230,9 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, 
         filter_properties: false
     },
     init: function(){
-        var self = this;
-        
         var props = _.map( this.dataset.bio.get_list(), function(p){
-            return p.split('_').slice(1, -1).join('_'); // remove 'property_' prefix and '_id' suffix
+            // remove 'property_' prefix and '_id' suffix
+            return p.split('_').slice(1, -1).join('_');
         });
         
         if( this.filter_properties ){
@@ -239,13 +240,13 @@ Provi.Bio.AtomProperty.AtomPropertyGroupWidget.prototype = Utils.extend(Widget, 
         }
 
         _.each( props, function( property_name ){
-            property_name = property_name + '_' + self.dataset.id;
             var range = undefined;
-            if( self.property_ranges ){
-                range = self.property_ranges[ property_name ];
+            if( this.property_ranges ){
+                range = this.property_ranges[ property_name ];
             }
-            self.add( property_name, range );
-        });
+            property_name = property_name + '_' + this.dataset.id;
+            this.add( property_name, range );
+        }, this);
 
         Provi.Widget.Widget.prototype.init.call(this);
     },

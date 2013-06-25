@@ -160,7 +160,9 @@ Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Data.Datalis
         if( e.type=="slide" ){
             this.applet.script( s );
         }else{
-            this.applet.script_callback( s, {}, _.bind( this.invalidate, this ) );
+            this.applet.script_callback( 
+                s, {}, _.bind( this.invalidate, this ) 
+            );
         }
     }    
 });
