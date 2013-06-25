@@ -74,7 +74,7 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         cavity_color: 'skyblue',
         translucent: 0.3
     },
-    jspt_url: 'script "../data/jmol_script/voronoia.jspt";', 
+    jspt_url: "../data/jmol_script/voronoia.jspt", 
     calculate: function(){
         if( this.holes_ds ){
             this.ids = this.holes_ds.bio.get_list();
