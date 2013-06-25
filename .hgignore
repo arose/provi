@@ -22,6 +22,7 @@ provi_wsgi.ini
 app/app.cfg
 app/app2.cfg
 app/static/config.json
+app/static/tmp/
 
 app/static/applet/jmol/versions
 app/static/applet/jmol/jmol-*

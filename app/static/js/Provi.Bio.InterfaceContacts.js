@@ -151,7 +151,9 @@ Provi.Bio.InterfaceContacts.InterfaceContactsDatalist.prototype = Utils.extend(P
         ];
         this.atm_cutoff.reverse();
 
-        $(this).bind("calculate_ready", _.bind( this.show_contacts, this, 'Membrane', false ) );
+        $(this).bind("calculate_ready", _.bind( 
+            this.show_contacts, this, 'Membrane', false ) 
+        );
         this.set_ready();
     },
     tmp_prop_cmd: function(id){

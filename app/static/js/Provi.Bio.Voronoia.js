@@ -74,7 +74,8 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         cavity_color: 'skyblue',
         translucent: 0.3
     },
-    _init: function(){
+    jspt_url: 'script "../data/jmol_script/voronoia.jspt";', 
+    calculate: function(){
         if( this.holes_ds ){
             this.ids = this.holes_ds.bio.get_list();
         }
@@ -103,13 +104,10 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             }
         }, this );
 
-        this.initialized = false;
-        var s = 'script "../data/jmol_script/voronoia.jspt";';
-        this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
-        
         $(this).bind("calculate_ready", _.bind( 
             this.show_hole, this, 'all', false ) 
         );
+        this.set_ready();
     },
     get_ids: function(sele){
         return this.ids;
