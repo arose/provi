@@ -194,7 +194,7 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
             directory: directory_name,
             filename: filename
         },
-        type: type || filename.split('.').pop(),
+        type: type || Provi.Data.Io.type_from_filename( filename ),
         url: Provi.url_for( '/example/data/' +
             '?directory_name=' + directory_name + 
             '&_id=' + (new Date().getTime()) +
@@ -205,6 +205,12 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
     return dataset;
 }
 
+
+Provi.Data.Io.type_from_filename = function( filename ){
+    // remove suffixes added by dowser|gromacs to superseeded files
+    filename = filename.replace(/(_\d+|\.\d+#)$/, '');
+    return filename.split('.').pop();
+}
 
 
 /**

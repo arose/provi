@@ -47,19 +47,18 @@ Provi.Bio.Structure.Structure.prototype = {
             type = 'pdb';
         }
         var jmol_types = {
-            pdb: 'PDB',
-            gro: 'GROMACS'
+            'pdb': 'PDB',
+            'gro': 'GROMACS'
         };
         type = jmol_types[type];
         type = type ? (type + '::') : '';
-        type = '';
 
         if( this.load_as != 'append' && this.load_as != 'trajectory+append' ){
             this.applet._delete();
         }
 
-        var path = '"' + type + this.dataset.url + '"';
-        if( this.filter ) path += ' FILTER "' + this.filter + '"';
+        var path = "'" + type + this.dataset.url + "'";
+        if( this.filter ) path += " FILTER '" + this.filter + "'";
         if( this.lattice ) path += ' ' + this.lattice + '';
         
         // add hydrogens and multiple bonding (fetches ligand data from rcsb pdb)
@@ -77,9 +76,10 @@ Provi.Bio.Structure.Structure.prototype = {
         if( this.style ){
             style = 'select all; ' + this.style + 'select none; ';
         }
-        style += post_script;
+        style += post_script.replace(/"/g, '\\"');
+        console.log(style);
         
-        s = "provi_load_structure('" + s + "', '" + style + "', " + this.dataset.id + ");";
+        s = 'provi_load_structure("' + s + '", "' + style + '", ' + this.dataset.id + ');';
         this.applet.script( s, { maintain_selection: true, try_catch: false } );
     }
 };

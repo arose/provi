@@ -25,7 +25,10 @@ var Widget = Provi.Widget.Widget;
  * mapping of file extension to Provi datatypes
  */
 Provi.Data.types = {
-    structure: ['pdb', 'ent', 'pqr', 'gro', 'cif', 'mmcif', 'mol', 'mol2', 'sdf', 'xyzr', 'xyzrn'],
+    structure: [
+        'pdb', 'ent', 'pqr', 'gro', 'cif', 'mmcif', 'mol', 'mol2', 
+        'sdf', 'xyzr', 'xyzrn'
+    ],
     isosurface: ['jvxl', 'obj', 'vert'],
     volume: ['cube', 'mrc', 'cub', 'ccp4', 'dx', 'map'],
     interface_contacts: ['sco', 'mbn'],
