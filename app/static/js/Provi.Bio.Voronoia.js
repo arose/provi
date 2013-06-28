@@ -156,14 +156,16 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         }else{
             return _.map( ids, function(id){
                 var hole_id = id;
+                var draw_id = hole_id + '_draw__no_widget__ ';
                 return 'sele = ' + self.selection(id, true) + ';' +
                     'set drawHover true;' +
                     'try{' +
                         'dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;' +
-                        'draw ID ' + hole_id + '_draw__no_widget__ "Cavity ' + hole_id.split('_')[2] + '" ' +
+                        'draw ID ' + draw_id + ' ' + 
+                            '"Cavity ' + hole_id.split('_')[2] + '" ' +
                             'DIAMETER @dia ' +
-                            'COLOR ' + color + ' ' +
-                            'TRANSLUCENT ' + translucent + ' ' +
+                            'COLOR TRANSLUCENT ' + 
+                                translucent + ' ' + color + ' ' +
                             '@sele;' +
                     '}catch(e){' +
                         'print "ERROR: " + e' +

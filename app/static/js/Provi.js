@@ -41,7 +41,7 @@ var Jmol = {};
 
     Provi.init = function(){
 
-        Provi.Jmol.init("../../jmol/current/62/", !$.query.get('unsigned'));
+        Provi.Jmol.init("../../jmol/current/63/", !$.query.get('unsigned'));
         Provi.Jalview.init("../../jalview/current/0/", !$.query.get('unsigned'));
 
         Provi.Debug.auto();
