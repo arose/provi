@@ -49,12 +49,22 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection
         console.log("pdb_ds", this.pdb_ds);
         console.log("linker_ds", this.linker_ds);
 
-        this.ids = _.keys( this.linker_ds.raw_data );
-        this.data = this.linker_ds.raw_data;
+        var data = _.map( this.linker_ds.raw_data, function(v, k){
+            return [k].concat( v );
+        });
+        data =_.sortBy( data, function(x){ return x[1]; });
+        data.reverse();
+
+        this.ids = [];
+        this.data = {};
+        _.each( data, function(elm){
+            this.ids.push( elm[0] );
+            this.data[ elm[0] ] = elm.slice(1);
+        }, this);
 
         var s = 'provi_datasets[' + this.pdb_ds.id + '];';
         this.fileno = this.applet.evaluate( s );
-        console.log("LinkerDatalist file", this.file);
+        console.log("LinkerDatalist file", this.fileno);
 
         this.initialized = false;
         this.set_ready();
@@ -76,8 +86,11 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection
         if(id==='all'){
             var label = 'Linker';
         }else{
-            var d = this.data[ id ];
-            var label = "[" + id + "] " + d[0].toFixed(3) + ', ' + d[1].toFixed(3);
+            var d = _.map( this.data[id].slice(0,-1), function(x){ 
+                return x.toFixed(3);
+            });
+            var label = "[" + id + "] " + d.join(', ');
+
         }
         var a = this.get_data(id); // selected, consurf, intersurf
 
@@ -114,10 +127,12 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection
         return $linker;
     },
     make_details: function(id){
-        var d = this.data[ id ];
+        var d = _.map( this.data[id].slice(0,-1), function(x){ 
+            return x.toFixed(3);
+        });
         var $row = $('<div></div>').append(
             '<div>[' + id + '] ' + d[0].toFixed(3) + ', ' + d[1].toFixed(3) + '</div>',
-            '<div>' + d[2].slice(1,-1) + '</div>'
+            '<div>' + this.data[id][-1].slice(1,-1) + '</div>'
         );
         return $row;
     },
