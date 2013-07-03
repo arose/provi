@@ -98,17 +98,17 @@ Provi.Bio.Structure.StructureParamsWidget = function(params){
 Provi.Bio.Structure.StructureParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Structure.StructureParamsWidget.prototype */ {
     params_dict: {
         load_as: {
-            default_value: "new",
+            default: "new",
             type: "select", 
             options: [ "new", "append", "trajectory", "trajectory+append" ] 
         },
         lattice: { 
-            default_value: "",
+            default: "",
             type: "select", 
             options: [ "", "{1 1 1}", "{1 1 1} RANGE -12", "{2 2 1}", "{2 2 2}", "{3 3 1}", "{3 3 3}" ]
         },
         filter: {
-            default_value: "",
+            default: "",
             type: "select", 
             options: {
                 "": "", 
@@ -119,7 +119,7 @@ Provi.Bio.Structure.StructureParamsWidget.prototype = Utils.extend(Provi.Widget.
             }
         },
         pdb_add_hydrogens: {
-            default_value: false,
+            default: false,
             type: "checkbox" 
         }
     }

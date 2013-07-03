@@ -638,6 +638,7 @@ Provi.Jmol.JmolWidget = function(params){
         this.job_widget = new Provi.Widget.Grid.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.JOBS_WIDGET,
             datalist: this.job_datalist,
+            heading: "Jobs",
             grid_height: "300px"
         });
 

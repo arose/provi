@@ -108,7 +108,6 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
         });
 
         this.uploader.bind('FilesAdded', function(up, files) {
-            //console.log(files);
             $.each(files, function(i, file) {
                 file.dataset = new Provi.Data.Dataset({
                     name: file.name,
@@ -118,16 +117,16 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
                 });
                 self.elm("filelist").append(
                     '<div id="' + file.id + '">' +
-                        'File: ' + file.name + ' (' + plupload.formatSize(file.size) + ') <b></b>' +
+                        'File: ' + file.name + ' ' +
+                        '(' + plupload.formatSize(file.size) + ') ' +
+                        '<b></b>' +
                     '</div>'
                 );
             });
         });
 
         this.uploader.bind('UploadProgress', function(up, file) {
-            if(!file.dataset.server_id){
-                file.dataset.set_status('server', file.percent + '% uploaded');
-            }
+            if( !file ) return;
             $('#' + file.id + " b").html(file.percent + "%");
         });
 
@@ -138,6 +137,7 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
         
         this.uploader.bind('FileUploaded', function(up, file, res) {
             var response = $.parseJSON( res.response );
+            if( !response ) return;
             console.log('FileUploaded', response, file);
             file.dataset.server_id = response.id;
             file.dataset.set_type( response.type );
@@ -153,32 +153,7 @@ Provi.Data.Io.PluploadLoadWidget.prototype = Utils.extend(Widget, /** @lends Pro
         });
         
         this.uploader.init();
-        //$('#'+this.input_id).change(function(){
-        //    console.log(this.files);
-        //    self._file_reader_load(this);
-        //});
     }
-    //_file_reader_load: function(input){
-    //    var self = this;
-    //    var reader = new FileReader();  
-    //    reader.onload = function(e) {
-    //        console.log('data loaded');
-    //        var add_data_url = "../../data/add/";
-    //        var data_to_post = {'datatype': 'pdb', 'provider': 'file', 'data': e.target.result};
-    //        $.post( add_data_url, data_to_post, function(post_response_data){
-    //            console.log('add data response:', post_response_data);
-    //            $.get( '../../data/get/', {'id': post_response_data}, function(get_response_data){
-    //                self.get_jmol_applet().load_inline(get_response_data);
-    //            });
-    //            DatasetManager.update();
-    //            //init_pdb_tree( "../../data/get/?id=" + post_response_data + "&data_action=get_tree" );
-    //        });
-    //    };
-    //    reader.readAsText(input.files[0]);
-    //},
-    //_poster_load: function(){
-    //    
-    //}
 });
 
 
@@ -330,6 +305,7 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Provi.Utils.extend( Provi.Widget.Wid
         root_dir: false
     },
     init: function(){
+        console.log("ExampleLoadWidget");
         this._popup = new Provi.Widget.PopupWidget({
             parent_id: this.parent_id,
             position_my: 'left top',
