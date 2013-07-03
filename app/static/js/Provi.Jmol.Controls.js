@@ -499,6 +499,7 @@ Provi.Jmol.Controls.JmolAnimationWidget = function(params){
 }
 Provi.Jmol.Controls.JmolAnimationWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Controls.JmolAnimationWidget.prototype */ {
     default_params: {
+        collapsed: true,
         heading: 'Animation'
     },
     _init: function(){

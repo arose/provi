@@ -76,11 +76,11 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection
     },
     get_data: function(id){
         return [0];
-        if( !this.ready ) return 0;
-        // test
-        var s = 'provi_datasets[' + this.pdb_ds.id + '];';
-        var a = this.applet.evaluate(s);
-        return a;
+        // if( !this.ready ) return 0;
+        // // test
+        // var s = 'provi_datasets[' + this.pdb_ds.id + '];';
+        // var a = this.applet.evaluate(s);
+        // return a;
     },
     make_row: function(id){
         if(id==='all'){

@@ -188,8 +188,8 @@ Provi.Jalview.Applet = function(params){
 };
 Provi.Jalview.Applet.prototype = /** @lends Provi.Jalview.Applet.prototype */ {
     default_params: {
-           width: 300,
-           height: 300,
+           width: "100%",
+           height: "100%",
            css_class: 'jalview_applet',
            sync_id: ("" + Math.random()).substring(3)
     },

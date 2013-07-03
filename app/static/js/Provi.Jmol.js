@@ -263,8 +263,8 @@ Provi.Jmol.Applet = function(params){
 };
 Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     default_params: {
-        width: 300,
-        height: 300,
+        width: "100%",
+        height: "100%",
         css_class: 'jmol_applet',
         sync_id: ("" + Math.random()).substring(3)
     },
@@ -654,12 +654,10 @@ Provi.Jmol.JmolWidget = function(params){
             applet: this.applet
         });
     }
-
-    layout_main();
 };
 Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.JmolWidget.prototype */ {
     default_params: {
-        parent_id: null,
+        parent_id: undefined,
         no_grid_widget: false,
         no_data_info: true
     }
