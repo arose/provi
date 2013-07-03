@@ -121,14 +121,16 @@ var Jmol = {};
         });
         
         // only for plupload
-        tabs_panel.bind('tabsshow', function(event, ui) {
-            var scrollTop = tab_scrollbox.data('scrollTop-tab-' + ui.index);
-            if(!scrollTop) scrollTop = 0;
-            $('#tab_scrollbox').scrollTop( scrollTop );
-            if(ui.index == 3){
-                plupload.uploader.refresh();
-            }
-        });
+        // tabs_panel.bind('tabsshow', function(event, ui) {
+        //     var scrollTop = tab_scrollbox.data(
+        //         'scrollTop-tab-' + ui.index
+        //     );
+        //     if(!scrollTop) scrollTop = 0;
+        //     $('#tab_scrollbox').scrollTop( scrollTop );
+        //     if(ui.index == 3){
+        //         plupload.uploader.refresh();
+        //     }
+        // });
         
         container.splitter({
             type: "v",
@@ -152,6 +154,10 @@ var Jmol = {};
             );
         }
 
+        $('body').append(
+            '<div id="trash" style="display:hidden;"></div>' +
+            '<div id="temp" style="display:hidden;"></div>'
+        );
     }
 
 
@@ -159,7 +165,6 @@ var Jmol = {};
 
         function load_css_fn( url ){
             return function(){
-                console.log(url);
                 var link = document.createElement( "link" );
                 link.setAttribute( "rel", "stylesheet" );
                 link.setAttribute( "type", "text/css" );
@@ -247,7 +252,7 @@ var Jmol = {};
             .script("../js/Provi.Bio.Isosurface.js")
             .script("../js/Provi.Bio.Linker.js")
             .script("../js/Provi.Bio.Flatland.js")
-            .script("../js/Provi.Bio.Mutate.js")
+            .script("../js/Provi.Bio.Mutate.js").wait()
             .script("../js/Provi.Data.Controller.js")
 
             .script("../js/Provi.Jmol.js").wait()
