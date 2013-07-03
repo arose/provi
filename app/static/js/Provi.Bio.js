@@ -222,7 +222,7 @@ Provi.Bio.Data.AtomVectorLoadParamsWidget = function(params){
 }
 Provi.Bio.Data.AtomVectorLoadParamsWidget.prototype = Provi.Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Data.AtomVectorLoadParamsWidget.prototype */ {
     params_dict: {
-        scale: { default_value: 1, type: "slider", range: [ -10, 10 ], fixed: true }
+        scale: { default: 1, type: "slider", range: [ -10, 10 ], fixed: true }
     }
 });
 

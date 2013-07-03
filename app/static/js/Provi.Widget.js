@@ -29,7 +29,8 @@ Provi.Widget.ui_disable_timeout = function( $elm ){
 /**
  * global widget manager object
  */
-Provi.Widget.WidgetManager = new Provi.Utils.ObjectManager({ prefix: "widget" });
+Provi.Widget.WidgetManager = 
+    new Provi.Utils.ObjectManager({ prefix: "widget" });
 
 
 /**
@@ -331,9 +332,9 @@ Provi.Widget.ParamsWidget = function(params){
     this.params = {};
 
     _.each( this.params_dict, function( p, id ){
-        var elm = Provi.Widget.form_builder( p, p.default_value, id, this );
+        var elm = Provi.Widget.form_builder( p, p.default, id, this );
         this.elm( 'content' ).append( elm );
-        this.params[ id ] = p.default_value;
+        this.params[ id ] = p.default;
     }, this);
 
 }

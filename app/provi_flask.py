@@ -314,7 +314,9 @@ def job_done( jobname, tool ):
 def job_start( jobname, tool ):
     LOG.info( "JOB STARTED: %s - %s" % (jobname, tool.output_dir) )
     RUNNING_JOBS[ jobname ] = True
-    JOB_POOL.apply_async( tool, callback=functools.partial( job_done, jobname ) )
+    JOB_POOL.apply_async( 
+        tool, callback=functools.partial( job_done, jobname ) 
+    )
 
 # !important - allows one to abort via CTRL-C
 signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -360,7 +362,7 @@ def job_submit():
     is_form = request.args.get("POST")!="_PNGJBIN_"
     print "is_form: " + str(is_form)
     def get( name, params ):
-        default = params.get( "default_value", "" )
+        default = params.get( "default", "" )
         attr = "form" if is_form else "args"
         return getattr( request, attr ).get( name, default )
     jobtype = get( 'type', {} )
@@ -386,10 +388,10 @@ def job_submit():
             elif params["type"]=="slider":
                 d = float( get( name, params ) )
             elif params["type"]=="checkbox":
-                d = boolean( get( name, { "default_value": False } ) )
+                d = boolean( get( name, { "default": False } ) )
             else:
                 d = get( name, params )
-            if "default_value" in params:
+            if "default" in params:
                 kwargs[ name ] = d
             else:
                 args.append( d )

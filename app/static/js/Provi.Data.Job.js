@@ -199,7 +199,7 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
         this.elm("form_elms").empty();
         this.elm("submit").show();
         _.each( this.tool, _.bind( function( p, id ){
-            var form_elm = Provi.Widget.form_builder( p, p.default_value, id, this );
+            var form_elm = Provi.Widget.form_builder( p, p.default, id, this );
             this.elm("form_elms").append( form_elm )
         }, this));
         this.elm('form').children('input[name=type]').val( tool_name );
@@ -258,7 +258,7 @@ Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist, {
             root_dir: job.jobname + '/',
             applet: this.applet
         });
-        console.log(e);
+        console.log(e, job);
         return $('<div class="control_row"></div>').append(
             '<div>[' + id.toString() + "] " + job.jobname + '</div>',
             e.dom
