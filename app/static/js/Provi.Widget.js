@@ -223,6 +223,12 @@ Provi.Widget.form_builder = function( params, value, id, self ){
     var p = params;
     var $elm = $('<div></div>');
 
+    if( p.type=="float" ){
+        value = parseFloat( value );
+    }else if( p.type=="int" ){
+        value = parseInt( value );
+    }
+
     if( p.type=="checkbox" ){
 
         $elm.append(
@@ -260,6 +266,36 @@ Provi.Widget.form_builder = function( params, value, id, self ){
             '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
         );
 
+    }else if( _.contains([ "float", "int" ], p.type) && p.range ){
+
+        $elm.append( 
+            (function(){
+                var handle, slider, input;
+                input = $('<input type="hidden" name="' + id + '" />').val( value );
+                slider = $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
+                    .slider({ 
+                        min: p.range[0], max: p.range[1], value: value, 
+                        step: p.step ? p.step : 1
+                    })
+                    .data( 'id', id )
+                    .bind( 'slidestop slide', function(e, ui){
+                        handle.qtip(
+                            'option', 'content.text', ui.value
+                        );
+                        input.val( $(e.currentTarget).slider("value") );
+                        _.bind( self.set, self )(e);
+                    });
+                handle = $('.ui-slider-handle', slider);
+                handle.qtip({
+                    content: '' + slider.slider('option', 'value'),
+                    position: { my: 'bottom center', at: 'top center' },
+                    hide: { delay: 100 }
+                });
+                return slider.append(input);
+            })(),
+            '<label>' + _.str.humanize( id ) + '</label>'
+        );
+
     }else if( p.type=="slider" ){
 
         value = parseFloat(value);
@@ -269,9 +305,15 @@ Provi.Widget.form_builder = function( params, value, id, self ){
                 var handle, slider, input;
                 input = $('<input type="hidden" name="' + id + '" />').val( value );
                 slider = $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
-                    .slider({ min: p.range[0], max: p.range[1], value: value, slide: function(event, ui) {
-                        handle.qtip('option', 'content.text', '' + (p.factor ? ui.value/p.factor : ui.value) );
-                    }})
+                    .slider({ 
+                        min: p.range[0], max: p.range[1], value: value, 
+                        slide: function(event, ui) {
+                            handle.qtip(
+                                'option', 'content.text', '' + 
+                                (p.factor ? ui.value/p.factor : ui.value) 
+                            );
+                        }
+                    })
                     .data( 'id', id )
                     .bind( 'slidestop slide', function(e){
                         var elm = $(e.currentTarget);
