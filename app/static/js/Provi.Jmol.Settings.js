@@ -50,29 +50,29 @@ Provi.Jmol.Settings.dict = {
     isosurfacePropertySmoothing: { type: "checkbox" },
     largeAtomCount: { type: "checkbox", provi: true },
 
-    ambientPercent: { type: "slider", range: [ 1, 100 ] },
-    diffusePercent: { type: "slider", range: [ 1, 100 ] },
+    ambientPercent: { type: "int", range: [ 1, 100 ] },
+    diffusePercent: { type: "int", range: [ 1, 100 ] },
     specular: { type: "checkbox" },
-    specularPercent: { type: "slider", range: [ 1, 100 ] },
-    specularPower: { type: "slider", range: [ 1, 100 ] },
+    specularPercent: { type: "int", range: [ 1, 100 ] },
+    specularPower: { type: "int", range: [ 1, 100 ] },
     specularExponent: { type: "select", options: _.range( 1, 10 ) },
-    phongExponent: { type: "slider", range: [ 1, 100 ] }, 
+    phongExponent: { type: "int", range: [ 1, 100 ] }, 
     zShade: { type: "checkbox" },
     zShadePower: { type: "select", options: _.range( 1, 4 ) },
-    zSlab: { type: "slider", range: [ 1, 100 ] },
-    zDepth: { type: "slider", range: [ 1, 100 ] },
+    zSlab: { type: "int", range: [ 1, 100 ] },
+    zDepth: { type: "int", range: [ 1, 100 ] },
     celShading: { type: "checkbox" },
     backgroundColor: { type: "select", options: [ "[xFFFFFF]", "[x000000]" ] },
 
-    mousedragFactor: { type: "slider", range: [ 50, 400 ], factor: 100 },
-    mousewheelFactor: { type: "slider", range: [ 50, 400 ], factor: 100 },
+    mousedragFactor: { type: "float", range: [ 0.5, 4 ], step: 0.1 },
+    mousewheelFactor: { type: "float", range: [ 0.5, 4 ], step: 0.1 },
 
     slabEnabled: { type: "checkbox" },
-    slabRange: { type: "slider", range: [ 0, 100 ] },
+    slabRange: { type: "int", range: [ 0, 100 ] },
     slabByAtom: { type: "checkbox" },
     slabByMolecule: { type: "checkbox" },
-    slab: { type: "slider", range: [ 0, 100 ] },
-    depth: { type: "slider", range: [ 0, 100 ] },
+    slab: { type: "int", range: [ 0, 100 ] },
+    depth: { type: "int", range: [ 0, 100 ] },
 
     highResolution: { type: "checkbox" },
     antialiasDisplay: { type: "checkbox" },
@@ -82,25 +82,29 @@ Provi.Jmol.Settings.dict = {
 
     atomPicking: { type: "checkbox" },
     drawPicking: { type: "checkbox" },
-    picking: { type: "select", options: [ "", "center", "atom", "group", "chain", "molecule", "label", "spin", "draw", "distance", "angle", "torsion" ] },
-    pickingStyle: { type: "select", options: [ "toggle", "selectOrToggle", "extendedSelect", "measure" ] },
+    picking: { type: "select", options: [ 
+        "", "center", "atom", "group", "chain", "molecule", "label", 
+        "spin", "draw", "distance", "angle", "torsion" ] },
+    pickingStyle: { type: "select", options: [ 
+        "toggle", "selectOrToggle", "extendedSelect", "measure" ] },
     selectionHalos: { type: "checkbox" },
     selectionHalosColor: { type: "select", options: [ "green", "gold" ], provi: true },
-    highlightColor: { type: "select", options: [ "pink", "yellow", "black", "white", "green", "gold" ], provi: true },
-    hoverDelay: { type: "slider", range: [ 1, 100 ], factor: 100 },
+    highlightColor: { type: "select", options: [ 
+        "pink", "yellow", "black", "white", "green", "gold" ], provi: true },
+    hoverDelay: { type: "float", range: [ 0.01, 1 ], step: 0.01 },
 
     // cpk: 
     // spacefill: 
     // cartoon: { type: "select", options: _.range( 0.1, 1.6, 0.1 ), provi: true, value: "float", fixed: 1 },
-    cartoon: { type: "slider", range: [ 1, 20 ], factor: 10, fixed: 1 },
-    trace: { type: "slider", range: [ 1, 14 ], factor: 10, fixed: 1 },
-    line: { type: "slider", range: [ 1, 10 ], factor: 100, fixed: 2 },
-    stick: { type: "slider", range: [ 1, 16 ], factor: 10, fixed: 1 },
-    backbone: { type: "slider", range: [ 1, 25 ], factor: 10, fixed: 1 },
-    hermiteLevel: { type: "slider", range: [ -8, 8 ] },
+    cartoon: { type: "float", range: [ 0.1, 2 ], step: 0.1 },
+    trace: { type: "float", range: [ 0.1, 1.4 ], step: 0.1 },
+    line: { type: "float", range: [ 0.01, 0.1 ], step: 0.01 },
+    stick: { type: "float", range: [ 0.1, 1.6 ], step: 0.1 },
+    backbone: { type: "float", range: [ 0.1, 2.5 ], step: 0.1 },
+    hermiteLevel: { type: "int", range: [ -8, 8 ] },
     cartoonRockets: { type: "checkbox" },
     cartoonFancy: { type: "checkbox" },
-    ribbonAspectRatio: { type: "slider", range: [ 1, 20 ] },
+    ribbonAspectRatio: { type: "int", range: [ 1, 20 ] },
     ribbonBorder: { type: "checkbox" },
     rocketBarrels: { type: "checkbox" },
     sheetSmoothing: { type: "checkbox" },
@@ -108,7 +112,9 @@ Provi.Jmol.Settings.dict = {
     cartoonBaseEdges: { type: "checkbox" },
     cartoonLadders: { type: "checkbox" },
     sidechainHelper:  { type: "checkbox", provi: true },
-    style: { type: "select", options: [ "", "default", "lines", "sticks", "cartoon", "cartoon+sticks", "backbone", "backbone+sticks", "trace" ] },
+    style: { type: "select", options: [ 
+        "", "default", "lines", "sticks", "cartoon", "cartoon+sticks", 
+        "backbone", "backbone+sticks", "trace" ] },
 
     appletProxy: { type: "text" }
 }
@@ -149,6 +155,8 @@ Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Data.Datalis
             }
         }else if( p.type=="text" ){
             value = '"' + elm.val() + '"';
+        }else if( _.contains(["float", "int"], p.type) && p.range ){
+            value = elm.slider("value");
         }else if( p.type=="slider" ){
             value = elm.slider("value");
             if( p.factor ) value /= p.factor;
@@ -156,6 +164,12 @@ Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Data.Datalis
         }else{
             return;
         }
+
+        // make sure it's a float
+        if( p.step ) value = value.toFixed( 
+            Math.log(1/p.step)/Math.log(10)
+        );
+
         var s = 'provi_set("' + id + '", ' + value + ', false);';
         if( e.type=="slide" ){
             this.applet.script( s );
