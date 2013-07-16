@@ -392,6 +392,8 @@ Provi.Widget.ParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widg
             value = elm.children("option:selected").val();
         }else if( p.type=="text" ){
             value = elm.val();
+        }else if( _.contains(["float", "int"], p.type) && p.range ){
+            value = elm.slider("value");
         }else if( p.type=="slider" ){
             value = elm.slider("value");
             if( p.factor ) value /= p.factor;

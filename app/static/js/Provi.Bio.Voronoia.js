@@ -35,6 +35,25 @@ var Widget = Provi.Widget.Widget;
 
 
 
+Provi.Bio.Voronoia.VoronoiaParamsWidget = function(params){
+    Provi.Widget.ParamsWidget.call( this, params );
+}
+Provi.Bio.Voronoia.VoronoiaParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
+    params_dict: {
+        resolution: { default: 2.0, type: "float", 
+            range: [ 0.5, 5.0 ], step: 0.5 },
+        cavity_probe_radius: { default: 0.3, type: "float", 
+            range: [ 0.1, 0.6 ], step: 0.1 },
+        exterior_probe_radius: { default: 5.0, type: "float", 
+            range: [ 4.0, 7.0 ], step: 0.5 },
+        translucent: { default: 0.3, type: "float", 
+            range: [ 0.0, 1.0 ], step: 0.1 },
+        cavity_color: { default: "skyblue", type: "select", 
+            options: [ "skyblue", "gold" ] }
+    }
+});
+
+
 Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
     params = _.defaults( params, this.default_params );
 
@@ -67,9 +86,10 @@ Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
 }
 Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, {
     type: "VoronoiaDatalist",
+    params_object: Provi.Bio.Voronoia.VoronoiaParamsWidget,
     default_params: {
-        resolution: 2.0,
-        cavity_probe_radius: 0.6,
+        resolution: 3.0,
+        cavity_probe_radius: 0.2,
         exterior_probe_radius: 5.0,
         cavity_color: 'skyblue',
         translucent: 0.3
