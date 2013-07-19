@@ -188,7 +188,6 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
     set: function(e){
         var elm = $(e.currentTarget);
         var id = elm.data('id');
-        console.log(id, elm);
         if( id=="tool_selector" ){
             var tool_name = elm.children("option:selected").val();
             this.init_tool( tool_name );
