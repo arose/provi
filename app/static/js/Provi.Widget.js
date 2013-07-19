@@ -268,6 +268,9 @@ Provi.Widget.form_builder = function( params, value, id, self ){
 
     }else if( _.contains([ "float", "int" ], p.type) && p.range ){
 
+        if( _.isNaN(value) ){
+            value = p.range[0];
+        }
         $elm.append( 
             (function(){
                 var handle, slider, input;
