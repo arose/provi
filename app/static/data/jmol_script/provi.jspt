@@ -114,8 +114,13 @@ function provi_load_property( url, sele, dataset_id ){
 }
 
 
-function provi_load_selection( url, dataset_id ){
+function provi_load_selection( url, dataset_id, startsele ){
     if( !url ) return false;
+    var start = false;
+    if( startsele ){
+        var t = {@startsele};
+        start = t[1].atomindex;
+    }
     var x = load( url );
     var lines = x.split();
     var names = [];
@@ -124,6 +129,9 @@ function provi_load_selection( url, dataset_id ){
         var name = fields[1] + "_" + dataset_id;
         names = names + name;
         var d = fields[2][0];
+        if( start ){
+            d = d.mul(1).add(start).trim("0").trim(".");
+        }
         var sele = "({" + d.join(" ") + "})";
         provi_selection[name] = sele;
     }
@@ -131,6 +139,7 @@ function provi_load_selection( url, dataset_id ){
         provi_datasets[ dataset_id ] = names;
         provi_dataset_loaded( dataset_id );
     }
+    subset;
     return true;
 }
 

@@ -115,16 +115,22 @@ Provi.Widget.Widget.prototype = {
     init: function(){
         // must be called in the subclasses of Widget
 
-        this.elm('info').qtip({ position: {my: 'top center', at: 'bottom center'} });
+        this.elm('info').qtip({ 
+            position: {my: 'top center', at: 'bottom center'} 
+        });
         
         var heading = this.elm( 'heading' );
         heading.hover(function(){
             $(this).toggleClass('ui-state-hover');
         });
-        heading.children('[title]').qtip({ position: {my: 'top center', at: 'bottom center'} });
+        heading.children('[title]').qtip({ 
+            position: {my: 'top center', at: 'bottom center'} 
+        });
         heading.click(function() {
             $(this).siblings().toggle();
-            $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e').toggleClass('ui-icon-triangle-1-s');
+            $(this).children('.ui-icon')
+                .toggleClass('ui-icon-triangle-1-e')
+                .toggleClass('ui-icon-triangle-1-s');
             $(this).toggleClass('ui-state-active ui-state-default');
             return false;
         });
@@ -138,7 +144,7 @@ Provi.Widget.Widget.prototype = {
         if( !this.description ) this.elm( 'description' ).hide();
         
         if(this.applet && !this.persist_on_applet_delete){
-            $(this.applet).bind('delete', $.bind( this.del, this ) );
+            $(this.applet).bind('delete', _.bind( this.del, this ) );
         }
 
         this.initialized = true;
@@ -162,11 +168,14 @@ Provi.Widget.Widget.prototype = {
     },
     add_content: function( template, params ){
         var e = this.elm( 'content' );
-        $.tmpl( template, { eids: this.eid_dict, params: params } ).appendTo( e );
+        $.tmpl( template, { eids: this.eid_dict, params: params } )
+            .appendTo( e );
     },
     /**
-    * Helper function to create unique ids for dom elements that belong to the widget.
-    * The ids are build for each name in names from the following template: this.id + '_' + name.
+    * Helper function to create unique ids for dom elements 
+    * that belong to the widget.
+    * The ids are build for each name in names from 
+    * the following template: this.id + '_' + name.
     * 
     * @param {array} names An array containing the names to create ids for.
     * @returns {void}
@@ -377,7 +386,9 @@ Provi.Widget.ParamsWidget = function(params){
     this.params = {};
 
     _.each( this.params_dict, function( p, id ){
-        var elm = Provi.Widget.form_builder( p, p.default, id, this );
+        var elm = Provi.Widget.form_builder( 
+            p, params[id] || p.default, id, this
+        );
         this.elm( 'content' ).append( elm );
         this.params[ id ] = p.default;
     }, this);

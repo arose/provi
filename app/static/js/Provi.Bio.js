@@ -39,6 +39,7 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
         var dl_dict = {};
         var name_dict = {};
         var applet = Provi.Jmol.get_default_applet(true).widget.applet;
+        $(applet).triggerHandler('delete');
 
         _.each( this.dataset.raw_data, function(data, i){
             console.log("ProviMixin load", i, data.type, data);

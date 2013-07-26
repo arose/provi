@@ -28,13 +28,17 @@ var AtomProperty = {};
  * @class Represents atom selection
  */
 Provi.Bio.AtomSelection.AtomSelection = function( params ){
-    var p = [ "dataset", "applet" ];
+    var p = [ "dataset", "applet", "subsele" ];
     _.extend( this, _.pick( params, p ) );
     this.load();
 };
 Provi.Bio.AtomSelection.AtomSelection.prototype = {
     load: function(){
-        var s = 'provi_load_selection("' + this.dataset.url + '", "' + this.dataset.id + '");';
+        var s = 'provi_load_selection(' +
+            '"' + this.dataset.url + '", ' + 
+            '"' + this.dataset.id + '", ' + 
+            ( this.subsele ? '{' + this.subsele + '}' : 'false' ) +
+        ');';
         this.applet.script(s, { maintain_selection: true, try_catch: false });
     },
     get_list: function(){

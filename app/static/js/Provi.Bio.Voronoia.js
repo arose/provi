@@ -36,6 +36,7 @@ var Widget = Provi.Widget.Widget;
 
 
 Provi.Bio.Voronoia.VoronoiaParamsWidget = function(params){
+    console.log("Provi.Bio.Voronoia.VoronoiaParamsWidget", params);
     Provi.Widget.ParamsWidget.call( this, params );
 }
 Provi.Bio.Voronoia.VoronoiaParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
@@ -49,7 +50,7 @@ Provi.Bio.Voronoia.VoronoiaParamsWidget.prototype = Utils.extend(Provi.Widget.Pa
         translucent: { default: 0.3, type: "float", 
             range: [ 0.0, 1.0 ], step: 0.1 },
         cavity_color: { default: "skyblue", type: "select", 
-            options: [ "skyblue", "gold" ] }
+            options: [ "skyblue", "gold", "tomato" ] }
     }
 });
 
@@ -57,13 +58,14 @@ Provi.Bio.Voronoia.VoronoiaParamsWidget.prototype = Utils.extend(Provi.Widget.Pa
 Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
     params = _.defaults( params, this.default_params );
 
-    console.log( "VoronoiaDatalist", params );
-    
     var p = [ 
         "resolution", "cavity_probe_radius", "exterior_probe_radius", 
-        "cavity_color", "ids", "holes_ds", "translucent", "tmh_ds"
+        "cavity_color", "ids", "holes_ds", "translucent", "tmh_ds",
+        "subset"
     ];
     _.extend( this, _.pick( params, p ) );
+    this.params = {};
+    _.extend( this.params, _.pick( params, p ) );
 
     Provi.Bio.AtomSelection.VariableDatalist.call( this, params );
     this.handler = _.defaults({
@@ -92,7 +94,8 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
         cavity_probe_radius: 0.2,
         exterior_probe_radius: 5.0,
         cavity_color: 'skyblue',
-        translucent: 0.3
+        translucent: 0.3,
+        subset: '*'
     },
     jspt_url: "../data/jmol_script/voronoia.jspt", 
     calculate: function(){
@@ -100,6 +103,12 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             this.ids = this.holes_ds.bio.get_list();
         }
 
+        var hole_types = {
+            "1": "PARTLY",
+            "2": "EMPTY",
+            "3": "PARTLY_NO_HETS",
+            "4": "FILLED_NO_HETS"
+        }
         this.id_names = {};
         var cav_count = 1
         _.each( this.ids, function(id){
@@ -121,6 +130,10 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
                 if( tmh_tags.length ){
                     this.id_names[id] += " (TMH " + tmh_tags.join(", ") + ")";
                 }
+            }
+            id2 = id.split("_");
+            if( id2.length==5 ){
+                this.id_names[id] += " [" + hole_types[id2[3]] + "]";
             }
         }, this );
 
@@ -177,16 +190,17 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             return _.map( ids, function(id){
                 var hole_id = id;
                 var draw_id = hole_id + '_draw__no_widget__ ';
-                return 'sele = ' + self.selection(id, true) + ';' +
+                return 'var sele = ' + self.selection(id, true) + ';' +
                     'set drawHover true;' +
                     'try{' +
-                        'dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;' +
+                        'var dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;' +
                         'draw ID ' + draw_id + ' ' + 
                             '"Cavity ' + hole_id.split('_')[2] + '" ' +
                             'DIAMETER @dia ' +
                             'COLOR TRANSLUCENT ' + 
                                 translucent + ' ' + color + ' ' +
-                            '@sele;' +
+                            '@sele ' +
+                        ';' +
                     '}catch(e){' +
                         'print "ERROR: " + e' +
                     '}';
@@ -195,6 +209,10 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
     },
     show_hole: function(id, flag, params){
         var s = this._show_hole(id, flag, params);
+        /*if(this.subset){
+            s = "subset " + this.subset + ";" + s + "subset;";
+        }*/
+        // console.log(s);
         this.script( s, true, { try_catch: false } );
     },
     _show_cavity: function(id, flag, params){
@@ -225,6 +243,9 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
                             exterior_probe_radius + ' ' +
                         'FRONTONLY ' +
                         'TRANSLUCENT ' + translucent + ' ' +
+                    ';' +
+                    /*'isosurface id "' + hole_id + '_iso__no_widget__" ' +
+                        'MESH NOFILL ' +*/
                     ';' +
                     // 'isosurface id "' + hole_id + '_iso__no_widget__" ' +
                     //     'triangles; ' +

@@ -24,18 +24,19 @@ var Widget = Provi.Widget.Widget;
  */
 Provi.Bio.HydrogenBonds.BondSet = function( params ){
     params = _.defaults( params, this.default_params );
-    var p = [ "applet", "dataset" ];
+    var p = [ "applet", "dataset", "subset" ];
     _.extend( this, _.pick( params, p ) );
     var self = this;
-    $(this.dataset).bind("loaded", function(){self.sele()});
+    $(this.dataset).bind("loaded", function(){ self.sele() });
     this.load();
 };
-Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.BondSet.prototype */ {
+Provi.Bio.HydrogenBonds.BondSet.prototype = {
     default_params: {
-
+        subset: "*"
     },
     load: function( applet ){
         var s = '' +
+            // 'subset {' + this.subset + '};' +
             'var x = load("' + this.dataset.url + '");' +
             'var bond_count_before = {*}.bonds.size;' +
             'script INLINE @x;' +
@@ -44,13 +45,14 @@ Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.B
             'hide add @bs;' +
             'provi_datasets[' + this.dataset.id + '] = bs;' + 
             'provi_dataset_loaded( ' + this.dataset.id + ' );' +
+            // 'subset;' +
         '';
-        console.log(s);
+        // console.log(s);
         this.applet.script(s, { maintain_selection: true, try_catch: false });
     },
     sele: function(){
         var d = this.applet.evaluate( "provi_datasets[" + this.dataset.id + "]" );
-        console.log(d);
+        // console.log(d);
         return d;
     }
 }
@@ -69,7 +71,10 @@ Provi.Bio.HydrogenBonds.BondSet.prototype = /** @lends Provi.Bio.HydrogenBonds.B
 Provi.Bio.HydrogenBonds.HbondsWidget = function(params){
     params = _.defaults( params, this.default_params );
     
-    var p = [ "applet", "dataset", "color", "filter", "show_hbonds", "bond_mode_or", "tmhelix_atomsele_ds" ];
+    var p = [ 
+        "applet", "dataset", "color", "filter", "show_hbonds", 
+        "bond_mode_or", "tmhelix_atomsele_ds"
+    ];
     _.extend( this, _.pick( params, p ) );
     
     Provi.Widget.Widget.call( this, params );
@@ -109,6 +114,7 @@ Provi.Bio.HydrogenBonds.HbondsWidget.prototype = Utils.extend(Widget, /** @lends
     /** initialisation */
     default_params: {
         heading: 'Hydrogen bonds',
+        persist_on_applet_delete: false,
         show_hbonds: false,
         // color: 'blue',
         color: 'cpk',
