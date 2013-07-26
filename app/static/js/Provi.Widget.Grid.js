@@ -39,7 +39,8 @@ Provi.Widget.Grid.GridWidget = function(params){
     Provi.Widget.Widget.call( this, params );
 
     this._init_eid_manager([ 
-        'grid', 'update', 'widgets', 'calc', 'init', 'selector', 'details'
+        'grid', 'update', 'widgets', 'calc', 'init', 'selector', 
+        'details', 'applet'
     ]);
     
     var p = [ "datalist", "datalist_list" ];
@@ -177,10 +178,12 @@ Provi.Widget.Grid.GridWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @
         // params widget
         this.elm("widgets").empty();
         if( datalist.params_object ){
-            this.datalist_params = new datalist.params_object({
-                parent_id: this.eid("widgets"),
-                datalist: datalist
-            });
+            this.datalist_params = new datalist.params_object(
+                _.extend({
+                    parent_id: this.eid("widgets"),
+                    datalist: datalist
+                }, datalist.params)
+            );
             $(this.datalist_params).bind("change", _.bind( function(){ 
                 _.extend( datalist, this.datalist_params.params );
                 this.update_grid(); 
