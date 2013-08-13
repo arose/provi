@@ -62,7 +62,8 @@ Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Provi.Widget.Para
         insideout: { default: false, type: "checkbox" },
         resolution: { default: 2, type: "slider", range: [ 1, 10 ], fixed: true },
         select: { default: "*", type: "text" },
-        ignore: { default: "", type: "text" }
+        ignore: { default: "", type: "text" },
+        color: { default: "", type: "text" }
     }
 });
 
@@ -96,7 +97,8 @@ Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype = Utils.extend(Provi.Widge
 Provi.Bio.Isosurface.Isosurface = function(params){
     params = _.defaults( params, this.default_params );
     var p = [ 
-        "applet", "dataset", "color", "within", "insideout", "frontonly", "style", 
+        "applet", "dataset", "color", "within", "insideout", 
+        "frontonly", "style", "translucent",
         "resolution", "select", "ignore", "slab", "type", "map"
     ];
     _.extend( this, _.pick( params, p ) );
@@ -110,7 +112,8 @@ Provi.Bio.Isosurface.Isosurface = function(params){
 Provi.Bio.Isosurface.Isosurface.prototype = /** @lends Provi.Bio.Isosurface.Isosurface.prototype */ {
     default_params: {
         select: "*",
-        type: "sasurface"
+        type: "sasurface",
+        translucent: 0.0
     },
     load: function(){
         // TODO use dataset id for isosurface id?
@@ -121,6 +124,7 @@ Provi.Bio.Isosurface.Isosurface.prototype = /** @lends Provi.Bio.Isosurface.Isos
             ( this.frontonly ? 'FRONTONLY ' : '' ) + 
             '"' + this.dataset.url + '" ' +
             ( this.style ? this.style : '' ) + 
+            'TRANSLUCENT ' + this.translucent + ' ' +
         ';'
         s += 'provi_dataset_loaded( ' + this.dataset.id + ' );';
         this.applet.script( s, { maintain_selection: true, try_catch: true } );
@@ -276,22 +280,117 @@ Provi.Bio.Isosurface.ConstructionWidget.prototype = Utils.extend(Provi.Widget.Wi
 
 Provi.Bio.Isosurface.IsosurfaceDatalist = function(params){
     Provi.Data.Datalist.call( this, params );
+    this.handler = _.defaults({
+        "details": {
+            "selector": 'span[cell="label"]',
+            "click": this.details,
+            "label": "Show details"
+        },
+        "visibility": {
+            "selector": 'input[cell="visibility"]',
+            "click": this.visibility,
+            "label": "visibility"
+        }
+    }, this.handler);
 }
 Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
     type: "IsosurfaceDatalist",
     params_object: Provi.Bio.Isosurface.ConstructionWidget,
     get_ids: function(){
-        var shape_info = this.applet.get_property_as_array('shapeInfo');
-        return _.pluck( shape_info['Isosurface'], "ID" );
+        return _.keys( this.get_info() );
     },
     get_data: function(id){
         
     },
     make_row: function(id){
-        return id;
+        if( id=="all" ){
+            var data = this.get_info();
+            var visible = _.reduce( data, function( memo, d ){
+                return memo + ( d["visible"] ? 1 : 0 );
+            }, 0) / _.size(data);
+            var label = 'all';
+        }else{
+            var data = this.get_info(id);
+            var visible = data["visible"];
+            var label = id;
+        }
+        var $row = $('<div></div>').append(
+            this.label_cell( label, id ),
+            this.visibility_cell( id, visible )
+        );
+        return $row;
     },
+    _visibility: function(id, flag, params){
+        var self = this;
+        var ids = (id==='all') ? this.get_ids() : [ id ];
+        return _.map( ids, function(id){
+            return 'isosurface ' +
+                'ID "' + id + '" ' +
+                ( flag ? 'OFF': 'ON' ) + ';';
+        }).join(' ');
+    },
+    visibility: function(id, flag, params){
+        var s = this._visibility(id, flag, params);
+        this.script( s, true );
+    },
+    label_cell: function(label, id){
+        var $label = $('<span cell="label" style="float:left; width:120px;">' +
+            label +
+        '</span>').data( 'id', id );
+        return $label;
+    },
+    visibility_cell: Provi.Widget.Grid.CellFactory({
+        "name": "visibility", "color": "skyblue"
+    }),
     selection: function(id){
         
+    },
+    get_info: function(id){
+        var shape_info = this.applet.get_property_as_array('shapeInfo');
+        var info = {};
+        _.each( shape_info["Isosurface"], function( d, i ){
+            info[ d["ID"] ] = d;
+        })
+        var iso_list = this.applet.evaluate(
+            "script('isosurface list')"
+        );
+        iso_list = iso_list.split("\n");
+        iso_list = _.map( iso_list, function( d, i ){
+            var x = d.split("; ");
+            var id = x[0].split(":")[1];
+            _.each( x, function( xd, i ){
+                var xds = xd.split(":");
+                if( xds[0]=="visible" ){
+                    info[ id ][ "visible" ] = xds[1]=="true";
+                }
+            });
+            return x;
+        });
+        if( id ){
+            return info[id] || {};
+        }else{
+            return info;   
+        }
+    },
+    make_details: function(id){
+        var info = this.get_info();
+        console.log( info[id] );
+        return
+        var job = Provi.Data.Job.JobManager.get( id );
+        // return id.toString() + " - " + job.jobname;
+        var e = new Provi.Data.Io.ExampleLoadWidget({
+            collapsed: false,
+            heading: false,
+            all_buttons: false,
+            directory_name: '__job__',
+            root_dir: job.jobname + '/',
+            applet: this.applet
+        });
+        console.log(e, job);
+        return $('<div class="control_row"></div>').append(
+            '<div>[' + id.toString() + "] " + job.jobname + '</div>',
+            e.dom
+        );
     }
 });
 
