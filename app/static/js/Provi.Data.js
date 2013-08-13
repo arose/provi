@@ -27,7 +27,7 @@ var Widget = Provi.Widget.Widget;
 Provi.Data.types = {
     structure: [
         'pdb', 'ent', 'pqr', 'gro', 'cif', 'mmcif', 'mol', 'mol2', 
-        'sdf', 'xyzr', 'xyzrn'
+        'sdf', 'xyzr', 'xyzrn', 'xyz'
     ],
     isosurface: ['jvxl', 'obj', 'vert'],
     volume: ['cube', 'mrc', 'cub', 'ccp4', 'dx', 'map'],
