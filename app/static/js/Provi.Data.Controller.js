@@ -44,7 +44,7 @@ var type_mixins = {
     },
     "mplane": {
         bio_object: Provi.Bio.MembranePlanes.Mplane,
-        raw_type: "text"
+        raw_type: "json"
     },
     "jmol": {
         bio_object: Provi.Bio.Data.JmolFile
@@ -84,7 +84,7 @@ var type_mixins = {
     },
     "txt": {
         bio_object: Provi.Bio.Data.Txt,
-        raw_type: "txt"
+        raw_type: "text"
     },
     "xml": {
         bio_object: Provi.Bio.Data.Xml,

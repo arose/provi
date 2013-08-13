@@ -53,18 +53,20 @@ Provi.Bio.MembranePlanes.Mplane.prototype = /** @lends Provi.Bio.MembranePlanes.
         return [ this.__jmol_format( this.plane1 ), this.__jmol_format( this.plane2 ) ];
     },
     parse: function(){
-        var line = this.dataset.raw_data.split("\n")[0];
+        /*var line = this.dataset.raw_data.split("\n")[0];
         var raw_planes = line.substring( line.indexOf(": {") + 2 ).split(":::");
         var planes = _.map( raw_planes, function( pl ){
             var raw_points = pl.split( /}\s+{/ );
             return _.map( raw_points, function( pt ){
                 return _.map( pt.split(","), function( c ){
-                    return parseFloat( c.replace(/{|}|\s*/g, "") )
+                    return parseFloat( c.replace(/{|}|\sg, "") )
                 });
             })
         });
         this.plane1 = planes[0];
-        this.plane2 = planes[1];
+        this.plane2 = planes[1];*/
+        this.plane1 = this.dataset.raw_data[0];
+        this.plane2 = this.dataset.raw_data[1];
     },
     calc_distance: function(){
         // http://softsurfer.com/Archive/algorithm_0104/algorithm_0104.htm
