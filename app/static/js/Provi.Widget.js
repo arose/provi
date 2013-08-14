@@ -437,6 +437,9 @@ Provi.Widget.StoryWidget = function(params){
     this._init_eid_manager([
         
     ]);
+
+    var p = [ "buttons" ];
+    _.extend( this, _.pick( params, p ) );
     
     if( this.templates.hasOwnProperty( params.template ) ){
         params.template = this.templates[ params.template ];
@@ -445,6 +448,7 @@ Provi.Widget.StoryWidget = function(params){
     this.add_content( params.template, params.data );
     
     this._init();
+    this._init_buttons();
 }
 Provi.Widget.StoryWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lends Provi.Widget.StoryWidget.prototype */ {
     default_params: {
@@ -454,10 +458,25 @@ Provi.Widget.StoryWidget.prototype = Utils.extend(Provi.Widget.Widget, /** @lend
         
     },
     _init: function(){
-        var self = this;
-        
         Provi.Widget.Widget.prototype.init.call(this);
     },
+    _init_buttons: function(){
+        var e = this.elm( 'content' );
+        _.each( this.buttons, function( v, k ){
+            var btn = $('<button>' + v.label + '</button>')
+                .button()
+                .click( _.bind( this.script, this, v.script ) );
+            var div = $('<div></div>');
+            btn.appendTo( div );
+            div.appendTo( e );
+        }, this);
+    },
+    script: function( s ){
+        if( !this.applet || !s ) return;
+        this.applet.script( 
+            s, { maintain_selection: true, try_catch: true }
+        );
+    }
 });
 
 
@@ -514,8 +533,8 @@ Provi.Widget.PopupWidget.prototype = Utils.extend(Widget, {
         //console.log( target, position_my, position_at, this.position_my, this.position_at );
         $(this.dom).show();
         // TODO FIX arose
-        // for an unknown reason this needs to be called twice to be visible
-        // after the very first call to show
+        // for an unknown reason this needs to be called twice 
+        // to be visible after the very first call to show
         this.set_position( target, position_my, position_at );
         this.set_position( target, position_my, position_at );
     },
