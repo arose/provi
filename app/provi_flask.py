@@ -3,15 +3,13 @@ from __future__ import with_statement
 import sys
 import os
 import urllib2
-import StringIO
+# import StringIO
+import base64
 import tempfile
 import functools
 import uuid
 import signal
 import logging
-import Queue
-import threading
-import time
 import multiprocessing
 
 try:
@@ -22,7 +20,7 @@ except ImportError:
 from flask import Flask
 from flask import send_from_directory
 from flask import send_file
-from flask import request, Request
+from flask import request
 from flask import make_response, Response
 from flask import jsonify
 
@@ -69,10 +67,8 @@ def boolean(string):
 
 def decode( data, encoding ):
     if encoding == 'base64':
-        from base64 import b64decode, decodestring
         try:
-            # data = b64decode( data )
-            data = decodestring( data )
+            data = base64.decodestring( data )
         except Exception, e:
             print str(e)
     return data
