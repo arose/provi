@@ -76,18 +76,24 @@ Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype = Utils.extend(Provi.Widge
     params_dict: {
         within: { default: 2, type: "slider", range: [ 1, 10 ] },
         insideout: { default: false, type: "checkbox" },
-        sigma: { default: 1, type: "slider", range: [ 0, 50 ], factor: 10 },
+        sigma: { default: 1, type: "slider", range: [ 0, 50 ], 
+            factor: 10 },
         cutoff: { default: 0, type: "slider", range: [ 0, 255 ] },
         color_density: { default: false, type: "checkbox" },
         sign: { default: true, type: "checkbox" },
         downsample: { default: 1, type: "slider", range: [ 1, 10 ] },
         type: { default: "", type: "select", options: [ 
-            "", "sasurface", "molecular", "cavity", "solvent 1.4", "solvent 1.0", "solvent 0.8",
-            "cavity 1.0 8", "interior cavity 1.0 8", "pocket cavity 1.0 8"
+            "", "sasurface", "molecular", "cavity", "solvent 1.4", 
+            "solvent 1.0", "solvent 0.8", "cavity 1.0 8", 
+            "interior cavity 1.0 8", "pocket cavity 1.0 8"
         ] },
-        resolution: { default: 2, type: "slider", range: [ 1, 10 ], fixed: true },
+        resolution: { default: 2, type: "slider", range: [ 1, 10 ], 
+            fixed: true },
         select: { default: "*", type: "text" },
-        ignore: { default: "", type: "text" }
+        ignore: { default: "", type: "text" },
+        type: { default: "", type: "style", options: [ 
+            "", "FILL", "MESH NOFILL", "DOTS, NOFILL"
+        ] },
     }
 });
 
@@ -99,7 +105,8 @@ Provi.Bio.Isosurface.Isosurface = function(params){
     var p = [ 
         "applet", "dataset", "color", "within", "insideout", 
         "frontonly", "style", "translucent",
-        "resolution", "select", "ignore", "slab", "type", "map"
+        "resolution", "select", "ignore", "slab", "type", "map",
+        "iso_slab"
     ];
     _.extend( this, _.pick( params, p ) );
 
@@ -116,16 +123,20 @@ Provi.Bio.Isosurface.Isosurface.prototype = /** @lends Provi.Bio.Isosurface.Isos
         translucent: 0.0
     },
     load: function(){
-        // TODO use dataset id for isosurface id?
-        var s = 'isosurface ID "iso_' + Provi.Utils.uuid() + '" ' +
+        this.iso_id = 'iso_' + Provi.Utils.uuid();
+        var s = 'isosurface ID "' +this.iso_id + '" ' +
             ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
             ( this.within ? 'WITHIN ' + this.within + ' { protein } ' : '' ) +
-            ( this.insideout ? 'INSIDEOUT ' : '' ) + 
             ( this.frontonly ? 'FRONTONLY ' : '' ) + 
+            ( this.insideout ? 'INSIDEOUT ' : '' ) + 
             '"' + this.dataset.url + '" ' +
-            ( this.style ? this.style : '' ) + 
+            ( this.style ? this.style + ' ' : '' ) + 
             'TRANSLUCENT ' + this.translucent + ' ' +
         ';'
+        if( this.iso_slab ){
+            s += 'provi_iso_slab_id = "' + this.iso_id + '";' +
+                'isosurface SLAB WITHIN 8.0 (@{ {*}.XYZ });';
+        }
         s += 'provi_dataset_loaded( ' + this.dataset.id + ' );';
         this.applet.script( s, { maintain_selection: true, try_catch: true } );
     },
@@ -188,7 +199,7 @@ Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.p
             }
             s += '' +
                 ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
-                //( this.within ? 'WITHIN ' + this.within + ' ' : '' ) + 
+                ( this.within ? 'WITHIN ' + this.within + ' {*} ' : '' ) + 
                 (this.downsample ? 'downsample ' + this.downsample + ' ' : '') +
                 (this.cutoff ? 'cutoff ' + this.cutoff + ' ' : '') +
                 (this.sign ? 'SIGN blue red ' : '') +
@@ -215,7 +226,10 @@ Provi.Bio.Isosurface.Volume.prototype = /** @lends Provi.Bio.Isosurface.Volume.p
             s += 'color $"' + this.iso_id + '" ' + this.color + ';';
         }
         s += 'provi_dataset_loaded( ' + this.dataset.id + ' );';
-        this.applet.script( s, { maintain_selection: true, try_catch: true } );
+        s += 'provi_iso_slab_id = "' + this.iso_id + '";';
+        this.applet.script( 
+            s, { maintain_selection: true, try_catch: true } 
+        );
     }
 };
 
