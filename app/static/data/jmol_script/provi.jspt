@@ -9,6 +9,7 @@ function provi_init(){
     provi_uid_counter = 0;
     provi_settings_init();
     provi_bind_init();
+    provi_iso_slab_id = false;
 }
 
 
@@ -71,16 +72,18 @@ function provi_highlight( sele ){
 
 
 function provi_zoom( delta_y ){
-    print delta_y;
     zoom + @delta_y;
 }
 
 
 function provi_center( sele ){
-    var slab_enabled_bak = slabEnabled;
-    print slab_enabled_bak;
     centerAt absolute @{ {sele}.XYZ };
     provi_zslab( 0 );
+    if( provi_iso_slab_id ){
+        isosurface ID @provi_iso_slab_id;
+        isosurface SLAB NONE;
+        isosurface SLAB WITHIN 8.0 {sele};
+    }
 }
 
 
