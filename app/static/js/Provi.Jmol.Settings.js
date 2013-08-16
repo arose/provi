@@ -37,7 +37,7 @@ Provi.Jmol.Settings.Radii['babel'] = {'C':1.7,'N':1.6,'O':1.55,'S':1.8,'Mg':2.2,
 Provi.Jmol.Settings.groups = {
     misc: [ "defaultVDW", "isosurfacePropertySmoothing", "largeAtomCount" ],
     lighting: [ "ambientPercent", "diffusePercent", "specular", "specularPercent", "specularPower", "specularExponent", "phongExponent", "zShade", "zShadePower", "zSlab", "zDepth", "celShading", "backgroundColor" ],
-    bind: [ "mousedragFactor", "mousewheelFactor" ],
+    bind: [ "mousedragFactor", "mousewheelFactor", "useArcBall" ],
     clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", "slab", "depth" ],
     quality: [ "highResolution", "antialiasDisplay", "antialiasTranslucent", "antialiasImages", "wireframeRotation" ],
     picking: [ "atomPicking", "drawPicking", "picking", "pickingStyle", "selectionHalos", "selectionHalosColor", "hoverDelay", "highlightColor" ],
@@ -64,8 +64,9 @@ Provi.Jmol.Settings.dict = {
     celShading: { type: "checkbox" },
     backgroundColor: { type: "select", options: [ "[xFFFFFF]", "[x000000]" ] },
 
-    mousedragFactor: { type: "float", range: [ 0.5, 4 ], step: 0.1 },
-    mousewheelFactor: { type: "float", range: [ 0.5, 4 ], step: 0.1 },
+    mousedragFactor: { type: "float", range: [ 0.5, 8 ], step: 0.1 },
+    mousewheelFactor: { type: "float", range: [ 0.1, 4 ], step: 0.1 },
+    useArcBall: { type: "checkbox" },
 
     slabEnabled: { type: "checkbox" },
     slabRange: { type: "int", range: [ 0, 100 ] },

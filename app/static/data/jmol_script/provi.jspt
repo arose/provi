@@ -35,10 +35,50 @@ function provi_sele_or( name_list ){
 
 
 function provi_bind_init(){
-    unbind "CTRL-LEFT";
-    bind "CTRL-LEFT" "if(_MODE==2 and _ATOM){ centerAt absolute @{ {_ATOM}.XYZ }; }";
-    unbind "ALT-WHEEL";
-    bind "ALT-WHEEL" "provi_zslab( _DELTAY );";
+    unbind "WHEEL";
+    bind "WHEEL" "provi_zslab( _DELTAY );";
+
+    unbind "MIDDLE-SINGLE";
+    bind "MIDDLE-SINGLE" "_translate";
+    bind "MIDDLE-SINGLE" "if(_MODE==2 and _ATOM){ centerAt absolute @{ {_ATOM}.XYZ }; }";
+
+    unbind "RIGHT";
+    # bind "RIGHT" "provi_zoom( _DELTAY )";
+    #bind "RIGHT" "_wheelZoom";
+    bind "RIGHT" "_rotateZorZoom";
+    unbind "RIGHT-DOUBLE";
+    bind "CTRL-RIGHT-SINGLE" "_popupMenu";
+
+    unbind "LEFT-SINGLE";
+    bind "LEFT-SINGLE" "_rotate";
+    bind "LEFT-SINGLE" "_selectToggle";
+    bind "LEFT-SINGLE" "_slideZoom";
+    unbind "LEFT-DOUBLE";
+}
+
+
+function provi_highlight( sele ){
+    # todo: ensure visibility/display
+    var saved_colors = sele.color.all;
+    var dt = 0.07;
+    var colr = provi_get( "highlightColor" );
+    for( var i=0; i<3; ++i){
+        color {@sele} @colr;
+        delay @dt;
+        sele.color = saved_colors;
+        delay @dt;
+    }
+}
+
+
+function provi_zoom( delta_y ){
+    print delta_y;
+    zoom + @delta_y;
+}
+
+
+function provi_center( sele ){
+    # todo
 }
 
 
@@ -51,18 +91,24 @@ function provi_zslab( delta_y ){
     set zSlab @{zSlab + delta_y/abs(delta_y)}; 
     if(zSlab<0){ set zSlab 0; } 
     if(zSlab>100){ set zSlab 100; }
+    #slab @{110 - zSlab};
+    #zDepth @{zSlab - 10};
+    #if(zDepth<0){ set zDepth 0 } 
+    #if(zDepth>100){ set zDepth 100 }
     #todo: notify provi
 }
 
 
 function provi_settings_init(){
     set slab 100;
-    set zSlab 40;
+    set zSlab 30;
     set hoverDelay 0.1;
-    set mousedragFactor 2.0;
+    set mousedragFactor 4.0;
+    set mousewheelFactor 0.0001;
     set selectionHalos true;
     set highResolution true;
     set picking "group";
+    set useArcBall true;
     provi_set( "largeAtomCount", false, false, true );
     provi_set( "selectionHalosColor", "green" );
     provi_set( "highlightColor", "yellow" );
@@ -245,25 +291,6 @@ function provi_sele_test( ids ){
         sele_l += provi_selection[id].selected.join("");
     }
     return [ sele_l.average, displayed_l.average ];
-}
-
-
-function provi_highlight( sele ){
-    # todo: ensure visibility/display
-    var saved_colors = sele.color.all;
-    var dt = 0.07;
-    var colr = provi_get( "highlightColor" );
-    for( var i=0; i<3; ++i){
-        color {@sele} @colr;
-        delay @dt;
-        sele.color = saved_colors;
-        delay @dt;
-    }
-}
-
-
-function provi_center( sele ){
-    # todo
 }
 
 
