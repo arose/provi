@@ -36,15 +36,14 @@ function provi_sele_or( name_list ){
 
 function provi_bind_init(){
     unbind "WHEEL";
-    bind "WHEEL" "provi_zslab( _DELTAY );";
+    bind "WHEEL" "provi_zslab( _DELTAY )";
+    bind "SHIFT-WHEEL" "provi_zslab2( _DELTAY )";
 
     unbind "MIDDLE-SINGLE";
     bind "MIDDLE-SINGLE" "_translate";
-    bind "MIDDLE-SINGLE" "if(_MODE==2 and _ATOM){ centerAt absolute @{ {_ATOM}.XYZ }; }";
+    bind "MIDDLE-SINGLE" "if(_MODE==2 and _ATOM){ provi_center( _ATOM ) }";
 
     unbind "RIGHT";
-    # bind "RIGHT" "provi_zoom( _DELTAY )";
-    #bind "RIGHT" "_wheelZoom";
     bind "RIGHT" "_rotateZorZoom";
     unbind "RIGHT-DOUBLE";
     bind "CTRL-RIGHT-SINGLE" "_popupMenu";
@@ -78,24 +77,46 @@ function provi_zoom( delta_y ){
 
 
 function provi_center( sele ){
-    # todo
+    var slab_enabled_bak = slabEnabled;
+    print slab_enabled_bak;
+    centerAt absolute @{ {sele}.XYZ };
+    provi_zslab( 0 );
 }
 
 
 function provi_zslab( delta_y ){
-    #set slabEnabled true;
+    set slabEnabled true;
     set zShade true;
-    slab @{slab - delta_y/abs(delta_y)}; 
-    if(slab<0){ slab 0; } 
-    if(slab>100){ slab 100; } 
     set zSlab @{zSlab + delta_y/abs(delta_y)}; 
     if(zSlab<0){ set zSlab 0; } 
     if(zSlab>100){ set zSlab 100; }
-    #slab @{110 - zSlab};
-    #zDepth @{zSlab - 10};
-    #if(zDepth<0){ set zDepth 0 } 
-    #if(zDepth>100){ set zDepth 100 }
+    set slab @{100 - zSlab};
+    set zDepth @{zSlab - 30};
+    if(zDepth<0){ set zDepth 0 } 
+    if(zDepth>100){ set zDepth 100 }
     #todo: notify provi
+}
+
+
+function provi_zslab2( delta_y ){
+    set slabEnabled true;
+    set zShade true;
+    if( delta_y<0 ){
+        set slab @{slab - delta_y/abs(delta_y)};
+        if( slab>=100 ){
+            set zSlab @{zSlab - delta_y/abs(delta_y)};
+        }
+    }
+    if( delta_y>0 ){
+        set zSlab @{zSlab - delta_y/abs(delta_y)};
+        if( zSlab<=0 ){
+            set slab @{slab - delta_y/abs(delta_y)};
+        }
+    }
+    if(zSlab<0){ set zSlab 0; } 
+    if(zSlab>100){ set zSlab 100; }
+    if(slab<0){ set slab 0; } 
+    if(slab>100){ set slab 100; }
 }
 
 
