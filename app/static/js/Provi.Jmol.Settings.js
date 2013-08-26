@@ -35,13 +35,24 @@ Provi.Jmol.Settings.Radii['babel'] = {'C':1.7,'N':1.6,'O':1.55,'S':1.8,'Mg':2.2,
 
 
 Provi.Jmol.Settings.groups = {
-    misc: [ "defaultVDW", "isosurfacePropertySmoothing", "largeAtomCount" ],
-    lighting: [ "ambientPercent", "diffusePercent", "specular", "specularPercent", "specularPower", "specularExponent", "phongExponent", "zShade", "zShadePower", "zSlab", "zDepth", "celShading", "backgroundColor" ],
+    misc: [ "defaultVDW", "isosurfacePropertySmoothing", "largeAtomCount",
+        "translucent" ],
+    lighting: [ "ambientPercent", "diffusePercent", "specular", 
+        "specularPercent", "specularPower", "specularExponent", 
+        "phongExponent", "zShade", "zShadePower", "zSlab", "zDepth", 
+        "celShading", "backgroundColor" ],
     bind: [ "mousedragFactor", "mousewheelFactor", "useArcBall" ],
-    clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", "slab", "depth" ],
-    quality: [ "highResolution", "antialiasDisplay", "antialiasTranslucent", "antialiasImages", "wireframeRotation" ],
-    picking: [ "atomPicking", "drawPicking", "picking", "pickingStyle", "selectionHalos", "selectionHalosColor", "hoverDelay", "highlightColor" ],
-    style: [ "cartoon", "trace", "line", "stick", "cpk", "spacefill", "backbone", "hermiteLevel", "cartoonRockets", "cartoonFancy", "ribbonAspectRatio", "ribbonBorder", "rocketBarrels", "sheetSmoothing", "traceAlpha", "cartoonBaseEdges", "cartoonLadder", "sidechainHelper", "style" ],
+    clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", 
+        "slab", "depth" ],
+    quality: [ "highResolution", "antialiasDisplay", "antialiasTranslucent", 
+        "antialiasImages", "wireframeRotation" ],
+    picking: [ "atomPicking", "drawPicking", "picking", "pickingStyle", 
+        "selectionHalos", "selectionHalosColor", "hoverDelay", "highlightColor" ],
+    style: [ "cartoon", "trace", "line", "stick", "cpk", "spacefill", 
+        "backbone", "hermiteLevel", "cartoonRockets", "cartoonFancy", 
+        "ribbonAspectRatio", "ribbonBorder", "rocketBarrels", 
+        "sheetSmoothing", "traceAlpha", "cartoonBaseEdges", 
+        "cartoonLadder", "sidechainHelper", "style" ],
     sys: [ "appletProxy" ],
 }
 
@@ -49,6 +60,7 @@ Provi.Jmol.Settings.dict = {
     defaultVDW: { type: "select", options: [ "jmol", "babel", "rasmol" ] },
     isosurfacePropertySmoothing: { type: "checkbox" },
     largeAtomCount: { type: "checkbox", provi: true },
+    translucent: { type: "checkbox" },
 
     ambientPercent: { type: "int", range: [ 1, 100 ] },
     diffusePercent: { type: "int", range: [ 1, 100 ] },
@@ -183,23 +195,6 @@ Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Data.Datalis
 });
 
 
-
-
-
-
-            // 'unbind "CTRL-LEFT";' + 
-            // 'unbind "ALT-WHEEL";' + 
-            // 'unbind "ALT-CTRL-WHEEL";' + 
-            // 'bind "CTRL-LEFT" "if(_MODE==2 and _ATOM){ zoomTo 0.6 (_ATOM); } javascript jmol_zoom(' + this.applet.name_suffix + ', \'_X\', \'_Y\', \'_DELTAX\', \'_DELTAY\', \'_TIME\', \'_ACTION\', \'_ATOM\', \'_BOND\', \'_POINT\')";' +
-            // 'bind "ALT-WHEEL" "slab @{slab - _DELTAY/abs(_DELTAY)}; if(slab<0){slab 0;} if(slab>100){slab 100;} set zSlab @{zSlab + _DELTAY/abs(_DELTAY)}; if(zSlab<0){set zSlab 0;} if(zSlab>100){set zSlab 100;} javascript jmol_bind(' + this.applet.name_suffix + ') ";' +
-            // 'bind "ALT-CTRL-WHEEL" "slab @{slab - _DELTAY/abs(_DELTAY)}; if(slab<0){slab 0;} if(slab>100){slab 100;} set zSlab @{zSlab - _DELTAY/abs(_DELTAY)}; if(zSlab<0){set zSlab 0;} if(zSlab>100){set zSlab 100;} javascript jmol_bind(' + this.applet.name_suffix + ') ";' +
-            //'bind "SHIFT-LEFT" "_translate";' +
-            //'bind "ALT-LEFT" "_selectToggleOr";' +
-            
-            //'bind "ALT-LEFT" "print _X; print _Y; print _picked; print _pickedAtom;";' +
-            //'javascript "jmol_bind(1);";' +
-            //'function javascript_bind(i){ javascript "xjmol_binder()"; }' +
-            //'bind "ALT-WHEEL" "javascript_bind(1);";' +
 
 
         // var radii = [];

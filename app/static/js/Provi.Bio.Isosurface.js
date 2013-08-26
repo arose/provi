@@ -124,7 +124,7 @@ Provi.Bio.Isosurface.Isosurface.prototype = /** @lends Provi.Bio.Isosurface.Isos
     },
     load: function(){
         this.iso_id = 'iso_' + Provi.Utils.uuid();
-        var s = 'isosurface ID "' +this.iso_id + '" ' +
+        var s = 'isosurface ID "' + this.iso_id + '" ' +
             ( this.color ? 'COLOR ' + this.color + ' ' : '' ) + 
             ( this.within ? 'WITHIN ' + this.within + ' { protein } ' : '' ) +
             ( this.frontonly ? 'FRONTONLY ' : '' ) + 
