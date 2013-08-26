@@ -616,7 +616,7 @@ Provi.Jmol.JmolWidget = function(params){
             Provi.Bio.AtomSelection.ModelindexDatalist,
             Provi.Bio.AtomSelection.VariableDatalist,
             Provi.Bio.AtomSelection.StrucnoDatalist,
-            Provi.Bio.HydrogenBonds.HbondsDatalist,
+            // Provi.Bio.HydrogenBonds.HbondsDatalist,
             Provi.Bio.AtomSelection.AtomindexDatalist,
             Provi.Bio.Isosurface.IsosurfaceDatalist
             // Provi.Bio.Helix.HelixorientDatalist,
