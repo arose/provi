@@ -1,0 +1,14 @@
+<VirtualHost *:80>
+    ServerName localhost
+
+    WSGIDaemonProcess provi user=arose group=arose threads=5
+    WSGIScriptAlias /provi /var/www/provi/provi.wsgi
+
+    <Directory /var/www/provi>
+        WSGIProcessGroup provi
+        WSGIApplicationGroup %{GLOBAL}
+        WSGIScriptReloading On
+        Order deny,allow
+        Allow from all
+    </Directory>
+</VirtualHost>
