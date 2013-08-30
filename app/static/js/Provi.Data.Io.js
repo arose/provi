@@ -439,10 +439,9 @@ Provi.Data.Io.import_url = function( url, name, type, params, no_init ){
         name: url,
         meta: { url: url },
         type: type || url.split('.').pop(),
-        url: window.location.protocol + '//' + window.location.host +
-            '/urlload/' +
-                '?_id=' + (new Date().getTime()) +
-                '&url=' + url
+        url: Provi.url_for( '/urlload' ) +
+            '?_id=' + (new Date().getTime()) +
+            '&url=' + url
     });
     if(!no_init) dataset.init( params );
     return dataset;
