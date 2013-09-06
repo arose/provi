@@ -12,6 +12,8 @@ APP_ENV = '/home/arose/dev/envs/bin/'
 
 #####
 # do not change anything below unless you are sure
+# http://flask.pocoo.org/docs/deploying/mod_wsgi/
+
 
 import os
 

@@ -21,3 +21,5 @@
 
 
 
+DEPLOY
+/var/log/apache2/error.log
