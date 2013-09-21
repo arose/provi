@@ -144,7 +144,7 @@ def favicon():
 #     return send_from_directory( app.config['STATIC_DIR'], os.path.join( "html", filename ) )
 
 @app.route('/static/<path:filename>')
-def static(filename):
+def staticx(filename):
     return send_from_directory( app.config['STATIC_DIR'], filename )
 
 @app.route('/jmol/current/<int:flag>/<path:filename>')
