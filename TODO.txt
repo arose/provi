@@ -21,5 +21,13 @@
 
 
 
-DEPLOY
+
+DEPLOY on ubuntu, debian
+
 /var/log/apache2/error.log
+
+sudo /etc/init.d/apache2 reload
+
+/var/www/provi/provi.wsgi
+
+/etc/apache2/sites-enabled/provi
