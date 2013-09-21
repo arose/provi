@@ -127,9 +127,9 @@ def requires_auth(f):
 # static routes
 ############################
 
-@app.route('/')
-def hello_world():
-    return 'Hello World!!!'
+# @app.route('/')
+# def hello_world():
+#     return 'Hello World!!!'
 
 @app.route('/favicon.ico')
 def favicon():
@@ -138,10 +138,10 @@ def favicon():
         mimetype='image/vnd.microsoft.icon'
     )
 
-@app.route('/static/html/<path:filename>')
-@requires_auth
-def static_html(filename):
-    return send_from_directory( app.config['STATIC_DIR'], os.path.join( "html", filename ) )
+# @app.route('/static/html/<path:filename>')
+# @requires_auth
+# def static_html(filename):
+#     return send_from_directory( app.config['STATIC_DIR'], os.path.join( "html", filename ) )
 
 @app.route('/static/<path:filename>')
 def static(filename):
