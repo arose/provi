@@ -564,15 +564,8 @@ Provi.Jmol.JmolWidget = function(params){
             '<span style="position:absolute; right:26px; top:3px;">' +
                 '<select id="' + this.picking_id + '" class="ui-state-default">' +
                     '<option value=""></option>' +
-                    '<option value="center">center</option>' +
                     '<option value="atom">select atom</option><option value="group">select group</option>' +
                     '<option value="chain">select chain</option><option value="molecule">select molecule</option>' +
-                    '<option value="label">label</option>' +
-                    '<option value="spin">spin</option>' +
-                    '<option value="draw">draw</option>' +
-                    '<option value="distance">measure distance</option>' +
-                    '<option value="angle">measure angle</option>' +
-                    '<option value="torsion">measure torsion</option>' +
                 '</select>' +
             '</span>' +
             '<span title="delete" class="ui-icon ui-icon-trash" style="cursor:pointer; position:absolute; right:6px; top:6px;" id="' + this.delete_id + '">delete</span>' +
@@ -584,16 +577,11 @@ Provi.Jmol.JmolWidget = function(params){
     $('#' + this.applet_parent_id).append( this.applet.dom );
     
     var self = this;
+    $('#' + this.picking_id).bind('click change', function(){
+        var picking = $('#' + self.picking_id).children("option:selected").val();
+        self.applet.script( 'set picking ' + picking + ';' );
+    });
     
-    // TODO
-    // $('#' + this.picking_id).bind('click change', $.proxy( function(){
-    //     var picking = $('#' + self.picking_id).children("option:selected").val();
-    //     self.applet.picking_manager.set({picking: picking});
-    // }, this ));
-    // $(this.applet.picking_manager).bind('change', function(){
-    //     var params = self.applet.picking_manager.get();
-    //     $('#' + self.picking_id).val( params.picking );
-    // });
     
     $('#' + this.delete_id).qtip({ position: {my: 'right center', at: 'left center'} }).click(function(){
         $(this).trigger('mouseout');
