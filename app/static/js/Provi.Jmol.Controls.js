@@ -169,6 +169,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
                 '<option value=""></option>' +
                 '<option value="structure">secondary structure</option>' +
                 '<option value="chain">by chain</option>' +
+                '<option value="amino">by amino acid</option>' +
                 '<option value="group">by group (rainbow)</option>' +
                 '<option value="cpk">cpk</option>' +
                 '<option value="molecule">by molecule</option>' +
@@ -180,7 +181,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
             '&nbsp;' +
             '<label for="${eids.color_scheme}">color scheme</label>' +
         '</div>' +
-        '<div class="control_row">' +
+        /*'<div class="control_row">' +
             '<select style="width:1.5em;" id="${eids.quality}" class="ui-state-default">' +
                 '<option value=""></option>' +
                 '<option value="0">normal</option>' +
@@ -189,7 +190,7 @@ Provi.Jmol.Controls.JmolDisplayWidget = function(params){
             '</select>' +
             '&nbsp;' +
             '<label for="${eids.quality}">quality</label>' +
-        '</div>' +
+        '</div>' +*/
         '<div class="control_row">' +
             '<select style="width:1.5em;" id="${eids.color_models}" class="ui-state-default">' +
                 '<option value=""></option>' +
