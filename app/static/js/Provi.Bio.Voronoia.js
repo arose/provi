@@ -41,15 +41,15 @@ Provi.Bio.Voronoia.VoronoiaParamsWidget = function(params){
 }
 Provi.Bio.Voronoia.VoronoiaParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
-        resolution: { default: 2.0, type: "float", 
+        resolution: { 'default': 2.0, type: "float", 
             range: [ 0.5, 7.0 ], step: 0.5 },
-        cavity_probe_radius: { default: 0.3, type: "float", 
+        cavity_probe_radius: { 'default': 0.3, type: "float", 
             range: [ 0.1, 1.5 ], step: 0.1 },
-        exterior_probe_radius: { default: 5.0, type: "float", 
+        exterior_probe_radius: { 'default': 5.0, type: "float", 
             range: [ 1.0, 20.0 ], step: 1.0 },
-        translucent: { default: 0.3, type: "float", 
+        translucent: { 'default': 0.3, type: "float", 
             range: [ 0.0, 1.0 ], step: 0.1 },
-        cavity_color: { default: "skyblue", type: "select", 
+        cavity_color: { 'default': "skyblue", type: "select", 
             options: [ "skyblue", "gold", "tomato" ] }
     }
 });

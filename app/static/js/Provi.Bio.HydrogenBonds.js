@@ -190,10 +190,10 @@ Provi.Bio.HydrogenBonds.HbondParamsWidget = function(params){
 }
 Provi.Bio.HydrogenBonds.HbondParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
-        bond_mode_or: { default: false, type: "checkbox" },
-        filter: { default: "sidechain", type: "select", options: [ 'all', 'backbone', 'sidechain' ] },
-        angle_min: { default: 60, type: "slider", range: [ 20, 120 ] },
-        dist_max: { default: 3.9, type: "slider", range: [ 20, 50 ], factor: 10, fixed: true }
+        bond_mode_or: { 'default': false, type: "checkbox" },
+        filter: { 'default': "sidechain", type: "select", options: [ 'all', 'backbone', 'sidechain' ] },
+        angle_min: { 'default': 60, type: "slider", range: [ 20, 120 ] },
+        dist_max: { 'default': 3.9, type: "slider", range: [ 20, 50 ], factor: 10, fixed: true }
     }
 });
 
