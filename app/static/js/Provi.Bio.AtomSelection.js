@@ -183,8 +183,8 @@ Provi.Bio.AtomSelection.AtomindexParamsWidget = function(params){
 }
 Provi.Bio.AtomSelection.AtomindexParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
-        property: { default: "", type: "select",  options: jmol_properties },
-        sort: { default: "", type: "select", options: jmol_properties }
+        property: { 'default': "", type: "select",  options: jmol_properties },
+        sort: { 'default': "", type: "select", options: jmol_properties }
     }
 });
 
@@ -252,7 +252,7 @@ Provi.Bio.AtomSelection.GroupindexParamsWidget = function(params){
 }
 Provi.Bio.AtomSelection.GroupindexParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
-        property: { default: "", type: "select",  options: jmol_properties }
+        property: { 'default': "", type: "select",  options: jmol_properties }
     }
 });
 

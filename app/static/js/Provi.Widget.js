@@ -387,10 +387,10 @@ Provi.Widget.ParamsWidget = function(params){
 
     _.each( this.params_dict, function( p, id ){
         var elm = Provi.Widget.form_builder( 
-            p, params[id] || p.default, id, this
+            p, params[id] || p['default'], id, this
         );
         this.elm( 'content' ).append( elm );
-        this.params[ id ] = p.default;
+        this.params[ id ] = p['default'];
     }, this);
 
 }
