@@ -24,7 +24,8 @@ if APP_ENV:
 os.chdir( APP_PATH )
 
 import sys
-sys.path.insert( 0, APP_PATH )
+if APP_PATH not in sys.path:
+    sys.path.insert( 0, APP_PATH )
 sys.stdout = sys.stderr
 
 from provi_flask import app as application
