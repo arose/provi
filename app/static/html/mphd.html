@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<!--[if lte IE 8]> <html lang="en" class="ieOld"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -16,6 +18,14 @@
             "../js/lib/jquery-ui/css/mphd/jquery-ui.css";
 
         Provi.load( function(){
+
+            if( $("html").hasClass("ieOld") ){
+                $(window).on( 'mousedown', 'select', function(){
+                    $(this).css("width", "auto");
+                }).on('blur change', 'select', function(){
+                    $(this).css("width", "1.5em");
+                });
+            }
 
             _.extend( Provi.defaults.dom_parent_ids, {
                 DATASET_WIDGET: 'tab_widgets',
