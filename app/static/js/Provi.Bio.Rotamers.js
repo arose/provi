@@ -187,7 +187,7 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
         $('#' + this.show_vdw_id).click(function(){
             self.show_vdw = $("#" + self.show_vdw_id).is(':checked');
             var applet = self.applet_selector.get_value();
-            applet.script_wait('' +
+            applet.script('' +
                 'function show_clashes( an1, an2 ){' + '\n' +
                     'print "foobar";' + '\n' +
                     'var a1 = {atomno=an1};' + '\n' +
@@ -292,7 +292,7 @@ Provi.Bio.Rotamers.RotamersWidget.prototype = Utils.extend(Widget, /** @lends Pr
             '};' +
         '';
         console.log(s);
-        applet.script_wait( s, true );
+        applet.script( s, true );
         
         this.res_name = eval( applet.evaluate('"[" + {' + this.residue_expression + '}.label("[\'%[group]\']").join(",") + "]"') )[0][0];
         
