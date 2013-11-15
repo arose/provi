@@ -21,3 +21,11 @@ TOOLS = {
 
 JOB_DIR = os.path.abspath("./static/tmp/")
 JOB_WORKERS = 4
+
+ENV = {
+	"DISPLAY": ":0.0"
+}
+
+PATH = [
+	# e.g. path to msms, apbs
+]
