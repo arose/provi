@@ -57,79 +57,79 @@ Provi.Jmol.Settings.groups = {
 }
 
 Provi.Jmol.Settings.dict = {
-    defaultVDW: { type: "select", options: [ "jmol", "babel", "rasmol" ] },
-    isosurfacePropertySmoothing: { type: "checkbox" },
-    largeAtomCount: { type: "checkbox", provi: true },
-    translucent: { type: "checkbox" },
+    defaultVDW: { type: "str", options: [ "jmol", "babel", "rasmol" ] },
+    isosurfacePropertySmoothing: { type: "bool" },
+    largeAtomCount: { type: "bool", provi: true },
+    translucent: { type: "bool" },
 
     ambientPercent: { type: "int", range: [ 1, 100 ] },
     diffusePercent: { type: "int", range: [ 1, 100 ] },
-    specular: { type: "checkbox" },
+    specular: { type: "bool" },
     specularPercent: { type: "int", range: [ 1, 100 ] },
     specularPower: { type: "int", range: [ 1, 100 ] },
-    specularExponent: { type: "select", options: _.range( 1, 10 ) },
+    specularExponent: { type: "int", options: _.range( 1, 10 ) },
     phongExponent: { type: "int", range: [ 1, 100 ] }, 
-    zShade: { type: "checkbox" },
-    zShadePower: { type: "select", options: _.range( 1, 4 ) },
+    zShade: { type: "bool" },
+    zShadePower: { type: "int", options: _.range( 1, 4 ) },
     zSlab: { type: "int", range: [ 1, 100 ] },
     zDepth: { type: "int", range: [ 1, 100 ] },
-    celShading: { type: "checkbox" },
-    backgroundColor: { type: "select", options: [ "[xFFFFFF]", "[x000000]" ] },
+    celShading: { type: "bool" },
+    backgroundColor: { type: "str", options: [ "[xFFFFFF]", "[x000000]" ] },
 
     mousedragFactor: { type: "float", range: [ 0.5, 8 ], step: 0.1 },
     mousewheelFactor: { type: "float", range: [ 0.1, 4 ], step: 0.1 },
-    useArcBall: { type: "checkbox" },
+    useArcBall: { type: "bool" },
 
-    slabEnabled: { type: "checkbox" },
+    slabEnabled: { type: "bool" },
     slabRange: { type: "int", range: [ 0, 100 ] },
-    slabByAtom: { type: "checkbox" },
-    slabByMolecule: { type: "checkbox" },
+    slabByAtom: { type: "bool" },
+    slabByMolecule: { type: "bool" },
     slab: { type: "int", range: [ 0, 100 ] },
     depth: { type: "int", range: [ 0, 100 ] },
 
-    highResolution: { type: "checkbox" },
-    antialiasDisplay: { type: "checkbox" },
-    antialiasTranslucent: { type: "checkbox" },
-    antialiasImages: { type: "checkbox" },
-    wireframeRotation: { type: "checkbox" },
+    highResolution: { type: "bool" },
+    antialiasDisplay: { type: "bool" },
+    antialiasTranslucent: { type: "bool" },
+    antialiasImages: { type: "bool" },
+    wireframeRotation: { type: "bool" },
 
-    atomPicking: { type: "checkbox" },
-    drawPicking: { type: "checkbox" },
-    picking: { type: "select", options: [ 
+    atomPicking: { type: "bool" },
+    drawPicking: { type: "bool" },
+    picking: { type: "str", options: [ 
         "", "center", "atom", "group", "chain", "molecule", "label", 
         "spin", "draw", "distance", "angle", "torsion" ] },
-    pickingStyle: { type: "select", options: [ 
+    pickingStyle: { type: "str", options: [ 
         "toggle", "selectOrToggle", "extendedSelect", "measure" ] },
-    selectionHalos: { type: "checkbox" },
-    selectionHalosColor: { type: "select", options: [ "green", "gold" ], provi: true },
-    highlightColor: { type: "select", options: [ 
+    selectionHalos: { type: "bool" },
+    selectionHalosColor: { type: "str", options: [ "green", "gold" ], provi: true },
+    highlightColor: { type: "str", options: [ 
         "pink", "yellow", "black", "white", "green", "gold" ], provi: true },
     hoverDelay: { type: "float", range: [ 0.01, 1 ], step: 0.01 },
 
     // cpk: 
     // spacefill: 
-    // cartoon: { type: "select", options: _.range( 0.1, 1.6, 0.1 ), provi: true, value: "float", fixed: 1 },
+    // cartoon: { type: "str", options: _.range( 0.1, 1.6, 0.1 ), provi: true, value: "float", fixed: 1 },
     cartoon: { type: "float", range: [ 0.1, 2 ], step: 0.1 },
     trace: { type: "float", range: [ 0.1, 1.4 ], step: 0.1 },
     line: { type: "float", range: [ 0.01, 0.1 ], step: 0.01 },
     stick: { type: "float", range: [ 0.1, 1.6 ], step: 0.1 },
     backbone: { type: "float", range: [ 0.1, 2.5 ], step: 0.1 },
     hermiteLevel: { type: "int", range: [ -8, 8 ] },
-    cartoonRockets: { type: "checkbox" },
-    cartoonFancy: { type: "checkbox" },
+    cartoonRockets: { type: "bool" },
+    cartoonFancy: { type: "bool" },
     ribbonAspectRatio: { type: "int", range: [ 1, 20 ] },
-    ribbonBorder: { type: "checkbox" },
-    rocketBarrels: { type: "checkbox" },
-    sheetSmoothing: { type: "checkbox" },
-    traceAlpha: { type: "checkbox" },
-    cartoonBaseEdges: { type: "checkbox" },
-    cartoonLadders: { type: "checkbox" },
-    sidechainHelper:  { type: "checkbox", provi: true },
-    style: { type: "select", options: [ 
+    ribbonBorder: { type: "bool" },
+    rocketBarrels: { type: "bool" },
+    sheetSmoothing: { type: "bool" },
+    traceAlpha: { type: "bool" },
+    cartoonBaseEdges: { type: "bool" },
+    cartoonLadders: { type: "bool" },
+    sidechainHelper:  { type: "bool", provi: true },
+    style: { type: "str", options: [ 
         "", "default", "lines", "sticks", "cartoon", "cartoon+sticks", 
         "backbone", "backbone+sticks", "trace" ] },
 
-    appletProxy: { type: "text" }
+    appletProxy: { type: "str" }
 }
 
 
@@ -159,29 +159,30 @@ Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Data.Datalis
         var id = elm.data('id');
         var p = Provi.Jmol.Settings.dict[ id ] || {};
         var value = '';
-        if( p.type=="checkbox" ){
-            value = elm.is(':checked');
-        }else if( p.type=="select" ){
+        if( p.options ){
             value = elm.children("option:selected").val();
-            if( p.value!="float" && p.value!="int" ){
+            if( p.type!="float" && p.type!="int" ){
                 value = '"' + value + '"';
             }
-        }else if( p.type=="text" ){
-            value = '"' + elm.val() + '"';
         }else if( _.contains(["float", "int"], p.type) && p.range ){
             value = elm.slider("value");
-        }else if( p.type=="slider" ){
-            value = elm.slider("value");
-            if( p.factor ) value /= p.factor;
-            if( p.fixed ) value = value.toFixed( p.fixed );
+            // make sure it's a float
+            if( p.step ){
+                value = value.toFixed( 
+                    Math.log(1/p.step)/Math.log(10)
+                );
+            }
+        }else if( p.type=="bool" ){
+            value = elm.is(':checked');
+        }else if( p.type=="float" ){
+            value = parseFloat( elm.val() );
+        }else if( p.type=="int" ){
+            value = parseInt( elm.val() );
+        }else if( p.type=="str" ){
+            value = '"' + elm.val() + '"';
         }else{
             return;
         }
-
-        // make sure it's a float
-        if( p.step ) value = value.toFixed( 
-            Math.log(1/p.step)/Math.log(10)
-        );
 
         var s = 'provi_set("' + id + '", ' + value + ', false);';
         if( e.type=="slide" ){

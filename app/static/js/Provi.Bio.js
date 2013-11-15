@@ -72,6 +72,12 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
                     ds_dict[i].loaded = true;
                     $( ds_dict[i] ).triggerHandler("loaded");
                 }
+            }else if( data['job'] ){
+                var func = function(){
+                    // TODO
+                    ds_dict[i].loaded = true;
+                    $( ds_dict[i] ).triggerHandler("loaded");
+                }
             }else if( data.datalist ){
                 var dl = eval( data.datalist );
                 params.no_init = true;
@@ -223,7 +229,7 @@ Provi.Bio.Data.AtomVectorLoadParamsWidget = function(params){
 }
 Provi.Bio.Data.AtomVectorLoadParamsWidget.prototype = Provi.Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Data.AtomVectorLoadParamsWidget.prototype */ {
     params_dict: {
-        scale: { 'default': 1, type: "slider", range: [ -10, 10 ], fixed: true }
+        scale: { 'default': 1, type: "float", range: [ -10, 10 ] }
     }
 });
 

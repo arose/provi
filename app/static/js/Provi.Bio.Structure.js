@@ -98,19 +98,16 @@ Provi.Bio.Structure.StructureParamsWidget = function(params){
 Provi.Bio.Structure.StructureParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, /** @lends Provi.Bio.Structure.StructureParamsWidget.prototype */ {
     params_dict: {
         load_as: {
-            'default': "new",
-            type: "select", 
-            options: [ "new", "append", "trajectory", "trajectory+append" ] 
+            'default': "new", 'type': "str", 
+            'options': [ "new", "append", "trajectory", "trajectory+append" ] 
         },
         lattice: { 
-            'default': "",
-            type: "select", 
-            options: [ "", "{1 1 1}", "{1 1 1} RANGE -12", "{2 2 1}", "{2 2 2}", "{3 3 1}", "{3 3 3}" ]
+            'default': "", 'type': "str", 
+            'options': [ "", "{1 1 1}", "{1 1 1} RANGE -12", "{2 2 1}", "{2 2 2}", "{3 3 1}", "{3 3 3}" ]
         },
         filter: {
-            'default': "",
-            type: "select", 
-            options: {
+            'default': "", 'type': "str", 
+            'options': {
                 "": "", 
                 "no water, no ions": "![HOH],![SOL],![WAT],![NA],![CL]", 
                 "no water, no ions, no lipids": "![HOH],![SOL],![WAT],![NA],![CL],![DMPC],![DMP],![MPC]", 
@@ -119,8 +116,7 @@ Provi.Bio.Structure.StructureParamsWidget.prototype = Utils.extend(Provi.Widget.
             }
         },
         pdb_add_hydrogens: {
-            'default': false,
-            type: "checkbox" 
+            'default': false, 'type': "bool" 
         }
     }
 });
