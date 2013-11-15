@@ -228,7 +228,7 @@ var Widget = Provi.Widget.Widget;
 
 
 Provi.Widget.form_builder = function( params, value, id, self ){
-
+    
     var p = params;
     var $elm = $('<div></div>');
 
@@ -238,17 +238,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
         value = parseInt( value );
     }
 
-    if( p.type=="checkbox" ){
-
-        $elm.append(
-            $('<input type="checkbox" name="' + id + '" />')
-                .data( 'id', id )
-                .attr( 'checked', value )
-                .click( _.bind( self.set, self ) ),
-            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
-        );
-
-    }else if( p.type=="select" ){
+    if( p.options ){
 
         $elm.append(
             $('<select class="ui-state-default" name="' + id + '">' +
@@ -265,17 +255,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
             '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
         );
 
-    }else if( p.type=="text" ){
-
-        $elm.append(
-            $('<input type="text" name="' + id + '" />')
-                .data( 'id', id )
-                .val( value )
-                .blur( _.bind( self.set, self ) ),
-            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
-        );
-
-    }else if( _.contains([ "float", "int" ], p.type) && p.range ){
+    }else if( p.range && _.contains([ "float", "int" ], p.type) ){
 
         if( _.isNaN(value) ){
             value = p.range[0];
@@ -308,42 +288,24 @@ Provi.Widget.form_builder = function( params, value, id, self ){
             '<label>' + _.str.humanize( id ) + '</label>'
         );
 
-    }else if( p.type=="slider" ){
+    }else if( p.type=="bool" ){
 
-        value = parseFloat(value);
-        if( p.factor ) value *= p.factor;
-        $elm.append( 
-            (function(){
-                var handle, slider, input;
-                input = $('<input type="hidden" name="' + id + '" />').val( value );
-                slider = $('<div style="display:inline-block; margin-left: 0.6em; width:120px;"></div>')
-                    .slider({ 
-                        min: p.range[0], max: p.range[1], value: value, 
-                        slide: function(event, ui) {
-                            handle.qtip(
-                                'option', 'content.text', '' + 
-                                (p.factor ? ui.value/p.factor : ui.value) 
-                            );
-                        }
-                    })
-                    .data( 'id', id )
-                    .bind( 'slidestop slide', function(e){
-                        var elm = $(e.currentTarget);
-                        var svalue = elm.slider("value");
-                        if( p.factor ) svalue /= p.factor;
-                        if( p.fixed ) svalue = svalue.toFixed( p.fixed );
-                        input.val( svalue );
-                        _.bind( self.set, self )(e);
-                    });
-                handle = $('.ui-slider-handle', slider);
-                handle.qtip({
-                    content: '' + (p.factor ? slider.slider('option', 'value')/p.factor : slider.slider('option', 'value')),
-                    position: { my: 'bottom center', at: 'top center' },
-                    hide: { delay: 200 }
-                });
-                return slider.append(input);
-            })(),
-            '<label>' + _.str.humanize( id ) + '</label>'
+        $elm.append(
+            $('<input type="checkbox" name="' + id + '" />')
+                .data( 'id', id )
+                .attr( 'checked', value )
+                .click( _.bind( self.set, self ) ),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
+    }else if( _.contains([ "str", "sele", "float", "int" ], p.type) ){
+
+        $elm.append(
+            $('<input type="text" name="' + id + '" />')
+                .data( 'id', id )
+                .val( value )
+                .blur( _.bind( self.set, self ) ),
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
         );
 
     }else if( p.type=="file" ){
@@ -368,6 +330,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
 
     }else{
         $elm.append( _.str.humanize( id ) );
+        console.error( "Unknown form type '" + p.type + "'" );
     }
 
     return $elm;

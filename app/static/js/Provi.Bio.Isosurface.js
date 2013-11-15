@@ -58,12 +58,12 @@ Provi.Bio.Isosurface.LoadParamsWidget = function(params){
 }
 Provi.Bio.Isosurface.LoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
-        within: { 'default': 2, type: "slider", range: [ 1, 10 ] },
-        insideout: { 'default': false, type: "checkbox" },
-        resolution: { 'default': 2, type: "slider", range: [ 1, 10 ], fixed: true },
-        select: { 'default': "*", type: "text" },
-        ignore: { 'default': "", type: "text" },
-        color: { 'default': "", type: "text" }
+        within: { 'default': 2, type: "float", range: [ 1, 10 ] },
+        insideout: { 'default': false, type: "bool" },
+        resolution: { 'default': 2, type: "float", range: [ 1, 10 ] },
+        select: { 'default': "*", type: "str" },
+        ignore: { 'default': "", type: "str" },
+        color: { 'default': "", type: "str" }
     }
 });
 
@@ -74,24 +74,22 @@ Provi.Bio.Isosurface.VolumeLoadParamsWidget = function(params){
 }
 Provi.Bio.Isosurface.VolumeLoadParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
-        within: { 'default': 2, type: "slider", range: [ 1, 10 ] },
-        insideout: { 'default': false, type: "checkbox" },
-        sigma: { 'default': 1, type: "slider", range: [ 0, 50 ], 
-            factor: 10 },
-        cutoff: { 'default': 0, type: "slider", range: [ 0, 255 ] },
-        color_density: { 'default': false, type: "checkbox" },
-        sign: { 'default': true, type: "checkbox" },
-        downsample: { 'default': 1, type: "slider", range: [ 1, 10 ] },
-        type: { 'default': "", type: "select", options: [ 
+        within: { 'default': 2, type: "float", range: [ 1, 10 ] },
+        insideout: { 'default': false, type: "bool" },
+        sigma: { 'default': 1, type: "float", range: [ 0, 5 ] },
+        cutoff: { 'default': 0, type: "float", range: [ 0, 255 ] },
+        color_density: { 'default': false, type: "bool" },
+        sign: { 'default': true, type: "bool" },
+        downsample: { 'default': 1, type: "int", range: [ 1, 10 ] },
+        type: { 'default': "", type: "str", options: [ 
             "", "sasurface", "molecular", "cavity", "solvent 1.4", 
             "solvent 1.0", "solvent 0.8", "cavity 1.0 8", 
             "interior cavity 1.0 8", "pocket cavity 1.0 8"
         ] },
-        resolution: { 'default': 2, type: "slider", range: [ 1, 10 ], 
-            fixed: true },
-        select: { 'default': "*", type: "text" },
-        ignore: { 'default': "", type: "text" },
-        type: { 'default': "", type: "style", options: [ 
+        resolution: { 'default': 2, type: "float", range: [ 1, 10 ] },
+        select: { 'default': "*", type: "sele" },
+        ignore: { 'default': "", type: "sele" },
+        style: { 'default': "", type: "str", options: [ 
             "", "FILL", "MESH NOFILL", "DOTS, NOFILL"
         ] },
     }
@@ -241,10 +239,10 @@ Provi.Bio.Isosurface.ConstructParamsWidget = function(params){
 }
 Provi.Bio.Isosurface.ConstructParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
     params_dict: {
-        resolution: { 'default': 2, type: "slider", range: [ 1, 10 ], fixed: true },
-        select: { 'default': "*", type: "text" },
-        ignore: { 'default': "", type: "text" },
-        type: { 'default': "", type: "select", options: [ 
+        resolution: { 'default': 2, type: "float", range: [ 1, 10 ] },
+        select: { 'default': "*", type: "sele" },
+        ignore: { 'default': "", type: "sele" },
+        type: { 'default': "", type: "str", options: [ 
             "", "sasurface", "molecular", "cavity", "solvent 1.4", "solvent 1.0", "solvent 0.8",
             "cavity 1.0 8", "interior cavity 1.0 8", "pocket cavity 1.0 8"
         ] }

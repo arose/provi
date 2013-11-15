@@ -39,7 +39,9 @@ if len( sys.argv )>1:
 app = Flask(__name__)
 app.config.from_pyfile( cfg_file )
 
-
+os.environ.update( app.config.get( "ENV", {} ) )
+os.environ["PATH"] += ":" + ":".join( app.config.get( "PATH", [] ) )
+os.environ["HTTP_PROXY"] = app.config.get( "PROXY", "" )
 
 
 ############################
@@ -369,6 +371,8 @@ def job_submit():
         args = []
         kwargs = {}
         for name, params in Tool.args.iteritems():
+            if params.get("group"):
+                continue
             if params["type"]=="file":
                 fpath = input_path( name, params, output_dir )
                 if is_form:
@@ -381,11 +385,16 @@ def job_submit():
                         with open( fpath, "w" ) as fp:
                             fp.write( request.stream.read() )
                 d = fpath
-            elif params["type"]=="slider":
+            elif params["type"]=="float":
                 d = float( get( name, params ) )
-            elif params["type"]=="checkbox":
+            elif params["type"]=="int":
+                d = int( get( name, params ) )
+            elif params["type"]=="bool":
                 d = boolean( get( name, { "default": False } ) )
+            elif params["type"] in [ "str", "sele" ]:
+                d = str( get( name, params ) )
             else:
+                # raise exception?
                 d = get( name, params )
             if "default" in params:
                 kwargs[ name ] = d
@@ -405,6 +414,7 @@ def job_submit():
 ############################
 # main
 ############################
+
 
 if __name__ == '__main__':
     app.run( 

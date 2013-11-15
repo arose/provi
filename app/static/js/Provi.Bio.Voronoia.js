@@ -49,7 +49,7 @@ Provi.Bio.Voronoia.VoronoiaParamsWidget.prototype = Utils.extend(Provi.Widget.Pa
             range: [ 1.0, 20.0 ], step: 1.0 },
         translucent: { 'default': 0.3, type: "float", 
             range: [ 0.0, 1.0 ], step: 0.1 },
-        cavity_color: { 'default': "skyblue", type: "select", 
+        cavity_color: { 'default': "skyblue", type: "str", 
             options: [ "skyblue", "gold", "tomato" ] }
     }
 });
