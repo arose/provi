@@ -1,0 +1,11 @@
+{
+    "type": "linkit",
+    "make_widget": true,
+    "params": {
+        "pdb_file": "http://www.ssfa-7tmr.de/ssfe/database/SSFE_RESULTS_AUG/FAMA/p2y12_human/TMH_templates1_topmodel_rechain.pdb",
+        "_pdb_file": "http://localhost/provi/static/data/test/TMH_templates1_topmodel_rechain.pdb",
+        "res1": "161",
+        "res2": "186",
+        "seq": "LTNRQPRDKNVKKCSFLKSEFGLV"
+    }
+}
