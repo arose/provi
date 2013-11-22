@@ -22,24 +22,139 @@ Provi.Data.Job.JobManager = new Provi.Utils.ObjectManager();
 
 
 /**
+ * Tool list.
+ */
+Provi.Data.Job.Tools = {
+    init: function(){
+        this.ready = false;
+        this.tools = {};
+        this.retrieve_tools();
+    },
+    retrieve_tools: function(){
+        $.ajax({
+            dataType: "json",
+            url: Provi.url_for( "/job/tools" ),
+            success: _.bind( this.init_tools, this ),
+        });
+    },
+    init_tools: function( tools ){
+        this.tools = tools;
+        this.ready = true;
+    },
+    get: function( name ){
+        return this.tools[ name ];
+    }
+};
+Provi.Data.Job.Tools.init();
+
+
+/**
  * job class
  * @constructor
  */
 Provi.Data.Job.Job = function(params){
+    console.log( "JOB", params );
     params = _.defaults( params, this.default_params );
     Provi.Data.Job.JobManager.add( this, function( job ){
         $(job).bind('status', Provi.Data.Job.JobManager.change );
     });
 
-    var p = [ "applet", "tool", "submitted", "running", "check", "jobname" ];
+    var p = [ 
+        "applet", "tool", "submitted", "running", "check",
+        "jobname", "dataset", "make_widget"
+    ];
     _.extend( this, _.pick( params, p ) );
+
+    // submit based on dataset
+    if( this.dataset ){
+        var job = this;
+        var d = this.dataset.raw_data;
+        var p = d.params;
+        p.__type__ = d.type;
+        $.ajax({
+            url: '../../job/submit/',
+            data: p,
+            cache: false,
+            type: 'POST',
+            success: function(data){
+                job.set_jobname( data["jobname"] );
+            }
+        });
+        if( d.make_widget ){
+            new Provi.Data.Job.JobWidget({
+                "job_id": job.id,
+                "parent_id": Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                "applet": this.applet
+            })
+        }
+        this.submitted = true;
+    }
+
+    /*
+        if( this.dataset ){
+            var job = this;
+            var ds_dat = this.dataset.raw_data;
+            var par = ds_dat.params;
+            var tool = Provi.Data.Job.Tools.get( ds_dat.type );
+            
+            var form_data = new FormData();
+            form_data.append( "__type__", ds_dat.type );
+            deferred_list = []
+
+            _.each( par, function( p, id ){
+                if( !tool.args[ id ] ) return;
+                console.log( p, id );
+                if( tool.args[ id ].type=="file" ){
+                    console.log("csdssc FILE");
+                    var content = "";
+                    deferred_list.push( 
+                        $.ajax({
+                            url: p,
+                            dataType: "text",
+                            success: function (response) {
+                                var blob = new Blob(
+                                    [ response ], { "type" : "text/plain" }
+                                );
+                                form_data.append( id, blob, "file.dat" );
+                            }
+                        })
+                    );
+                }else{
+                    form_data.append( id, p );
+                }
+            }, this);
+
+            $.when.apply( $, deferred_list ).then( _.bind( function() {
+                $.ajax({
+                    url: '../../job/submit/',
+                    data: form_data,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    type: 'POST',
+                    success: function(data){
+                        job.set_jobname( data["jobname"] );
+                    }
+                });
+
+                if( ds_dat.make_widget ){
+                    new Provi.Data.Job.JobWidget({
+                        "job_id": job.id,
+                        "parent_id": Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+                        "applet": this.applet
+                    })
+                }
+                this.submitted = true;
+            }, this ) );
+        }
+    */
 
     this.check = false;
     if( this.submitted ){
         this.running = true;
         this.status_interval = setInterval( _.bind( function(){
             this.retrieve_status();
-        }, this ), 10000);
+        }, this ), 1000);
     }else{
         this.running = false;
     }
@@ -58,8 +173,12 @@ Provi.Data.Job.Job.prototype = {
         $(this).triggerHandler("jobname");
     },
     retrieve_status: function( force ){
+        console.log("retrieve_status")
         if( this.submitted && !this.running ){
+            console.log( "job stopped running" );
             clearInterval( this.status_interval );
+            $(this).triggerHandler("finished");
+            this.autoload();
             if( !force ) return;
         }
         if( this.jobname ){
@@ -75,16 +194,81 @@ Provi.Data.Job.Job.prototype = {
                 }, this )
             });
         }
+    },
+    autoload: function(){
+        var tool = Provi.Data.Job.Tools.get( this.tool );
+        if( tool.attr.provi_file ){
+            var filename = this.jobname + '/' + tool.attr.provi_file;
+            Provi.Data.Io.import_example( 
+                '__job__', filename, 'provi', {}, false 
+            );
+        }
     }
 };
 
 
+Provi.Data.Job.JobWidget = function(params){
+    params = _.defaults( params, this.default_params );
+    console.log('JobWidget', params);
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([ 
+        "jobname", "file_tree_widget"
+    ]);
+    
+    var p = [ "job_id" ];
+    _.extend( this, _.pick( params, p ) );
+    
+    var template = '' +
+        '<div class="control_row" id="${eids.jobname}"></div>' +
+        '<div class="control_row" id="${eids.file_tree_widget}"></div>' +
+    '';
+    this.add_content( template, params );
 
-/**
- * Refactoring
- * - move 'submit' from JobWidget to Job
- * - 'submit' gets a FormData object
-*/
+    this.job = Provi.Data.Job.JobManager.get( this.job_id );
+    this._init();
+}
+Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
+    default_params: {
+        // heading: 'Job',
+        persist_on_applet_delete: true
+    },
+    _init: function(){
+        if( this.job.jobname ){
+            this.init_file_tree();
+            this.init_header();
+        }else{
+            $(this.job).bind( 
+                "jobname", _.bind( this.init_file_tree, this )
+            );
+            $(this.job).bind( 
+                "jobname", _.bind( this.init_header, this )
+            );
+        }
+
+        $(this.job).bind( 
+            "finished", _.bind( this.init_file_tree, this )
+        );
+        
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    init_header: function(){
+        this.elm("jobname").append( '<div>' + 
+            '[' + this.job_id.toString() + "] " + this.job.jobname + 
+        '</div>');
+    },
+    init_file_tree: function(){
+        this.elm("file_tree_widget").empty();
+        new Provi.Data.Io.ExampleLoadWidget({
+            collapsed: false,
+            heading: false,
+            all_buttons: false,
+            directory_name: '__job__',
+            root_dir: this.job.jobname + '/',
+            applet: this.applet,
+            parent_id: this.eid("file_tree_widget")
+        });
+    }
+});
 
 
 /**
@@ -93,9 +277,9 @@ Provi.Data.Job.Job.prototype = {
  * @extends Provi.Widget.Widget
  * @param {object} params Configuration object, see also {@link Provi.Widget.Widget}.
  */
-Provi.Data.Job.JobWidget = function(params){
+Provi.Data.Job.FormWidget = function(params){
     params = _.defaults( params, this.default_params );
-    console.log('JobWidget', params);
+    console.log('FormWidget', params);
     Provi.Widget.Widget.call( this, params );
     this._init_eid_manager([ 
         "tool_selector", "form_elms", "form", "submit", "iframe"
@@ -109,7 +293,7 @@ Provi.Data.Job.JobWidget = function(params){
         '<div class="control_row">' +
             '<form id="${eids.form}" style="display:hidden;" method="post" action="../../job/submit/" target="${eids.iframe}" enctype="multipart/form-data">' +
                 '<div class="control_row" id="${eids.form_elms}"></div>' +
-                '<input type="hidden" name="type" value=""></input>' +
+                '<input type="hidden" name="__type__" value=""></input>' +
                 '<button id="${eids.submit}">submit</button>' +
             '</form>' +
             '<iframe id="${eids.iframe}" name="${eids.iframe}" style="display:none;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
@@ -119,14 +303,15 @@ Provi.Data.Job.JobWidget = function(params){
     this.add_content( template, params );
     this._init();
 }
-Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
+Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
     default_params: {
         // heading: 'Job',
         // persist_on_applet_delete: false
     },
     _init: function(){
         this.get_tools();
-        this.elm('submit').button().hide().click( _.bind( this.submit, this ) );
+        this.elm('submit').button().hide()
+            .click( _.bind( this.submit, this ) );
 
         Provi.Widget.Widget.prototype.init.call(this);
     },
@@ -137,7 +322,8 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
             submitted: true
         });
 
-        var as_form = !_.some( this.tool, function( p, id ){
+        console.log(this.tool.args);
+        var as_form = !_.some( this.tool.args, function( p, id ){
             return p.type=="file" && p.ext=="jmol"
         });
 
@@ -181,11 +367,12 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
         }
     },
     get_tools: function(){
-        $.ajax({
-            dataType: "json",
-            url: Provi.url_for( "/job/tools" ),
-            success: _.bind( this.init_selector, this ),
-        });
+        if( Provi.Data.Job.Tools.ready ){
+            this.init_selector( Provi.Data.Job.Tools.tools );
+        }else{
+            $(Provi.Data.Job.Tools)
+                .bind("tools_ready", _.bind( this.get_tools, this ) );
+        }
     },
     init_selector: function( tools ){
         this.tools = tools;
@@ -205,7 +392,7 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
         this.tool = this.tools[ tool_name ];
         this.elm("form_elms").empty();
         this.elm("submit").show();
-        _.each( this.tool, _.bind( function( p, id ){
+        _.each( this.tool.args, _.bind( function( p, id ){
             if( !p.group ){
                 var form_elm = Provi.Widget.form_builder( 
                     p, p['default'], id, this 
@@ -213,7 +400,8 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
                 this.elm("form_elms").append( form_elm );
             }
         }, this));
-        this.elm('form').children('input[name=type]').val( tool_name );
+        this.elm('form').children('input[name=__type__]')
+            .val( tool_name );
     }
 });
 
@@ -232,7 +420,7 @@ Provi.Data.Job.JobDatalist = function(params){
 }
 Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist, {
     type: "JobDatalist",
-    params_object: Provi.Data.Job.JobWidget,
+    params_object: Provi.Data.Job.FormWidget,
     get_ids: function(){
         var job_list = Provi.Data.Job.JobManager.get_list();
         _.invoke( job_list, "retrieve_status", true );
@@ -259,21 +447,11 @@ Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist, {
         return $label;
     },
     make_details: function(id){
-        var job = Provi.Data.Job.JobManager.get( id );
-        // return id.toString() + " - " + job.jobname;
-        var e = new Provi.Data.Io.ExampleLoadWidget({
-            collapsed: false,
-            heading: false,
-            all_buttons: false,
-            directory_name: '__job__',
-            root_dir: job.jobname + '/',
-            applet: this.applet
+        var e = new Provi.Data.Job.JobWidget({ 
+            "job_id": id,
+            "applet": this.applet
         });
-        console.log(e, job);
-        return $('<div class="control_row"></div>').append(
-            '<div>[' + id.toString() + "] " + job.jobname + '</div>',
-            e.dom
-        );
+        return e.dom;
     }
 });
 
