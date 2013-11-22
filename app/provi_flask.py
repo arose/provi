@@ -2,6 +2,7 @@ from __future__ import with_statement
 
 import sys
 import os
+import gzip
 import urllib2
 # import StringIO
 import base64
@@ -11,6 +12,8 @@ import uuid
 import signal
 import logging
 import multiprocessing
+import collections
+from cStringIO import StringIO
 
 try:
     import json
@@ -169,18 +172,36 @@ def jalview(filename, flag):
 # url data provider
 ############################
 
+
+def retrieve_url( url ):
+    if not url:
+        raise Exception( "no url given" )
+    if '127.0.0.1' in url or 'localhost' in url or not app.config['PROXY']:
+        proxy_conf = {}
+    else:
+        proxy_conf = { 'http': app.config['PROXY'] }
+    opener = urllib2.build_opener( urllib2.ProxyHandler( proxy_conf ) )
+    try:
+        response = opener.open( url )
+        info = response.info()
+        if info.get('Content-Type')=="application/x-gzip":
+            buf = StringIO( response.read())
+            f = gzip.GzipFile( fileobj=buf )
+            data = f.read()
+        else:
+            data = response.read()
+    except Exception:
+        raise Exception(
+            "unable to open url '%s'" % url
+        )
+    return data
+
 @app.route('/urlload/')
 def urlload():
-    url = request.args.get('url', '')
-    if '127.0.0.1' in url or 'localhost' in url or not app.config['PROXY']:
-        opener = urllib2.build_opener()
-    else:
-        opener = urllib2.build_opener( urllib2.ProxyHandler({ 'http': app.config['PROXY'] }) )
-    if url:
-        d = opener.open( url ).read()
-        return d
-    else:
-        return ''
+    return retrieve_url(
+        request.args.get('url', '')
+    )
+    
 
 
 
@@ -346,9 +367,13 @@ def job_status( jobname ):
 
 @app.route('/job/tools')
 def job_tools():
-    tools = {}
+    tools = collections.defaultdict( dict )
     for name, Tool in app.config['TOOLS'].iteritems():
-        tools[ name ] = Tool.args
+        tools[ name ][ 'args' ] = Tool.args
+        attr = {}
+        if hasattr( Tool, "provi_tmpl" ):
+            attr[ 'provi_file' ] = Tool.provi_tmpl
+        tools[ name ][ 'attr' ] = attr
     return jsonify( tools )
 
 def input_path( name, params, output_dir ):
@@ -363,7 +388,7 @@ def job_submit():
         default = params.get( "default", "" )
         attr = "form" if is_form else "args"
         return getattr( request, attr ).get( name, default )
-    jobtype = get( 'type', {} )
+    jobtype = get( '__type__', {} )
     Tool = app.config['TOOLS'].get( jobtype )
     if Tool:
         jobname = jobtype + "_" + str( uuid.uuid4() )
@@ -380,7 +405,15 @@ def job_submit():
                         if file_storage: 
                             file_storage.save( fpath )
                             break   # only save the first file
+                    else:
+                        print "file '%s' not found, trying url" % name
+                        url = get( name, params )
+                        d = retrieve_url( url )
+                        with open( fpath, "w" ) as fp:
+                            fp.write( d )
                 else:
+                    # there can be only a single jmol file
+                    # for the whole form
                     if params["ext"]=="jmol":
                         with open( fpath, "w" ) as fp:
                             fp.write( request.stream.read() )
@@ -394,7 +427,7 @@ def job_submit():
             elif params["type"] in [ "str", "sele" ]:
                 d = str( get( name, params ) )
             else:
-                # raise exception?
+                # unknown type, raise exception?
                 d = get( name, params )
             if "default" in params:
                 kwargs[ name ] = d

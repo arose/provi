@@ -49,6 +49,10 @@ var type_mixins = {
     "jmol": {
         bio_object: Provi.Bio.Data.JmolFile
     },
+    "job": {
+        bio_object: Provi.Data.Job.Job,
+        raw_type: "json"
+    },
     "json": {
         bio_object: Provi.Bio.Data.Json,
         raw_type: "json"
