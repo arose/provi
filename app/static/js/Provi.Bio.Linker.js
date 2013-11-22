@@ -82,14 +82,24 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection
         // var a = this.applet.evaluate(s);
         // return a;
     },
+    frmt_data: function(id){
+        var d = this.data[id];
+        var d2 = _.map( d.slice(0,-2), function(x){ 
+            return x.toFixed(3);
+        });
+        return d2.concat( d.slice(-2) );
+    },
     make_row: function(id){
         if(id==='all'){
             var label = 'Linker';
         }else{
-            var d = _.map( this.data[id].slice(0,-1), function(x){ 
+            var d = _.map( this.data[id].slice(0,-2), function(x){ 
                 return x.toFixed(3);
             });
-            var label = "[" + id + "] " + d.join(', ');
+            var d = this.frmt_data( id );
+            var label = "[" + id + "] " + 
+                d.slice(0,-2).join(', ') +
+                " (" + d[d.length-1] + ")";
 
         }
         var a = this.get_data(id); // selected, consurf, intersurf
@@ -127,12 +137,12 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection
         return $linker;
     },
     make_details: function(id){
-        var d = _.map( this.data[id].slice(0,-1), function(x){ 
-            return x.toFixed(3);
-        });
+        var d = this.frmt_data( id );
         var $row = $('<div></div>').append(
-            '<div>[' + id + '] ' + d[0].toFixed(3) + ', ' + d[1].toFixed(3) + '</div>',
-            '<div>' + this.data[id][-1].slice(1,-1) + '</div>'
+            '<div>[' + id + '] ' + d.slice(0,-2).join(', ') + '</div>',
+            '<div>' + 
+                d[d.length-2] + ' (' + d[d.length-1] + ')' +
+            '</div>'
         );
         return $row;
     },
