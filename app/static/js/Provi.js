@@ -152,6 +152,13 @@ var Jmol = {};
                 Provi.Data.Io.type_from_filename( $.query.get('file') ),
                 { applet: Provi.Jmol.get_default_applet( true ) }
             );
+        }else if( $.query.get('url') ){
+            Provi.Data.Io.import_url( 
+                $.query.get('url'),
+                $.query.get('url').split('/').pop(),
+                Provi.Data.Io.type_from_filename( $.query.get('url') ),
+                { applet: Provi.Jmol.get_default_applet( true ) }
+            );
         }
 
         $('body').append(
