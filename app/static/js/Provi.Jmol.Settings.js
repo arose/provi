@@ -40,7 +40,7 @@ Provi.Jmol.Settings.groups = {
     lighting: [ "ambientPercent", "diffusePercent", "specular", 
         "specularPercent", "specularPower", "specularExponent", 
         "phongExponent", "zShade", "zShadePower", "zSlab", "zDepth", 
-        "celShading", "backgroundColor" ],
+        "celShading", "celShadingPower", "backgroundColor" ],
     bind: [ "mousedragFactor", "mousewheelFactor", "useArcBall" ],
     clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", 
         "slab", "depth" ],
@@ -74,10 +74,11 @@ Provi.Jmol.Settings.dict = {
     zSlab: { type: "int", range: [ 1, 100 ] },
     zDepth: { type: "int", range: [ 1, 100 ] },
     celShading: { type: "bool" },
+    celShadingPower: { type: "int", range: [ -20, 20 ] },
     backgroundColor: { type: "str", options: [ "[xFFFFFF]", "[x000000]" ] },
 
     mousedragFactor: { type: "float", range: [ 0.5, 8 ], step: 0.1 },
-    mousewheelFactor: { type: "float", range: [ 0.1, 4 ], step: 0.1 },
+    mousewheelFactor: { type: "float", range: [ 1.05, 4 ], step: 0.05 },
     useArcBall: { type: "bool" },
 
     slabEnabled: { type: "bool" },
@@ -158,30 +159,10 @@ Provi.Jmol.Settings.SettingsDatalist.prototype = Utils.extend(Provi.Data.Datalis
         var elm = $(e.currentTarget);
         var id = elm.data('id');
         var p = Provi.Jmol.Settings.dict[ id ] || {};
-        var value = '';
-        if( p.options ){
-            value = elm.children("option:selected").val();
-            if( p.type!="float" && p.type!="int" ){
-                value = '"' + value + '"';
-            }
-        }else if( _.contains(["float", "int"], p.type) && p.range ){
-            value = elm.slider("value");
-            // make sure it's a float
-            if( p.step ){
-                value = value.toFixed( 
-                    Math.log(1/p.step)/Math.log(10)
-                );
-            }
-        }else if( p.type=="bool" ){
-            value = elm.is(':checked');
-        }else if( p.type=="float" ){
-            value = parseFloat( elm.val() );
-        }else if( p.type=="int" ){
-            value = parseInt( elm.val() );
-        }else if( p.type=="str" ){
-            value = '"' + elm.val() + '"';
-        }else{
-            return;
+        
+        var value = Provi.Widget.form_parser( elm, id, p );;
+        if( p.type=="str" ){
+            value = '"' + value + '"';
         }
 
         var s = 'provi_set("' + id + '", ' + value + ', false);';

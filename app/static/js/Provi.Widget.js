@@ -338,6 +338,32 @@ Provi.Widget.form_builder = function( params, value, id, self ){
 
 
 
+Provi.Widget.form_parser = function( elm, id, p ){
+    var value = '';
+    if( p.options ){
+        value = elm.children("option:selected").val();
+    }else if( _.contains(["float", "int"], p.type) && p.range ){
+        value = elm.slider("value");
+        // make sure it's a float
+        if( p.step ){
+            value = value.toFixed( 
+                Math.log(1/p.step)/Math.log(10)
+            );
+        }
+    }else if( p.type=="bool" ){
+        value = elm.is(':checked');
+    }else if( p.type=="float" ){
+        value = parseFloat( elm.val() );
+    }else if( p.type=="int" ){
+        value = parseInt( elm.val() );
+    }else if( p.type=="str" ){
+        value = elm.val();
+    }
+    return value;
+}
+
+
+
 /**
  * A widget to select params
  * @constructor
@@ -362,23 +388,7 @@ Provi.Widget.ParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widg
         var elm = $(e.currentTarget);
         var id = elm.data('id');
         var p = this.params_dict[ id ] || {};
-        var value = '';
-        if( p.type=="checkbox" ){
-            value = elm.is(':checked');
-        }else if( p.type=="select" ){
-            value = elm.children("option:selected").val();
-        }else if( p.type=="text" ){
-            value = elm.val();
-        }else if( _.contains(["float", "int"], p.type) && p.range ){
-            value = elm.slider("value");
-        }else if( p.type=="slider" ){
-            value = elm.slider("value");
-            if( p.factor ) value /= p.factor;
-            if( p.fixed ) value = value.toFixed( p.fixed );
-        }else{
-            return;
-        }
-        this.params[ id ] = value;
+        this.params[ id ] = Provi.Widget.form_parser( elm, id, p );
         $(this).triggerHandler("change");
     }
 });
