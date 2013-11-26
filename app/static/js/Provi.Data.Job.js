@@ -332,8 +332,9 @@ Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
             var data = new FormData( elm );
             var form_elms = this.elm('form_elms');
 
-            _.each( this.tool, function( p, id ){
+            _.each( this.tool.args, function( p, id ){
                 if( p.type=="file" && p.ext=="pdb" ){
+
                     var sele = form_elms.find("input[name=__sele__" + id + "]").val() || "*";
                     var pdb = this.datalist.applet.evaluate('provi_write_pdb({' + sele + '});');
                     var blob = new Blob([ pdb ], { "type" : "text/plain" });
