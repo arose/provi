@@ -61,7 +61,7 @@ Provi.Data.Job.Job = function(params){
 
     var p = [ 
         "applet", "tool", "submitted", "running", "check",
-        "jobname", "dataset", "make_widget"
+        "jobname", "dataset", "make_widget", "autoload", "name"
     ];
     _.extend( this, _.pick( params, p ) );
 
@@ -80,14 +80,19 @@ Provi.Data.Job.Job = function(params){
                 job.set_jobname( data["jobname"] );
             }
         });
-        if( d.make_widget ){
-            new Provi.Data.Job.JobWidget({
-                "job_id": job.id,
-                "parent_id": Provi.defaults.dom_parent_ids.DATASET_WIDGET,
-                "applet": this.applet
-            })
-        }
+        this.make_widget = d.make_widget;
+        this.autoload = d.autoload;
+        this.name = d.name;
         this.submitted = true;
+    }
+
+    if( this.make_widget ){
+        new Provi.Data.Job.JobWidget( _.defaults({
+            "job_id": job.id,
+            "parent_id": Provi.defaults.dom_parent_ids.DATASET_WIDGET,
+            "applet": this.applet,
+            "heading": this.name
+        }, this.make_widget ) );
     }
 
     /*
@@ -164,12 +169,17 @@ Provi.Data.Job.Job.prototype = {
         submitted: false,
         tool: false,
         jobname: false,
+        make_widget: false,
+        autoload: false
     },
     set_jobname: function( jobname ){
         this.jobname = jobname;
         var tmp = jobname.split("_")
         this.tool = tmp[0];
         this.jobid = tmp[1];
+        if( this.dataset ){
+            this.dataset.set_loaded();
+        }
         $(this).triggerHandler("jobname");
     },
     retrieve_status: function( force ){
@@ -178,7 +188,9 @@ Provi.Data.Job.Job.prototype = {
             console.log( "job stopped running" );
             clearInterval( this.status_interval );
             $(this).triggerHandler("finished");
-            this.autoload();
+            if( this.autoload ){
+                this.do_autoload();
+            }
             if( !force ) return;
         }
         if( this.jobname ){
@@ -195,7 +207,7 @@ Provi.Data.Job.Job.prototype = {
             });
         }
     },
-    autoload: function(){
+    do_autoload: function(){
         var tool = Provi.Data.Job.Tools.get( this.tool );
         if( tool.attr.provi_file ){
             var filename = this.jobname + '/' + tool.attr.provi_file;
@@ -233,6 +245,7 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
         persist_on_applet_delete: true
     },
     _init: function(){
+        this._heading = this.heading;
         if( this.job.jobname ){
             this.init_file_tree();
             this.init_header();
@@ -257,6 +270,14 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
         '</div>');
     },
     init_file_tree: function(){
+        if( this._heading ){
+            var prefix = "[Job Done] ";
+            if( this.job.running ){
+                prefix = "[Job Running] ";
+            }
+            this.set_heading( prefix + this._heading );
+        }
+
         this.elm("file_tree_widget").empty();
         new Provi.Data.Io.ExampleLoadWidget({
             collapsed: false,
