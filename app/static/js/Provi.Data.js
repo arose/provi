@@ -159,11 +159,12 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
             this._init( params );
         }else{
             this.initialized = true;
+            console.log("initialized", this)
             $(this).triggerHandler("initialized");
         }
     },
     init: function( params ){
-        if( this.raw_type ){
+        if( this.raw_type && !this.raw_data ){
             this.retrieve_raw_data( params );
         }else{
             this._init( params );

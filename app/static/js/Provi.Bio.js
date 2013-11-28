@@ -72,11 +72,15 @@ Provi.Bio.Data.DotProvi.prototype = /** @lends Provi.Bio.Data.DotProvi.prototype
                     ds_dict[i].loaded = true;
                     $( ds_dict[i] ).triggerHandler("loaded");
                 }
-            }else if( data['job'] ){
+            }else if( data.inline ){
+                ds_dict[i] = new Provi.Data.Dataset({
+                    name: data.name,
+                    type: data.inline,
+                    raw_data: data.raw
+                });
                 var func = function(){
-                    // TODO
-                    ds_dict[i].loaded = true;
-                    $( ds_dict[i] ).triggerHandler("loaded");
+                    var ds = ds_dict[i];
+                    ds.init( params );
                 }
             }else if( data.datalist ){
                 var dl = eval( data.datalist );
@@ -205,15 +209,21 @@ Provi.Bio.Data.JmolScript = function( params ){
 };
 Provi.Bio.Data.JmolScript.prototype = /** @lends Provi.Bio.Data.JmolScript.prototype */ {
     load: function( sele, applet ){
+        console.log(this.dataset);
         var ds = this.dataset;
-        var idx = Math.max( ds.url.lastIndexOf("/"), ds.url.lastIndexOf("=") );
-        var base_url = '"' + ds.url.substring( 0, idx+1 ) + '"';
-        var s = '' +
-            ds.raw_data.replace("PROVI_BASEURL", base_url) + ';' +
-            'provi_dataset_loaded( ' + this.dataset.id + ' );' +
-        '';
+        var s = ds.raw_data;
+        if( ds.url ){
+            var idx = Math.max(
+                ds.url.lastIndexOf("/"), ds.url.lastIndexOf("=")
+            );
+            var base_url = '"' + ds.url.substring( 0, idx+1 ) + '"';
+            s = s.replace("PROVI_BASEURL", base_url);
+        }
+        s += '; provi_dataset_loaded( ' + this.dataset.id + ' );';
         console.log(s);
-        this.applet.script(s, { maintain_selection: true, try_catch: false });
+        this.applet.script(
+            s, { maintain_selection: true, try_catch: false }
+        );
     }
 }
 
