@@ -91,7 +91,7 @@ var Jmol = {};
         $(Provi.Jmol).bind( 'applet_list_change', Provi.layout );
 
         // sort widgets
-        $(Provi.Widget.WidgetManager).bind('add', function(e, data){
+        $(Provi.Widget.WidgetManager).bind('change', function(e, data){
             $('#tab_widgets').children().sortElements( function(a, b){
                 var widget_a = Provi.Widget.WidgetManager.get( 
                     $(a).attr('id') 
@@ -191,6 +191,7 @@ var Jmol = {};
             .script("../js/lib/canvg/svgfix.js")
 
             .script("../js/lib/jquery.js").wait()
+            .script("../js/lib/jquery-migrate.js").wait()
             .script("../js/lib/jquery.query.js")
             .script("../js/lib/jquery.tmpl.min.js")
             .script("../js/lib/jquery.cookie.js")
@@ -208,7 +209,7 @@ var Jmol = {};
                     "../js/lib/jquery-colorPicker/colorPicker.css" )
             )
             
-            .script("../js/lib/slickgrid/lib/jquery.event.drag-2.0.min.js")
+            .script("../js/lib/slickgrid/lib/jquery.event.drag-2.2.js")
             .script("../js/lib/slickgrid/slick.core.js")
             .script("../js/lib/slickgrid/slick.editors.js")
             .script("../js/lib/slickgrid/slick.grid.js").script(

@@ -343,7 +343,7 @@ Provi.Bio.Flatland.FlatlandWidget.prototype = Utils.extend(Provi.Widget.Widget, 
             'show_helper_links', 'show_center', 'show_axes', 'show_hull', 'color_tension',
             'auto_update', 'use_viewplane', 'hide_vdw', 'fix_all', 'split_contact_residues'
         ], function(name){
-            self.elm( name ).attr('checked', self[ name ]);
+            self.elm( name ).prop('checked', self[ name ]);
             self.elm( name ).bind('click', function(e){
                 self[ name ] = self.elm( name ).is(':checked');
                 self.render(true);
