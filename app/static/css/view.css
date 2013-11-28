@@ -160,20 +160,35 @@ div.control_info {
 
 /* Splitbar styles; these are the default class names */
 .vsplitbar {
-	width: 6px;
-	background: #669 url(../img/vgrabber.gif) no-repeat center;
+    width: 5px;
+    background: #cab;
 }
-.vsplitbar:hover, .vsplitbar.active {
-	background: #c66 url(../img/vgrabber.gif) no-repeat center;
-	opacity: 0.7;
-	background: #c99;
+
+.ui-state-default { background-color: #aca }
+.ui-state-hover { background-color: #bdb }
+.ui-state-highlight { background-color: #add }
+.ui-state-error { background-color: #eaa }
+
+.splitter-pane {
+    overflow: auto;
 }
-.hsplitbar {
-	height: 6px;
-	background: #669 url(../img/hgrabber.gif) no-repeat center;
+.splitter-bar-vertical {
+    width: 6px;
+    background-image: url(../img/vgrabber.gif);
+    background-repeat: no-repeat;
+    background-position: center;
 }
-.hsplitbar.active, .hsplitbar:hover {
-	background: #c66 url(../img/hgrabber.gif) no-repeat center;
+.splitter-bar-vertical-docked {
+    width: 10px;
+    background-image: url(../img/vdockbar-trans.gif);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.splitter-bar.ui-state-highlight {
+    opacity: 0.7;
+}
+.splitter-iframe-hide {
+    visibility: hidden;
 }
 
 
