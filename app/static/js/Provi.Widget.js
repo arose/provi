@@ -149,13 +149,15 @@ Provi.Widget.Widget.prototype = {
 
         this.initialized = true;
         $(this).triggerHandler('init');
+        Provi.Widget.WidgetManager.change();
     },
     del: function(){
         $(this.dom).hide();
         $(this.dom).appendTo('#trash');
     },
     set_heading: function( heading ){
-        this.elm( 'heading' ).text( heading ).show();
+        this.elm( 'heading' ).children()
+            .first().next().text( heading ).show();
     },
     set_description: function( description ){
         this.elm( 'description' ).text( description ).show();
@@ -293,7 +295,7 @@ Provi.Widget.form_builder = function( params, value, id, self ){
         $elm.append(
             $('<input type="checkbox" name="' + id + '" />')
                 .data( 'id', id )
-                .attr( 'checked', value )
+                .prop( 'checked', value )
                 .click( _.bind( self.set, self ) ),
             '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
         );
