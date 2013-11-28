@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<!--[if lte IE 8]> <html lang="en" class="ieOld"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" href="../favicon.ico">
+    <title>Provi FragFit</title>
+    <script type="text/javascript" src="../js/lib/LAB.js"></script>
+    <script type="text/javascript" src="../js/Provi.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        
+        Provi.config.jquery_ui_css = 
+            "../js/lib/jquery-ui/css/mphd/jquery-ui.css";
+
+        Provi.load( function(){
+
+            if( $("html").hasClass("ieOld") ){
+                $(window).on( 'mousedown', 'select', function(){
+                    $(this).css("width", "auto");
+                }).on('blur change', 'select', function(){
+                    $(this).css("width", "1.5em");
+                });
+            }
+
+            _.extend( Provi.defaults.dom_parent_ids, {
+                DATASET_WIDGET: 'tab_widgets',
+                CANVAS_WIDGET: 'main',
+                SELECTION_WIDGET: 'tab_widgets',
+                BUILDER_WIDGET: 'tab_widgets',
+                SETTINGS_WIDGET: 'tab_widgets',
+                JOBS_WIDGET: 'tab_widgets'
+            });
+            
+            _.each([
+                Provi.Widget.Grid.GridWidget,
+                Provi.Bio.AtomProperty.AtomPropertyGroupWidget,
+                Provi.Bio.HydrogenBonds.HbondsWidget,
+                Provi.Bio.MembranePlanes.MplaneWidget
+            ], function(x){ 
+                _.extend( x.prototype.default_params, { collapsed: true } ) 
+            });
+            
+            _.extend( Provi.Widget.StoryWidget.prototype.default_params, {
+                sort_key: -2,
+                heading: 'Data info',
+                show_dataset_info: false,
+                collapsed: false
+            });
+            
+            _.extend( Provi.Jmol.JmolWidget.prototype.default_params, {
+                no_sequence_view_widget: true,
+                no_selection_manager_widget: true,
+                no_tree_view_widget: true,
+                no_grid_widget: true,
+                no_plot_widget: true,
+                no_data_info: true
+            });
+            
+            $(document).ready(function(){
+
+                Provi.init();
+
+                new Provi.Jmol.Controls.JmolDisplayWidget({
+                    parent_id: 'tab_widgets',
+                    sort_key: -1,
+                    hide_color_models: true,
+                    collapsed: true
+                });   
+            });
+        });
+        
+    </script>
+    
+    <div id="container" style="height:100%; width:100%;">
+        
+        <div id="jmolWindow" class="" style="overflow:hidden; height:100% ">
+            <div id="main" style="height:100%; width:100%; overflow:hidden;"></div>
+        </div>
+        
+        <div id="jmolControls" class="" style="height:100%; width:400px; min-width:300px;">
+            <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
+                <div id="tabs_panel" style="height:100%; width:100%;">
+                    <ul>
+                        <li><a title="A collection of control elements" href="#tab_widgets">Controls</a></li>
+                        <li><a title="Some help" href="#tab_help">Help</a></li>
+                    </ul>
+                    <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">
+                        <div id="tab_widgets"></div>
+                        <div id="tab_help">
+                            <h3>Keyboard/mouse commands inside the Jmol window</h3>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Mouse-Middle</kbd></span>
+                                <br/>
+                                Translate the view; Center on the clicked atom.
+                            </div>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Mouse-Wheel</kbd></span>
+                                <br/>
+                                Moves the front and back clipping planes/ z-shading planes towards the center.
+                            </div>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Shift</kbd>+<kbd>Mouse-Wheel</kbd></span>
+                                <br/>
+                                Moves the front and back clipping planes/ z-shading planes individually.
+                            </div>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Mouse-Left</kbd></span>
+                                <br/>
+                                Rotate the view.
+                            </div>
+                            <div style="padding:0.5em 0em 1em 1.5em;">
+                                <span style="font-size: 1.3em;"><kbd>Mouse-Right</kbd></span>
+                                <br/>
+                                Zoom the view.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Piwik -->
+    <script type="text/javascript">
+      var _paq = _paq || [];
+      _paq.push(["trackPageView"]);
+      _paq.push(["enableLinkTracking"]);
+
+      (function() {
+        var u=(("https:" == document.location.protocol) ? "https" : "http") + "://proteinformatics.charite.de/piwik/";
+        _paq.push(["setTrackerUrl", u+"piwik.php"]);
+        _paq.push(["setSiteId", "7"]);
+        var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0]; g.type="text/javascript";
+        g.defer=true; g.async=true; g.src=u+"piwik.js"; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    <!-- End Piwik Code -->
+</body>
+</html>

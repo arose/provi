@@ -1,0 +1,24 @@
+{
+    "type": "multi-linkit",
+    "make_widget": {
+        "collapsed": true
+    },
+    "autoload": true,
+    "name": "Loop calculation",
+    "params": {
+        "_pdb_file": "http://www.ssfa-7tmr.de/ssfe/database/SSFE_RESULTS_AUG/FAMA/p2y12_human/TMH_templates1_topmodel_rechain.pdb",
+        "pdb_file": "http://localhost/provi/static/data/test/TMH_templates1_topmodel_rechain.pdb",
+        "input": [
+            "53 57 RSK",
+            "88 94 TGPLR",
+            "128 137 PFKTSNPK",
+            "161 186 LTNRQPRDKNVKKCSFLKSEFGLV",
+            "212 230 TKELYRSYVRTRGVGKV",
+            "262 276 QTRDVFDCTAENT",
+            "299 302 FL"
+        ],
+        "names": [ 
+            "ICL1", "ECL1", "ICL2", "ECL2", "ICL3", "ECL3", "TM7-H8"
+        ]
+    }
+}
