@@ -384,10 +384,23 @@ def input_path( name, params, output_dir ):
 def job_submit():
     is_form = request.args.get("POST")!="_PNGJBIN_"
     print "is_form: " + str(is_form)
+    print request.args
+    print request.form
+    print request.json
     def get( name, params ):
+        print name
         default = params.get( "default", "" )
         attr = "form" if is_form else "args"
-        return getattr( request, attr ).get( name, default )
+        if params.get( "nargs" ) or params.get( "action" )=="append":
+            d = getattr( request, attr ).getlist( name+"[]" )
+            if params.get( "nargs" ) and \
+                    params.get( "action" )=="append":
+                d = [ x.split() for x in d ]
+            if not d: d = default
+        else:
+            d = getattr( request, attr ).get( name, default )
+        print d
+        return d
     jobtype = get( '__type__', {} )
     Tool = app.config['TOOLS'].get( jobtype )
     if Tool:
@@ -426,6 +439,8 @@ def job_submit():
                 d = boolean( get( name, { "default": False } ) )
             elif params["type"] in [ "str", "sele" ]:
                 d = str( get( name, params ) )
+            elif params["type"]=="list":
+                d = get( name, params )
             else:
                 # unknown type, raise exception?
                 d = get( name, params )
