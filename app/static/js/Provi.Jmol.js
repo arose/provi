@@ -658,43 +658,53 @@ Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Jmo
  * @constructor
  */
 Provi.Jmol.JmolAppletSelectorWidget = function(params){
-    this._jmol_applet = typeof(params.applet) != 'undefined' ? params.applet : null;
-    this.new_jmol_applet_parent_id = params.new_jmol_applet_parent_id;
-    this.show_default_applet = typeof(params.show_default_applet) != 'undefined' ? params.show_default_applet : true;
-    params.tag_name = 'span';
-    Widget.call( this, params );
-    this.selector_id = this.id + '_applet';
-    this.allow_new_applets = params.allow_new_applets;
-    var content = '<span class="control_row">' +
-            '<label for="' + this.selector_id + '">Jmol applet:</label>' +
-            '<select id="' + this.selector_id + '" class="ui-state-default"></select>' +
-        '</span>';
-    $(this.dom).append( content );
+    params = _.defaults( params, this.default_params );
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([ "selector" ]);
+
+    var p = [ 
+        "applet", "new_jmol_applet_parent_id", "show_default_applet",
+        "allow_new_applets"
+    ];
+    _.extend( this, _.pick( params, p ) );
+
+    var template = '' +
+        '<span class="control_row">' +
+            '<label for="${eids.selector}">Jmol applet:</label>' +
+            '<select id="${eids.selector}" class="ui-state-default"></select>' +
+        '</span>' +
+    '';
+    
+    this.add_content( template, params );
     this._init();
 };
-Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.JmolAppletSelectorWidget.prototype */ {
+Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, {
+    default_params: {
+        show_default_applet: true,
+        tag_name: 'span'
+    },
     _update: function(){
-        var elm = $("#" + this.selector_id);
-        var value = $("#" + this.selector_id + " option:selected").val();
+        var elm = this.elm("selector");
+        var value = elm.children("option:selected").val();
         var default_applet_name = '';
         var applet = Provi.Jmol.get_default_applet();
         if(applet){
             default_applet_name = ' (' + applet.name_suffix + ')';
         }
+        if( !value ){
+            value = "default";
+        }
         elm.empty();
         elm.append(
-            (!this.show_default_applet && !this.allow_new_applets ? '<option value=""></option>' : '' ) +
             (this.show_default_applet ? '<option value="default">default' + default_applet_name + '</option>' : '' ) +
             (this.allow_new_applets ? '<option value="new">new</option><option value="new once">new once</option>' : '')
         );
         var applet_list = Provi.Jmol.get_applet_list();
-        $.each(applet_list, function(){
-            elm.append("<option value='" + this.name_suffix + "'>" + this.name_suffix + "</option>");
+        _.each(applet_list, function( applet ){
+            elm.append("<option value='" + applet.name_suffix + "'>" + applet.name_suffix + "</option>");
         });
         elm.val( value );
-        elm.triggerHandler('change'); // ??
         $(this).triggerHandler('change');
-        //$(this).triggerHandler('change', [ this.get_value(true) ]);
         
         // hide applet selector, if only one option is available
         if( !this.allow_new_applets && applet_list.length <= 1 ){
@@ -705,17 +715,20 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
     },
     _init: function(){
         this._update();
-        var self = this;
-        $(Provi.Jmol).bind('applet_list_change', function(){ self._update() });
-        $('#' + this.selector_id).change( function(){
+        $(Provi.Jmol).bind(
+            'applet_list_change', _.bind( this._update, this )
+        );
+        this.elm("selector").change( _.bind( function(){
             console.log( 'CHANGE_SELECTED' );
-            //$(self).triggerHandler('change_selected');
-            $(self).triggerHandler('change_selected', [ self.get_value(true) ]);
-        });
-        $(Provi.Jmol).bind('default_applet_change', function(){ self._update() });
+            $(this).triggerHandler('change_selected', [ this.get_value(true) ]);
+        }, this ) );
+        $(Provi.Jmol).bind(
+            'default_applet_change', _.bind( this._update, this )
+        );
+        Provi.Widget.Widget.prototype.init.call(this);
     },
     get_value: function( do_not_force_new ){
-        var applet_name = $("#" + this.selector_id + " option:selected").val();
+        var applet_name = this.elm("selector").children("option:selected").val();
         if(applet_name == 'default'){
             return Provi.Jmol.get_default_applet( !do_not_force_new );
         }else if( !do_not_force_new &&
@@ -724,7 +737,7 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
                 parent_id: this.new_jmol_applet_parent_id
             });
             if(applet_name == 'new once'){
-                $("#" + this.selector_id).val( jw.applet.name_suffix );
+                this.elm("selector").val( jw.applet.name_suffix );
             }
             return jw.applet;
         }else{
@@ -732,11 +745,7 @@ Provi.Jmol.JmolAppletSelectorWidget.prototype = Utils.extend(Widget, /** @lends 
         }
     },
     set_value: function( value ){
-           console.log( 'set_value ' + value );
-           $("#" + this.selector_id).val( value );
-    },
-    change: function(fn){ // ??
-           $("#" + this.selector_id).change(fn);
+        this.elm("selector").val( value );
     }
 });
 
