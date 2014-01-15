@@ -90,7 +90,9 @@ function provi_center( sele ){
 function provi_zslab( delta_y ){
     set slabEnabled true;
     set zShade true;
-    set zSlab @{zSlab + delta_y/abs(delta_y)}; 
+    if( delta_y!=0 ){
+        set zSlab @{zSlab + delta_y/abs(delta_y)}; 
+    }
     if(zSlab<=0){ set zSlab 0 } 
     if(zSlab>=100){ set zSlab 100 }
     set slab @{100 - zSlab};

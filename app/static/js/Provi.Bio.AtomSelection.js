@@ -266,7 +266,7 @@ Provi.Bio.AtomSelection.GroupindexDatalist.prototype = Utils.extend(Provi.Bio.At
     get_ids: function(sele){
         var s = '{' + this.filtered() + '}.groupindex.all.count().join("")';
         var data = this.applet.evaluate(s);
-        if(data) data = data.trim().split('\t');
+        if(data) data = data.trim().split(/\W/);
         data = _.filter(data, function(val, i){
             return i % 2 == 0;
         });
