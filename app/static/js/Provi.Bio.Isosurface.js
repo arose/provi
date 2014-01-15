@@ -361,22 +361,14 @@ Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Data
         var shape_info = this.applet.get_property_as_array('shapeInfo');
         var info = {};
         _.each( shape_info["Isosurface"], function( d, i ){
-            info[ d["ID"] ] = d;
-        })
-        var iso_list = this.applet.evaluate(
-            "script('isosurface list')"
-        );
-        iso_list = iso_list.split("\n");
-        iso_list = _.map( iso_list, function( d, i ){
-            var x = d.split("; ");
-            var id = x[0].split(":")[1];
-            _.each( x, function( xd, i ){
-                var xds = xd.split(":");
-                if( xds[0]=="visible" ){
-                    info[ id ][ "visible" ] = xds[1]=="true";
+            _.each( d, function( elm, key ){
+                if( elm=="false" ){
+                    d[key] = false;
+                }else if( elm=="true" ){
+                    d[key] = true;
                 }
             });
-            return x;
+            info[ d["ID"] ] = d;
         });
         if( id ){
             return info[id] || {};
