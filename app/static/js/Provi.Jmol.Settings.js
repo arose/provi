@@ -45,7 +45,7 @@ Provi.Jmol.Settings.groups = {
     clipping: [ "slabEnabled", "slabRange", "slabByAtom", "slabByMolecule", 
         "slab", "depth" ],
     quality: [ "highResolution", "antialiasDisplay", "antialiasTranslucent", 
-        "antialiasImages", "wireframeRotation" ],
+        "antialiasImages", "wireframeRotation", "platformSpeed" ],
     picking: [ "atomPicking", "drawPicking", "picking", "pickingStyle", 
         "selectionHalos", "selectionHalosColor", "hoverDelay", "highlightColor" ],
     style: [ "cartoon", "trace", "line", "stick", "cpk", "spacefill", 
@@ -56,7 +56,10 @@ Provi.Jmol.Settings.groups = {
     sys: [ "appletProxy" ],
 }
 
+
 Provi.Jmol.Settings.dict = {
+    platformSpeed: { type: "int", range: [ 0, 8 ] },
+
     defaultVDW: { type: "str", options: [ "jmol", "babel", "rasmol" ] },
     isosurfacePropertySmoothing: { type: "bool" },
     largeAtomCount: { type: "bool", provi: true },
