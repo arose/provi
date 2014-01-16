@@ -270,6 +270,10 @@ Provi.Data.Job.JobWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
         '</div>');
     },
     init_file_tree: function(){
+        // check if the widget is still available
+        // TODO properly destroy widgets and their bindings
+        if( $('#' + this.id).length == 0 ) return;
+
         if( this._heading ){
             var prefix = "[Job Done] ";
             if( this.job.running ){
