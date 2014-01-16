@@ -104,7 +104,7 @@ Provi.Bio.Isosurface.Isosurface = function(params){
         "applet", "dataset", "color", "within", "insideout", 
         "frontonly", "style", "translucent",
         "resolution", "select", "ignore", "slab", "type", "map",
-        "iso_slab"
+        "iso_slab", "probe_radius", "outer_probe_radius"
     ];
     _.extend( this, _.pick( params, p ) );
 
@@ -139,11 +139,18 @@ Provi.Bio.Isosurface.Isosurface.prototype = /** @lends Provi.Bio.Isosurface.Isos
         this.applet.script( s, { maintain_selection: true, try_catch: true } );
     },
     create: function(){
+        var type = this.type;
+        if( type=="solvent" && this.probe_radius ){
+            type += " " + this.probe_radius;
+        }else if( _.contains( [ "cavity", "interior cavity", "pocket cavity" ], type ) && this.probe_radius && this.outer_probe_radius ){
+            type += " " + this.probe_radius + " " + this.outer_probe_radius;
+        }
+
         var s = 'isosurface ID "iso_' + Provi.Utils.uuid() + '" ' +
             (this.resolution ? 'resolution ' + this.resolution + ' ' : '') +
             (this.select ? 'select {' + this.select + '} ' : '') +
             (this.ignore ? 'ignore {' + this.ignore + '} ' : '') +
-            (this.type ? this.type + ' ' : '') +
+            (type ? type + ' ' : '') +
             (this.map ? 'MAP ' + this.map + ' ' : '') +
         ';'
         console.log('Provi.Bio.Isosurface.Isosurface.create', s);
@@ -242,9 +249,11 @@ Provi.Bio.Isosurface.ConstructParamsWidget.prototype = Utils.extend(Provi.Widget
         resolution: { 'default': 2, type: "float", range: [ 1, 10 ] },
         select: { 'default': "*", type: "sele" },
         ignore: { 'default': "", type: "sele" },
+        probe_radius: { 'default': 1.4, type: "float" },
+        outer_probe_radius: { 'default': 8.0, type: "float" },
         type: { 'default': "", type: "str", options: [ 
-            "", "sasurface", "molecular", "cavity", "solvent 1.4", "solvent 1.0", "solvent 0.8",
-            "cavity 1.0 8", "interior cavity 1.0 8", "pocket cavity 1.0 8"
+            "", "sasurface", "molecular", "cavity", "solvent",
+            "cavity", "interior cavity", "pocket cavity"
         ] }
     }
 });
@@ -379,31 +388,17 @@ Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Data
     make_details: function(id){
         var info = this.get_info();
         console.log( info[id] );
-        return
-        var job = Provi.Data.Job.JobManager.get( id );
-        // return id.toString() + " - " + job.jobname;
-        var e = new Provi.Data.Io.ExampleLoadWidget({
-            collapsed: false,
-            heading: false,
-            all_buttons: false,
-            directory_name: '__job__',
-            root_dir: job.jobname + '/',
-            applet: this.applet
+        
+        var e = new Provi.Bio.Isosurface.IsosurfaceWidget({
+            isosurface_name: id,
+            applet: this.applet,
+            no_create: true
         });
-        console.log(e, job);
-        return $('<div class="control_row"></div>').append(
-            '<div>[' + id.toString() + "] " + job.jobname + '</div>',
-            e.dom
-        );
+        return e.dom;
     }
 });
 
-// new Provi.Bio.Isosurface.SurfaceWidget({
-//     isosurface_name: iso_id,
-//     applet: self,
-//     no_create: true,
-//     parent_id: Provi.defaults.dom_parent_ids.DATASET_WIDGET
-// });
+
 
 
 
