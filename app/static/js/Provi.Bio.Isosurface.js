@@ -251,7 +251,7 @@ Provi.Bio.Isosurface.ConstructParamsWidget.prototype = Utils.extend(Provi.Widget
         ignore: { 'default': "", type: "sele" },
         probe_radius: { 'default': 1.4, type: "float" },
         outer_probe_radius: { 'default': 8.0, type: "float" },
-        type: { 'default': "", type: "str", options: [ 
+        type: { 'default': "sasurface", type: "str", options: [ 
             "", "sasurface", "molecular", "cavity", "solvent",
             "cavity", "interior cavity", "pocket cavity"
         ] }
@@ -386,9 +386,6 @@ Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Data
         }
     },
     make_details: function(id){
-        var info = this.get_info();
-        console.log( info[id] );
-        
         var e = new Provi.Bio.Isosurface.IsosurfaceWidget({
             isosurface_name: id,
             applet: this.applet,
@@ -401,6 +398,130 @@ Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Data
 
 
 
+Provi.Bio.Isosurface.IsosurfaceDatalist2 = function(params){
+    var p = [ "pdb_ds", "linker_ds" ];
+    _.extend( this, _.pick( params, p ) );
+
+    this.columns = [
+        { id: "ID", name: "ID", field: "ID", width: 100, sortable: true },
+        { id: "color", name: "color", field: "color", width: 50, sortable: true, formatter: Provi.Widget.Grid.formatter_color },
+        { id: "modelIndex", name: "modelIndex", field: "modelIndex", width: 50, sortable: true },
+        { id: "title", name: "title", field: "title", width: 150, sortable: true },
+        { id: "vertexCount", name: "vertexCount", field: "vertexCount", width: 70, sortable: true },
+        { id: "visible", name: "visible", field: "visible", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.formatter_displayed,
+            action: _.bind( function( id, d ){
+                var s = 'isosurface ID "' + d.ID + '" ' +
+                    ( d.visible ? 'OFF': 'ON' ) + ';';
+                this.script( s, true );
+            }, this )
+        },
+        /*{ id: "options", name: "options", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory("cog"),
+            action: Provi.Widget.Grid.ActionPopupFactory(
+                Provi.Bio.Isosurface.IsosurfaceWidget,
+                _.bind( function( id, d, grid_widget, e ){
+                    return { 
+                        isosurface_name: d.ID,
+                        applet: this.applet,
+                        no_create: true
+                    }
+                }, this )
+            )
+        },*/
+        { id: "options", name: "options", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory("cog"),
+            action: Provi.Widget.Grid.ActionPopupFactory(
+                Provi.Bio.Isosurface.IsosurfaceParamsWidget,
+                _.bind( function( id, d, grid_widget, e ){
+                    return { 
+                        isosurface_name: d.ID,
+                        applet: this.applet,
+                    }
+                }, this )
+            )
+        },
+        { id: "delete", name: "delete", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory("trash-o"),
+            action: Provi.Widget.Grid.ActionDeleteFactory(
+                _.bind( function( id, d, grid_widget, e ){
+                    var s = 'isosurface ID ' + d.ID + ' delete;';
+                    this.script( s, true );
+                }, this )
+            )
+        },
+    ]
+
+    Provi.Data.Datalist2.call( this, params );
+}
+Provi.Bio.Isosurface.IsosurfaceDatalist2.prototype = Utils.extend(Provi.Data.Datalist2, {
+    type: "IsosurfaceDatalist",
+    // jspt_url: "../data/jmol_script/atomsele.jspt", 
+    params_object: Provi.Bio.Isosurface.ConstructionWidget,
+    DataItem: function( row ){
+        _.extend( this, row );
+    },
+    load_data: function( from, to, sortcol, sortdir ){
+        var shape_info = this.applet.get_property_as_array('shapeInfo');
+        // console.log(shape_info);
+        var iso = shape_info["Isosurface"];
+        if( !iso ) return { results: [], start: from, hits: 0 };
+
+        if( sortcol ){
+            iso =_.sortBy( iso, function(x){ return x[sortcol]; });
+        }
+        if( sortdir=="DESC" ) iso.reverse();
+        var hits = iso.length;
+        iso = iso.slice( from, to+1 );
+
+        return { results: iso, start: from, hits: hits };
+    }
+});
+
+
+Provi.Bio.Isosurface.IsosurfaceParamsWidget = function(params){
+    var p = [ "isosurface_name" ];
+    _.extend( this, _.pick( params, p ) );
+    console.log("IsosurfaceParamsWidget", params);
+
+    $(this).bind("change", _.bind( function( e, id ){
+        var s = '';
+        if( id=="style" ){
+            s = 'isosurface ID "' + this.isosurface_name + '" ' +
+                this.params.style + ';';
+        }else if( id=="translucent" ){
+            s = 'isosurface ID "' + this.isosurface_name + '" ' +
+                'translucent ' + this.params.translucent + ';';
+        }else if( id=="frontonly" ){
+            s = 'isosurface ID "' + this.isosurface_name + '" ' +
+                this.params.frontonly + ';';
+        }else if( id=="color" ){
+            s = 'color $"' + this.isosurface_name + '" ' +
+                '[x' + this.params.color.substring(1) + '] ' +
+                'translucent ' + (this.params.translucent || 0.0) + ';';
+        }
+        this.applet.script( s );
+    }, this ) );
+
+    Provi.Widget.ParamsWidget.call( this, params );
+}
+Provi.Bio.Isosurface.IsosurfaceParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
+    params_dict: {
+/*        translucent: { 'default': 0.3, type: "float", 
+            range: [ 0.0, 1.0 ], step: 0.1 },*/
+        translucent: { 'default': "", type: "float", 
+            options: [ "", 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 
+                0.9, 1.0 ] },
+        style: { 'default': "", type: "str", 
+            options: [ "", "fill nomesh nodots", "mesh nofill nodots", 
+                "dots nofill nomesh", "fill mesh nodots" ] },
+        frontonly: { 'default': "", type: "str", 
+            options: [ "", "frontonly", "notfrontonly" ] },
+        color: { 'default': "", type: "color" },
+    }
+});
+
+
 
 /**
  * A widget
@@ -410,7 +531,7 @@ Provi.Bio.Isosurface.IsosurfaceDatalist.prototype = Utils.extend(Provi.Data.Data
  */
 Provi.Bio.Isosurface.IsosurfaceWidget = function(params){
     params = _.defaults( params, this.default_params );
-    params.parent_id = Provi.defaults.dom_parent_ids.DATASET_WIDGET;
+    params.parent_id = params.parent_id || Provi.defaults.dom_parent_ids.DATASET_WIDGET;
 
     var p = [ 
         "isosurface_type", "dataset", "applet", "resolution", "within", "color", 

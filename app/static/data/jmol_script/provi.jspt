@@ -82,7 +82,7 @@ function provi_center( sele ){
     if( provi_iso_slab_id ){
         isosurface ID @provi_iso_slab_id;
         isosurface SLAB NONE;
-        isosurface SLAB WITHIN 8.0 {sele};
+        isosurface SLAB WITHIN 12.0 {sele};
     }
 }
 
@@ -342,6 +342,15 @@ function sort_by_prop( sele, prop ){
         x[i] = (x[i])[1];
     }
     return x;
+}
+
+
+function listify( x ){
+    if( x.type=="array" ){
+        return x;
+    }else{
+        return [ x ];
+    }
 }
 
 

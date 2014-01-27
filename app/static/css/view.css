@@ -278,3 +278,10 @@ div.chzn-container {
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0000ff', endColorstr='#ff0000',GradientType=1 ); 
 }
 
+
+/**
+ * 
+ */
+.center {
+    text-align: center;
+}

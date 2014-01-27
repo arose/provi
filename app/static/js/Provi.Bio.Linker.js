@@ -22,138 +22,84 @@ var Widget = Provi.Widget.Widget;
 
 
 Provi.Bio.Linker.LinkerDatalist = function(params){
-    var self = this;
-    
     var p = [ "pdb_ds", "linker_ds" ];
     _.extend( this, _.pick( params, p ) );
 
-    Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
-    this.handler = _.defaults({
-        "show_linker": {
-            "selector": 'input[cell="linker"]',
-            "click": this.show_linker,
-            label: function(linker, id){
-                if( !linker && id!=='all' ){
-                    return 'Show linker';
-                }else if( !linker && id==='all' ){
-                    return 'Hide all linker';
-                }
-            }
-        }
-    }, this.handler );
+    this.columns = [
+        { id: "id", name: "id", field: "id", width: 50, sortable: true },
+        { id: "correl", name: "correl", field: "correl", width: 50, sortable: true },
+        { id: "goodness", name: "goodness", field: "goodness", width: 50, sortable: true },
+        { id: "score", name: "score", field: "score", width: 50, sortable: true },
+        { id: "seq", name: "seq", field: "seq", width: 100, sortable: true, formatter: Provi.Widget.Grid.formatter_verbatim },
+        { id: "pdb", name: "pdb", field: "pdb", width: 50, sortable: true },
+        { id: "displayed", name: "displayed", field: "displayed", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.formatter_radio,
+            action: _.bind( Provi.Bio.AtomSelection.action_display, this ),
+        },
+    ];
+
+    Provi.Data.Datalist2.call( this, params );
 }
-Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.SelectionDatalist, {
+Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Data.Datalist2, {
     type: "LinkerDatalist",
-    params_object: undefined,
+    jspt_url: "../data/jmol_script/atomsele.jspt", 
+    // params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
     _init: function(){
-        console.log("pdb_ds", this.pdb_ds);
-        console.log("linker_ds", this.linker_ds);
-
-        var data = _.map( this.linker_ds.raw_data, function(v, k){
-            return [k].concat( v );
+        this.data = _.map( this.linker_ds.raw_data, function(v, k){
+            return [ parseInt(k) ].concat( v );
         });
-        data =_.sortBy( data, function(x){ return x[1]; });
-        data.reverse();
-
-        this.ids = [];
-        this.data = {};
-        _.each( data, function(elm){
-            this.ids.push( elm[0] );
-            this.data[ elm[0] ] = elm.slice(1);
-        }, this);
 
         var s = 'provi_datasets[' + this.pdb_ds.id + '];';
         this.fileno = this.applet.evaluate( s );
-        console.log("LinkerDatalist file", this.fileno);
+        
+        this.has_cross_correl = this.data[0].length==6;
+        console.log( this.data[0], this.data[0].length==6 );
+        if( !this.has_cross_correl ) this.columns.slice( 1, 1 );
 
         this.initialized = false;
         this.set_ready();
-        // var s = 'script "../data/jmol_script/interface_contacts.jspt";';
-        // this.applet.script_callback( s, {}, _.bind( this.set_ready, this ) );
     },
-    get_ids: function(sele){
-        return this.ids;
+    selection: function( id ){
+        return this.fileno + '.' + id;
     },
-    get_data: function(id){
-        return [0];
-        // if( !this.ready ) return 0;
-        // // test
-        // var s = 'provi_datasets[' + this.pdb_ds.id + '];';
-        // var a = this.applet.evaluate(s);
-        // return a;
+    DataItem: function( row ){
+        var i = 0;
+        if( row.length==7 ){
+            i = 1;
+            this.correl = row[1];
+        }
+        this.id = row[0];
+        this.goodness = row[i+1];
+        this.score = row[i+2];
+        this.seq = row[i+3];
+        this.pdb = row[i+4];
+        this.displayed = row[i+5];
     },
-    frmt_data: function(id){
-        var d = this.data[id];
-        var d2 = _.map( d.slice(0,-2), function(x){ 
-            return x.toFixed(3);
+    load_data: function( from, to, sortcol, sortdir ){
+        var data = this.data;
+        var cols = [ "id", "correl", "goodness", "score", "seq", "pdb" ];
+        if( !this.has_cross_correl ) cols.slice( 1, 1 );
+
+        if( sortcol ){
+            var sortidx = _.indexOf( cols, sortcol );
+            if( sortidx==-1 ) sortidx = 0;
+            data =_.sortBy( data, function(x){ return x[sortidx]; });
+        }
+        if( sortdir=="DESC" ) data.reverse();
+        var hits = data.length;
+        data = data.slice( from, to+1 );
+
+        model = this.applet.evaluate(
+            "{file=" + this.fileno + "}.model"
+        );
+        data = _.map( data, function(d){
+            return d.concat([ d[0]==model ? 1.0 : 0.0 ]);
         });
-        return d2.concat( d.slice(-2) );
-    },
-    make_row: function(id){
-        if(id==='all'){
-            var label = 'Linker';
-        }else{
-            var d = _.map( this.data[id].slice(0,-2), function(x){ 
-                return x.toFixed(3);
-            });
-            var d = this.frmt_data( id );
-            var label = "[" + id + "] " + 
-                d.slice(0,-2).join(', ') +
-                " (" + d[d.length-1] + ")";
 
-        }
-        var a = this.get_data(id); // selected, consurf, intersurf
-
-        var $row = $('<div></div>').append(
-            this.label_cell( label, id ),
-            this.linker_cell( id, this.shown_linker_id===id )
-        );
-        return $row;
-    },
-    _show_linker: function(id, flag){
-        if( flag || id =="all" ){
-            return '';
-        }
-        return '' +
-            'display add ' + this.fileno + '.' + id + ';' +
-        '';
-    },
-    show_linker: function(id, flag, params){
-        if(flag){
-            this.shown_linker_id = undefined;
-        }else{
-            this.shown_linker_id = id;
-        }
-        var s = this._show_linker(id, flag);
-        this.script( s, true );
-    },
-    linker_cell: function(id, linker){
-        var $linker = $('<span style="background:lightgreen; float:right; width:22px;">' +
-            '<input cell="linker" type="radio" ' + 
-                ( linker ? 'checked="checked" ' : '' ) + 
-            '/>' +
-        '</span>');
-        $linker.children().data( 'id', id );
-        return $linker;
-    },
-    make_details: function(id){
-        var d = this.frmt_data( id );
-        var $row = $('<div></div>').append(
-            '<div>[' + id + '] ' + d.slice(0,-2).join(', ') + '</div>',
-            '<div>' + 
-                d[d.length-2] + ' (' + d[d.length-1] + ')' +
-            '</div>'
-        );
-        return $row;
-    },
-    selection: function(id){
-        if( id==='all' ){
-            return 'within(MODEL, ' + this.filtered() + ')';
-        }else{
-            return this.fileno + '.' + id;
-        }
+        return { results: data, start: from, hits: hits };
     }
 });
+
 
 
 

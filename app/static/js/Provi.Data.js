@@ -312,6 +312,7 @@ Provi.Data.DatasetSelectorWidget.prototype = Utils.extend(Provi.Widget.Widget, /
  * Singleton datalist manager object.
  */
 Provi.Data.DatalistManager = new Provi.Utils.ObjectManager();
+Provi.Data.DatalistManager2 = new Provi.Utils.ObjectManager();
 
 
 Provi.Data.Datalist = function(params){
@@ -412,6 +413,97 @@ Provi.Data.ObjectDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
     }
 });
 
+
+
+Provi.Data.Datalist2 = function(params){
+    var p = [ "applet" ];
+    _.extend( this, _.pick( params, p ) );
+
+    Provi.Data.DatalistManager2.add( this, function( datalist ){
+        datalist.name = datalist.id + "_" + datalist.type;
+    });
+
+    if( params.load_struct ){
+        $(this.applet).bind( "load_struct", _.bind( this.calculate, this ) );
+    }
+    $(this).bind("init_ready", _.bind( this.calculate, this ) );
+
+    if( !params.no_init ) this._init();
+}
+Provi.Data.Datalist2.prototype = {
+    type: "Datalist",
+    handler: {},
+    columns: {},
+    params_object: undefined,
+    _init: function(){
+        //console.log( this.name, "_init" );
+        this.initialized = false;
+
+        if( this.applet.loaded ){
+            console.info("datalist: applet loaded");
+            if( this.jspt_url ){
+                var prevent_cache = '?_id=' + (new Date().getTime());
+                var s = 'script "' + this.jspt_url + '' + prevent_cache + '";';
+                this.applet.script_callback( s, {}, _.bind( this.set_initialized, this ) );
+            }else{
+                this.set_initialized();
+            }
+        }else{
+            console.warn("datalist: applet not loaded");
+            $(this.applet).bind("load", _.bind( this._init, this ))
+        }
+    },
+    set_initialized: function(){
+        this.initialized = true;
+        console.log("init_ready", this.name);
+        $(this).trigger("init_ready");
+        this.calculate();
+    },
+    calculate: function(){
+        this.ready = false;
+        if( this.initialized ){
+            this.set_ready();
+        }
+    },
+    set_ready: function(){
+        this.ready = true;
+        console.log("calculate_ready", this.name);
+        $(this).trigger("calculate_ready");
+        this.invalidate();
+    },
+    details: function(id){
+        $(this).triggerHandler("request_details", [id]);
+    },
+    make_details: function(id){
+        return id.toString();
+    },
+    update: function(){
+        $(this).triggerHandler('update');
+    },
+    invalidate: function(){
+        console.log("invalidate", this.name);
+        $(this).triggerHandler('invalidate');
+    },
+    script: function( s, invalidate, params ){
+        _.defaults( params || {}, { 
+            maintain_selection: true, 
+            try_catch: true 
+        });
+        if( invalidate ){
+            this.applet.script_callback( 
+                s, params, _.bind( this.invalidate, this ) 
+            );
+        }else{
+            this.applet.script( s, params );
+        }
+    },
+    DataItem: function( row ){
+        console.error( "DataItem not implemented" );
+    },
+    load_data: function( from, to ){
+        console.error( "load_data not implemented" );
+    }
+};
 
 
 

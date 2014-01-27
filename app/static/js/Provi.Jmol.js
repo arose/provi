@@ -490,9 +490,18 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         if (s == "" && !isNaN(parseFloat(result))) return parseFloat(result);
         return result;
     },
-    atoms_property_map: function( format, selection, first, sort_column ){
+    variable: function(molecular_math){
+        var json = this.get_property_as_json( "variableInfo", molecular_math );
+        if( json ){
+            json = json["variableInfo"];
+        }
+        return json;
+    },
+    atoms_property_map: function( format, selection, first, range ){
         if(first){
             var ev = '"[" + {' + selection + '}[1].label("[' + format + ']").join(",") + "]"';
+        }else if(range){
+            var ev = '"[" + {' + selection + '}[' + (range[0]+1) + '][' + (range[1]+1) + '].label("[' + format + ']").join(",") + "]"';
         }else{
             var ev = '"[" + {' + selection + '}.label("[' + format + ']").join(",") + "]"';
         }
@@ -501,6 +510,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             map = eval(map);
         }catch(e){
             console.error('get_atom_property_map ERROR', map, format, selection);
+            map = null;
         }
         return map;
     },
@@ -597,7 +607,7 @@ Provi.Jmol.JmolWidget = function(params){
     
     if( !params.no_grid_widget ){
 
-        this.datalist_list = [];
+        /*this.datalist_list = [];
         var datalist_classes = [
             Provi.Bio.AtomSelection.GroupindexDatalist,
             Provi.Bio.AtomSelection.ChainlabelDatalist,
@@ -619,11 +629,41 @@ Provi.Jmol.JmolWidget = function(params){
         this.grid_widget = new Provi.Widget.Grid.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
             datalist: this.datalist_list[0],
+            datalist_list: "all",
+            collapsed: true
+        });*/
+
+
+        this.datalist_list2 = [];
+        var datalist_classes2 = [
+            Provi.Bio.AtomSelection.ModelindexDatalist2,
+            Provi.Bio.AtomSelection.GroupindexDatalist2,
+            Provi.Bio.AtomSelection.AtomindexDatalist2,
+            Provi.Bio.AtomSelection.VariableDatalist2,
+            Provi.Bio.Isosurface.IsosurfaceDatalist2,
+        ];
+        _.each( datalist_classes2, _.bind( function( cl ){
+            this.datalist_list2.push( new cl({ 
+                applet: this.applet, sele: "*", load_struct: true 
+            }));
+        }, this ));
+
+        this.grid_widget2 = new Provi.Widget.Grid.GridWidget2({
+            parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+            datalist: this.datalist_list2[4],
             datalist_list: "all"
         });
 
+        /*this.grid_widget2 = new Provi.Widget.Grid.GridWidget2({
+            parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
+            datalist: new Provi.Bio.AtomSelection.AtomindexDatalist2({
+                applet: this.applet, sele: "*", load_struct: true
+            }),
+            datalist_list: "all"
+        });*/
+
         this.job_datalist = new Provi.Data.Job.JobDatalist({ applet: this.applet });
-        this.job_widget = new Provi.Widget.Grid.GridWidget({
+        this.job_widget = new Provi.Widget.Grid.GridWidget2({
             parent_id: Provi.defaults.dom_parent_ids.JOBS_WIDGET,
             datalist: this.job_datalist,
             heading: "Jobs",

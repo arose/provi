@@ -330,6 +330,19 @@ Provi.Widget.form_builder = function( params, value, id, self ){
             )
         }
 
+    }else if( p.type=="color" ){
+
+        var e = $('<input type="text" name="' + id + '" />')
+            .data( 'id', id )
+            .change( _.bind( self.set, self ) );
+
+        $elm.append(
+            e,
+            '&nbsp;<label>' + _.str.humanize( id ) + '</label>'
+        );
+
+        e.colorPicker();
+
     }else{
         $elm.append( _.str.humanize( id ) );
         console.error( "Unknown form type '" + p.type + "'" );
@@ -358,7 +371,10 @@ Provi.Widget.form_parser = function( elm, id, p ){
         value = parseFloat( elm.val() );
     }else if( p.type=="int" ){
         value = parseInt( elm.val() );
-    }else if( p.type=="str" ){
+    }else if( _.contains([ "str", "sele" ], p.type) ){
+        value = elm.val();
+    }else if( p.type=="color" ){
+        console.log( elm, id, p );
         value = elm.val();
     }
     return value;
@@ -383,7 +399,6 @@ Provi.Widget.ParamsWidget = function(params){
         this.elm( 'content' ).append( elm );
         this.params[ id ] = p['default'];
     }, this);
-
 }
 Provi.Widget.ParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widget.ParamsWidget.prototype */ {
     set: function(e){
@@ -391,7 +406,7 @@ Provi.Widget.ParamsWidget.prototype = Utils.extend(Widget, /** @lends Provi.Widg
         var id = elm.data('id');
         var p = this.params_dict[ id ] || {};
         this.params[ id ] = Provi.Widget.form_parser( elm, id, p );
-        $(this).triggerHandler("change");
+        $(this).triggerHandler("change", id);
     }
 });
 
@@ -482,7 +497,8 @@ Provi.Widget.PopupWidget = function(params){
 
     $(this.dom).css({ 
         'position': 'absolute', 'width': '300px', 
-        'background-color': 'lightblue', 'padding': '7px'
+        'background-color': 'lightblue', 'padding': '7px',
+        'z-index': '10000'
     });
 
     this._init();

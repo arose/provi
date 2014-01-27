@@ -171,9 +171,10 @@ Provi.Data.Io.import_example = function( directory_name, filename, type, params,
         },
         type: type || Provi.Data.Io.type_from_filename( filename ),
         url: Provi.url_for( '/example/data/' +
-            '?directory_name=' + directory_name + 
+            '?directory_name=' + 
+                encodeURIComponent( directory_name ) + 
             '&_id=' + (new Date().getTime()) +
-            '&path=' + filename
+            '&path=' + encodeURIComponent( filename )
         )
     });
     if(!no_init) dataset.init( params );
@@ -361,9 +362,11 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Provi.Utils.extend( Provi.Widget.Wid
         // DOWNLOAD //
         this.elm('jstree').on( 'click', 'button[title="download"]', _.bind( function(e, data){
             var elm = $(e.currentTarget);
+            var path = elm.parent().parent().data('path');
             var url = Provi.url_for( '/example/data/' +
-                '?directory_name=' + this.directory_name + 
-                '&path=' + elm.parent().parent().data('path')
+                '?directory_name=' + 
+                    encodeURIComponent(this.directory_name ) + 
+                '&path=' + encodeURIComponent( path )
             );
             window.location.assign( url );
         }, this ) );
@@ -389,10 +392,11 @@ Provi.Data.Io.ExampleLoadWidget.prototype = Provi.Utils.extend( Provi.Widget.Wid
         var root_dir = this.root_dir;
         var get_url = function(node){
             var url = "../../example/dataset_list2/";
+            var path = $(node).data('path');
             if(node!=-1){
-                url += '?path=' + $(node).data('path');
+                url += '?path=' + encodeURIComponent( path );
             }else if( root_dir ){
-                url += '?path=' + root_dir;
+                url += '?path=' + encodeURIComponent( root_dir );
             }
             return url;
         }
@@ -441,7 +445,7 @@ Provi.Data.Io.import_url = function( url, name, type, params, no_init ){
         type: type || url.split('.').pop(),
         url: Provi.url_for( '/urlload' ) +
             '?_id=' + (new Date().getTime()) +
-            '&url=' + url
+            '&url=' + encodeURIComponent( url )
     });
     if(!no_init) dataset.init( params );
     return dataset;
