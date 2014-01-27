@@ -1,0 +1,223 @@
+
+
+function getPropertyArray( sele, prop ){
+    var propArr = [];
+    var s = "propArr = sele." + prop + ".all;";
+    script INLINE @s;
+    return propArr;
+}
+
+
+function getSelection( seleStr ){
+    var sele = {};
+    var s = "sele = { " + seleStr + " };";
+    script INLINE @s;
+    return sele;
+}
+
+
+function callFunction( fn ){
+    var ret = {};
+    var s = "ret = " + fn + "(" +  + ");";
+    script INLINE @s;
+    return ret;
+}
+
+
+function unzip2( arr ){
+    var n = arr.length;
+    var x = [];
+    var y = [];
+    var elm = [];
+    for( var i = 1; i<=n; ++i ){
+        elm = arr[i];
+        x[i] = elm[1];
+        y[i] = elm[2];
+    }
+    return [ x, y ];
+}
+
+
+function getAtomData( sele, properties, from, to, sortCol, sortDir ){
+    var idx = sele.atomIndex.all;
+    var nAll = idx.length;
+    for( var p in properties ){
+        idx = idx.join( getPropertyArray( sele, p ) );
+    }
+    if( sortCol ){
+        sortCol += 1;
+        idx.sort(sortCol);
+    }
+    if( sortDir=="DESC" ){
+        idx.reverse;
+    }
+    if( from && to ){
+        idx = idx[ from ][ to ];
+    }
+    var n = 1;
+    var dataArr = [];
+    for( var j = 1; j<=n; ++j ){
+        dataArr[j] = [];
+    }
+    for( var d in idx ){
+        var seleStr = "atomIndex=" + d[1];
+        sele2 = { sele and @{getSelection( seleStr )} };
+        var dpl = (0.0+{ sele2 and displayed }.length) / (0.0+{ sele2 }.length);
+        dataArrI = dataArr[1];
+        dataArrI.push( dpl );
+    }
+    for( var i = 1; i<=n; ++i ){
+        idx = idx.join( dataArr[i] );
+    }
+    return { "results": idx, "hits": nAll };
+}
+
+
+
+function getGroupLength( sele, name ){
+    return getPropertyArray( sele, name ).count().length;
+}
+
+function getGroupDataBAK( sele, name, properties, from, to, sortCol, sortDir ){
+    var groupArr = unzip2( getPropertyArray( sele, name ).count() )[1];
+    var nAll = groupArr.length;
+    var dataArr = [];
+    var n = properties.length;
+    for( var i = 1; i<=n; ++i ){
+        dataArr[i] = [];
+    }
+    var sele2 = {};
+    var dataArrI = [];
+    for( var d in groupArr ){
+        sele2 = { sele and @{getSelection( name + "=" + d )} };
+        for( var i = 1; i<=n; ++i ){
+            dataArrI = dataArr[i];
+            dataArrI.push(
+                getPropertyArray( sele2, properties[i] ).average
+            );
+        }
+    }
+    for( var i = 1; i<=n; ++i ){
+        groupArr = groupArr.join( dataArr[i] );
+    }
+    if( sortCol ){
+        sortCol += 1;
+        groupArr.sort(sortCol);
+    }
+    if( sortDir=="DESC" ){
+        groupArr.reverse;
+    }
+    if( from && to ){
+        groupArr = groupArr[ from ][ to ];
+    }
+    return { "results": groupArr, "hits": nAll };
+}
+
+// var y = getGroupData( {*}, "groupindex", ["temperature", "selected"], 1, 10, 1, "DESC" );
+// show y;
+
+
+
+
+function getGroupData( sele, name, propAvg, propFirst, propCount, from, to ){
+    if( !sele.length ) return false;
+    var foo = unzip2( getPropertyArray( sele, name ).count() );
+    var groupArr = unzip2( getPropertyArray( sele, name ).count() )[1];
+    var nAll = groupArr.length;
+    if( from && to ){
+        groupArr = listify( groupArr[ from ][ to ] );
+    }
+    var dataArr = [];
+    var nAvg = propAvg.length;
+    var nFirst = propFirst.length;
+    var nCount = propCount.length;
+    var n = nAvg + nFirst + nCount + 1;
+    for( var j = 1; j<=n; ++j ){
+        dataArr[j] = [];
+    }
+    var sele2 = {};
+    var dataArrI = [];
+    var i = 0;
+    for( var d in groupArr ){
+        sele2 = { sele and @{getSelection( name + "=" + d )} };
+        for( i = 1; i<=nAvg; ++i ){
+            dataArrI = dataArr[i];
+            dataArrI.push(
+                getPropertyArray( sele2, propAvg[i] ).average
+            );
+        }
+        for( i = 1; i<=nFirst; ++i ){
+            dataArrI = dataArr[i+nAvg];
+            dataArrI.push(
+                getPropertyArray( sele2, propFirst[i] )[1]
+            );
+        }
+        for( i = 1; i<=nCount; ++i ){
+            dataArrI = dataArr[i+nAvg+nFirst];
+            dataArrI.push(
+                0.0+getPropertyArray( sele2, propCount[i] ).count().length
+            );
+        }
+        var dpl = (0.0+{ sele2 and displayed }.length) / (0.0+{ sele2 }.length);
+        show dpl;
+        dataArrI = dataArr[n];
+        dataArrI.push( dpl );
+    }
+    for( var i = 1; i<=n; ++i ){
+        groupArr = groupArr.join( dataArr[i] );
+    }
+    return { "results": groupArr, "hits": nAll };
+}
+
+
+function getVariableData( sele, propAvg, from, to ){
+    if( !sele.length ) return false;
+    var varArr = provi_selection.keys;
+    var nAll = varArr.length;
+    if( from && to ){
+        varArr = listify( varArr[ from ][ to ] );
+    }
+    var dataArr = [];
+    var nAvg = propAvg.length;
+    // var nFirst = propFirst.length;
+    // var nCount = propCount.length;
+    var n = nAvg + 1;
+    for( var j = 1; j<=n; ++j ){
+        dataArr[j] = [];
+    }
+    var sele2 = {};
+    var proviSele = {};
+    var dataArrI = [];
+    var i = 0;
+    for( var d in varArr ){
+        show d;
+        proviSele = provi_selection[ d ];
+        sele2 = { sele and proviSele };
+        show sele2;
+        for( i = 1; i<=nAvg; ++i ){
+            dataArrI = dataArr[i];
+            dataArrI.push(
+                getPropertyArray( sele2, propAvg[i] ).average
+            );
+        }
+        var dpl = (0.0+{ sele2 and displayed }.length) / (0.0+{ sele2 }.length);
+        show dpl;
+        dataArrI = dataArr[n];
+        dataArrI.push( dpl );
+    }
+    for( var i = 1; i<=n; ++i ){
+        varArr = varArr.join( dataArr[i] );
+    }
+    return { "results": varArr, "hits": nAll };
+}
+
+
+
+// TODO
+/*function getLabelData( sele, name, propAvg, propFirst, propCount, from, to ){
+
+}*/
+
+
+// var z = getGroupData2( {*}, "groupindex", ["temperature", "selected"], ["group", "resno", "chain"], 1, 10 );
+// show z;

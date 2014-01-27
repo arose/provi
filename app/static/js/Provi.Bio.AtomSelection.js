@@ -48,6 +48,355 @@ Provi.Bio.AtomSelection.AtomSelection.prototype = {
 
 
 
+
+Provi.Bio.AtomSelection.action_select = function( id, d ){
+    var sele = this.selection( d[ this.columns[0].field ] );
+    var flag = parseFloat(d[id]) > 0.0;
+    var s = 'select ' + (flag ? 'remove' : 'add') + ' ' + sele;
+    this.script( s, true );
+}
+
+Provi.Bio.AtomSelection.action_display = function( id, d ){
+    var sele = this.selection( d[ this.columns[0].field ] );
+    var flag = parseFloat(d[id]) > 0.0;
+    var s = 'display ' + (flag ? 'remove' : 'add') + ' ' + sele;
+    this.script( s, true );
+}
+
+Provi.Bio.AtomSelection.action_highlight = function( id, d, grid_widget, e ){
+    var sele = this.selection( d[ this.columns[0].field ] );
+    if( e.type=="mouseup" && e.button==1 ){
+        var s = 'provi_center({' + sele + '})';
+    }else{
+        var s = 'provi_highlight({' + sele + '})';
+    }
+    this.script( s );
+}
+
+
+
+
+Provi.Bio.AtomSelection.AtomindexDatalist2 = function(params){
+    //Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
+    var p = [ "sele", "filter", "sort", "property" ];
+    _.extend( this, _.pick( params, p ) );
+
+    this.columns = [
+        { id: "atomIndex", name: "atomIndex", field: "atomIndex", width: 50, sortable: true, 
+            action: _.bind( Provi.Bio.AtomSelection.action_highlight, this ),
+        },
+        { id: "group", name: "group", field: "group", width: 50, sortable: true },
+        { id: "resno", name: "resno", field: "resno", width: 50, sortable: true },
+        { id: "chain", name: "chain", field: "chain", width: 50, sortable: true },
+        { id: "atomName", name: "atomName", field: "atomName", width: 50, sortable: true },
+        { id: "file", name: "file", field: "file", width: 50, sortable: true },
+        { id: "model", name: "model", field: "model", width: 50, sortable: true },
+        { id: "selected", name: "selected", field: "selected", width: 30, sortable: true, cssClass: "center",
+            action: _.bind( Provi.Bio.AtomSelection.action_select, this ),
+            formatter: _.bind( Provi.Widget.Grid.formatter_checkbox, this ),
+        },
+        { id: "displayed", name: "displayed", field: "displayed", width: 30,  cssClass: "center",
+            action: _.bind( Provi.Bio.AtomSelection.action_display, this ),
+            formatter: _.bind( Provi.Widget.Grid.formatter_displayed, this ),
+        },
+        { id: "temperature", name: "temperature", field: "temperature", width: 50, sortable: true },
+        { id: "color", name: "color", field: "color", width: 50,
+            formatter: _.bind( Provi.Widget.Grid.formatter_color, this ),
+        },
+    ]
+
+    Provi.Data.Datalist2.call( this, params );
+}
+Provi.Bio.AtomSelection.AtomindexDatalist2.prototype = Utils.extend(Provi.Data.Datalist2, {
+    type: "AtomindexDatalist",
+    jspt_url: "../data/jmol_script/atomsele.jspt", 
+    // params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
+    selection: function(id){
+        console.log("atomIndex="+id);
+        return "atomIndex="+id;
+    },
+    DataItem: function( row ){
+        this.atomIndex = row[0];
+        this.group = row[1];
+        this.resno = row[2];
+        this.chain = row[3];
+        this.atomName = row[4];
+        this.file = row[5];
+        this.model = row[6];
+        this.selected = row[7];
+        this.temperature = row[8];
+        this.color = row[9];
+        this.displayed = row[10];
+    },
+    load_data: function( from, to, sortcol, sortdir ){
+        var selection = "*";
+        var props = [
+            "group", "resno", "chain", "atomName",
+            "file", "model", "selected", "temperature", "color"
+        ]
+        var sortidx = _.indexOf( props, sortcol );
+        sortidx = sortidx==-1 ? 0 : sortidx+1;
+        var t1 = new Provi.Debug.timer({ name: "AtomindexDatalist2" });
+        t1.start("var");
+        var resp = this.applet.variable(
+            "getAtomData(" + 
+                "{" + selection + "}," +
+                "['" + props.join("','") + "']," +
+                (from+1) + "," + (to+1) + "," +
+                "" + sortidx + ",'" + sortdir + "'" +
+            ")"
+        );
+        t1.stop("var");
+        console.log( "load_data", from, to, sortcol, sortdir );
+        if( !resp ){
+            return null;
+        }else{
+            return {
+                results: resp.results || [],
+                start: from,
+                hits: resp.hits
+            };
+        }
+    }
+});
+
+
+
+Provi.Bio.AtomSelection.GroupindexDatalist2 = function(params){
+    //Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
+    var p = [ "sele", "filter", "sort", "property" ];
+    _.extend( this, _.pick( params, p ) );
+
+    this.columns = [
+        { id: "groupIndex", name: "groupIndex", field: "groupIndex", width: 50,
+            action: _.bind( Provi.Bio.AtomSelection.action_highlight, this ),
+        },
+        { id: "group", name: "group", field: "group", width: 50 },
+        { id: "resno", name: "resno", field: "resno", width: 50 },
+        { id: "chain", name: "chain", field: "chain", width: 50 },
+        { id: "file", name: "file", field: "file", width: 50 },
+        { id: "model", name: "model", field: "model", width: 50 },
+        { id: "selected", name: "selected", field: "selected", width: 30, cssClass: "center",
+            action: _.bind( Provi.Bio.AtomSelection.action_select, this ),
+            formatter: _.bind( Provi.Widget.Grid.formatter_checkbox, this ),
+        },
+        { id: "displayed", name: "displayed", field: "displayed", width: 30, cssClass: "center",
+            action: _.bind( Provi.Bio.AtomSelection.action_display, this ),
+            formatter: _.bind( Provi.Widget.Grid.formatter_displayed, this ),
+        },
+        { id: "temperature", name: "temperature", field: "temperature", width: 50 },
+        { id: "atomCount", name: "#atom", field: "atomCount", width: 50 },
+    ]
+
+    Provi.Data.Datalist2.call( this, params );
+}
+Provi.Bio.AtomSelection.GroupindexDatalist2.prototype = Utils.extend(Provi.Data.Datalist2, {
+    type: "GroupindexDatalist",
+    jspt_url: "../data/jmol_script/atomsele.jspt", 
+    // params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
+    selection: function(id){
+        return "groupIndex="+id;
+    },
+    DataItem: function( row ){
+        this.groupIndex = row[0];
+        
+        this.selected = row[1];
+        this.temperature = row[2];
+        
+        this.file = row[3];
+        this.model = row[4];
+        this.resno = row[5];
+
+        this.group = row[6];
+        this.chain = row[7];
+
+        this.atomCount = row[8];
+
+        this.displayed = row[9];
+    },
+    load_data: function( from, to, sortcol, sortdir ){
+        var selection = "*";
+        var propAvg = [
+            "selected", "temperature",
+            "file", "model", "resno",
+        ];
+        var propFirst = [
+            "group", "chain",
+        ];
+
+        var t1 = new Provi.Debug.timer({ name: "GroupindexDatalist2" });
+        t1.start("var");
+        var resp = this.applet.variable(
+            "getGroupData(" + 
+                "{" + selection + "}," +
+                "'groupIndex'," +
+                "['" + propAvg.join("','") + "']," +
+                "['" + propFirst.join("','") + "']," +
+                "['atomIndex']," +
+                (from+1) + "," + (to+1) + "," +
+            ")"
+        );
+        t1.stop("var");
+        console.log( "load_data", from, to, sortcol, sortdir );
+        if( !resp ){
+            return null;
+        }else{
+            return {
+                results: resp.results || [],
+                start: from,
+                hits: resp.hits
+            };
+        }
+    }
+});
+
+
+Provi.Bio.AtomSelection.ModelindexDatalist2 = function(params){
+    //Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
+    var p = [ "sele", "filter", "sort", "property" ];
+    _.extend( this, _.pick( params, p ) );
+
+    this.columns = [
+        { id: "modelIndex", name: "modelIndex", field: "modelIndex", width: 50,
+            action: _.bind( Provi.Bio.AtomSelection.action_highlight, this ),
+        },
+        { id: "file", name: "file", field: "file", width: 50 },
+        { id: "model", name: "model", field: "model", width: 50 },
+        { id: "selected", name: "selected", field: "selected", width: 30, cssClass: "center",
+            action: _.bind( Provi.Bio.AtomSelection.action_select, this ),
+            formatter: _.bind( Provi.Widget.Grid.formatter_checkbox, this ),
+        },
+        { id: "displayed", name: "displayed", field: "displayed", width: 30, cssClass: "center",
+            action: _.bind( Provi.Bio.AtomSelection.action_display, this ),
+            formatter: _.bind( Provi.Widget.Grid.formatter_displayed, this ),
+        },
+        { id: "temperature", name: "temperature", field: "temperature", width: 50 },
+        { id: "atomCount", name: "#atom", field: "atomCount", width: 50 },
+        { id: "groupCount", name: "#group", field: "groupCount", width: 50 },
+    ]
+
+    Provi.Data.Datalist2.call( this, params );
+}
+Provi.Bio.AtomSelection.ModelindexDatalist2.prototype = Utils.extend(Provi.Data.Datalist2, {
+    type: "ModelindexDatalist",
+    jspt_url: "../data/jmol_script/atomsele.jspt", 
+    // params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
+    selection: function(id){
+        return "modelIndex="+id;
+    },
+    DataItem: function( row ){
+        this.modelIndex = row[0];
+        
+        this.selected = row[1];
+        this.temperature = row[2];
+        
+        this.file = row[3];
+        this.model = row[4];
+
+        this.atomCount = row[5];
+        this.groupCount = row[6];
+
+        this.displayed = row[7];
+    },
+    load_data: function( from, to, sortcol, sortdir ){
+        var selection = "*";
+        var propAvg = [
+            "selected", "temperature",
+            "file", "model",
+        ];
+        var propFirst = [
+            
+        ];
+
+        var t1 = new Provi.Debug.timer({ name: "ModelindexDatalist2" });
+        t1.start("var");
+        var s = "getGroupData(" + 
+            "{" + selection + "}," +
+            "'modelIndex'," +
+            "['" + propAvg.join("','") + "']," +
+            "[]," +
+            "['atomIndex','groupIndex']," +
+            (from+1) + "," + (to+1) + "" +
+        ")";
+        console.log(s);
+        var resp = this.applet.variable( s );
+        t1.stop("var");
+        console.log( "load_data", from, to, sortcol, sortdir, resp );
+        if( !resp ){
+            return null;
+        }else{
+            return {
+                results: resp.results || [],
+                start: from,
+                hits: resp.hits
+            };
+        }
+    }
+});
+
+
+Provi.Bio.AtomSelection.VariableDatalist2 = function(params){
+    var p = [ "pdb_ds", "linker_ds" ];
+    _.extend( this, _.pick( params, p ) );
+
+    this.columns = [
+        { id: "name", name: "name", field: "name", width: 200, sortable: true,
+            action: _.bind( Provi.Bio.AtomSelection.action_highlight, this ),
+        },
+        { id: "selected", name: "selected", field: "selected", width: 30, cssClass: "center",
+            action: _.bind( Provi.Bio.AtomSelection.action_select, this ),
+            formatter: _.bind( Provi.Widget.Grid.formatter_checkbox, this ),
+        },
+        { id: "displayed", name: "displayed", field: "displayed", width: 30, cssClass: "center",
+            action: _.bind( Provi.Bio.AtomSelection.action_display, this ),
+            formatter: _.bind( Provi.Widget.Grid.formatter_displayed, this ),
+        },
+    ]
+
+    Provi.Data.Datalist2.call( this, params );
+}
+Provi.Bio.AtomSelection.VariableDatalist2.prototype = Utils.extend(Provi.Data.Datalist2, {
+    type: "VariableDatalist",
+    jspt_url: "../data/jmol_script/atomsele.jspt", 
+    // params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
+    selection: function( id ){
+        return '@{ provi_selection["' + id + '"] }';
+    },
+    DataItem: function( row ){
+        this.name = row[0];
+        this.selected = row[1];
+        this.displayed = row[2];
+    },
+    load_data: function( from, to, sortcol, sortdir ){
+        var selection = "*";
+        var propAvg = [ "selected" ];
+
+        var t1 = new Provi.Debug.timer({ name: "VariableDatalist2" });
+        t1.start("var");
+        var s = "getVariableData(" + 
+            "{" + selection + "}," +
+            "['" + propAvg.join("','") + "']," +
+            (from+1) + "," + (to+1) + "" +
+        ")";
+        console.log(s);
+        var resp = this.applet.variable( s );
+        t1.stop("var");
+        console.log( "load_data", from, to, sortcol, sortdir, resp );
+        if( !resp ){
+            return null;
+        }else{
+            return {
+                results: resp.results || [],
+                start: from,
+                hits: resp.hits
+            };
+        }
+    }
+});
+
+
+
+
 var jmol_properties = [
     "", "vdwRadius", "volume", "temperature", "charge", "formalCharge", "partialCharge",
     "phi", "psi"
@@ -176,8 +525,6 @@ Provi.Bio.AtomSelection.SelectionDatalist.prototype = Utils.extend(Provi.Data.Da
 });
 
 
-
-
 Provi.Bio.AtomSelection.AtomindexParamsWidget = function(params){
     Provi.Widget.ParamsWidget.call( this, params );
 }
@@ -243,8 +590,6 @@ Provi.Bio.AtomSelection.AtomindexDatalist.prototype = Utils.extend(Provi.Bio.Ato
         return id==='all' ? this.filtered() : '({' + id + '})';
     }
 });
-
-
 
 
 Provi.Bio.AtomSelection.GroupindexParamsWidget = function(params){

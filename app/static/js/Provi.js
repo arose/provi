@@ -73,7 +73,7 @@ var Jmol = {};
 
         // Jmol & Jalview init
         Provi.Jmol.init(
-            "../../jmol/current/72/", !$.query.get('unsigned')
+            "../../jmol/current/73/", !$.query.get('unsigned')
         );
         Provi.Jalview.init(
             "../../jalview/current/0/", !$.query.get('unsigned')
@@ -212,7 +212,10 @@ var Jmol = {};
             .script("../js/lib/slickgrid/lib/jquery.event.drag-2.2.js")
             .script("../js/lib/slickgrid/slick.core.js")
             .script("../js/lib/slickgrid/slick.editors.js")
-            .script("../js/lib/slickgrid/slick.grid.js").script(
+            .script("../js/lib/slickgrid/slick.grid.js")
+            .script("../js/lib/slickgrid/plugins/slick.rowselectionmodel.js")
+            .script("../js/lib/slickgrid/plugins/slick.autotooltips.js")
+            .script(
                 load_css_fn( "../js/lib/slickgrid/slick.grid.css" )
             )
 
@@ -272,7 +275,12 @@ var Jmol = {};
             .wait( function(){
                 load_css_fn("../css/keys.css")();
                 load_css_fn("../css/view.css")();
-                fn();
+                load_css_fn("../css/fa/css/font-awesome.css")();
+            }).wait( fn )
+            .wait( function(){
+                $(document).ready(function(){
+                    Provi.Jmol.get_default_applet(true);
+                });
             });
     }
     

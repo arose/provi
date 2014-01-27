@@ -183,7 +183,8 @@ Provi.Data.Job.Job.prototype = {
         $(this).triggerHandler("jobname");
     },
     retrieve_status: function( force ){
-        console.log("retrieve_status")
+        console.log("retrieve_status");
+        Provi.Data.Job.JobManager.change();
         if( this.submitted && !this.running ){
             console.log( "job stopped running" );
             clearInterval( this.status_interval );
@@ -199,9 +200,14 @@ Provi.Data.Job.Job.prototype = {
                 url: Provi.url_for( "/job/status/" + this.jobname ),
                 cache: false,
                 success: _.bind( function( data ){
-                    console.log(data);
-                    this.check = data["check"];
-                    this.running = data["running"];
+                    console.log("Job.retrieve_status", data);
+                    if( data ){
+                        this.check = data["check"];
+                        this.running = data["running"];
+                    }else{
+                        this.check = false;
+                        this.running = false;
+                    }
                     $(this).triggerHandler("status");
                 }, this )
             });
@@ -432,52 +438,88 @@ Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
 });
 
 
+
+
+
 Provi.Data.Job.JobDatalist = function(params){
-    Provi.Data.Datalist.call( this, params );
-    this.handler = _.defaults({
-        "details": {
-            "selector": 'span[cell="label"]',
-            "click": this.details,
-            "label": "Show details"
-        }
-    }, this.handler);
-    $(Provi.Data.Job.JobManager).bind("add", _.bind( this.update, this ) );
-    $(Provi.Data.Job.JobManager).bind("change", _.bind( this.invalidate, this ) );
+    var p = [];
+    _.extend( this, _.pick( params, p ) );
+
+    this.columns = [
+        { id: "id", name: "id", field: "id", width: 50 },
+        { id: "tool", name: "tool", field: "tool", width: 150 },
+        { id: "running", name: "running", field: "running", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory(
+                function(row, cell, value){
+                    if( _.isUndefined(value) ) return "question";
+                    return value ? "spinner fa-spin" : "check";
+                }
+            ),
+        },
+        { id: "check", name: "check", field: "check", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory(
+                function(row, cell, value){
+                    if( _.isUndefined(value) ) return "question";
+                    return value ? "check-circle" : "warning";
+                }
+            ),
+        },
+        { id: "load", name: "load", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory("eye"),
+            action: _.bind( function( id, d, grid_widget, e ){
+                var job = Provi.Data.Job.JobManager.get( d.id );
+                console.log( job, d, id );
+                job.do_autoload();
+            }, this )
+        },
+        { id: "files", name: "files", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory("folder-o"),
+            action: Provi.Widget.Grid.ActionPopupFactory(
+                Provi.Data.Job.JobWidget,
+                _.bind( function( id, d, grid_widget, e ){
+                    return { 
+                        "job_id": d.id,
+                        "applet": this.applet,
+                    }
+                }, this )
+            )
+        },
+        /*{ id: "delete", name: "delete", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory("trash-o"),
+            action: Provi.Widget.Grid.ActionDeleteFactory(
+                _.bind( function( id, d, grid_widget, e ){
+                
+                    
+                }, this )
+            )
+        },*/
+    ]
+
+    Provi.Data.Datalist2.call( this, params );
 }
-Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist, {
+Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist2, {
     type: "JobDatalist",
     params_object: Provi.Data.Job.FormWidget,
-    get_ids: function(){
-        var job_list = Provi.Data.Job.JobManager.get_list();
-        _.invoke( job_list, "retrieve_status", true );
-        return _.pluck( job_list, "id" );
-    },
-    make_row: function(id){
-        if( id=="all" ) return;
-        var job = Provi.Data.Job.JobManager.get( id );
-        var label = "[" + job.id + "] " +
-            "tool: " + job.tool + ", " +
-            "running: " + job.running + ", " +
-            "check: " + job.check +
-        "";
-
-        var $row = $('<div></div>').append(
-            this.label_cell( label, id )
+    _init: function(){
+        $( Provi.Data.Job.JobManager ).bind(
+            "add change", _.bind( this.invalidate, this )
         );
-        return $row;
+        this.initialized = false;
+        this.set_ready();
     },
-    label_cell: function(label, id){
-        var $label = $('<span cell="label" style="float:left; width:120px;">' +
-            label +
-        '</span>').data( 'id', id );
-        return $label;
+    DataItem: function( row ){
+        var job = Provi.Data.Job.JobManager.get( row.id );
+        this.id = job.id;
+        this.tool = job.tool;
+        this.running = job.running;
+        this.check = job.check;
     },
-    make_details: function(id){
-        var e = new Provi.Data.Job.JobWidget({ 
-            "job_id": id,
-            "applet": this.applet
-        });
-        return e.dom;
+    load_data: function( from, to, sortcol, sortdir ){
+        var data = Provi.Data.Job.JobManager.get_list();
+        var hits = data.length;
+        data = data.slice( from, to+1 );
+
+        return { results: data, start: from, hits: hits };
     }
 });
 

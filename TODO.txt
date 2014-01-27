@@ -33,7 +33,7 @@ sudo /etc/init.d/apache2 reload
 /etc/apache2/sites-enabled/provi
 
 
-http://localhost/provi/static/html/provi.html?debug=1&dir=test_data&file=1crn/linkit/link_it.provi#
+http://localhost/provi/static/html/provi.html?debug=1&dir=test_data&file=1crn/linkit/link_it.provi
 
 http://localhost/provi/static/html/fragfit.html?debug=1&url=http://localhost/provi/static/data/test/p2y12_human.provi
 

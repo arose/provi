@@ -260,6 +260,435 @@ Provi.Widget.Grid.CellFactory = function( p ){
 
 
 
+Provi.Widget.Grid.GridWidget2 = function(params){
+    this.invalidate = _.throttle( this._invalidate, 500, false );
+    // this.invalidate = this._invalidate;
+    params = _.defaults( params, this.default_params );
+
+    Provi.Widget.Widget.call( this, params );
+
+    this._init_eid_manager([ 
+        'grid', 'update', 'widgets', 'calc', 'init', 'selector', 
+        'details', 'applet'
+    ]);
+    
+    var p = [ "datalist", "datalist_list" ];
+    _.extend( this, _.pick( params, p ) );
+
+    var template = '' +
+        '<div class="control_row">' +
+            '<button id="${eids.update}">update</button>&nbsp;' +
+            '<button id="${eids.calc}">calc</button>&nbsp;' +
+            '<button id="${eids.init}">init</button>&nbsp;' +
+        '</div>' +
+        '<div class="control_row" id="${eids.selector}"></div>' +
+        '<div class="control_row" id="${eids.widgets}"></div>' +
+        '<div class="control_row">' +
+            '<div style="height:${params.grid_height};" id="${eids.grid}"></div>' +
+        '</div>' +
+        '<div class="control_row" id="${eids.details}"></div>' +
+    '';
+    this.add_content( template, params );
+
+    this._init();
+}
+Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
+    default_params: {
+        heading: 'Grid',
+        collapsed: false,
+        persist_on_applet_delete: false,
+        lists: [],
+        grid_height: "500px"
+    },
+    _init: function(){
+        if( this.datalist_list=="all" ){
+            $( Provi.Data.DatalistManager2 )
+                .bind( "add", _.bind( this.init_selector, this ) );
+            this.init_selector();
+        }else if( this.datalist_list ){
+            this.datalist_list = [ this.datalist ].concat( this.datalist_list );
+            this.init_selector();
+        }else{
+            this.elm("selector").hide();
+        }
+
+        this.create_grid();
+
+        this._popup = new Provi.Widget.PopupWidget({
+            parent_id: this.parent_id,
+            position_my: 'right center',
+            position_at: 'center',
+            template: '<div>{{html content}}</div>'
+        });
+
+        var self = this;
+        this.elm('update').button().click( _.bind( this.update_grid, this ) );
+        this.elm('calc').button().click( function(){ self.datalist.calculate() } );
+        //this.elm('init').button().click( function(){ self.datalist._init( self ) } );
+        this.elm('init').button().click( _.bind( this.create_grid, this ) );
+        
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    set: function(e){
+        var elm = $(e.currentTarget);
+        var id = elm.data('id');
+        if( id=="DatalistSelector" ){
+            var datalist_id = elm.children("option:selected").val().split("_")[0];
+            this.datalist = Provi.Data.DatalistManager2.get( datalist_id );
+            this.create_grid();
+        }
+    },
+    init_selector: function(){
+        var dl_list = this.datalist_list;
+        if( dl_list=="all" ){
+            dl_list = Provi.Data.DatalistManager2.get_list();
+        }
+        var p = { type: "select", options: _.pluck( dl_list, "name" ) };
+        var name = this.datalist ? this.datalist.name : ""
+        var select = Provi.Widget.form_builder( p, name, "DatalistSelector", this );
+        this.elm("selector").empty().show().append( select );
+    },
+    create_grid: function(){
+        var grid;
+        var loader = this.loader = new Slick.Data.DatalistModel({
+            DataItem: this.datalist.DataItem,
+            loadData: _.bind( this.datalist.load_data, this.datalist )
+        });
+
+        var columns = this.datalist.columns;
+
+        var options = {
+            rowHeight: 24,
+            editable: false,
+            enableAddRow: false,
+            enableCellNavigation: true,
+            enableColumnReorder: false,
+        };
+
+        if( this.grid ) this.grid.destroy();
+        this.grid = grid = new Slick.Grid(
+            this.eid("grid", true), loader.data, columns, options
+        );
+
+        this.elm("grid").on( 'mouseup', _.bind( function(e){
+            var cell = grid.getCellFromEvent(e);
+            if( !cell ) return;
+            var col = columns[ cell.cell ];
+            var id = col.id;
+            var d = grid.getDataItem( cell.row );
+            if( _.isFunction( col.action ) ){
+                col.action.call( this.datalist, id, d, this, e );
+            }
+        }, this ) );
+
+        grid.onViewportChanged.subscribe(function (e, args) {
+            var vp = grid.getViewport();
+            loader.ensureData(vp.top, vp.bottom);
+        });
+
+        loader.onDataLoaded.subscribe(function (e, args) {
+            for (var i = args.from; i <= args.to; i++) {
+                grid.invalidateRow(i);
+            }
+            grid.updateRowCount();
+            grid.render();
+        });
+
+        grid.onSort.subscribe(function (e, args) {
+            //grid.setSelectedRows([]);
+            loader.setSort(
+                args.sortCol.field, args.sortAsc ? "ASC" : "DESC"
+            );
+            var vp = grid.getViewport();
+            loader.ensureData(vp.top, vp.bottom);
+        });
+
+        grid.registerPlugin( 
+            new Slick.AutoTooltips({ enableForHeaderCells: true })
+        );
+
+        // load the first page
+        this.init_datalist();
+        grid.onViewportChanged.notify();
+    },
+    _invalidate: function(){
+        console.log("_invalidate");
+        this.loader.clear();
+        var vp = this.grid.getViewport();
+        this.loader.ensureData( vp.top, vp.bottom );
+    },
+    init_datalist: function(){
+        console.log("init_datalist", this.datalist);
+        var datalist = this.datalist;
+
+        $(datalist).unbind();
+
+        if( !datalist || !datalist.ready ){
+            console.warn( "datalist not ready" );
+            $(datalist).bind("calculate_ready", _.bind( this.init_datalist, this ) );
+            return;
+        }
+
+        // listen for changes
+        $(datalist).bind('update', _.bind( this.update_grid, this ) );
+        $(datalist).bind('invalidate', _.bind( this._invalidate, this ) );
+        $(datalist).bind('request_details', _.bind( function(e, id){ this.show_details(id) }, this ) );
+
+        // params widget
+        this.elm("widgets").empty();
+        if( datalist.params_object ){
+            this.datalist_params = new datalist.params_object(
+                _.extend({
+                    parent_id: this.eid("widgets"),
+                    datalist: datalist
+                }, datalist.params)
+            );
+            $(this.datalist_params).bind("change", _.bind( function(){ 
+                _.extend( datalist, this.datalist_params.params );
+                this.update_grid(); 
+            }, this) );
+        }
+
+        this.update_grid();
+    },
+    update_grid: function(){
+        this.invalidate();
+        this.grid.resizeCanvas();
+    }
+});
+
+
+
+
+Provi.Widget.Grid.formatter_checkbox = function( row, cell, value, columnDef, dataContext ){
+    value = _.isBoolean(value) ? value : parseFloat( value );
+    if( value===1.0 || value===true ){
+        var icon = "fa-check-square-o";
+    }else if( value===0.0 || value===false ){
+        var icon = "fa-square-o";
+    }else{
+        var icon = "fa-minus-square-o";
+    }
+    return '<i class="fa ' + icon + '"></i>';
+};
+
+Provi.Widget.Grid.formatter_radio = function( row, cell, value, columnDef, dataContext ){
+    value = parseFloat( value );
+    var icon = value ? "fa-dot-circle-o" : "fa-circle-o";
+    return '<i class="fa ' + icon + '"></i>';
+};
+
+Provi.Widget.Grid.FormatterIconFactory = function( icon ){
+    return function( row, cell, value, columnDef, dataContext ){
+        var ico = icon;
+        if( _.isFunction( icon ) ){
+            ico = icon( row, cell, value, columnDef, dataContext );
+        }
+        return '<i class="fa fa-' + ico + '"></i>';
+    };
+}
+
+Provi.Widget.Grid.formatter_color = function( row, cell, value, columnDef, dataContext ){
+    var color = value || [0,0,0];
+    var bg = "background-color:rgb(" + color.join(',') + ");";
+    return "<span style='float:right; width:100%; " + bg + "'>&nbsp;</span>"; 
+};
+
+Provi.Widget.Grid.formatter_verbatim = function( row, cell, value, columnDef, dataContext ){
+    return '<span style="font-family:monospace;">' + value + '</span>';
+};
+
+Provi.Widget.Grid.formatter_displayed = function( row, cell, value, columnDef, dataContext ){
+    value = _.isBoolean(value) ? value : parseFloat( value );
+    var style = "";
+    if( value===1.0 || value===true ){
+        var icon = "fa-eye";
+    }else if( value===0.0 || value===false ){
+        var icon = "fa-eye";
+        style = "color:grey;";
+    }else{
+        var icon = "fa-eye-slash";
+    }
+    return '<i class="fa ' + icon + '" style="' + style + '"></i>';
+};
+
+Provi.Widget.Grid.ActionDeleteFactory = function( fn ){
+    return function( id, d, grid_widget, e ){
+        var elm = $(e.target);
+        if( elm.css('color')=='rgb(255, 0, 0)' ){
+            fn( id, d, grid_widget, e );
+        }else{
+            elm.css('color', 'red');
+            setTimeout( function(){ 
+                elm.css('color','rgb(34, 34, 34)');
+            }, 2000);
+        }
+    };
+}
+
+Provi.Widget.Grid.ActionPopupFactory = function( widget, params_fn ){
+    return function( id, d, grid_widget, e ){
+        var elm = $(e.target);
+        grid_widget._popup.empty();
+        var params = {};
+        if( _.isFunction( params_fn ) ){
+            params = params_fn( id, d, grid_widget, e ) || {};
+        }
+        params["parent_id"] = grid_widget._popup.eid('data');
+        var w = new widget( params );
+        grid_widget._popup.show( elm );
+    };
+}
+
 
 })();
+
+
+
+
+
+
+
+(function ($) {
+
+
+function DatalistModel( params ) {
+    // private
+    var PAGESIZE = 50;
+    var data = {length: 0};
+    var searchstr = "";
+    var sortcol = null;
+    var sortdir = "ASC";
+
+    var DataItem = params.DataItem;
+    var loadData = params.loadData;
+
+    // events
+    var onDataLoading = new Slick.Event();
+    var onDataLoaded = new Slick.Event();
+
+
+    function init() {
+    }
+
+    function isDataLoaded(from, to) {
+        for (var i = from; i <= to; i++) {
+            if (data[i] == undefined || data[i] == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function clear() {
+        for (var key in data) {
+            delete data[key];
+        }
+        data.length = 0;
+    }
+
+    function ensureData(from, to) {
+        if (from < 0) {
+            from = 0;
+        }
+
+        if (data.length > 0) {
+            to = Math.min(to, data.length - 1);
+        }
+
+        var fromPage = Math.floor(from / PAGESIZE);
+        var toPage = Math.floor(to / PAGESIZE);
+
+        while (data[fromPage * PAGESIZE] !== undefined && fromPage < toPage)
+            fromPage++;
+
+        while (data[toPage * PAGESIZE] !== undefined && fromPage < toPage)
+            toPage--;
+
+        if (fromPage > toPage || ((fromPage == toPage) && data[fromPage * PAGESIZE] !== undefined)) {
+            // TODO:  look-ahead
+            onDataLoaded.notify({from: from, to: to});
+            return;
+        }
+
+        for (var i = fromPage; i <= toPage; i++)
+            data[i * PAGESIZE] = null; // null indicates a 'requested but not available yet'
+
+        onDataLoading.notify({from: from, to: to});
+
+        var resp = loadData( 
+            fromPage * PAGESIZE, 
+            (toPage * PAGESIZE) + PAGESIZE-1,
+            sortcol, sortdir
+        );
+
+        if( resp===null ){
+            onError( fromPage, toPage );
+        }else{
+            onSuccess( resp );
+        }
+    }
+
+    function onError(fromPage, toPage) {
+        console.error(
+            "error loading pages " + fromPage + " to " + toPage
+        );
+    }
+
+    function onSuccess(resp) {
+        var from = resp.start;
+        var to = from + resp.results.length;
+        data.length = resp.hits
+        for (var i = 0; i < resp.results.length; i++) {
+            data[from + i] = new DataItem( resp.results[i] );
+            data[from + i].index = from + i;
+        }
+        onDataLoaded.notify({from: from, to: to});
+    }
+
+    function reloadData(from, to) {
+        for (var i = from; i <= to; i++)
+            delete data[i];
+        ensureData(from, to);
+    }
+
+    function setSort(column, dir) {
+        sortcol = column;
+        sortdir = dir=="DESC" ? "DESC" : "ASC";
+        clear();
+    }
+
+    function setSearch(str) {
+        searchstr = str;
+        clear();
+    }
+
+
+    init();
+
+    return {
+        // properties
+        "data": data,
+
+        // methods
+        "clear": clear,
+        "isDataLoaded": isDataLoaded,
+        "ensureData": ensureData,
+        "reloadData": reloadData,
+        "setSort": setSort,
+        "setSearch": setSearch,
+
+        // events
+        "onDataLoading": onDataLoading,
+        "onDataLoaded": onDataLoaded
+    };
+}
+
+// Slick.Data.DatalistModel
+$.extend(true, window, {
+    Slick: { Data: { DatalistModel: DatalistModel } }
+});
+
+
+})(jQuery);
 
