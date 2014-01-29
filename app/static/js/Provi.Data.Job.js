@@ -163,6 +163,9 @@ Provi.Data.Job.Job = function(params){
     }else{
         this.running = false;
     }
+
+    this.job_params = {};
+    this.retrieve_params();
 };
 Provi.Data.Job.Job.prototype = {
     default_params: {
@@ -180,6 +183,7 @@ Provi.Data.Job.Job.prototype = {
         if( this.dataset ){
             this.dataset.set_loaded();
         }
+        this.retrieve_params();
         $(this).triggerHandler("jobname");
     },
     retrieve_status: function( force ){
@@ -197,7 +201,9 @@ Provi.Data.Job.Job.prototype = {
         if( this.jobname ){
             $.ajax({
                 dataType: "json",
-                url: Provi.url_for( "/job/status/" + this.jobname ),
+                url: Provi.url_for( 
+                    "/job/status/" + encodeURIComponent( this.jobname )
+                ),
                 cache: false,
                 success: _.bind( function( data ){
                     console.log("Job.retrieve_status", data);
@@ -211,6 +217,24 @@ Provi.Data.Job.Job.prototype = {
                     $(this).triggerHandler("status");
                 }, this )
             });
+        }
+    },
+    retrieve_params: function(){
+        if( this.jobname ){
+            $.ajax({
+                dataType: "json",
+                url: Provi.url_for( 
+                    "/job/params/" + encodeURIComponent( this.jobname )
+                ),
+                cache: false,
+                success: _.bind( function( data ){
+                    console.log("Job.retrieve_params", data);
+                    this.job_params = data;
+                    $(this).triggerHandler("status");
+                }, this )
+            });
+        }else{
+            console.log( "Job.retrieve_params: no jobname" )
         }
     },
     do_autoload: function(){
@@ -438,6 +462,65 @@ Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
 });
 
 
+Provi.Data.Job.InfoWidget = function(params){
+    params = _.defaults( params, this.default_params );
+    console.log('InfoWidget', params);
+    Provi.Widget.Widget.call( this, params );
+    this._init_eid_manager([ 
+        "params_info"
+    ]);
+    
+    var p = [ "job_id" ];
+    _.extend( this, _.pick( params, p ) );
+    
+    var template = '' +
+        '<div class="control_row" id="${eids.params_info}"></div>' +
+    '';
+    this.add_content( template, params );
+
+    this.job = Provi.Data.Job.JobManager.get( this.job_id );
+    this._init();
+}
+Provi.Data.Job.InfoWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
+    default_params: {
+        persist_on_applet_delete: true
+    },
+    _init: function(){
+        if( this.job.jobname ){
+            this.init_info();
+        }else{
+            $(this.job).bind( 
+                "jobname", _.bind( this.init_info, this )
+            );
+        }
+        Provi.Widget.Widget.prototype.init.call(this);
+    },
+    init_info: function(){
+        if( !Provi.Data.Job.Tools.ready ){
+            $(Provi.Data.Job.Tools)
+                .bind("tools_ready", _.bind( this.init_info, this ) );
+            return;
+        }
+        var tool = Provi.Data.Job.Tools.tools[ this.job.tool ];
+        this.elm("params_info").empty();
+        var i = 0;
+        _.each( tool.args, _.bind( function( p, id ){
+            if( !p.group ){
+                if( _.isUndefined( p['default'] ) ){
+                    var value = this.job.job_params.args[ i++ ];
+                }else{
+                    var value = this.job.job_params.kwargs[ id ];
+                }
+                if( p['type']=='file' ){
+                    value = value.substr( value.lastIndexOf("/")+1 );
+                }
+                this.elm("params_info").append(
+                    "<div>" + id + ": " + value + "</div>"
+                );
+            }
+        }, this));
+    },
+});
 
 
 
@@ -447,7 +530,8 @@ Provi.Data.Job.JobDatalist = function(params){
 
     this.columns = [
         { id: "id", name: "id", field: "id", width: 50 },
-        { id: "tool", name: "tool", field: "tool", width: 150 },
+        { id: "tool", name: "tool", field: "tool", width: 100 },
+        { id: "jobid", name: "jobid", field: "jobid", width: 100 },
         { id: "running", name: "running", field: "running", width: 30, cssClass: "center",
             formatter: Provi.Widget.Grid.FormatterIconFactory(
                 function(row, cell, value){
@@ -472,6 +556,17 @@ Provi.Data.Job.JobDatalist = function(params){
                 job.do_autoload();
             }, this )
         },
+        { id: "info", name: "info", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory(
+                "info-circle"
+            ),
+            action: Provi.Widget.Grid.ActionPopupFactory(
+                Provi.Data.Job.InfoWidget,
+                _.bind( function( id, d, grid_widget, e ){
+                    return { "job_id": d.id }
+                }, this )
+            )
+        },
         { id: "files", name: "files", width: 30, cssClass: "center",
             formatter: Provi.Widget.Grid.FormatterIconFactory("folder-o"),
             action: Provi.Widget.Grid.ActionPopupFactory(
@@ -484,7 +579,19 @@ Provi.Data.Job.JobDatalist = function(params){
                 }, this )
             )
         },
-        /*{ id: "delete", name: "delete", width: 30, cssClass: "center",
+        { id: "download", name: "download", width: 30, cssClass: "center",
+            formatter: Provi.Widget.Grid.FormatterIconFactory("download"),
+            action: _.bind( function( id, d, grid_widget, e ){
+                console.log("download", id, d);
+                window.location = Provi.url_for( 
+                    "/job/download/" + encodeURIComponent( 
+                        d.tool + "_" + d.jobid
+                    )
+                );
+            }, this )
+        },
+        /* abort?
+        { id: "delete", name: "delete", width: 30, cssClass: "center",
             formatter: Provi.Widget.Grid.FormatterIconFactory("trash-o"),
             action: Provi.Widget.Grid.ActionDeleteFactory(
                 _.bind( function( id, d, grid_widget, e ){
@@ -510,6 +617,7 @@ Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist2, 
     DataItem: function( row ){
         var job = Provi.Data.Job.JobManager.get( row.id );
         this.id = job.id;
+        this.jobid = job.jobid;
         this.tool = job.tool;
         this.running = job.running;
         this.check = job.check;

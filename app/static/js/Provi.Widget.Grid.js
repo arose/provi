@@ -317,7 +317,7 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
         this._popup = new Provi.Widget.PopupWidget({
             parent_id: this.parent_id,
             position_my: 'right center',
-            position_at: 'center',
+            position_at: 'left center',
             template: '<div>{{html content}}</div>'
         });
 

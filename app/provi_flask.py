@@ -13,6 +13,7 @@ import signal
 import logging
 import multiprocessing
 import collections
+import zipfile
 from cStringIO import StringIO
 
 try:
@@ -353,7 +354,6 @@ def job_dir( jobname, create=False ):
 @app.route('/job/status/<string:jobname>')
 def job_status( jobname ):
     jobname = secure_filename( jobname )
-    #print jobname
     jobtype, jobid = jobname.split("_")
     Tool = app.config['TOOLS'].get( jobtype, None )
     if Tool:
@@ -361,8 +361,39 @@ def job_status( jobname ):
         tool = Tool( output_dir=output_dir, fileargs=True, run=False )
         return jsonify({
             "running": RUNNING_JOBS.get( jobname, False ),
-            "check": tool.check( full=False ) 
+            "check": tool.check( full=False )
         })
+    return ""
+
+@app.route('/job/params/<string:jobname>')
+def job_params( jobname ):
+    jobname = secure_filename( jobname )
+    jobtype, jobid = jobname.split("_")
+    Tool = app.config['TOOLS'].get( jobtype, None )
+    if Tool:
+        output_dir = job_dir( jobname )
+        tool = Tool( output_dir=output_dir, fileargs=True, run=False )
+        return jsonify( tool.params )
+    return ""
+
+@app.route('/job/download/<string:jobname>')
+def job_download( jobname ):
+    jobname = secure_filename( jobname )
+    jobtype, jobid = jobname.split("_")
+    Tool = app.config['TOOLS'].get( jobtype, None )
+    if Tool:
+        output_dir = job_dir( jobname )
+        tool = Tool( output_dir=output_dir, fileargs=True, run=False )
+        fp = tempfile.NamedTemporaryFile( "w+b" )
+        
+        with zipfile.ZipFile(fp, 'w', zipfile.ZIP_DEFLATED) as fzip:
+            for f in tool.output_files:
+                fzip.write( f, os.path.relpath( f, output_dir ) )
+        return send_file(
+            fp.name,
+            attachment_filename="%s.zip" % jobname,
+            as_attachment=True
+        )
     return ""
 
 @app.route('/job/tools')
@@ -430,7 +461,7 @@ def job_submit():
                     if params["ext"]=="jmol":
                         with open( fpath, "w" ) as fp:
                             fp.write( request.stream.read() )
-                d = fpath
+                d = str( fpath )
             elif params["type"]=="float":
                 d = float( get( name, params ) )
             elif params["type"]=="int":
@@ -444,12 +475,16 @@ def job_submit():
             else:
                 # unknown type, raise exception?
                 d = get( name, params )
+                print "unknown type", d
             if "default" in params:
                 kwargs[ name ] = d
             else:
                 args.append( d )
         args = tuple(args)
-        kwargs.update({ "output_dir": output_dir, "run": False })
+        kwargs.update({ 
+            "output_dir": output_dir, "run": False,
+            # "verbose": True, "debug": True
+        })
         job_start( jobname, Tool( *args, **kwargs ) )
         return jsonify({ "jobname": jobname })
     return ""
