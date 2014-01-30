@@ -90,8 +90,7 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Data.Datalist2, {
         this.displayed = row[i+5];
     },
     on_grid_creation: function( grid ){
-        var d = grid.getDataItem( 0 );
-        this.script( "display add " + this.selection( d.id ), true );
+        this.column_action( grid, "displayed", grid.getDataItem( 0 ) );
     },
     load_data: function( from, to, sortcol, sortdir ){
         var data = this.data;

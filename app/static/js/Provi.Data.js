@@ -503,7 +503,13 @@ Provi.Data.Datalist2.prototype = {
     load_data: function( from, to ){
         console.error( "load_data not implemented" );
     },
-    on_grid_creation: function( grid ){}
+    on_grid_creation: function( grid ){},
+    get_column: function( grid, name ){
+        return grid.getColumns()[ grid.getColumnIndex( name ) ];
+    },
+    column_action: function( grid, name, d ){
+        this.get_column( grid, name ).action( name, d );
+    }
 };
 
 
