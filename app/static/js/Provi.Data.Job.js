@@ -532,19 +532,12 @@ Provi.Data.Job.JobDatalist = function(params){
         { id: "id", name: "id", field: "id", width: 50 },
         { id: "tool", name: "tool", field: "tool", width: 100 },
         { id: "jobid", name: "jobid", field: "jobid", width: 100 },
-        { id: "running", name: "running", field: "running", width: 30, cssClass: "center",
+        { id: "status", name: "status", field: "status", width: 30, cssClass: "center",
             formatter: Provi.Widget.Grid.FormatterIconFactory(
                 function(row, cell, value){
                     if( _.isUndefined(value) ) return "question";
-                    return value ? "spinner fa-spin" : "check";
-                }
-            ),
-        },
-        { id: "check", name: "check", field: "check", width: 30, cssClass: "center",
-            formatter: Provi.Widget.Grid.FormatterIconFactory(
-                function(row, cell, value){
-                    if( _.isUndefined(value) ) return "question";
-                    return value ? "check-circle" : "warning";
+                    if( value===-1 ) return "spinner fa-spin";
+                    return value ? "check" : "warning";
                 }
             ),
         },
@@ -619,8 +612,7 @@ Provi.Data.Job.JobDatalist.prototype = Provi.Utils.extend(Provi.Data.Datalist2, 
         this.id = job.id;
         this.jobid = job.jobid;
         this.tool = job.tool;
-        this.running = job.running;
-        this.check = job.check;
+        this.status = job.running ? -1 : job.check;
     },
     load_data: function( from, to, sortcol, sortdir ){
         var data = Provi.Data.Job.JobManager.get_list();
