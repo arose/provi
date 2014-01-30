@@ -285,3 +285,8 @@ div.chzn-container {
 .center {
     text-align: center;
 }
+
+.action {
+    cursor:pointer;
+}
+

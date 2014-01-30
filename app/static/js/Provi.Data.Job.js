@@ -548,7 +548,7 @@ Provi.Data.Job.JobDatalist = function(params){
                 }
             ),
         },
-        { id: "load", name: "load", width: 30, cssClass: "center",
+        { id: "load", name: "load", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.FormatterIconFactory("eye"),
             action: _.bind( function( id, d, grid_widget, e ){
                 var job = Provi.Data.Job.JobManager.get( d.id );
@@ -556,7 +556,7 @@ Provi.Data.Job.JobDatalist = function(params){
                 job.do_autoload();
             }, this )
         },
-        { id: "info", name: "info", width: 30, cssClass: "center",
+        { id: "info", name: "info", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.FormatterIconFactory(
                 "info-circle"
             ),
@@ -567,7 +567,7 @@ Provi.Data.Job.JobDatalist = function(params){
                 }, this )
             )
         },
-        { id: "files", name: "files", width: 30, cssClass: "center",
+        { id: "files", name: "files", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.FormatterIconFactory("folder-o"),
             action: Provi.Widget.Grid.ActionPopupFactory(
                 Provi.Data.Job.JobWidget,
@@ -579,7 +579,7 @@ Provi.Data.Job.JobDatalist = function(params){
                 }, this )
             )
         },
-        { id: "download", name: "download", width: 30, cssClass: "center",
+        { id: "download", name: "download", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.FormatterIconFactory("download"),
             action: _.bind( function( id, d, grid_widget, e ){
                 console.log("download", id, d);

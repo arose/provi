@@ -32,9 +32,23 @@ Provi.Bio.Linker.LinkerDatalist = function(params){
         { id: "score", name: "score", field: "score", width: 50, sortable: true },
         { id: "seq", name: "seq", field: "seq", width: 100, sortable: true, formatter: Provi.Widget.Grid.formatter_verbatim },
         { id: "pdb", name: "pdb", field: "pdb", width: 50, sortable: true },
-        { id: "displayed", name: "displayed", field: "displayed", width: 30, cssClass: "center",
+        { id: "displayed", name: "displayed", field: "displayed", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.formatter_radio,
             action: _.bind( Provi.Bio.AtomSelection.action_display, this ),
+        },
+        { id: "download", name: "download", field: "download", width: 30, cssClass: "center action",
+            formatter: Provi.Widget.Grid.FormatterIconFactory("download"),
+            action: _.bind( function( id, d, grid_widget, e ){
+                var sele = this.selection( d[ this.columns[0].field ] ) +
+                    " and not ( GLY and ( resno==1000 or resno==2000 ) )";
+                var data = Provi.Data.Io.get_structure( sele, this.applet, true );
+                var title = "TITLE     Linker " + 
+                    [ d.id, d.pdb, d.seq ].join(", ") +
+                "\n";
+                Provi.Data.Io.download( 
+                    title + data,  "linker_" + d.id + ".pdb"
+                );
+            }, this )
         },
     ];
 
