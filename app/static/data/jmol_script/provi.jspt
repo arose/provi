@@ -79,7 +79,7 @@ function provi_zoom( delta_y ){
 function provi_center( sele ){
     centerAt absolute @{ {sele}.XYZ };
     provi_zslab( 0 );
-    if( provi_iso_slab_id ){
+    if( provi_iso_slab_id && false ){
         isosurface ID @provi_iso_slab_id;
         isosurface SLAB NONE;
         isosurface SLAB WITHIN 12.0 {sele};

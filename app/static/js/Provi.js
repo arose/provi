@@ -73,7 +73,7 @@ var Jmol = {};
 
         // Jmol & Jalview init
         Provi.Jmol.init(
-            "../../jmol/current/73/", !$.query.get('unsigned')
+            "../../jmol/current/74/", !$.query.get('unsigned')
         );
         Provi.Jalview.init(
             "../../jalview/current/0/", !$.query.get('unsigned')
@@ -120,6 +120,13 @@ var Jmol = {};
             );
         });
         
+        tabs_panel.bind('tabsshow', function(event, ui) {
+            // make sure the grids are fully visible
+            $(ui.panel).find(".grid").each( function( i, elm ){
+                $(elm).data("gridInstance").resizeCanvas();
+            });
+        });
+
         // only for plupload
         // tabs_panel.bind('tabsshow', function(event, ui) {
         //     var scrollTop = tab_scrollbox.data(

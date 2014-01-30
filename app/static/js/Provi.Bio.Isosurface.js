@@ -453,6 +453,8 @@ Provi.Bio.Isosurface.IsosurfaceDatalist2 = function(params){
     ]
 
     Provi.Data.Datalist2.call( this, params );
+
+    $(this.applet).bind( "isosurface_created", _.bind( this.calculate, this ) );
 }
 Provi.Bio.Isosurface.IsosurfaceDatalist2.prototype = Utils.extend(Provi.Data.Datalist2, {
     type: "IsosurfaceDatalist",
@@ -491,16 +493,17 @@ Provi.Bio.Isosurface.IsosurfaceParamsWidget = function(params){
                 this.params.style + ';';
         }else if( id=="translucent" ){
             s = 'isosurface ID "' + this.isosurface_name + '" ' +
-                'translucent ' + this.params.translucent + ';';
+                'translucent ' + ( this.params.translucent || 0.0 ) + ';';
         }else if( id=="frontonly" ){
             s = 'isosurface ID "' + this.isosurface_name + '" ' +
                 this.params.frontonly + ';';
         }else if( id=="color" ){
             s = 'color $"' + this.isosurface_name + '" ' +
                 '[x' + this.params.color.substring(1) + '] ' +
-                'translucent ' + (this.params.translucent || 0.0) + ';';
+                'translucent ' + (this.params.translucent || 0.0) + 
+            ';';
         }
-        this.applet.script( s );
+        this.applet.script( s, { try_catch: true } );
     }, this ) );
 
     Provi.Widget.ParamsWidget.call( this, params );
