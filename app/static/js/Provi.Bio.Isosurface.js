@@ -408,7 +408,7 @@ Provi.Bio.Isosurface.IsosurfaceDatalist2 = function(params){
         { id: "modelIndex", name: "modelIndex", field: "modelIndex", width: 50, sortable: true },
         { id: "title", name: "title", field: "title", width: 150, sortable: true },
         { id: "vertexCount", name: "vertexCount", field: "vertexCount", width: 70, sortable: true },
-        { id: "visible", name: "visible", field: "visible", width: 30, cssClass: "center",
+        { id: "visible", name: "visible", field: "visible", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.formatter_displayed,
             action: _.bind( function( id, d ){
                 var s = 'isosurface ID "' + d.ID + '" ' +
@@ -429,7 +429,7 @@ Provi.Bio.Isosurface.IsosurfaceDatalist2 = function(params){
                 }, this )
             )
         },*/
-        { id: "options", name: "options", width: 30, cssClass: "center",
+        { id: "options", name: "options", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.FormatterIconFactory("cog"),
             action: Provi.Widget.Grid.ActionPopupFactory(
                 Provi.Bio.Isosurface.IsosurfaceParamsWidget,

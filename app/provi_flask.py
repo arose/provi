@@ -274,7 +274,7 @@ def write_data( name, directory_name, data, append=False ):
     if directory == os.path.commonprefix([ path, directory ]):
         parent = os.path.split( path )[0]
         if os.path.isdir( parent ):
-            mode = 'a' if boolean(append) else 'w'
+            mode = 'a' if append else 'w'
             with open( path, mode ) as fp:
                 fp.write( data )
             return 'OK'
@@ -294,7 +294,7 @@ def save_jmol():
 def save_local():
     directory_name = request.form.get('directory_name', '')
     name = request.form.get('name', '')
-    append = request.form.get('append', '')
+    append = boolean( request.form.get('append', '') )
     encoding = request.form.get('encoding', '')
     data = request.form.get('data', '')
     data = decode( data, encoding )

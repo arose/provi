@@ -608,13 +608,6 @@ Provi.Data.Io.SaveDataWidget = function(params){
         '<div class="control_row">' +
             '<button id="${eids.save_jmol}">save jmol</button>' +
         '</div>' +
-        '<form id="${eids.form}" style="display:hidden;" method="post" action="../../save/${params.backend_type}/" target="${eids.iframe}">' +
-            '<input type="hidden" name="name" value=""></input>' +
-            '<input type="hidden" name="data" value=""></input>' +
-            '<input type="hidden" name="type" value=""></input>' +
-            '<input type="hidden" name="encoding" value=""></input>' +
-        '</form>' +
-        '<iframe id="${eids.iframe}" name="${eids.iframe}" style="display:none;" src="" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" width="0" height="0"></iframe>' +
     '</div>';
     this.add_content( template, params );
     
@@ -641,41 +634,13 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
         Widget.prototype.init.call(this);
     },
     save_data: function( data, name, encoding, type ){
-        var form = this.elm('form');
-        form.children('input[name=name]').val( name );
-        form.children('input[name=data]').val( data );
-        form.children('input[name=encoding]').val( encoding || '' );
-        form.children('input[name=type]').val( type || '' );
-        form.submit();
+        Provi.Data.Io.download( data, name, encoding, type );
     },
     save_structure: function(){
         var applet = this.applet_selector.get_value();
         var sele = this.elm('save_structure_selected').is(':checked') ? "selected" : "*";
-        var data = applet.evaluate('provi_write_pdb({' + sele + '});');
-
-        if( this.elm('process_structure').is(':checked') ){
-            data = _.filter( data.split("\n"), function(line){
-                return (line.slice(0,4)=="ATOM" || line.slice(0,6)=="HETATM") ? true : false;
-            }).sort( function(a, b){
-                if( a[21]==b[21] ){
-                    if( parseInt(a.slice(22,26))==parseInt(b.slice(22,26)) ){
-                        if( parseInt(a.slice(6,11))==parseInt(b.slice(6,11)) ){
-                            return 0; // todo, occurs only with multiple models
-                        }else{
-                            return parseInt(a.slice(6,11))<parseInt(b.slice(6,11)) ? -1 : 1;
-                        }
-                    }else{
-                        return parseInt(a.slice(22,26))<parseInt(b.slice(22,26)) ? -1 : 1;
-                    }
-                }else{
-                    return a[21]<b[21] ? -1 : 1;
-                }
-            });
-            data = _.map( data, function(line, i){
-                return line.slice(0,6) + ("     "+(i+1)).slice(-5) + line.slice(11);
-            }).join("\n");
-        }
-
+        var process = this.elm('process_structure').is(':checked');
+        var data = Provi.Data.Io.get_structure( sele, applet, process );
         this.save_data( data, 'structure.pdb' );
     },
     save_image: function(){
@@ -711,6 +676,74 @@ Provi.Data.Io.SaveDataWidget.prototype = Utils.extend(Widget, /** @lends Provi.D
 });
 
 
+Provi.Data.Io.get_structure = function( sele, applet, process ){
+    var data = applet.evaluate('provi_write_pdb({' + sele + '});');
+    if( process ){
+        data = _.filter( data.split("\n"), function(line){
+            return (line.slice(0,4)=="ATOM" || line.slice(0,6)=="HETATM") ? true : false;
+        }).sort( function(a, b){
+            if( a[21]==b[21] ){
+                if( parseInt(a.slice(22,26))==parseInt(b.slice(22,26)) ){
+                    if( parseInt(a.slice(6,11))==parseInt(b.slice(6,11)) ){
+                        return 0; // todo, occurs only with multiple models
+                    }else{
+                        return parseInt(a.slice(6,11))<parseInt(b.slice(6,11)) ? -1 : 1;
+                    }
+                }else{
+                    return parseInt(a.slice(22,26))<parseInt(b.slice(22,26)) ? -1 : 1;
+                }
+            }else{
+                return a[21]<b[21] ? -1 : 1;
+            }
+        });
+        // renumber atomNo
+        data = _.map( data, function(line, i){
+            return line.slice(0,6) + 
+                ("     "+(i+1)).slice(-5) + 
+                line.slice(11);
+        }).join("\n");
+    }
+    return data;
+}
+
+
+Provi.Data.Io.save = function( backend, data, name, encoding, type, dir_name, append ){
+    var form = $(
+        '<form method="post" action="../../save/' + backend + '/">' +
+            '<input type="hidden" name="name" value=""></input>' +
+            '<input type="hidden" name="data" value=""></input>' +
+            '<input type="hidden" name="type" value=""></input>' +
+            '<input type="hidden" name="encoding" value=""></input>' +
+            '<input type="hidden" name="append" value=""></input>' +
+            '<input type="hidden" name="directory_name" value=""></input>' +
+        '</form>'
+    );
+    form.children('input[name=name]').val( name );
+    form.children('input[name=data]').val( data );
+    form.children('input[name=encoding]').val( encoding || '' );
+    form.children('input[name=type]').val( type || '' );
+    form.children('input[name=append]').val( append || false );
+    form.children('input[name=directory_name]').val( dir_name || '' );
+    if( backend=='download' ){
+        form.submit();
+    }else{
+        return $.ajax({
+            url: '../../save/local/',
+            data: new FormData( form[0] ),
+            cache: false,
+            contentType: false,
+            processData: false,
+            type: 'POST'
+        });
+    }
+}
+
+
+Provi.Data.Io.download = function( data, name, encoding, type ){
+    Provi.Data.Io.save( "download", data, name, encoding, type );
+}
+
+
 /**
  * widget for saving data to a example/local directory
  * @constructor
@@ -738,11 +771,7 @@ Provi.Data.Io.SaveExampleWidget = function(params){
 
     this.directory_selector = new Provi.Data.Io.ExampleDirectorySelectorWidget({
         parent_id: this.eid('directory_selector_widget')
-    })
-    this.elm('form').append(
-        '<input type="hidden" name="append" value=""></input>' +
-        '<input type="hidden" name="directory_name" value=""></input>'
-    );
+    });
 }
 Provi.Data.Io.SaveExampleWidget.prototype = Utils.extend(Provi.Data.Io.SaveDataWidget, /** @lends Provi.Data.Io.SaveExampleWidget.prototype */ {
     init: function(){
@@ -750,12 +779,13 @@ Provi.Data.Io.SaveExampleWidget.prototype = Utils.extend(Provi.Data.Io.SaveDataW
     },
     backend_type: 'local',
     save_data: function( data, name, encoding, type ){
-        name = this.elm('filename').val() || name;
-        append = this.elm('append').is(':checked');
-        var form = this.elm('form');
-        form.children('input[name=append]').val( append );
-        form.children('input[name=directory_name]').val( this.get_directory_name() );
-        Provi.Data.Io.SaveDataWidget.prototype.save_data.call( this, data, name, encoding, type );
+        Provi.Data.Io.save( 
+            'local', data, 
+            this.elm('filename').val(),
+            encoding, type, 
+            this.get_directory_name(),
+            this.elm('append').is(':checked')
+        );
     },
     get_directory_name: function(){
         return this.directory_selector.get_value();
