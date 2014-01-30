@@ -284,7 +284,7 @@ Provi.Widget.Grid.GridWidget2 = function(params){
         '<div class="control_row" id="${eids.selector}"></div>' +
         '<div class="control_row" id="${eids.widgets}"></div>' +
         '<div class="control_row">' +
-            '<div style="height:${params.grid_height};" id="${eids.grid}"></div>' +
+            '<div style="height:${params.grid_height};" id="${eids.grid}" class="grid"></div>' +
         '</div>' +
         '<div class="control_row" id="${eids.details}"></div>' +
     '';
@@ -369,6 +369,7 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
         this.grid = grid = new Slick.Grid(
             this.eid("grid", true), loader.data, columns, options
         );
+        this.elm("grid").data( "gridInstance", grid );
 
         this.elm("grid").on( 'mouseup', _.bind( function(e){
             var cell = grid.getCellFromEvent(e);
