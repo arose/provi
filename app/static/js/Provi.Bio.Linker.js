@@ -89,6 +89,10 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Data.Datalist2, {
         this.pdb = row[i+4];
         this.displayed = row[i+5];
     },
+    on_grid_creation: function( grid ){
+        var d = grid.getDataItem( 0 );
+        this.script( "display add " + this.selection( d.id ), true );
+    },
     load_data: function( from, to, sortcol, sortdir ){
         var data = this.data;
         var cols = [ "id", "correl", "goodness", "score", "seq", "pdb" ];

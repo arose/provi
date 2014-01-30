@@ -416,7 +416,7 @@ Provi.Data.ObjectDatalist.prototype = Utils.extend(Provi.Data.Datalist, {
 
 
 Provi.Data.Datalist2 = function(params){
-    var p = [ "applet" ];
+    var p = [ "applet", "sort_column", "sort_dir" ];
     _.extend( this, _.pick( params, p ) );
 
     Provi.Data.DatalistManager2.add( this, function( datalist ){
@@ -502,7 +502,8 @@ Provi.Data.Datalist2.prototype = {
     },
     load_data: function( from, to ){
         console.error( "load_data not implemented" );
-    }
+    },
+    on_grid_creation: function( grid ){}
 };
 
 
