@@ -73,6 +73,18 @@ function jmol_applet_ready_callback (applet_name, id, status, applet){
     Provi.Jmol.get_applet_by_id( applet_name+'' )._applet_ready_callback( status+'', applet );
 };
 
+function jmol_message_callback( applet_name, msg, b, c, d ){
+    // console.log( 'message', applet_name+' |', msg+' |', b+' |', c+' |', d+' |' );
+    var applet = Provi.Jmol.get_applet_by_id( applet_name+'' );
+    if( /.+created.+isosurface count:.*/.test( msg ) ){
+        $( applet ).triggerHandler('isosurface_created');
+    }
+}
+
+
+
+
+
 function jmol_dataset_loaded( dataset_id, status ){
     Provi.Data.DatasetManager.get( dataset_id ).set_loaded();
 };
@@ -309,6 +321,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             animFrameCallback: "jmol_anim_frame_callback",
             loadStructCallback: "jmol_load_struct_callback",
             pickCallback: "jmol_pick_callback",
+            messageCallback: "jmol_message_callback",
             // hoverCallback: "jmol_hover_callback",
             boxbgcolor: "white",
             boxfgcolor: "white",
@@ -516,7 +529,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
     },
     /** Triggers the {@link Provi.Jmol.Applet#anim_frame} event. */
     _anim_frame_callback: function( frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ){
-           console.log(frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection);
+        console.log(frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection);
         $(this).triggerHandler('anim_frame', [ frameNo, fileNo, modelNo, firstNo, lastNo, isAnimationRunning, animationDirection, currentDirection ]);
     },
     /** Triggers the {@link Provi.Jmol.Applet#load_struct} event. */
@@ -525,7 +538,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
         $(this).triggerHandler('load_struct', [ fullPathName, fileName, modelName, ptLoad, previousCurrentModelNumberDotted, lastLoadedModelNumberDotted ]);
     },
     _pick_callback: function( info, id ){
-           console.log( 'pick_callback', info, id );
+        console.log( 'pick_callback', info, id );
         // [ARG]193:B.CZ #4197 40.248 -4.2279997 38.332996
         var parsedInfo = /\[\w+\](\d+):(\w+)\.(\w+)\/?(\d\.\d)? .*/.exec(info);
         var chain = parsedInfo[2];
