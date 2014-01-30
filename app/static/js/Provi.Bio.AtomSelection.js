@@ -82,7 +82,7 @@ Provi.Bio.AtomSelection.AtomindexDatalist2 = function(params){
     _.extend( this, _.pick( params, p ) );
 
     this.columns = [
-        { id: "atomIndex", name: "atomIndex", field: "atomIndex", width: 50, sortable: true, 
+        { id: "atomIndex", name: "atomIndex", field: "atomIndex", width: 50, sortable: true, cssClass: "action",
             action: _.bind( Provi.Bio.AtomSelection.action_highlight, this ),
         },
         { id: "group", name: "group", field: "group", width: 50, sortable: true },
@@ -168,7 +168,7 @@ Provi.Bio.AtomSelection.GroupindexDatalist2 = function(params){
     _.extend( this, _.pick( params, p ) );
 
     this.columns = [
-        { id: "groupIndex", name: "groupIndex", field: "groupIndex", width: 50,
+        { id: "groupIndex", name: "groupIndex", field: "groupIndex", width: 50, cssClass: "action",
             action: _.bind( Provi.Bio.AtomSelection.action_highlight, this ),
         },
         { id: "group", name: "group", field: "group", width: 50 },
@@ -257,7 +257,7 @@ Provi.Bio.AtomSelection.ModelindexDatalist2 = function(params){
     _.extend( this, _.pick( params, p ) );
 
     this.columns = [
-        { id: "modelIndex", name: "modelIndex", field: "modelIndex", width: 50,
+        { id: "modelIndex", name: "modelIndex", field: "modelIndex", width: 50, cssClass: "action",
             action: _.bind( Provi.Bio.AtomSelection.action_highlight, this ),
         },
         { id: "file", name: "file", field: "file", width: 50 },
@@ -340,7 +340,7 @@ Provi.Bio.AtomSelection.VariableDatalist2 = function(params){
     _.extend( this, _.pick( params, p ) );
 
     this.columns = [
-        { id: "name", name: "name", field: "name", width: 200, sortable: true,
+        { id: "name", name: "name", field: "name", width: 200, sortable: true, cssClass: "action",
             action: _.bind( Provi.Bio.AtomSelection.action_highlight, this ),
         },
         { id: "selected", name: "selected", field: "selected", width: 30, cssClass: "center action",
