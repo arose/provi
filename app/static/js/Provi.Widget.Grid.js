@@ -408,9 +408,20 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
             new Slick.AutoTooltips({ enableForHeaderCells: true })
         );
 
+        if( this.datalist.sort_column ){
+            var sortAsc = this.datalist.sort_dir==="ASC";
+            grid.setSortColumn( this.datalist.sort_column, sortAsc );
+            loader.setSort( 
+                this.datalist.sort_column,
+                sortAsc ? "ASC" : "DESC"
+            );
+        }
+
         // load the first page
         this.init_datalist();
         grid.onViewportChanged.notify();
+
+        this.datalist.on_grid_creation( grid );
     },
     _invalidate: function(){
         console.log("_invalidate");
