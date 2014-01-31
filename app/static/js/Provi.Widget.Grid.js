@@ -417,17 +417,7 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
             );
         }
 
-        // load the first page
         this.init_datalist();
-        grid.onViewportChanged.notify();
-
-        if( this.datalist.ready ){
-            this.datalist.on_grid_creation( grid );
-        }else{
-            $(this.datalist).bind("calculate_ready", _.bind( function(){
-                this.datalist.on_grid_creation( grid );
-            }, this ) );
-        }
     },
     _invalidate: function(){
         console.log("_invalidate");
@@ -467,6 +457,9 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
             }, this) );
         }
 
+        this.grid.onViewportChanged.notify();
+        this.datalist.on_grid_creation( this.grid );
+        
         this.update_grid();
     },
     update_grid: function(){

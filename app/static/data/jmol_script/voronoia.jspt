@@ -54,6 +54,13 @@ function voronoia_hole( id, vTranslucent, vColor ){
 };
 
 
+function voronoia_hole_all( idList, vTranslucent, vColor ){
+    for(var id in idList){
+        voronoia_hole( id, vTranslucent, vColor );
+    }
+};
+
+
 function voronoia_cavity( id, vResolution, vTranslucent, vColor, vCavityProbeRadius, vExteriorProbeRadius ){
     set drawHover true;
     var sele = provi_selection[id];

@@ -180,7 +180,12 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Data.Datalist
         this.cavity = row[4] ? 1.0 : 0.0;
     },
     on_grid_creation: function( grid ){
-        
+        var s = 'voronoia_hole_all( ' +
+            "['" + this.ids.join("','") + "'], " +
+            this.translucent + ", " +
+            "'" + this.cavity_color + "' " +
+        ')';
+        this.script( s, true );
     },
     load_data: function( from, to, sortcol, sortdir ){
         if( !this.ready ) return null;

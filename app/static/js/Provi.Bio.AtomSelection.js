@@ -53,7 +53,7 @@ Provi.Bio.AtomSelection.action_select = function( id, d ){
     var sele = this.selection( d[ this.columns[0].field ] );
     var flag = parseFloat(d[id]) > 0.0;
     var s = 'select ' + (flag ? 'remove' : 'add') + ' ' + sele;
-    this.script( s, true );
+    this.script( s, true, { maintain_selection: false } );
 }
 
 Provi.Bio.AtomSelection.action_display = function( id, d ){
