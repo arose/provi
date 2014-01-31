@@ -154,7 +154,7 @@ Provi.Data.Job.Job = function(params){
         }
     */
 
-    this.check = false;
+    this.check = undefined;
     if( this.submitted ){
         this.running = true;
         this.status_interval = setInterval( _.bind( function(){
@@ -188,7 +188,6 @@ Provi.Data.Job.Job.prototype = {
     },
     retrieve_status: function( force ){
         console.log("retrieve_status");
-        Provi.Data.Job.JobManager.change();
         if( this.submitted && !this.running ){
             console.log( "job stopped running" );
             clearInterval( this.status_interval );
@@ -206,15 +205,23 @@ Provi.Data.Job.Job.prototype = {
                 ),
                 cache: false,
                 success: _.bind( function( data ){
-                    console.log("Job.retrieve_status", data);
+                    // console.log("Job.retrieve_status", data );
+                    var change = true;
                     if( data ){
+                        if( this.check===data["check"] &&
+                                this.running===data["running"] ){
+                            change = false;
+                        }
                         this.check = data["check"];
                         this.running = data["running"];
                     }else{
                         this.check = false;
                         this.running = false;
                     }
-                    $(this).triggerHandler("status");
+                    if( change ){
+                        $(this).triggerHandler("status");
+                        Provi.Data.Job.JobManager.change();
+                    }
                 }, this )
             });
         }

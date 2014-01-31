@@ -43,7 +43,7 @@ Provi.Bio.Voronoia.VoronoiaParamsWidget.prototype = Utils.extend(Provi.Widget.Pa
     params_dict: {
         resolution: { 'default': 2.0, type: "float", 
             range: [ 0.5, 7.0 ], step: 0.5 },
-        cavity_probe_radius: { 'default': 0.3, type: "float", 
+        cavity_probe_radius: { 'default': 0.7, type: "float", 
             range: [ 0.1, 1.5 ], step: 0.1 },
         exterior_probe_radius: { 'default': 5.0, type: "float", 
             range: [ 1.0, 20.0 ], step: 1.0 },
@@ -64,34 +64,63 @@ Provi.Bio.Voronoia.VoronoiaDatalist = function(params){
         "subset"
     ];
     _.extend( this, _.pick( params, p ) );
-    this.params = {};
-    _.extend( this.params, _.pick( params, p ) );
 
-    Provi.Bio.AtomSelection.VariableDatalist.call( this, params );
-    this.handler = _.defaults({
-        "show_hole": {
-            "selector": 'input[cell="hole"]',
-            "click": this.show_hole,
-            "label": "sphere"
+    this.columns = [
+        { id: "id", name: "id", field: "id", width: 50, sortable: true },
+        { id: "label", name: "label", field: "label", width: 200, sortable: true },
+        { id: "neighbours", name: "neighbours", field: "neighbours", width: 30, cssClass: "center action",
+            formatter: Provi.Widget.Grid.formatter_checkbox,
+            action: _.bind( function( id, d ){
+                var s = 'select ' + this.selection(d.id) + ';' +
+                    'wireframe ' + (d[id] ? 'off' : '0.2') + ';' +
+                    'cpk ' + (d[id] ? 'off' : '0.2') + ';';
+                this.script( s, true );
+            }, this ),
         },
-        "show_cavity": {
-            "selector": 'input[cell="cavity"]',
-            "click": this.show_cavity,
-            "label": "cavity"
+        { id: "hole", name: "hole", field: "hole", width: 30, cssClass: "center action",
+            formatter: Provi.Widget.Grid.formatter_checkbox,
+            action: _.bind( function( id, d ){
+                if( d[id] ){
+                    var s = 'draw ID "' + d.id + '_draw*" delete;';
+                }else{
+                    var s = 'voronoia_hole( ' +
+                        '"' + d.id + '", ' +
+                        this.translucent + ', ' +
+                        '"' + this.cavity_color + '" ' +
+                    ')';
+                }
+                this.script( s, true );
+            }, this ),
         },
-        "show_neighbours": {
-            "selector": 'input[cell="neighbours"]',
-            "click": this.show_neighbours,
-            "label": "neighbours"
-        }
-    }, this.handler );
+        { id: "cavity", name: "cavity", field: "cavity", width: 30, cssClass: "center action",
+            formatter: Provi.Widget.Grid.formatter_checkbox,
+            action: _.bind( function( id, d ){
+                if( d[id] ){
+                    var s = 'isosurface ID "' + d.id + '_iso*" delete;';
+                }else{
+                    var s = 'voronoia_cavity( ' +
+                        '"' + d.id + '", ' +
+                        parseFloat(this.resolution).toFixed(2) + ', ' +
+                        parseFloat(this.translucent).toFixed(2) + ', ' +
+                        '"' + this.cavity_color + '", ' +
+                        parseFloat(this.cavity_probe_radius).toFixed(2) + ', ' +
+                        parseFloat(this.exterior_probe_radius).toFixed(2) + ' ' +
+                    ')';
+                }
+                this.script( s, true );
+            }, this ),
+        },
+    ];
+
+
+    Provi.Data.Datalist2.call( this, params );
 }
-Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelection.VariableDatalist, {
+Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Data.Datalist2, {
     type: "VoronoiaDatalist",
     params_object: Provi.Bio.Voronoia.VoronoiaParamsWidget,
     default_params: {
         resolution: 3.0,
-        cavity_probe_radius: 0.2,
+        cavity_probe_radius: 0.7,
         exterior_probe_radius: 5.0,
         cavity_color: 'skyblue',
         translucent: 0.3,
@@ -137,143 +166,59 @@ Provi.Bio.Voronoia.VoronoiaDatalist.prototype = Utils.extend(Provi.Bio.AtomSelec
             }
         }, this );
 
-        $(this).bind("calculate_ready", _.bind( 
-            this.show_hole, this, 'all', false ) 
-        );
         this.set_ready();
+        console.log("voro dl ready");
     },
-    get_ids: function(sele){
-        return this.ids;
+    selection: function( id ){
+        return '@{ provi_selection["' + id + '"] }';
     },
-    get_data: function(id){
-        if( !this.ready ) return [0, 0, 0, 0];
-        var ids = (id=="all") ? this.get_ids() : [id];
-        var s = 'provi_hole_test(["' + ids.join('","') + '"]).join(",")';
-        var a = this.applet.evaluate(s);
-        a = a ? a.split(",") : [0, 0, 0, 0];
-        // console.log(a);
-        return _.map( a, parseFloat );
+    DataItem: function( row ){
+        this.id = row[0];
+        this.label = row[1];
+        this.neighbours = row[2] / 0.2;
+        this.hole = row[3] ? 1.0 : 0.0;
+        this.cavity = row[4] ? 1.0 : 0.0;
     },
-    make_row: function(id){
-        if(id==='all'){
-            if( !this.ids || !this.ids.length ){
-                return 'No cavities';
-            }
-            var label = 'Cavities'
-        }else{
-            // var label = 'Cavity ' + id.split('_')[2];
-            var label = this.id_names[id];
-        }
-        var a = this.get_data(id); // selected, neighbours, hole, cavity
-
-        var $row = $('<div></div>').append(
-            this.selected_cell( id, a[0] ),
-            this.label_cell( label, id ),
-            this.hole_cell( id, a[2] ),
-            this.cavity_cell( id, a[3], this.ids.length>50 && id==="all" ),
-            this.neighbours_cell( id, a[1] )
+    on_grid_creation: function( grid ){
+        
+    },
+    load_data: function( from, to, sortcol, sortdir ){
+        if( !this.ready ) return null;
+        var shape_info = this.applet.get_property_as_array('shapeInfo');
+        var draw = shape_info["Draw"] || {};
+        var iso = shape_info["Isosurface"] || {};
+        var draw_dict = _.object( 
+            _.pluck( draw, "ID" ), _.pluck( draw, "scale" )
         );
-        return $row;
-    },
-    _show_hole: function(id, flag, params){
-        params = params || {};
-        var self = this;
-        var color = params.cavity_color || this.cavity_color;
-        var translucent = params.translucent || this.translucent;
-        var ids = (id==='all') ? this.get_ids() : [ id ];
-        if(flag){
-            return _.map( ids, function(id){
-                var hole_id = id;
-                return 'draw ID "' + hole_id + '_draw*" delete;';
-            }).join(' ');
-        }else{
-            return _.map( ids, function(id){
-                var hole_id = id;
-                var draw_id = hole_id + '_draw__no_widget__ ';
-                return 'var sele = ' + self.selection(id, true) + ';' +
-                    'set drawHover true;' +
-                    'try{' +
-                        'var dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;' +
-                        'draw ID ' + draw_id + ' ' + 
-                            '"Cavity ' + hole_id.split('_')[2] + '" ' +
-                            'DIAMETER @dia ' +
-                            'COLOR TRANSLUCENT ' + 
-                                translucent + ' ' + color + ' ' +
-                            '@sele ' +
-                        ';' +
-                    '}catch(e){' +
-                        'print "ERROR: " + e' +
-                    '}';
-            }).join(' ');
-        }
-    },
-    show_hole: function(id, flag, params){
-        var s = this._show_hole(id, flag, params);
-        /*if(this.subset){
-            s = "subset " + this.subset + ";" + s + "subset;";
-        }*/
-        // console.log(s);
-        this.script( s, true, { try_catch: false } );
-    },
-    _show_cavity: function(id, flag, params){
-        params = params || {};
-        var resolution = params.resolution || this.resolution;
-        var cavity_probe_radius = params.cavity_probe_radius || this.cavity_probe_radius;
-        var exterior_probe_radius = params.exterior_probe_radius || this.exterior_probe_radius;
-        var color = params.cavity_color || this.cavity_color;
-        var translucent = params.translucent || this.translucent;
-        var self = this;
-        var ids = (id==='all') ? this.get_ids() : [ id ];
-        if(flag){
-            return _.map( ids, function(id){
-                var hole_id = id;
-                return 'isosurface id "' + hole_id + '_iso__no_widget__" delete;';
-            }).join(' ');
-        }else{
-            return _.map( ids, function(id){
-                var hole_id = id;
-                return 'set drawHover true;' +
-                    'isosurface id "' + hole_id + '_iso__no_widget__" ' +
-                        //'"Hole ' + hole_id.split('_')[2] + '" ' +
-                        'select {' + self.selection(id) + '} ' +
-                        'ignore { not ' + self.selection(id) + '} ' +
-                        'resolution ' + resolution + ' ' +
-                        'color ' + color + ' ' +
-                        'cavity ' + cavity_probe_radius + ' ' + 
-                            exterior_probe_radius + ' ' +
-                        'FRONTONLY ' +
-                        'TRANSLUCENT ' + translucent + ' ' +
-                    ';' +
-                    /*'isosurface id "' + hole_id + '_iso__no_widget__" ' +
-                        'MESH NOFILL ' +*/
-                    ';' +
-                    // 'isosurface id "' + hole_id + '_iso__no_widget__" ' +
-                    //     'triangles; ' +
-                '';
-            }).join(' ');
-        }
-    },
-    show_cavity: function(id, flag, params){
-        this.script( this._show_cavity(id, flag, params), true );
-    },
-    _show_neighbours: function(id, flag){
-        return 'select ' + this.selection(id) + ';' +
-            'wireframe ' + (flag ? 'off' : '0.2') + ';' +
-            'cpk ' + (flag ? 'off' : '0.2') + ';';
-    },
-    show_neighbours: function(id, flag){
-        this.script( this._show_neighbours(id, flag), true );
-    },
-    hole_cell: Provi.Widget.Grid.CellFactory({
-        "name": "hole", "color": "skyblue"
-    }),
-    cavity_cell: Provi.Widget.Grid.CellFactory({
-        "name": "cavity", "color": "tomato"
-    }),
-    neighbours_cell: Provi.Widget.Grid.CellFactory({
-        "name": "neighbours", "color": "lightgreen"
-    })
+        var iso_dict = _.object( 
+            _.pluck( iso, "ID" ), _.pluck( iso, "visible" )
+        );
+
+        var s = "getVoronoiaData(" + 
+            "['" + this.ids.join("','") + "']" +
+        ")";
+        var resp = this.applet.variable( s );
+
+        var data = _.map( this.ids, function( id, i ){
+            return [ 
+                id,
+                this.id_names[id],
+                resp[i][0],
+                draw_dict[String(id).toLowerCase()+"_draw__no_widget__"],
+                iso_dict[String(id).toLowerCase()+"_iso__no_widget__"]
+            ];
+        }, this );
+        console.log(data);
+        if( sortdir=="DESC" ) data.reverse();
+        var hits = data.length;
+        data = data.slice( from, to+1 );
+
+        return { results: data, start: from, hits: hits };
+    }
 });
+
+
+
 
 
 
