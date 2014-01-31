@@ -142,7 +142,7 @@ Provi.Data.Dataset.prototype = /** @lends Provi.Data.Dataset.prototype */ {
                 self.raw_data = d;
                 self._init( params );
             },
-            error: function(e){ console.error(e); }
+            error: function(e){ console.error( self, params, e); }
         });
     },
     set_loaded: function(){
@@ -485,7 +485,7 @@ Provi.Data.Datalist2.prototype = {
         $(this).triggerHandler('invalidate');
     },
     script: function( s, invalidate, params ){
-        _.defaults( params || {}, { 
+        params = _.defaults( params || {}, { 
             maintain_selection: true, 
             try_catch: true 
         });

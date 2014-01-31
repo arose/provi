@@ -58,7 +58,7 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Data.Datalist2, {
     type: "LinkerDatalist",
     jspt_url: "../data/jmol_script/atomsele.jspt", 
     // params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
-    _init: function(){
+    calculate: function(){
         this.data = _.map( this.linker_ds.raw_data, function(v, k){
             return [ parseInt(k) ].concat( v );
         });
@@ -70,7 +70,7 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Data.Datalist2, {
         console.log( this.data[0], this.data[0].length==6 );
         if( !this.has_cross_correl ) this.columns.slice( 1, 1 );
 
-        this.initialized = false;
+        // this.initialized = false;
         this.set_ready();
     },
     selection: function( id ){

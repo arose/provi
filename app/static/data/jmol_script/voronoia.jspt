@@ -32,3 +32,33 @@ function provi_hole_test(ids){
     return [ sele_l.average, cpk_l.average, draw_l.average, iso_l.average ];
 };
 
+
+function getVoronoiaData( idList ){
+    var results = [];
+    for(var id in idList){
+        results.push([
+            provi_selection[id].cpk   
+        ]);
+    }
+    return results;
+}
+
+
+function voronoia_hole( id, vTranslucent, vColor ){
+    set drawHover true;
+    var sele = provi_selection[id];
+    var hole_id = id + "_draw__no_widget__";
+    var name = "Cavity " + id.split('_')[3];
+    var dia = 2*(sele.X.stddev + sele.Y.stddev + sele.Z.stddev)/3;
+    draw ID @hole_id @name DIAMETER @dia COLOR TRANSLUCENT @vTranslucent @vColor @sele;
+};
+
+
+function voronoia_cavity( id, vResolution, vTranslucent, vColor, vCavityProbeRadius, vExteriorProbeRadius ){
+    set drawHover true;
+    var sele = provi_selection[id];
+    var cav_id = id + "_iso__no_widget__";
+    isosurface ID @cav_id SELECT { @sele } IGNORE { not @sele } RESOLUTION @vResolution CAVITY @vCavityProbeRadius @vExteriorProbeRadius FRONTONLY ;
+    color $@cav_id @vColor;
+    isosurface TRANSLUCENT @vTranslucent;
+};

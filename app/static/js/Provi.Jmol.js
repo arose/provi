@@ -373,6 +373,7 @@ Provi.Jmol.Applet.prototype = /** @lends Provi.Jmol.Applet.prototype */ {
             // script = 'try{ ' + script + ' }catch(e){ javascript "jmol_error(\'" + e + "\')"; }';
             script = 'try{ ' + script + ' }catch(){}';
         }
+        // console.log(script, params);
         return script;
     },
     _script: function(script, params){
