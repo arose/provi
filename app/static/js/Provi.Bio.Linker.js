@@ -32,9 +32,12 @@ Provi.Bio.Linker.LinkerDatalist = function(params){
         { id: "score", name: "score", field: "score", width: 50, sortable: true },
         { id: "seq", name: "seq", field: "seq", width: 100, sortable: true, formatter: Provi.Widget.Grid.formatter_verbatim },
         { id: "pdb", name: "pdb", field: "pdb", width: 50, sortable: true },
-        { id: "displayed", name: "displayed", field: "displayed", width: 30, cssClass: "center action",
+        { id: "show", name: "show", field: "show", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.formatter_radio,
-            action: _.bind( Provi.Bio.AtomSelection.action_display, this ),
+            action: _.bind( function( id, d ){
+                var sele = this.selection( d[ this.columns[0].field ] );
+                this.script( 'display add ' + sele, true );
+            }, this ),
         },
         { id: "download", name: "download", field: "download", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.FormatterIconFactory("download"),
@@ -67,10 +70,8 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Data.Datalist2, {
         this.fileno = this.applet.evaluate( s );
         
         this.has_cross_correl = this.data[0].length==6;
-        console.log( this.data[0], this.data[0].length==6 );
-        if( !this.has_cross_correl ) this.columns.slice( 1, 1 );
+        if( !this.has_cross_correl ) this.columns.splice( 1, 1 );
 
-        // this.initialized = false;
         this.set_ready();
     },
     selection: function( id ){
@@ -87,15 +88,16 @@ Provi.Bio.Linker.LinkerDatalist.prototype = Utils.extend(Provi.Data.Datalist2, {
         this.score = row[i+2];
         this.seq = row[i+3];
         this.pdb = row[i+4];
-        this.displayed = row[i+5];
+        this.show = row[i+5];
     },
     on_grid_creation: function( grid ){
-        this.column_action( grid, "displayed", grid.getDataItem( 0 ) );
+        grid.setColumns( this.columns );
+        this.column_action( grid, "show", grid.getDataItem( 0 ) );
     },
     load_data: function( from, to, sortcol, sortdir ){
         var data = this.data;
         var cols = [ "id", "correl", "goodness", "score", "seq", "pdb" ];
-        if( !this.has_cross_correl ) cols.slice( 1, 1 );
+        if( !this.has_cross_correl ) cols.splice( 1, 1 );
 
         if( sortcol ){
             var sortidx = _.indexOf( cols, sortcol );
