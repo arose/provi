@@ -133,6 +133,8 @@ Provi.Jmol.Settings.dict = {
         "", "default", "lines", "sticks", "cartoon", "cartoon+sticks", 
         "backbone", "backbone+sticks", "trace" ] },
 
+    meshScale: { type: "int", options: [ 1, 2, 3 ] },
+
     appletProxy: { type: "str" }
 }
 
