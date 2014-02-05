@@ -675,7 +675,9 @@ Provi.Jmol.JmolWidget = function(params){
             }),
             datalist_list: "all"
         });*/
+    }
 
+    if( !params.no_job_widget ){
         this.job_datalist = new Provi.Data.Job.JobDatalist({ applet: this.applet });
         this.job_widget = new Provi.Widget.Grid.GridWidget2({
             parent_id: Provi.defaults.dom_parent_ids.JOBS_WIDGET,
@@ -683,7 +685,9 @@ Provi.Jmol.JmolWidget = function(params){
             heading: "Jobs",
             grid_height: "300px"
         });
+    }
 
+    if( !params.no_setting_widget ){
         this.settings_datalist = new Provi.Jmol.Settings.SettingsDatalist({ applet: this.applet });
         this.settings_widget = new Provi.Widget.Grid.GridWidget({
             parent_id: Provi.defaults.dom_parent_ids.SETTINGS_WIDGET,
@@ -702,6 +706,9 @@ Provi.Jmol.JmolWidget.prototype = Utils.extend(Widget, /** @lends Provi.Jmol.Jmo
     default_params: {
         parent_id: undefined,
         no_grid_widget: false,
+        no_job_widget: false,
+        no_setting_widget: false,
+        no_plot_widget: false,
         no_data_info: true
     }
 });

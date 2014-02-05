@@ -28,6 +28,7 @@ Provi.Data.Job.Tools = {
     init: function(){
         this.ready = false;
         this.tools = {};
+        this.filter = null;
         this.retrieve_tools();
     },
     retrieve_tools: function(){
@@ -43,6 +44,14 @@ Provi.Data.Job.Tools = {
     },
     get: function( name ){
         return this.tools[ name ];
+    },
+    names: function(){
+        var names = _.keys( this.tools );
+        if( this.filter ){
+            return _.intersection( names, this.filter );
+        }else{
+            return names;
+        }
     }
 };
 Provi.Data.Job.Tools.init();
@@ -400,6 +409,7 @@ Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
                     var sele = form_elms.find("input[name=__sele__" + id + "]").val() || "*";
                     var pdb = this.datalist.applet.evaluate('provi_write_pdb({' + sele + '});');
                     var blob = new Blob([ pdb ], { "type" : "text/plain" });
+                    console.log( id, pdb );
                     data.append( id, blob, "file.pdb" );
                 }
             }, this);
@@ -431,15 +441,14 @@ Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
     },
     get_tools: function(){
         if( Provi.Data.Job.Tools.ready ){
-            this.init_selector( Provi.Data.Job.Tools.tools );
+            this.init_selector( Provi.Data.Job.Tools.names() );
         }else{
             $(Provi.Data.Job.Tools)
                 .bind("tools_ready", _.bind( this.get_tools, this ) );
         }
     },
-    init_selector: function( tools ){
-        this.tools = tools;
-        var p = { type: "select", options: [""].concat( _.keys(tools) ) };
+    init_selector: function( names ){
+        var p = { type: "select", options: [""].concat( names ) };
         var select = Provi.Widget.form_builder( p, "", "tool_selector", this );
         this.elm("tool_selector").append( select );
     },
@@ -447,12 +456,12 @@ Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
         var elm = $(e.currentTarget);
         var id = elm.data('id');
         if( id=="tool_selector" ){
-            var tool_name = elm.children("option:selected").val();
-            this.init_tool( tool_name );
+            var name = elm.children("option:selected").val();
+            this.init_tool( name );
         }
     },
-    init_tool: function( tool_name ){
-        this.tool = this.tools[ tool_name ];
+    init_tool: function( name ){
+        this.tool = Provi.Data.Job.Tools.get( name );
         this.elm("form_elms").empty();
         this.elm("submit").show();
         _.each( this.tool.args, _.bind( function( p, id ){
@@ -464,7 +473,7 @@ Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
             }
         }, this));
         this.elm('form').children('input[name=__type__]')
-            .val( tool_name );
+            .val( name );
     }
 });
 
@@ -508,7 +517,7 @@ Provi.Data.Job.InfoWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
                 .bind("tools_ready", _.bind( this.init_info, this ) );
             return;
         }
-        var tool = Provi.Data.Job.Tools.tools[ this.job.tool ];
+        var tool = Provi.Data.Job.Tools.get( this.job.tool );
         this.elm("params_info").empty();
         var i = 0;
         _.each( tool.args, _.bind( function( p, id ){

@@ -269,14 +269,14 @@ Provi.Widget.Grid.GridWidget2 = function(params){
 
     this._init_eid_manager([ 
         'grid', 'update', 'widgets', 'calc', 'init', 'selector', 
-        'details', 'applet'
+        'details', 'applet', 'debug'
     ]);
     
     var p = [ "datalist", "datalist_list" ];
     _.extend( this, _.pick( params, p ) );
 
     var template = '' +
-        '<div class="control_row">' +
+        '<div id="${eids.debug}" class="control_row">' +
             '<button id="${eids.update}">update</button>&nbsp;' +
             '<button id="${eids.calc}">calc</button>&nbsp;' +
             '<button id="${eids.init}">init</button>&nbsp;' +
@@ -290,6 +290,10 @@ Provi.Widget.Grid.GridWidget2 = function(params){
     '';
     this.add_content( template, params );
 
+    if( !params.debug ){
+        this.elm('debug').hide();
+    }
+
     this._init();
 }
 Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
@@ -298,6 +302,7 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
         collapsed: false,
         persist_on_applet_delete: false,
         lists: [],
+        debug: true,
         grid_height: "500px"
     },
     _init: function(){

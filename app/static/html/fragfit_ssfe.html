@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="shortcut icon" href="../favicon.ico">
-    <title>Provi FragFit</title>
+    <title>Provi FragFit SSFE</title>
     <script type="text/javascript" src="../js/lib/LAB.js"></script>
     <script type="text/javascript" src="../js/Provi.js"></script>
 </head>
@@ -57,16 +57,12 @@
                 no_selection_manager_widget: true,
                 no_tree_view_widget: true,
                 no_grid_widget: true,
-                no_job_widget: false,
+                no_job_widget: true,
                 no_setting_widget: true,
                 no_plot_widget: true,
                 no_data_info: true
             });
             
-            Provi.Data.Job.Tools.filter = [ 'linkit', 'linkit-density' ];
-            Provi.Widget.params.hide_file_sele = true;
-            Provi.Widget.Grid.GridWidget2.prototype.default_params.debug = false;
-
             $(document).ready(function(){
 
                 Provi.init();
@@ -92,7 +88,7 @@
             <div id="tabs" class="ui-tabs" style="overflow: auto; position: absolute; bottom: 0px; top: 0px; left: 0px; right 0px; width:100%;">
                 <div id="tabs_panel" style="height:100%; width:100%;">
                     <ul>
-                        <li><a title="Control elements" href="#tab_widgets">Controls</a></li>
+                        <li><a title="A collection of control elements" href="#tab_widgets">Controls</a></li>
                         <li><a title="Some help" href="#tab_help">Help</a></li>
                     </ul>
                     <div id="tab_scrollbox" style="overflow: auto; position: absolute; bottom: 3px; top: 40px; width:100%;  right: 3px;">

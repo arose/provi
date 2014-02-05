@@ -24,7 +24,9 @@ Provi.Widget.ui_disable_timeout = function( $elm ){
     }, 2000);
 }
 
-
+Provi.Widget.params = { 
+    hide_file_sele: false
+};
 
 /**
  * global widget manager object
@@ -321,13 +323,14 @@ Provi.Widget.form_builder = function( params, value, id, self ){
 
         if( p.ext=="pdb" ){
             var id2 = '__sele__' + id;
+            var $sele = $('<input type="text" name="' + id2 + '" />');
+            if( Provi.Widget.params.hide_file_sele ) $sele.hide();
             $elm.append(
-                $('<input type="text" name="' + id2 + '" />')
-                    .data( 'id', id2 )
+                $sele.data( 'id', id2 )
                     .val( value || "*" )
                     .blur( _.bind( self.set, self ) ),
                 '&nbsp;<label>Selection</label>'
-            )
+            );
         }
 
     }else if( p.type=="color" ){
