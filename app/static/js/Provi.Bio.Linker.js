@@ -30,7 +30,7 @@ Provi.Bio.Linker.LinkerDatalist = function(params){
         { id: "correl", name: "correl", field: "correl", width: 50, sortable: true },
         { id: "goodness", name: "goodness", field: "goodness", width: 50, sortable: true },
         { id: "score", name: "score", field: "score", width: 50, sortable: true },
-        { id: "seq", name: "seq", field: "seq", width: 100, sortable: true, formatter: Provi.Widget.Grid.formatter_verbatim },
+        { id: "seq", name: "org. seq", field: "seq", width: 100, sortable: true, formatter: Provi.Widget.Grid.formatter_verbatim },
         { id: "pdb", name: "pdb", field: "pdb", width: 50, sortable: true },
         { id: "show", name: "show", field: "show", width: 30, cssClass: "center action",
             formatter: Provi.Widget.Grid.formatter_radio,
