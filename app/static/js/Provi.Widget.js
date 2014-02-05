@@ -242,6 +242,8 @@ Provi.Widget.form_builder = function( params, value, id, self ){
         value = parseInt( value );
     }
 
+    if( _.isNaN( value ) ) value = "";
+
     if( p.options ){
 
         $elm.append(

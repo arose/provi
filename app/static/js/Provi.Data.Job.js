@@ -409,7 +409,6 @@ Provi.Data.Job.FormWidget.prototype = Provi.Utils.extend(Provi.Widget.Widget, {
                     var sele = form_elms.find("input[name=__sele__" + id + "]").val() || "*";
                     var pdb = this.datalist.applet.evaluate('provi_write_pdb({' + sele + '});');
                     var blob = new Blob([ pdb ], { "type" : "text/plain" });
-                    console.log( id, pdb );
                     data.append( id, blob, "file.pdb" );
                 }
             }, this);
