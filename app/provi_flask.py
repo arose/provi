@@ -27,6 +27,7 @@ from flask import send_file
 from flask import request
 from flask import make_response, Response
 from flask import jsonify
+from flask import url_for, redirect
 
 from werkzeug import secure_filename
 
@@ -166,6 +167,15 @@ def jalview(filename, flag):
         os.path.join( app.config['STATIC_DIR'], 'applet/jalview/current/' ), 
         filename
     )
+
+@app.route('/')
+def redirect_provi():
+    return redirect( url_for( 'static', filename='html/provi.html' ) )
+
+@app.route('/app/<name>')
+def redirect_app( name ):
+    return redirect( url_for( 'static', filename='html/%s.html' % name ) )
+
 
 
 
