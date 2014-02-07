@@ -52,7 +52,7 @@ Provi.Jmol.Settings.groups = {
         "backbone", "hermiteLevel", "cartoonRockets", "cartoonFancy", 
         "ribbonAspectRatio", "ribbonBorder", "rocketBarrels", 
         "sheetSmoothing", "traceAlpha", "cartoonBaseEdges", 
-        "cartoonLadder", "sidechainHelper", "style" ],
+        "cartoonLadder", "cartoonRibose", "sidechainHelper", "style" ],
     sys: [ "appletProxy" ],
 }
 
@@ -128,6 +128,7 @@ Provi.Jmol.Settings.dict = {
     traceAlpha: { type: "bool" },
     cartoonBaseEdges: { type: "bool" },
     cartoonLadders: { type: "bool" },
+    cartoonRibose: { type: "bool" },
     sidechainHelper:  { type: "bool", provi: true },
     style: { type: "str", options: [ 
         "", "default", "lines", "sticks", "cartoon", "cartoon+sticks", 
