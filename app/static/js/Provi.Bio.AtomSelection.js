@@ -75,6 +75,14 @@ Provi.Bio.AtomSelection.action_highlight = function( id, d, grid_widget, e ){
 
 
 
+Provi.Bio.AtomSelection.AtomindexParamsWidget = function(params){
+    Provi.Widget.ParamsWidget.call( this, params );
+}
+Provi.Bio.AtomSelection.AtomindexParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
+    params_dict: {
+        filter: { 'default': "", type: "str" }
+    }
+});
 
 Provi.Bio.AtomSelection.AtomindexDatalist2 = function(params){
     //Provi.Bio.AtomSelection.SelectionDatalist.call( this, params );
@@ -110,7 +118,7 @@ Provi.Bio.AtomSelection.AtomindexDatalist2 = function(params){
 Provi.Bio.AtomSelection.AtomindexDatalist2.prototype = Utils.extend(Provi.Data.Datalist2, {
     type: "AtomindexDatalist",
     jspt_url: "../data/jmol_script/atomsele.jspt", 
-    // params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
+    params_object: Provi.Bio.AtomSelection.AtomindexParamsWidget,
     selection: function(id){
         console.log("atomIndex="+id);
         return "atomIndex="+id;
@@ -129,7 +137,12 @@ Provi.Bio.AtomSelection.AtomindexDatalist2.prototype = Utils.extend(Provi.Data.D
         this.displayed = row[10];
     },
     load_data: function( from, to, sortcol, sortdir ){
-        var selection = "*";
+        if( _.isNaN(from) || _.isNaN(to) ){
+            console.log( from, to, "from or is NaN" );
+            console.log( "load_data failed", from, to, sortcol, sortdir );
+            return null;
+        }
+        var selection = this.filter || "*";
         var props = [
             "group", "resno", "chain", "atomName",
             "file", "model", "selected", "temperature", "color"
@@ -521,17 +534,6 @@ Provi.Bio.AtomSelection.SelectionDatalist.prototype = Utils.extend(Provi.Data.Da
             property +
         "</span>");
         return $property;
-    }
-});
-
-
-Provi.Bio.AtomSelection.AtomindexParamsWidget = function(params){
-    Provi.Widget.ParamsWidget.call( this, params );
-}
-Provi.Bio.AtomSelection.AtomindexParamsWidget.prototype = Utils.extend(Provi.Widget.ParamsWidget, {
-    params_dict: {
-        property: { 'default': "", type: "select",  options: jmol_properties },
-        sort: { 'default': "", type: "select", options: jmol_properties }
     }
 });
 
