@@ -650,9 +650,10 @@ Provi.Jmol.JmolWidget = function(params){
 
         this.datalist_list2 = [];
         var datalist_classes2 = [
+            Provi.Bio.AtomSelection.AtomindexDatalist2,
             Provi.Bio.AtomSelection.ModelindexDatalist2,
             Provi.Bio.AtomSelection.GroupindexDatalist2,
-            Provi.Bio.AtomSelection.AtomindexDatalist2,
+            
             Provi.Bio.AtomSelection.VariableDatalist2,
             Provi.Bio.Isosurface.IsosurfaceDatalist2,
         ];
@@ -664,7 +665,7 @@ Provi.Jmol.JmolWidget = function(params){
 
         this.grid_widget2 = new Provi.Widget.Grid.GridWidget2({
             parent_id: Provi.defaults.dom_parent_ids.SELECTION_WIDGET,
-            datalist: this.datalist_list2[4],
+            datalist: this.datalist_list2[2],
             datalist_list: "all"
         });
 

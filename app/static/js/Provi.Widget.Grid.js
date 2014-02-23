@@ -328,8 +328,8 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
 
         var self = this;
         this.elm('update').button().click( _.bind( this.update_grid, this ) );
-        this.elm('calc').button().click( function(){ self.datalist.calculate() } );
-        //this.elm('init').button().click( function(){ self.datalist._init( self ) } );
+        this.elm('calc').button().click( function(){ self.datalist.calculate(); } );
+        //this.elm('init').button().click( function(){ self.datalist._init( self ); } );
         this.elm('init').button().click( _.bind( this.create_grid, this ) );
         
         Provi.Widget.Widget.prototype.init.call(this);
@@ -389,6 +389,7 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
 
         grid.onViewportChanged.subscribe(function (e, args) {
             var vp = grid.getViewport();
+            console.log("onViewportChanged", vp, vp.top, vp.bottom );
             loader.ensureData(vp.top, vp.bottom);
         });
 
@@ -425,9 +426,9 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
         this.init_datalist();
     },
     _invalidate: function(){
-        console.log("_invalidate");
         this.loader.clear();
         var vp = this.grid.getViewport();
+        console.log("_invalidate", vp, vp.top, vp.bottom );
         this.loader.ensureData( vp.top, vp.bottom );
     },
     init_datalist: function(){
@@ -438,7 +439,7 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
 
         if( !datalist || !datalist.ready ){
             console.warn( "datalist not ready" );
-            $(datalist).bind("calculate_ready", _.bind( this.init_datalist, this ) );
+            $(this.datalist).one("calculate_ready", _.bind( this.init_datalist, this ) );
             return;
         }
 
@@ -446,6 +447,7 @@ Provi.Widget.Grid.GridWidget2.prototype = Utils.extend(Provi.Widget.Widget, {
         $(datalist).bind('update', _.bind( this.update_grid, this ) );
         $(datalist).bind('invalidate', _.bind( this._invalidate, this ) );
         $(datalist).bind('request_details', _.bind( function(e, id){ this.show_details(id) }, this ) );
+        console.log( "ODNONOSNCSAO", datalist.name );
 
         // params widget
         this.elm("widgets").empty();
@@ -604,6 +606,7 @@ function DatalistModel( params ) {
     }
 
     function ensureData(from, to) {
+        console.log("ensureData", from, to);
         if (from < 0) {
             from = 0;
         }

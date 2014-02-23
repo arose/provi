@@ -442,15 +442,16 @@ Provi.Data.Datalist2.prototype = {
         if( this.applet.loaded ){
             console.info("datalist: applet loaded");
             if( this.jspt_url ){
-                var prevent_cache = '?_id=' + (new Date().getTime());
+                var prevent_cache = '';// '?_id=' + (new Date().getTime());
                 var s = 'script "' + this.jspt_url + '' + prevent_cache + '";';
+                console.log( this.name, s, {}, _.bind( this.set_initialized, this ) );
                 this.applet.script_callback( s, {}, _.bind( this.set_initialized, this ) );
             }else{
                 this.set_initialized();
             }
         }else{
-            console.warn("datalist: applet not loaded");
-            $(this.applet).bind("load", _.bind( this._init, this ))
+            console.warn("datalist: applet not loaded", this.applet);
+            $(this.applet).one("load", _.bind( this._init, this ))
         }
     },
     set_initialized: function(){
