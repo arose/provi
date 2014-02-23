@@ -5,7 +5,13 @@
  */
 
 
-// Once the F matrix is computed, the entry  gives the maximum score among all possible alignments. To compute an alignment that actually gives this score, you start from the bottom right cell, and compare the value with the three possible sources (Match, Insert, and Delete above) to see which it came from. If Match, then  and  are aligned, if Delete, then  is aligned with a gap, and if Insert, then  is aligned with a gap. (In general, more than one choices may have the same value, leading to alternative optimal alignments.)
+// Once the F matrix is computed, the entry  gives the maximum score among all
+// possible alignments. To compute an alignment that actually gives this score,
+// you start from the bottom right cell, and compare the value with the three
+// possible sources (Match, Insert, and Delete above) to see which it came
+// from. If Match, then  and  are aligned, if Delete, then  is aligned with a
+// gap, and if Insert, then  is aligned with a gap. (In general, more than one
+// choices may have the same value, leading to alternative optimal alignments.)
 
   
 
